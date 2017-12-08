@@ -1,3 +1,5 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Java template
 # Compiled class file
 *.class
 
@@ -20,3 +22,28 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Eclipse project files
+.classpath
+.buildpath
+.project
+.settings/
+.mvn/
+
+
+# Intellij project files
+*.iml
+.idea/
+
+# Others
+target/
+bin/
+.git/
+.svn/
+logs/
+
+#static
+node_modules/
+**/assets/
+
+
