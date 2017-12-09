@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.github.liaochong.html2excel.core.style.CellStyleFactory;
+import com.github.liaochong.html2excel.core.style.TdCellStyle;
 import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.TdUtils;
@@ -65,7 +67,7 @@ public class Html2Excel {
     /**
      * tr容器
      */
-    private final List<Tr> TRS = new ArrayList<>();
+    private List<Tr> trContainer;
     /**
      * 最大列数
      */
@@ -74,10 +76,13 @@ public class Html2Excel {
      * 是否使用默认样式
      */
     private boolean useDefaultStyle;
+    /**
+     * 样式容器
+     */
+    private Map<Tag, CellStyle> cellStyleFactoryEnumMap;
 
-    private Map<Tag, CellStyle> cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-
-    private Html2Excel() {
+    private Html2Excel(Document document) {
+        this.document = document;
     }
 
     /**
@@ -87,9 +92,8 @@ public class Html2Excel {
      * @throws Exception 解析异常
      */
     public static Html2Excel readHtml(File htmlFile) throws Exception {
-        Html2Excel html2Excel = new Html2Excel();
-        html2Excel.document = Jsoup.parse(htmlFile, StandardCharsets.UTF_8.displayName());
-        return html2Excel;
+        Document document = Jsoup.parse(htmlFile, StandardCharsets.UTF_8.displayName());
+        return new Html2Excel(document);
     }
 
     /**
@@ -99,6 +103,9 @@ public class Html2Excel {
      * @return Html2Excel
      */
     public Html2Excel addThStyle(CellStyleFactory cellStyleFactory) {
+        if (Objects.isNull(cellStyleFactoryEnumMap)) {
+            cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
+        }
         cellStyleFactoryEnumMap.put(Tag.th, cellStyleFactory.supply(workbook));
         return this;
     }
@@ -110,6 +117,9 @@ public class Html2Excel {
      * @return Html2Excel
      */
     public Html2Excel addTdStyle(CellStyleFactory cellStyleFactory) {
+        if (Objects.isNull(cellStyleFactoryEnumMap)) {
+            cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
+        }
         cellStyleFactoryEnumMap.put(Tag.td, cellStyleFactory.supply(workbook));
         return this;
     }
@@ -137,9 +147,13 @@ public class Html2Excel {
         }
         // 使用默认样式时，加载默认样式
         if (useDefaultStyle) {
+            if (Objects.isNull(cellStyleFactoryEnumMap)) {
+                cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
+            }
             cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
-            cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new ThCellStyle().supply(workbook));
+            cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
         }
+        trContainer = new ArrayList<>();
         for (int i = 0; i < tables.size(); i++) {
             this.processTable(tables.get(i), i);
         }
@@ -152,14 +166,14 @@ public class Html2Excel {
      * @param table 表格
      */
     private void processTable(Element table, int index) {
-        if (CollectionUtils.isNotEmpty(TRS)) {
-            TRS.clear();
+        if (CollectionUtils.isNotEmpty(trContainer)) {
+            trContainer.clear();
         }
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0; i < trs.size(); i++) {
-            Tr trContainer = new Tr(i);
-            TRS.add(trContainer);
-            this.processTr(trs.get(i), trContainer);
+            Tr tr = new Tr(i);
+            trContainer.add(tr);
+            this.processTr(trs.get(i), tr);
         }
         Sheet sheet = this.getSheet(table, index);
 
@@ -198,7 +212,7 @@ public class Html2Excel {
         }
         Sheet sheet = workbook.createSheet(sheetName);
         // 创建空白单元格
-        for (int i = 0; i < TRS.size(); i++) {
+        for (int i = 0; i < trContainer.size(); i++) {
             Row row = sheet.createRow(i);
             for (int j = 0; j <= maxCols; j++) {
                 row.createCell(j);
@@ -209,7 +223,7 @@ public class Html2Excel {
 
     /**
      * 处理行元素
-     * 
+     *
      * @param tr tr
      * @param container tr容器
      */
@@ -222,7 +236,7 @@ public class Html2Excel {
 
     /**
      * 处理行内元素
-     * 
+     *
      * @param elements 元素：th、td
      * @param container 元素容器
      * @param isTh 是否为表格标题
@@ -261,8 +275,8 @@ public class Html2Excel {
      * @return 所有单元格
      */
     private List<Td> adjust() {
-        List<Td> allTds = TRS.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
-        TRS.forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
+        List<Td> allTds = trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
+        trContainer.forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
         return allTds;
     }
 
