@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -75,6 +76,9 @@ public class Html2Excel {
      * @param table 表格
      */
     private void processTable(Element table, int index) {
+        if (CollectionUtils.isNotEmpty(TRS)) {
+            TRS.clear();
+        }
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0; i < trs.size(); i++) {
             Tr trContainer = new Tr(i);
