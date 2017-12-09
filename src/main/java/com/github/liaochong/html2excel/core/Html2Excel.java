@@ -3,13 +3,17 @@ package com.github.liaochong.html2excel.core;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -49,6 +53,8 @@ public class Html2Excel {
      * 最大列数
      */
     private int maxCols;
+
+    private Map<Tag, CellStyle> cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
 
     private Html2Excel() {
     }
@@ -104,7 +110,15 @@ public class Html2Excel {
         allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getX(),
                 TdUtils.get(td::getRowSpan, td::getX), td.getY(), TdUtils.get(td::getColSpan, td::getY))));
 
-        allTds.forEach(td -> sheet.getRow(td.getX()).getCell(td.getY()).setCellValue(td.getContent()));
+        allTds.forEach(td -> {
+            Cell cell = sheet.getRow(td.getX()).getCell(td.getY());
+            cell.setCellValue(td.getContent());
+            if (td.isTh()) {
+                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
+            } else {
+                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+            }
+        });
     }
 
     /**
