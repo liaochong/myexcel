@@ -22,6 +22,6 @@ Maven 依赖
 <dependency>
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>0.0.1-beat1</version>
+    <version>0.0.1-beat</version>
 </dependency>
 ```
