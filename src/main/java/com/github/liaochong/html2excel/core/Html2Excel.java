@@ -169,8 +169,7 @@ public class Html2Excel {
      * @param table 表格
      */
     private void processTable(Element table, int index) {
-        maxCols = 0;
-        trContainer = new ArrayList<>();
+        this.initialize();
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0; i < trs.size(); i++) {
             Tr tr = new Tr(i);
@@ -183,6 +182,24 @@ public class Html2Excel {
         allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getX(),
                 TdUtils.get(td::getRowSpan, td::getX), td.getY(), TdUtils.get(td::getColSpan, td::getY))));
 
+        this.setColMaxWidthMap(allTds, sheet);
+        allTds.forEach(td -> this.setCell(td, sheet));
+    }
+
+    /**
+     * 初始化，每解析一个表格需要重新初始化
+     */
+    private void initialize() {
+        maxCols = 0;
+        trContainer = new ArrayList<>();
+    }
+
+    /**
+     * 设置每列最大宽度
+     * 
+     * @param allTds 所有单元格
+     */
+    private void setColMaxWidthMap(List<Td> allTds, Sheet sheet) {
         colMaxWidthMap = new HashMap<>(maxCols);
         allTds.parallelStream().forEach(td -> {
             int width = TdUtils.getStringWidth(td.getContent());
@@ -191,22 +208,27 @@ public class Html2Excel {
                 colMaxWidthMap.put(td.getY(), width);
             }
         });
-
         colMaxWidthMap.forEach((key, value) -> {
             sheet.setColumnWidth(key, value * 2 * 255);
         });
+    }
 
-        allTds.forEach(td -> {
-            Cell cell = sheet.getRow(td.getX()).getCell(td.getY());
-            cell.setCellValue(td.getContent());
-            if (useDefaultStyle) {
-                if (td.isTh()) {
-                    cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
-                } else {
-                    cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
-                }
+    /**
+     * 设置单元格
+     * 
+     * @param td 单元格
+     * @param sheet 单元格所在的sheet
+     */
+    private void setCell(Td td, Sheet sheet) {
+        Cell cell = sheet.getRow(td.getX()).getCell(td.getY());
+        cell.setCellValue(td.getContent());
+        if (useDefaultStyle) {
+            if (td.isTh()) {
+                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
+            } else {
+                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
             }
-        });
+        }
     }
 
     /**
