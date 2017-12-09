@@ -87,13 +87,10 @@ public class Html2Excel {
         Sheet sheet = this.getSheet(table, index);
 
         List<Td> allTds = this.adjust();
-        allTds.forEach(td -> {
-            if (td.getRowSpan() == 0 && td.getColSpan() == 0) {
-                return;
-            }
-            sheet.addMergedRegion(new CellRangeAddress(td.getX(), TdUtils.get(td::getRowSpan, td::getX), td.getY(),
-                    TdUtils.get(td::getColSpan, td::getY)));
-        });
+        Predicate<Td> predicate = td -> td.getRowSpan() > 0 || td.getColSpan() > 0;
+        allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getX(),
+                TdUtils.get(td::getRowSpan, td::getX), td.getY(), TdUtils.get(td::getColSpan, td::getY))));
+
         allTds.forEach(td -> sheet.getRow(td.getX()).getCell(td.getY()).setCellValue(td.getContent()));
     }
 
