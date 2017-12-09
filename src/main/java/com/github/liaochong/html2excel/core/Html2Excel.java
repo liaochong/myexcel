@@ -165,11 +165,11 @@ public class Html2Excel {
             Element element = elements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
             if (StringUtils.isNotBlank(colSpan)) {
-                td.setColSpan(Integer.valueOf(colSpan));
+                td.setColSpan(Integer.parseInt(colSpan));
             }
             String rowSpan = element.attr(Tag.rowspan.name());
             if (StringUtils.isNotBlank(rowSpan)) {
-                td.setRowSpan(Integer.valueOf(rowSpan));
+                td.setRowSpan(Integer.parseInt(rowSpan));
             }
             td.setContent(element.text());
             container.getTds().add(td);
