@@ -24,17 +24,30 @@ import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.TdUtils;
 
 /**
+ * Html2Excel
+ * <p>
+ * 用于将html table解析成excel
+ * </p>
+ *
  * @author liaochong
  * @version 1.0
  */
 public class Html2Excel {
-
+    /**
+     * html解析后文档
+     */
     private Document document;
-
+    /**
+     * excel workbook
+     */
     private Workbook workbook;
-
+    /**
+     * tr容器
+     */
     private final List<Tr> TRS = new ArrayList<>();
-
+    /**
+     * 最大列数
+     */
     private int maxCols;
 
     private Html2Excel() {
