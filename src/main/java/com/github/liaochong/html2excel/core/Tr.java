@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Tr {
+class Tr {
     /**
      * 索引
      */
@@ -23,7 +23,7 @@ public class Tr {
      */
     List<Td> tds = new ArrayList<>();
 
-    public Tr(int index) {
+    Tr(int index) {
         this.index = index;
     }
 }
