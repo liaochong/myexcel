@@ -276,7 +276,10 @@ public class Html2Excel {
      */
     private List<Td> adjust() {
         List<Td> allTds = trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
-        trContainer.forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
+        // 排除第一行
+        Predicate<Tr> predicate = tr -> tr.getIndex() > 0;
+        trContainer.stream().filter(predicate)
+                .forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
         return allTds;
     }
 
