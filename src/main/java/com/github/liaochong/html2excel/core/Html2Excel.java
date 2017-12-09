@@ -24,6 +24,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.github.liaochong.html2excel.core.style.CellStyleFactory;
+import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.TdUtils;
 
@@ -53,6 +55,10 @@ public class Html2Excel {
      * 最大列数
      */
     private int maxCols;
+    /**
+     * 是否使用默认样式
+     */
+    private boolean useDefaultStyle;
 
     private Map<Tag, CellStyle> cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
 
@@ -72,6 +78,38 @@ public class Html2Excel {
     }
 
     /**
+     * 添加标题样式
+     * 
+     * @param cellStyleFactory 样式工厂
+     * @return Html2Excel
+     */
+    public Html2Excel addThStyle(CellStyleFactory cellStyleFactory) {
+        cellStyleFactoryEnumMap.put(Tag.th, cellStyleFactory.supply(workbook));
+        return this;
+    }
+
+    /**
+     * 添加单元格样式
+     * 
+     * @param cellStyleFactory 样式工厂
+     * @return Html2Excel
+     */
+    public Html2Excel addTdStyle(CellStyleFactory cellStyleFactory) {
+        cellStyleFactoryEnumMap.put(Tag.td, cellStyleFactory.supply(workbook));
+        return this;
+    }
+
+    /**
+     * 设置使用默认样式
+     * 
+     * @return Html2Excel
+     */
+    public Html2Excel useDefaultStyle() {
+        useDefaultStyle = true;
+        return this;
+    }
+
+    /**
      * 开始解析
      * 
      * @return Workbook
@@ -81,6 +119,11 @@ public class Html2Excel {
         workbook = new XSSFWorkbook();
         if (tables.isEmpty()) {
             throw NoTablesException.of("There is no any table exist");
+        }
+        // 使用默认样式时，加载默认样式
+        if (useDefaultStyle) {
+            cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
+            cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new ThCellStyle().supply(workbook));
         }
         for (int i = 0; i < tables.size(); i++) {
             this.processTable(tables.get(i), i);
@@ -113,10 +156,12 @@ public class Html2Excel {
         allTds.forEach(td -> {
             Cell cell = sheet.getRow(td.getX()).getCell(td.getY());
             cell.setCellValue(td.getContent());
-            if (td.isTh()) {
-                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
-            } else {
-                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+            if (useDefaultStyle) {
+                if (td.isTh()) {
+                    cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
+                } else {
+                    cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+                }
             }
         });
     }
