@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -95,11 +94,7 @@ public class Html2Excel {
             sheet.addMergedRegion(new CellRangeAddress(td.getX(), TdUtils.get(td::getRowSpan, td::getX), td.getY(),
                     TdUtils.get(td::getColSpan, td::getY)));
         });
-        allTds.forEach(td -> {
-            Row row = sheet.getRow(td.getX());
-            Cell cell = row.getCell(td.getY());
-            cell.setCellValue(td.getContent());
-        });
+        allTds.forEach(td -> sheet.getRow(td.getX()).getCell(td.getY()).setCellValue(td.getContent()));
     }
 
     /**
