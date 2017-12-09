@@ -19,6 +19,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,7 +27,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -80,6 +80,10 @@ public class Html2Excel {
      * 样式容器
      */
     private Map<Tag, CellStyle> cellStyleFactoryEnumMap;
+    /**
+     * 每列最大宽度
+     */
+    private Map<Integer, Integer> colMaxWidthMap;
 
     private Html2Excel(Document document) {
         this.document = document;
@@ -153,7 +157,6 @@ public class Html2Excel {
             cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
             cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
         }
-        trContainer = new ArrayList<>();
         for (int i = 0; i < tables.size(); i++) {
             this.processTable(tables.get(i), i);
         }
@@ -166,21 +169,32 @@ public class Html2Excel {
      * @param table 表格
      */
     private void processTable(Element table, int index) {
-        if (CollectionUtils.isNotEmpty(trContainer)) {
-            trContainer.clear();
-        }
+        maxCols = 0;
+        trContainer = new ArrayList<>();
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0; i < trs.size(); i++) {
             Tr tr = new Tr(i);
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
-        Sheet sheet = this.getSheet(table, index);
-
         List<Td> allTds = this.adjust();
+        Sheet sheet = this.getSheet(table, index);
         Predicate<Td> predicate = td -> td.getRowSpan() > 0 || td.getColSpan() > 0;
         allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getX(),
                 TdUtils.get(td::getRowSpan, td::getX), td.getY(), TdUtils.get(td::getColSpan, td::getY))));
+
+        colMaxWidthMap = new HashMap<>(maxCols);
+        allTds.parallelStream().forEach(td -> {
+            int width = TdUtils.getStringWidth(td.getContent());
+            Integer maxWidth = colMaxWidthMap.get(td.getY());
+            if (Objects.isNull(maxWidth) || maxWidth < width) {
+                colMaxWidthMap.put(td.getY(), width);
+            }
+        });
+
+        colMaxWidthMap.forEach((key, value) -> {
+            sheet.setColumnWidth(key, value * 2 * 255);
+        });
 
         allTds.forEach(td -> {
             Cell cell = sheet.getRow(td.getX()).getCell(td.getY());
@@ -251,10 +265,6 @@ public class Html2Excel {
             td.setX(container.getIndex());
             td.setY(i);
 
-            if (i > maxCols) {
-                maxCols = i;
-            }
-
             Element element = elements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
             if (StringUtils.isNotBlank(colSpan)) {
@@ -280,6 +290,7 @@ public class Html2Excel {
         Predicate<Tr> predicate = tr -> tr.getIndex() > 0;
         trContainer.stream().filter(predicate)
                 .forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
+        maxCols = allTds.stream().mapToInt(Td::getY).max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         return allTds;
     }
 
