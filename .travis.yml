@@ -1,0 +1,16 @@
+language: java
+sudo: false
+
+jdk:
+  - oraclejdk9
+  - oraclejdk8
+  - openjdk8
+
+before_script:
+- ./mvnw install -q -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
+
+script: ./mvnw install -q -Dmaven.test.redirectTestOutputToFile=true
+
+after_success:
+  - chmod -R 777 ./travis/after_success.sh
+  - ./travis/after_success.sh
