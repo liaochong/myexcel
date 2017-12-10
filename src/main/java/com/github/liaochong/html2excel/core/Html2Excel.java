@@ -22,11 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.CharEncoding;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -208,9 +208,7 @@ public class Html2Excel {
                 colMaxWidthMap.put(td.getCol(), width);
             }
         });
-        colMaxWidthMap.forEach((key, value) -> {
-            sheet.setColumnWidth(key, value * 2 * 255);
-        });
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 245));
     }
 
     /**
@@ -285,7 +283,11 @@ public class Html2Excel {
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(container.getIndex());
-            td.setCol(i);
+            if (i > 0 && container.getTds().get(i - 1).getColSpan() > 1) {
+                td.setCol(i + container.getTds().get(i - 1).getColSpan() - 1);
+            } else {
+                td.setCol(i);
+            }
 
             Element element = elements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
@@ -307,32 +309,41 @@ public class Html2Excel {
      * @return 所有单元格
      */
     private List<Td> adjust() {
-        List<Td> allTds = trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
+        maxCols = trContainer.stream().mapToInt(
+                tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol)).max().getAsInt())
+                .max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         // 排除第一行
-        Predicate<Tr> predicate = tr -> tr.getIndex() > 0;
-        trContainer.stream().filter(predicate)
-                .forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
-        maxCols = allTds.stream().mapToInt(Td::getCol).max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
-        return allTds;
+        for (int i = 1; i < trContainer.size(); i++) {
+            int index = i;
+            trContainer.get(i).getTds().forEach(td -> this.adjust(td, index));
+        }
+        return trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
     }
 
     /**
      * 调整表格单元格位置
      * 
-     * @param allTds 所有单元格
-     * @param td 当前单元格
+     * @param td 单元格
+     * @param trIndex 单元格所在行索引
      */
-    private void adjust(List<Td> allTds, Td td) {
-        Predicate<Td> predicate = prevTd -> prevTd.getRow() < td.getRow() && prevTd.getCol() == td.getCol()
-                && TdUtils.get(prevTd::getRowSpan, prevTd::getRow) >= td.getRow();
-        Optional<Td> findResult = allTds.stream().filter(predicate).findAny();
-        if (!findResult.isPresent()) {
+    private void adjust(Td td, int trIndex) {
+        Predicate<Tr> predicate = tr -> tr.getIndex() < trIndex;
+        List<Td> tds = trContainer.stream().filter(predicate).flatMap(tr -> tr.getTds().stream())
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(tds)) {
             return;
         }
-        Td sameColTd = findResult.get();
-        int prevTdColSpan = sameColTd.getColSpan();
-        int realY = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
-        td.setCol(realY);
+        for (int i = 0; i < maxCols; i++) {
+            Td td1 = tds.stream().filter(prevTd -> prevTd.getCol() <= td.getCol()
+                    && TdUtils.get(prevTd::getRowSpan, prevTd::getRow) >= td.getRow()).findFirst().orElse(null);
+            if (Objects.isNull(td1)) {
+                return;
+            }
+            int prevTdColSpan = td1.getColSpan();
+            int realCol = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
+            td.setCol(realCol);
+            tds.remove(td1);
+        }
     }
 
     private enum Tag {
