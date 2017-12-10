@@ -16,7 +16,6 @@
 package com.github.liaochong.html2excel.core;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -27,6 +26,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -96,7 +96,7 @@ public class Html2Excel {
      * @throws Exception 解析异常
      */
     public static Html2Excel readHtml(File htmlFile) throws Exception {
-        Document document = Jsoup.parse(htmlFile, StandardCharsets.UTF_8.displayName());
+        Document document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
         return new Html2Excel(document);
     }
 
