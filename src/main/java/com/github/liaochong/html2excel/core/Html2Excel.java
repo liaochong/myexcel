@@ -226,7 +226,7 @@ public class Html2Excel {
                 colMaxWidthMap.put(td.getCol(), width);
             }
         });
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 245));
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 235));
     }
 
     /**
