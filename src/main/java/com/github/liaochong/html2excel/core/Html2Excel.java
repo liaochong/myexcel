@@ -238,11 +238,26 @@ public class Html2Excel {
     private void setCell(Td td, Sheet sheet) {
         Cell cell = sheet.getRow(td.getRow()).getCell(td.getCol());
         cell.setCellValue(td.getContent());
-        if (useDefaultStyle) {
-            if (td.isTh()) {
-                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
-            } else {
-                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+
+        // 设置单元格样式
+        int boundCol = td.getCol();
+        int boundRow = td.getRow();
+        if (td.getColSpan() > 0) {
+            boundCol = td.getCol() + td.getColSpan() - 1;
+        }
+        if (td.getRowSpan() > 0) {
+            boundRow = td.getRow() + td.getRowSpan() - 1;
+        }
+        for (int i = td.getRow(); i <= boundRow; i++) {
+            for (int j = td.getCol(); j <= boundCol; j++) {
+                cell = sheet.getRow(i).getCell(j);
+                if (useDefaultStyle) {
+                    if (td.isTh()) {
+                        cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
+                    } else {
+                        cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+                    }
+                }
             }
         }
     }
