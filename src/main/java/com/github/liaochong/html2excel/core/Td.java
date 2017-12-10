@@ -12,13 +12,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Td {
     /**
-     * x坐标
+     * 所在行
      */
-    int x;
+    int row;
     /**
-     * y坐标
+     * 所在列
      */
-    int y;
+    int col;
     /**
      * 跨行数
      */

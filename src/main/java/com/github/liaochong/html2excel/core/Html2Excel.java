@@ -179,8 +179,8 @@ public class Html2Excel {
         List<Td> allTds = this.adjust();
         Sheet sheet = this.getSheet(table, index);
         Predicate<Td> predicate = td -> td.getRowSpan() > 0 || td.getColSpan() > 0;
-        allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getX(),
-                TdUtils.get(td::getRowSpan, td::getX), td.getY(), TdUtils.get(td::getColSpan, td::getY))));
+        allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getRow(),
+                TdUtils.get(td::getRowSpan, td::getRow), td.getCol(), TdUtils.get(td::getColSpan, td::getCol))));
 
         this.setColMaxWidthMap(allTds, sheet);
         allTds.forEach(td -> this.setCell(td, sheet));
@@ -203,9 +203,9 @@ public class Html2Excel {
         colMaxWidthMap = new HashMap<>(maxCols);
         allTds.parallelStream().forEach(td -> {
             int width = TdUtils.getStringWidth(td.getContent());
-            Integer maxWidth = colMaxWidthMap.get(td.getY());
+            Integer maxWidth = colMaxWidthMap.get(td.getCol());
             if (Objects.isNull(maxWidth) || maxWidth < width) {
-                colMaxWidthMap.put(td.getY(), width);
+                colMaxWidthMap.put(td.getCol(), width);
             }
         });
         colMaxWidthMap.forEach((key, value) -> {
@@ -220,7 +220,7 @@ public class Html2Excel {
      * @param sheet 单元格所在的sheet
      */
     private void setCell(Td td, Sheet sheet) {
-        Cell cell = sheet.getRow(td.getX()).getCell(td.getY());
+        Cell cell = sheet.getRow(td.getRow()).getCell(td.getCol());
         cell.setCellValue(td.getContent());
         if (useDefaultStyle) {
             if (td.isTh()) {
@@ -284,8 +284,8 @@ public class Html2Excel {
         for (int i = 0; i < elements.size(); i++) {
             Td td = new Td();
             td.setTh(isTh);
-            td.setX(container.getIndex());
-            td.setY(i);
+            td.setRow(container.getIndex());
+            td.setCol(i);
 
             Element element = elements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
@@ -312,7 +312,7 @@ public class Html2Excel {
         Predicate<Tr> predicate = tr -> tr.getIndex() > 0;
         trContainer.stream().filter(predicate)
                 .forEach(tr -> tr.getTds().parallelStream().forEach(td -> this.adjust(allTds, td)));
-        maxCols = allTds.stream().mapToInt(Td::getY).max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
+        maxCols = allTds.stream().mapToInt(Td::getCol).max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         return allTds;
     }
 
@@ -323,16 +323,16 @@ public class Html2Excel {
      * @param td 当前单元格
      */
     private void adjust(List<Td> allTds, Td td) {
-        Predicate<Td> predicate = prevTd -> prevTd.getX() < td.getX() && prevTd.getY() == td.getY()
-                && TdUtils.get(prevTd::getRowSpan, prevTd::getX) >= td.getX();
+        Predicate<Td> predicate = prevTd -> prevTd.getRow() < td.getRow() && prevTd.getCol() == td.getCol()
+                && TdUtils.get(prevTd::getRowSpan, prevTd::getRow) >= td.getRow();
         Optional<Td> findResult = allTds.stream().filter(predicate).findAny();
         if (!findResult.isPresent()) {
             return;
         }
         Td sameColTd = findResult.get();
         int prevTdColSpan = sameColTd.getColSpan();
-        int realY = prevTdColSpan > 0 ? td.getY() + prevTdColSpan : td.getY() + 1;
-        td.setY(realY);
+        int realY = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
+        td.setCol(realY);
     }
 
     private enum Tag {
