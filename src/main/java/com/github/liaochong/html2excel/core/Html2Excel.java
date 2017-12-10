@@ -310,7 +310,7 @@ public class Html2Excel {
      */
     private List<Td> adjust() {
         maxCols = trContainer.stream().mapToInt(
-                tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol)).max().getAsInt())
+                tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol)).max().orElse(0))
                 .max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         // 排除第一行
         for (int i = 1; i < trContainer.size(); i++) {
