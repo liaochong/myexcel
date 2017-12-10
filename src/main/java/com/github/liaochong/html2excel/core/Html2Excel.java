@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -69,9 +70,9 @@ public class Html2Excel {
      */
     private List<Tr> trContainer;
     /**
-     * 最大列数
+     * 总列数
      */
-    private int maxCols;
+    private int totalCols;
     /**
      * 是否使用默认样式
      */
@@ -139,15 +140,32 @@ public class Html2Excel {
     }
 
     /**
+     * 设置workbook类型
+     * 
+     * @param workbookType 工作簿类型
+     * @return Html2Excel
+     */
+    public Html2Excel type(WorkbookType workbookType) {
+        if (WorkbookType.isXls(workbookType)) {
+            workbook = new HSSFWorkbook();
+        } else {
+            workbook = new XSSFWorkbook();
+        }
+        return this;
+    }
+
+    /**
      * 开始解析
      * 
      * @return Workbook
      */
     public Workbook parse() {
         Elements tables = document.getElementsByTag(Tag.table.name());
-        workbook = new XSSFWorkbook();
         if (tables.isEmpty()) {
             throw NoTablesException.of("There is no any table exist");
+        }
+        if (Objects.isNull(workbook)) {
+            workbook = new XSSFWorkbook();
         }
         // 使用默认样式时，加载默认样式
         if (useDefaultStyle) {
@@ -165,7 +183,7 @@ public class Html2Excel {
 
     /**
      * 解析每一个table
-     * 
+     *
      * @param table 表格
      */
     private void processTable(Element table, int index) {
@@ -190,17 +208,17 @@ public class Html2Excel {
      * 初始化，每解析一个表格需要重新初始化
      */
     private void initialize() {
-        maxCols = 0;
+        totalCols = 0;
         trContainer = new ArrayList<>();
     }
 
     /**
      * 设置每列最大宽度
-     * 
+     *
      * @param allTds 所有单元格
      */
     private void setColMaxWidthMap(List<Td> allTds, Sheet sheet) {
-        colMaxWidthMap = new HashMap<>(maxCols);
+        colMaxWidthMap = new HashMap<>(totalCols);
         allTds.parallelStream().forEach(td -> {
             int width = TdUtils.getStringWidth(td.getContent());
             Integer maxWidth = colMaxWidthMap.get(td.getCol());
@@ -213,7 +231,7 @@ public class Html2Excel {
 
     /**
      * 设置单元格
-     * 
+     *
      * @param td 单元格
      * @param sheet 单元格所在的sheet
      */
@@ -248,7 +266,7 @@ public class Html2Excel {
         // 创建空白单元格
         for (int i = 0; i < trContainer.size(); i++) {
             Row row = sheet.createRow(i);
-            for (int j = 0; j <= maxCols; j++) {
+            for (int j = 0; j <= totalCols; j++) {
                 row.createCell(j);
             }
         }
@@ -309,7 +327,7 @@ public class Html2Excel {
      * @return 所有单元格
      */
     private List<Td> adjust() {
-        maxCols = trContainer.stream().mapToInt(
+        totalCols = trContainer.stream().mapToInt(
                 tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol)).max().orElse(0))
                 .max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         // 排除第一行
@@ -322,7 +340,7 @@ public class Html2Excel {
 
     /**
      * 调整表格单元格位置
-     * 
+     *
      * @param td 单元格
      * @param trIndex 单元格所在行索引
      */
@@ -333,7 +351,7 @@ public class Html2Excel {
         if (CollectionUtils.isEmpty(tds)) {
             return;
         }
-        for (int i = 0; i < maxCols; i++) {
+        for (int i = 0; i < totalCols; i++) {
             Td td1 = tds.stream().filter(prevTd -> prevTd.getCol() <= td.getCol()
                     && TdUtils.get(prevTd::getRowSpan, prevTd::getRow) >= td.getRow()).findFirst().orElse(null);
             if (Objects.isNull(td1)) {
