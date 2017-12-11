@@ -312,13 +312,15 @@ public class Html2Excel {
         if (elements.isEmpty()) {
             return;
         }
+        Predicate<Td> predicate = td -> td.getColSpan() > 0;
         for (int i = 0; i < elements.size(); i++) {
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(container.getIndex());
             // 除每行第一个单元格外，修正含跨列的单元格位置
-            if (i > 0 && container.getTds().get(i - 1).getColSpan() > 1) {
-                td.setCol(i + container.getTds().get(i - 1).getColSpan() - 1);
+            if (i > 0) {
+                int shift = container.getTds().stream().filter(predicate).mapToInt(t -> t.getColSpan() - 1).sum();
+                td.setCol(i + shift);
             } else {
                 td.setCol(i);
             }
