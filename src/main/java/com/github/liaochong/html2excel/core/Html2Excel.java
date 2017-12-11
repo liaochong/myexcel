@@ -196,9 +196,6 @@ public class Html2Excel {
         }
         List<Td> allTds = this.adjust();
         Sheet sheet = this.getSheet(table, index);
-        Predicate<Td> predicate = td -> td.getRowSpan() > 0 || td.getColSpan() > 0;
-        allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getRow(),
-                TdUtils.get(td::getRowSpan, td::getRow), td.getCol(), TdUtils.get(td::getColSpan, td::getCol))));
 
         this.setColMaxWidthMap(allTds, sheet);
         allTds.forEach(td -> this.setCell(td, sheet));
@@ -259,6 +256,10 @@ public class Html2Excel {
                     }
                 }
             }
+        }
+        if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
+            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), TdUtils.get(td::getRowSpan, td::getRow),
+                    td.getCol(), TdUtils.get(td::getColSpan, td::getCol)));
         }
     }
 
