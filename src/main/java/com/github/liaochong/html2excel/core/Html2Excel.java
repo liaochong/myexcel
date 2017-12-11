@@ -196,9 +196,6 @@ public class Html2Excel {
         }
         List<Td> allTds = this.adjust();
         Sheet sheet = this.getSheet(table, index);
-        Predicate<Td> predicate = td -> td.getRowSpan() > 0 || td.getColSpan() > 0;
-        allTds.stream().filter(predicate).forEach(td -> sheet.addMergedRegion(new CellRangeAddress(td.getRow(),
-                TdUtils.get(td::getRowSpan, td::getRow), td.getCol(), TdUtils.get(td::getColSpan, td::getCol))));
 
         this.setColMaxWidthMap(allTds, sheet);
         allTds.forEach(td -> this.setCell(td, sheet));
@@ -260,6 +257,10 @@ public class Html2Excel {
                 }
             }
         }
+        if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
+            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), TdUtils.get(td::getRowSpan, td::getRow),
+                    td.getCol(), TdUtils.get(td::getColSpan, td::getCol)));
+        }
     }
 
     /**
@@ -312,12 +313,15 @@ public class Html2Excel {
         if (elements.isEmpty()) {
             return;
         }
+        Predicate<Td> predicate = td -> td.getColSpan() > 0;
         for (int i = 0; i < elements.size(); i++) {
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(container.getIndex());
-            if (i > 0 && container.getTds().get(i - 1).getColSpan() > 1) {
-                td.setCol(i + container.getTds().get(i - 1).getColSpan() - 1);
+            // 除每行第一个单元格外，修正含跨列的单元格位置
+            if (i > 0) {
+                int shift = container.getTds().stream().filter(predicate).mapToInt(t -> t.getColSpan() - 1).sum();
+                td.setCol(i + shift);
             } else {
                 td.setCol(i);
             }
