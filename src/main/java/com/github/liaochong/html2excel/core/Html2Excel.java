@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -85,6 +87,14 @@ public class Html2Excel {
      * 每列最大宽度
      */
     private Map<Integer, Integer> colMaxWidthMap;
+    /**
+     * future
+     */
+    private CompletableFuture<Void> workbookFuture;
+    /**
+     * sheet容器
+     */
+    private Map<Integer, Sheet> sheetMap;
 
     private Html2Excel(Document document) {
         this.document = document;
@@ -164,21 +174,45 @@ public class Html2Excel {
         if (tables.isEmpty()) {
             throw NoTablesException.of("There is no any table exist");
         }
-        if (Objects.isNull(workbook)) {
-            workbook = new XSSFWorkbook();
-        }
-        // 使用默认样式时，加载默认样式
-        if (useDefaultStyle) {
-            if (Objects.isNull(cellStyleFactoryEnumMap)) {
-                cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-            }
-            cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
-            cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
-        }
+        createWorkbook(tables);
         for (int i = 0; i < tables.size(); i++) {
             this.processTable(tables.get(i), i);
         }
         return workbook;
+    }
+
+    /**
+     * 创建workbook，因为创建workbook比较耗时，异步处理
+     * 
+     * @param tables 表格集合
+     */
+    private void createWorkbook(Elements tables) {
+        workbookFuture = CompletableFuture.runAsync(() -> {
+            if (Objects.isNull(workbook)) {
+                workbook = new XSSFWorkbook();
+            }
+            // 使用默认样式时，加载默认样式
+            if (useDefaultStyle) {
+                if (Objects.isNull(cellStyleFactoryEnumMap)) {
+                    cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
+                }
+                cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
+                cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
+            }
+            sheetMap = new ConcurrentHashMap<>(tables.size());
+            for (int i = 0; i < tables.size(); i++) {
+                Element table = tables.get(i);
+                Elements captions = table.getElementsByTag(Tag.caption.name());
+                String sheetName;
+                if (!captions.isEmpty()) {
+                    sheetName = captions.first().text();
+                } else {
+                    sheetName = "sheet" + (i + 1);
+                }
+                Sheet sheet = workbook.createSheet(sheetName);
+                sheetMap.put(i, sheet);
+            }
+        });
     }
 
     /**
@@ -195,8 +229,9 @@ public class Html2Excel {
             this.processTr(trs.get(i), tr);
         }
         List<Td> allTds = this.adjust();
-        Sheet sheet = this.getSheet(table, index);
+        this.createCells(index);
 
+        Sheet sheet = sheetMap.get(index);
         this.setColMaxWidthMap(allTds, sheet);
         allTds.forEach(td -> this.setCell(td, sheet));
     }
@@ -264,29 +299,20 @@ public class Html2Excel {
     }
 
     /**
-     * 获取sheet
+     * 创建单元格
      *
-     * @param table 表格
-     * @param index 索引
-     * @return Sheet
+     * @param index 表格所在索引
      */
-    private Sheet getSheet(final Element table, int index) {
-        Elements captions = table.getElementsByTag(Tag.caption.name());
-        String sheetName;
-        if (!captions.isEmpty()) {
-            sheetName = captions.first().text();
-        } else {
-            sheetName = "sheet" + ++index;
-        }
-        Sheet sheet = workbook.createSheet(sheetName);
+    private void createCells(int index) {
+        workbookFuture.join();
         // 创建空白单元格
+        Sheet sheet = sheetMap.get(index);
         for (int i = 0; i < trContainer.size(); i++) {
             Row row = sheet.createRow(i);
             for (int j = 0; j <= totalCols; j++) {
                 row.createCell(j);
             }
         }
-        return sheet;
     }
 
     /**
