@@ -272,14 +272,9 @@ public class Html2Excel {
         cell.setCellValue(td.getContent());
 
         // 设置单元格样式
-        int boundCol = td.getCol();
-        int boundRow = td.getRow();
-        if (td.getColSpan() > 0) {
-            boundCol = td.getCol() + td.getColSpan() - 1;
-        }
-        if (td.getRowSpan() > 0) {
-            boundRow = td.getRow() + td.getRowSpan() - 1;
-        }
+        int boundCol = TdUtils.get(td::getColSpan, td::getCol);
+        int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
+
         for (int i = td.getRow(); i <= boundRow; i++) {
             for (int j = td.getCol(); j <= boundCol; j++) {
                 cell = sheet.getRow(i).getCell(j);
@@ -293,8 +288,7 @@ public class Html2Excel {
             }
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
-            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), TdUtils.get(td::getRowSpan, td::getRow),
-                    td.getCol(), TdUtils.get(td::getColSpan, td::getCol)));
+            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), boundRow, td.getCol(), boundCol));
         }
     }
 
@@ -323,9 +317,9 @@ public class Html2Excel {
      */
     private void processTr(Element tr, Tr container) {
         Elements ths = tr.getElementsByTag(Tag.th.name());
-        this.processing(ths, container, true);
+        this.processTd(ths, container, true);
         Elements tds = tr.getElementsByTag(Tag.td.name());
-        this.processing(tds, container, false);
+        this.processTd(tds, container, false);
     }
 
     /**
@@ -335,7 +329,7 @@ public class Html2Excel {
      * @param container 元素容器
      * @param isTh 是否为表格标题
      */
-    private void processing(Elements elements, Tr container, boolean isTh) {
+    private void processTd(Elements elements, Tr container, boolean isTh) {
         if (elements.isEmpty()) {
             return;
         }
