@@ -316,6 +316,7 @@ public class Html2Excel {
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(container.getIndex());
+            // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0 && container.getTds().get(i - 1).getColSpan() > 1) {
                 td.setCol(i + container.getTds().get(i - 1).getColSpan() - 1);
             } else {
