@@ -350,7 +350,6 @@ public class Html2Excel {
             } else {
                 td.setCol(i);
             }
-
             Element element = elements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
             if (StringUtils.isNotBlank(colSpan)) {
@@ -362,7 +361,7 @@ public class Html2Excel {
             }
             td.setContent(element.text());
             container.getTds().add(td);
-
+            // 设置每列最宽宽度
             int width = TdUtils.getStringWidth(td.getContent());
             Integer maxWidth = colMaxWidthMap.get(td.getCol());
             if (Objects.isNull(maxWidth) || maxWidth < width) {
