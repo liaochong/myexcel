@@ -18,13 +18,13 @@ package com.github.liaochong.html2excel.core;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.CharEncoding;
@@ -211,6 +211,22 @@ public class Html2Excel {
                 }
                 Sheet sheet = workbook.createSheet(sheetName);
                 sheetMap.put(i, sheet);
+
+                Elements trs = table.getElementsByTag(Tag.tr.name());
+                int cloNum = trs.parallelStream().mapToInt(tr -> {
+                    Elements tds = tr.children();
+                    return tds.stream().mapToInt(td -> {
+                        String colSpan = td.attr(Tag.colspan.name());
+                        return StringUtils.isNotBlank(colSpan) ? Integer.parseInt(colSpan) : 1;
+                    }).sum();
+                }).max().orElse(0);
+
+                for (int j = 0; j < trs.size(); j++) {
+                    Row row = sheet.createRow(j);
+                    for (int k = 0; k <= cloNum; k++) {
+                        row.createCell(k);
+                    }
+                }
             }
         });
     }
@@ -228,12 +244,14 @@ public class Html2Excel {
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
+        this.getTotalCols();
         List<Td> allTds = this.adjust();
-        this.createCells(index);
+        this.setColMaxWidthMap(allTds);
 
+        workbookFuture.join();
         Sheet sheet = sheetMap.get(index);
-        this.setColMaxWidthMap(allTds, sheet);
         allTds.forEach(td -> this.setCell(td, sheet));
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 235));
     }
 
     /**
@@ -245,12 +263,22 @@ public class Html2Excel {
     }
 
     /**
+     * 获取总列数
+     */
+    private void getTotalCols() {
+        ToIntFunction<Tr> function = tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol))
+                .max().orElse(0);
+        totalCols = trContainer.parallelStream().mapToInt(function).max()
+                .orElseThrow(() -> new NoTablesException("不存在任何单元格"));
+    }
+
+    /**
      * 设置每列最大宽度
      *
      * @param allTds 所有单元格
      */
-    private void setColMaxWidthMap(List<Td> allTds, Sheet sheet) {
-        colMaxWidthMap = new HashMap<>(totalCols);
+    private void setColMaxWidthMap(List<Td> allTds) {
+        colMaxWidthMap = new ConcurrentHashMap<>(totalCols);
         allTds.parallelStream().forEach(td -> {
             int width = TdUtils.getStringWidth(td.getContent());
             Integer maxWidth = colMaxWidthMap.get(td.getCol());
@@ -258,7 +286,6 @@ public class Html2Excel {
                 colMaxWidthMap.put(td.getCol(), width);
             }
         });
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 235));
     }
 
     /**
@@ -289,23 +316,6 @@ public class Html2Excel {
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), boundRow, td.getCol(), boundCol));
-        }
-    }
-
-    /**
-     * 创建单元格
-     *
-     * @param index 表格所在索引
-     */
-    private void createCells(int index) {
-        workbookFuture.join();
-        // 创建空白单元格
-        Sheet sheet = sheetMap.get(index);
-        for (int i = 0; i < trContainer.size(); i++) {
-            Row row = sheet.createRow(i);
-            for (int j = 0; j <= totalCols; j++) {
-                row.createCell(j);
-            }
         }
     }
 
@@ -366,9 +376,6 @@ public class Html2Excel {
      * @return 所有单元格
      */
     private List<Td> adjust() {
-        totalCols = trContainer.stream().mapToInt(
-                tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol)).max().orElse(0))
-                .max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         // 排除第一行
         for (int i = 1; i < trContainer.size(); i++) {
             int index = i;
