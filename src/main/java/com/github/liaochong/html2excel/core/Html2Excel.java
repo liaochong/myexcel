@@ -169,14 +169,18 @@ public class Html2Excel {
      * 
      * @return Workbook
      */
-    public Workbook parse() {
+    public Workbook build() {
         Elements tables = document.getElementsByTag(Tag.table.name());
         if (tables.isEmpty()) {
             throw NoTablesException.of("There is no any table exist");
         }
+        // 1、创建工作簿
         createWorkbook(tables);
         for (int i = 0; i < tables.size(); i++) {
-            this.processTable(tables.get(i), i);
+            // 2、处理解析表格
+            List<Td> tds = this.processTable(tables.get(i));
+            // 3、创建excel
+            this.build(i, tds);
         }
         return workbook;
     }
@@ -236,7 +240,7 @@ public class Html2Excel {
      *
      * @param table 表格
      */
-    private void processTable(Element table, int index) {
+    private List<Td> processTable(Element table) {
         this.initialize();
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0; i < trs.size(); i++) {
@@ -245,11 +249,17 @@ public class Html2Excel {
             this.processTr(trs.get(i), tr);
         }
         this.getTotalCols();
-        List<Td> allTds = this.adjust();
-        this.setColMaxWidthMap(allTds);
+        return this.adjust();
+    }
 
+    /**
+     * 创建
+     * 
+     * @param tableIndex 表格索引
+     */
+    private void build(int tableIndex, List<Td> allTds) {
         workbookFuture.join();
-        Sheet sheet = sheetMap.get(index);
+        Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
         colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 235));
     }
@@ -260,6 +270,7 @@ public class Html2Excel {
     private void initialize() {
         totalCols = 0;
         trContainer = new ArrayList<>();
+        colMaxWidthMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -270,22 +281,6 @@ public class Html2Excel {
                 .max().orElse(0);
         totalCols = trContainer.parallelStream().mapToInt(function).max()
                 .orElseThrow(() -> new NoTablesException("不存在任何单元格"));
-    }
-
-    /**
-     * 设置每列最大宽度
-     *
-     * @param allTds 所有单元格
-     */
-    private void setColMaxWidthMap(List<Td> allTds) {
-        colMaxWidthMap = new ConcurrentHashMap<>(totalCols);
-        allTds.parallelStream().forEach(td -> {
-            int width = TdUtils.getStringWidth(td.getContent());
-            Integer maxWidth = colMaxWidthMap.get(td.getCol());
-            if (Objects.isNull(maxWidth) || maxWidth < width) {
-                colMaxWidthMap.put(td.getCol(), width);
-            }
-        });
     }
 
     /**
@@ -343,14 +338,14 @@ public class Html2Excel {
         if (elements.isEmpty()) {
             return;
         }
-        Predicate<Td> predicate = td -> td.getColSpan() > 0;
         for (int i = 0; i < elements.size(); i++) {
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(container.getIndex());
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
-                int shift = container.getTds().stream().filter(predicate).mapToInt(t -> t.getColSpan() - 1).sum();
+                int shift = container.getTds().stream().filter(t -> t.getColSpan() > 0)
+                        .mapToInt(t -> t.getColSpan() - 1).sum();
                 td.setCol(i + shift);
             } else {
                 td.setCol(i);
@@ -367,6 +362,12 @@ public class Html2Excel {
             }
             td.setContent(element.text());
             container.getTds().add(td);
+
+            int width = TdUtils.getStringWidth(td.getContent());
+            Integer maxWidth = colMaxWidthMap.get(td.getCol());
+            if (Objects.isNull(maxWidth) || maxWidth < width) {
+                colMaxWidthMap.put(td.getCol(), width);
+            }
         }
     }
 
