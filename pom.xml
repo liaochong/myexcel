@@ -62,6 +62,12 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.23</version>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <licenses>
