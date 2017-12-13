@@ -261,7 +261,7 @@ public class Html2Excel {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 235));
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value << 9));
     }
 
     /**
