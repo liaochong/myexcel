@@ -90,7 +90,7 @@ public class FreemarkerExcelBuilder implements ExcelBuilder {
     @Override
     public Workbook build(Map<String, Object> data) {
         try {
-            File htmlFile = File.createTempFile("temp" + UUID.randomUUID(), ".html");
+            File htmlFile = File.createTempFile("freemarker_temp_" + UUID.randomUUID(), ".html");
             Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), CharEncoding.UTF_8));
             template.process(data, out);
             Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile, htmlToExcelFactory).build();
