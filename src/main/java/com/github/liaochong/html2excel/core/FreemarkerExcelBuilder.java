@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.codec.CharEncoding;
@@ -15,6 +16,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.Version;
 
 /**
  * freemarker的excel创建者
@@ -25,6 +27,8 @@ import freemarker.template.TemplateExceptionHandler;
 public class FreemarkerExcelBuilder implements ExcelBuilder {
 
     private HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+
+    private Version version;
 
     private Template template;
 
@@ -41,13 +45,27 @@ public class FreemarkerExcelBuilder implements ExcelBuilder {
     }
 
     /**
+     * 增加版本设置，若未设置，默认采用版本 Configuration.VERSION_2_3_23
+     * 
+     * @param version 版本
+     * @return FreemarkerExcelBuilder
+     */
+    public FreemarkerExcelBuilder version(Version version) {
+        this.version = version;
+        return this;
+    }
+
+    /**
      * 设置模板信息
      * 
      * @param path 模板路径，相对路径
      */
     @Override
     public ExcelBuilder getTemplate(String path) {
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
+        if (Objects.isNull(version)) {
+            version = Configuration.VERSION_2_3_23;
+        }
+        Configuration cfg = new Configuration(version);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         cfg.setDefaultEncoding(CharEncoding.UTF_8);
 
