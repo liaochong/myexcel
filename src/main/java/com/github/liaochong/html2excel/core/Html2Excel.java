@@ -43,7 +43,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.github.liaochong.html2excel.core.style.CellStyleFactory;
 import com.github.liaochong.html2excel.core.style.TdCellStyle;
 import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
@@ -96,6 +95,9 @@ public class Html2Excel {
      */
     private Map<Integer, Sheet> sheetMap;
 
+    public Html2Excel() {
+    }
+
     private Html2Excel(Document document) {
         this.document = document;
     }
@@ -112,31 +114,16 @@ public class Html2Excel {
     }
 
     /**
-     * 添加标题样式
+     * 读取html
      * 
-     * @param cellStyleFactory 样式工厂
+     * @param htmlFile html文件
+     * @param html2Excel 实例对象
      * @return Html2Excel
+     * @throws Exception 解析异常
      */
-    public Html2Excel addThStyle(CellStyleFactory cellStyleFactory) {
-        if (Objects.isNull(cellStyleFactoryEnumMap)) {
-            cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-        }
-        cellStyleFactoryEnumMap.put(Tag.th, cellStyleFactory.supply(workbook));
-        return this;
-    }
-
-    /**
-     * 添加单元格样式
-     * 
-     * @param cellStyleFactory 样式工厂
-     * @return Html2Excel
-     */
-    public Html2Excel addTdStyle(CellStyleFactory cellStyleFactory) {
-        if (Objects.isNull(cellStyleFactoryEnumMap)) {
-            cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-        }
-        cellStyleFactoryEnumMap.put(Tag.td, cellStyleFactory.supply(workbook));
-        return this;
+    public static Html2Excel readHtml(File htmlFile, Html2Excel html2Excel) throws Exception {
+        html2Excel.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        return html2Excel;
     }
 
     /**
