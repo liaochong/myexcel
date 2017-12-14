@@ -49,7 +49,7 @@ import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.TdUtils;
 
 /**
- * Html2Excel
+ * HtmlToExcelFactory
  * <p>
  * 用于将html table解析成excel
  * </p>
@@ -57,7 +57,7 @@ import com.github.liaochong.html2excel.utils.TdUtils;
  * @author liaochong
  * @version 1.0
  */
-public class Html2Excel {
+public class HtmlToExcelFactory {
     /**
      * html解析后文档
      */
@@ -95,11 +95,7 @@ public class Html2Excel {
      */
     private Map<Integer, Sheet> sheetMap;
 
-    public Html2Excel() {
-    }
-
-    private Html2Excel(Document document) {
-        this.document = document;
+    public HtmlToExcelFactory() {
     }
 
     /**
@@ -108,30 +104,31 @@ public class Html2Excel {
      * @param htmlFile html文件
      * @throws Exception 解析异常
      */
-    public static Html2Excel readHtml(File htmlFile) throws Exception {
-        Document document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
-        return new Html2Excel(document);
+    public static HtmlToExcelFactory readHtml(File htmlFile) throws Exception {
+        HtmlToExcelFactory factory = new HtmlToExcelFactory();
+        factory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        return factory;
     }
 
     /**
      * 读取html
      * 
      * @param htmlFile html文件
-     * @param html2Excel 实例对象
-     * @return Html2Excel
+     * @param htmlToExcelFactory 实例对象
+     * @return HtmlToExcelFactory
      * @throws Exception 解析异常
      */
-    public static Html2Excel readHtml(File htmlFile, Html2Excel html2Excel) throws Exception {
-        html2Excel.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
-        return html2Excel;
+    public static HtmlToExcelFactory readHtml(File htmlFile, HtmlToExcelFactory htmlToExcelFactory) throws Exception {
+        htmlToExcelFactory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        return htmlToExcelFactory;
     }
 
     /**
      * 设置使用默认样式
      * 
-     * @return Html2Excel
+     * @return HtmlToExcelFactory
      */
-    public Html2Excel useDefaultStyle() {
+    public HtmlToExcelFactory useDefaultStyle() {
         useDefaultStyle = true;
         return this;
     }
@@ -140,9 +137,9 @@ public class Html2Excel {
      * 设置workbook类型
      * 
      * @param workbookType 工作簿类型
-     * @return Html2Excel
+     * @return HtmlToExcelFactory
      */
-    public Html2Excel type(WorkbookType workbookType) {
+    public HtmlToExcelFactory type(WorkbookType workbookType) {
         if (WorkbookType.isXls(workbookType)) {
             workbook = new HSSFWorkbook();
         } else {
@@ -166,8 +163,8 @@ public class Html2Excel {
         for (int i = 0; i < tables.size(); i++) {
             // 2、处理解析表格
             List<Td> tds = this.processTable(tables.get(i));
-            // 3、创建excel
-            this.build(i, tds);
+            // 3、设置单元格
+            this.setUp(i, tds);
         }
         return workbook;
     }
@@ -244,7 +241,7 @@ public class Html2Excel {
      * 
      * @param tableIndex 表格索引
      */
-    private void build(int tableIndex, List<Td> allTds) {
+    private void setUp(int tableIndex, List<Td> allTds) {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));

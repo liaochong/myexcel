@@ -17,24 +17,26 @@ import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 
 /**
+ * freemarker的excel创建者
+ *
  * @author liaochong
  * @version 1.0
  */
-public class FreemarkerHtml2Excel implements Html2ExcelEnable {
+public class FreemarkerExcelBuilder implements ExcelBuilder {
 
-    private Html2Excel html2Excel = new Html2Excel();
+    private HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
     private Template template;
 
     @Override
-    public Html2ExcelEnable type(WorkbookType workbookType) {
-        html2Excel.type(workbookType);
+    public ExcelBuilder type(WorkbookType workbookType) {
+        htmlToExcelFactory.type(workbookType);
         return this;
     }
 
     @Override
-    public Html2ExcelEnable useDefaultStyle() {
-        html2Excel.useDefaultStyle();
+    public ExcelBuilder useDefaultStyle() {
+        htmlToExcelFactory.useDefaultStyle();
         return this;
     }
 
@@ -44,7 +46,7 @@ public class FreemarkerHtml2Excel implements Html2ExcelEnable {
      * @param path 模板路径，相对路径
      */
     @Override
-    public Html2ExcelEnable getTemplate(String path) {
+    public ExcelBuilder getTemplate(String path) {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         cfg.setDefaultEncoding(CharEncoding.UTF_8);
@@ -73,7 +75,7 @@ public class FreemarkerHtml2Excel implements Html2ExcelEnable {
             File htmlFile = File.createTempFile("temp" + UUID.randomUUID(), ".html");
             Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), CharEncoding.UTF_8));
             template.process(data, out);
-            Workbook workbook = Html2Excel.readHtml(htmlFile, html2Excel).build();
+            Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile, htmlToExcelFactory).build();
             boolean isDeleted = htmlFile.delete();
             if (!isDeleted) {
                 throw new RuntimeException();
