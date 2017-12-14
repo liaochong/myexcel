@@ -18,11 +18,13 @@ package com.github.liaochong.html2excel.core;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.CharEncoding;
@@ -41,14 +43,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.github.liaochong.html2excel.core.style.CellStyleFactory;
 import com.github.liaochong.html2excel.core.style.TdCellStyle;
 import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.TdUtils;
 
 /**
- * Html2Excel
+ * HtmlToExcelFactory
  * <p>
  * 用于将html table解析成excel
  * </p>
@@ -56,7 +57,7 @@ import com.github.liaochong.html2excel.utils.TdUtils;
  * @author liaochong
  * @version 1.0
  */
-public class Html2Excel {
+public class HtmlToExcelFactory {
     /**
      * html解析后文档
      */
@@ -85,9 +86,16 @@ public class Html2Excel {
      * 每列最大宽度
      */
     private Map<Integer, Integer> colMaxWidthMap;
+    /**
+     * future
+     */
+    private CompletableFuture<Void> workbookFuture;
+    /**
+     * sheet容器
+     */
+    private Map<Integer, Sheet> sheetMap;
 
-    private Html2Excel(Document document) {
-        this.document = document;
+    public HtmlToExcelFactory() {
     }
 
     /**
@@ -96,45 +104,31 @@ public class Html2Excel {
      * @param htmlFile html文件
      * @throws Exception 解析异常
      */
-    public static Html2Excel readHtml(File htmlFile) throws Exception {
-        Document document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
-        return new Html2Excel(document);
+    public static HtmlToExcelFactory readHtml(File htmlFile) throws Exception {
+        HtmlToExcelFactory factory = new HtmlToExcelFactory();
+        factory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        return factory;
     }
 
     /**
-     * 添加标题样式
+     * 读取html
      * 
-     * @param cellStyleFactory 样式工厂
-     * @return Html2Excel
+     * @param htmlFile html文件
+     * @param htmlToExcelFactory 实例对象
+     * @return HtmlToExcelFactory
+     * @throws Exception 解析异常
      */
-    public Html2Excel addThStyle(CellStyleFactory cellStyleFactory) {
-        if (Objects.isNull(cellStyleFactoryEnumMap)) {
-            cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-        }
-        cellStyleFactoryEnumMap.put(Tag.th, cellStyleFactory.supply(workbook));
-        return this;
-    }
-
-    /**
-     * 添加单元格样式
-     * 
-     * @param cellStyleFactory 样式工厂
-     * @return Html2Excel
-     */
-    public Html2Excel addTdStyle(CellStyleFactory cellStyleFactory) {
-        if (Objects.isNull(cellStyleFactoryEnumMap)) {
-            cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-        }
-        cellStyleFactoryEnumMap.put(Tag.td, cellStyleFactory.supply(workbook));
-        return this;
+    public static HtmlToExcelFactory readHtml(File htmlFile, HtmlToExcelFactory htmlToExcelFactory) throws Exception {
+        htmlToExcelFactory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        return htmlToExcelFactory;
     }
 
     /**
      * 设置使用默认样式
      * 
-     * @return Html2Excel
+     * @return HtmlToExcelFactory
      */
-    public Html2Excel useDefaultStyle() {
+    public HtmlToExcelFactory useDefaultStyle() {
         useDefaultStyle = true;
         return this;
     }
@@ -143,9 +137,9 @@ public class Html2Excel {
      * 设置workbook类型
      * 
      * @param workbookType 工作簿类型
-     * @return Html2Excel
+     * @return HtmlToExcelFactory
      */
-    public Html2Excel type(WorkbookType workbookType) {
+    public HtmlToExcelFactory type(WorkbookType workbookType) {
         if (WorkbookType.isXls(workbookType)) {
             workbook = new HSSFWorkbook();
         } else {
@@ -159,26 +153,70 @@ public class Html2Excel {
      * 
      * @return Workbook
      */
-    public Workbook parse() {
+    public Workbook build() {
         Elements tables = document.getElementsByTag(Tag.table.name());
         if (tables.isEmpty()) {
             throw NoTablesException.of("There is no any table exist");
         }
-        if (Objects.isNull(workbook)) {
-            workbook = new XSSFWorkbook();
-        }
-        // 使用默认样式时，加载默认样式
-        if (useDefaultStyle) {
-            if (Objects.isNull(cellStyleFactoryEnumMap)) {
-                cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-            }
-            cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
-            cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
-        }
+        // 1、创建工作簿
+        createWorkbook(tables);
         for (int i = 0; i < tables.size(); i++) {
-            this.processTable(tables.get(i), i);
+            // 2、处理解析表格
+            List<Td> tds = this.processTable(tables.get(i));
+            // 3、设置单元格
+            this.setUp(i, tds);
         }
         return workbook;
+    }
+
+    /**
+     * 创建workbook，因为创建workbook比较耗时，异步处理
+     * 
+     * @param tables 表格集合
+     */
+    private void createWorkbook(Elements tables) {
+        workbookFuture = CompletableFuture.runAsync(() -> {
+            if (Objects.isNull(workbook)) {
+                workbook = new XSSFWorkbook();
+            }
+            // 使用默认样式时，加载默认样式
+            if (useDefaultStyle) {
+                if (Objects.isNull(cellStyleFactoryEnumMap)) {
+                    cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
+                }
+                cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
+                cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
+            }
+            sheetMap = new ConcurrentHashMap<>(tables.size());
+            for (int i = 0; i < tables.size(); i++) {
+                Element table = tables.get(i);
+                Elements captions = table.getElementsByTag(Tag.caption.name());
+                String sheetName;
+                if (!captions.isEmpty()) {
+                    sheetName = captions.first().text();
+                } else {
+                    sheetName = "sheet" + (i + 1);
+                }
+                Sheet sheet = workbook.createSheet(sheetName);
+                sheetMap.put(i, sheet);
+
+                Elements trs = table.getElementsByTag(Tag.tr.name());
+                int cloNum = trs.parallelStream().mapToInt(tr -> {
+                    Elements tds = tr.children();
+                    return tds.stream().mapToInt(td -> {
+                        String colSpan = td.attr(Tag.colspan.name());
+                        return StringUtils.isNotBlank(colSpan) ? Integer.parseInt(colSpan) : 1;
+                    }).sum();
+                }).max().orElse(0);
+
+                for (int j = 0; j < trs.size(); j++) {
+                    Row row = sheet.createRow(j);
+                    for (int k = 0; k <= cloNum; k++) {
+                        row.createCell(k);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -186,7 +224,7 @@ public class Html2Excel {
      *
      * @param table 表格
      */
-    private void processTable(Element table, int index) {
+    private List<Td> processTable(Element table) {
         this.initialize();
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0; i < trs.size(); i++) {
@@ -194,11 +232,20 @@ public class Html2Excel {
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
-        List<Td> allTds = this.adjust();
-        Sheet sheet = this.getSheet(table, index);
+        this.getTotalCols();
+        return this.adjust();
+    }
 
-        this.setColMaxWidthMap(allTds, sheet);
+    /**
+     * 创建
+     * 
+     * @param tableIndex 表格索引
+     */
+    private void setUp(int tableIndex, List<Td> allTds) {
+        workbookFuture.join();
+        Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value << 9));
     }
 
     /**
@@ -207,23 +254,17 @@ public class Html2Excel {
     private void initialize() {
         totalCols = 0;
         trContainer = new ArrayList<>();
+        colMaxWidthMap = new ConcurrentHashMap<>();
     }
 
     /**
-     * 设置每列最大宽度
-     *
-     * @param allTds 所有单元格
+     * 获取总列数
      */
-    private void setColMaxWidthMap(List<Td> allTds, Sheet sheet) {
-        colMaxWidthMap = new HashMap<>(totalCols);
-        allTds.parallelStream().forEach(td -> {
-            int width = TdUtils.getStringWidth(td.getContent());
-            Integer maxWidth = colMaxWidthMap.get(td.getCol());
-            if (Objects.isNull(maxWidth) || maxWidth < width) {
-                colMaxWidthMap.put(td.getCol(), width);
-            }
-        });
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 235));
+    private void getTotalCols() {
+        ToIntFunction<Tr> function = tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol))
+                .max().orElse(0);
+        totalCols = trContainer.parallelStream().mapToInt(function).max()
+                .orElseThrow(() -> new NoTablesException("不存在任何单元格"));
     }
 
     /**
@@ -237,14 +278,9 @@ public class Html2Excel {
         cell.setCellValue(td.getContent());
 
         // 设置单元格样式
-        int boundCol = td.getCol();
-        int boundRow = td.getRow();
-        if (td.getColSpan() > 0) {
-            boundCol = td.getCol() + td.getColSpan() - 1;
-        }
-        if (td.getRowSpan() > 0) {
-            boundRow = td.getRow() + td.getRowSpan() - 1;
-        }
+        int boundCol = TdUtils.get(td::getColSpan, td::getCol);
+        int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
+
         for (int i = td.getRow(); i <= boundRow; i++) {
             for (int j = td.getCol(); j <= boundCol; j++) {
                 cell = sheet.getRow(i).getCell(j);
@@ -258,35 +294,8 @@ public class Html2Excel {
             }
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
-            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), TdUtils.get(td::getRowSpan, td::getRow),
-                    td.getCol(), TdUtils.get(td::getColSpan, td::getCol)));
+            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), boundRow, td.getCol(), boundCol));
         }
-    }
-
-    /**
-     * 获取sheet
-     *
-     * @param table 表格
-     * @param index 索引
-     * @return Sheet
-     */
-    private Sheet getSheet(final Element table, int index) {
-        Elements captions = table.getElementsByTag(Tag.caption.name());
-        String sheetName;
-        if (!captions.isEmpty()) {
-            sheetName = captions.first().text();
-        } else {
-            sheetName = "sheet" + ++index;
-        }
-        Sheet sheet = workbook.createSheet(sheetName);
-        // 创建空白单元格
-        for (int i = 0; i < trContainer.size(); i++) {
-            Row row = sheet.createRow(i);
-            for (int j = 0; j <= totalCols; j++) {
-                row.createCell(j);
-            }
-        }
-        return sheet;
     }
 
     /**
@@ -297,9 +306,9 @@ public class Html2Excel {
      */
     private void processTr(Element tr, Tr container) {
         Elements ths = tr.getElementsByTag(Tag.th.name());
-        this.processing(ths, container, true);
+        this.processTd(ths, container, true);
         Elements tds = tr.getElementsByTag(Tag.td.name());
-        this.processing(tds, container, false);
+        this.processTd(tds, container, false);
     }
 
     /**
@@ -309,23 +318,22 @@ public class Html2Excel {
      * @param container 元素容器
      * @param isTh 是否为表格标题
      */
-    private void processing(Elements elements, Tr container, boolean isTh) {
+    private void processTd(Elements elements, Tr container, boolean isTh) {
         if (elements.isEmpty()) {
             return;
         }
-        Predicate<Td> predicate = td -> td.getColSpan() > 0;
         for (int i = 0; i < elements.size(); i++) {
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(container.getIndex());
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
-                int shift = container.getTds().stream().filter(predicate).mapToInt(t -> t.getColSpan() - 1).sum();
+                int shift = container.getTds().stream().filter(t -> t.getColSpan() > 0)
+                        .mapToInt(t -> t.getColSpan() - 1).sum();
                 td.setCol(i + shift);
             } else {
                 td.setCol(i);
             }
-
             Element element = elements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
             if (StringUtils.isNotBlank(colSpan)) {
@@ -337,6 +345,12 @@ public class Html2Excel {
             }
             td.setContent(element.text());
             container.getTds().add(td);
+            // 设置每列最宽宽度
+            int width = TdUtils.getStringWidth(td.getContent());
+            Integer maxWidth = colMaxWidthMap.get(td.getCol());
+            if (Objects.isNull(maxWidth) || maxWidth < width) {
+                colMaxWidthMap.put(td.getCol(), width);
+            }
         }
     }
 
@@ -346,9 +360,6 @@ public class Html2Excel {
      * @return 所有单元格
      */
     private List<Td> adjust() {
-        totalCols = trContainer.stream().mapToInt(
-                tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol)).max().orElse(0))
-                .max().orElseThrow(() -> new NoTablesException("不存在任何单元格"));
         // 排除第一行
         for (int i = 1; i < trContainer.size(); i++) {
             int index = i;

@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Html2Excel Tester.
+ * HtmlToExcelFactory Tester.
  * 
  * @author <Authors name>
  * @since
@@ -16,7 +16,7 @@ import org.junit.Test;
  * 
  * @version 1.0
  */
-public class Html2ExcelTest {
+public class HtmlToExcelFactoryTest {
 
     @Before
     public void before() throws Exception {
@@ -55,7 +55,7 @@ public class Html2ExcelTest {
     public void testProcessTable() throws Exception {
         // TODO: Test goes here...
         /*
-         * try { Method method = Html2Excel.getClass().getMethod("processTable",
+         * try { Method method = HtmlToExcelFactory.getClass().getMethod("processTable",
          * Element.class, int.class); method.setAccessible(true);
          * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException e) { }
          * catch(IllegalAccessException e) { } catch(InvocationTargetException e) { }
@@ -71,7 +71,7 @@ public class Html2ExcelTest {
     public void testGetSheet() throws Exception {
         // TODO: Test goes here...
         /*
-         * try { Method method = Html2Excel.getClass().getMethod("getSheet",
+         * try { Method method = HtmlToExcelFactory.getClass().getMethod("getSheet",
          * final.class, int.class); method.setAccessible(true); method.invoke(<Object>,
          * <Parameters>); } catch(NoSuchMethodException e) { }
          * catch(IllegalAccessException e) { } catch(InvocationTargetException e) { }
@@ -87,7 +87,7 @@ public class Html2ExcelTest {
     public void testProcessTr() throws Exception {
         // TODO: Test goes here...
         /*
-         * try { Method method = Html2Excel.getClass().getMethod("processTr",
+         * try { Method method = HtmlToExcelFactory.getClass().getMethod("processTr",
          * Element.class, Tr.class); method.setAccessible(true); method.invoke(<Object>,
          * <Parameters>); } catch(NoSuchMethodException e) { }
          * catch(IllegalAccessException e) { } catch(InvocationTargetException e) { }
@@ -103,7 +103,7 @@ public class Html2ExcelTest {
     public void testProcessing() throws Exception {
         // TODO: Test goes here...
         /*
-         * try { Method method = Html2Excel.getClass().getMethod("processing",
+         * try { Method method = HtmlToExcelFactory.getClass().getMethod("processing",
          * Elements.class, Tr.class, boolean.class); method.setAccessible(true);
          * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException e) { }
          * catch(IllegalAccessException e) { } catch(InvocationTargetException e) { }
@@ -119,7 +119,7 @@ public class Html2ExcelTest {
     public void testAdjust() throws Exception {
         // TODO: Test goes here...
         /*
-         * try { Method method = Html2Excel.getClass().getMethod("adjust");
+         * try { Method method = HtmlToExcelFactory.getClass().getMethod("adjust");
          * method.setAccessible(true); method.invoke(<Object>, <Parameters>); }
          * catch(NoSuchMethodException e) { } catch(IllegalAccessException e) { }
          * catch(InvocationTargetException e) { }
@@ -136,7 +136,7 @@ public class Html2ExcelTest {
     public void testAdjustForAllTdsTd() throws Exception {
         // TODO: Test goes here...
         /*
-         * try { Method method = Html2Excel.getClass().getMethod("adjust",
+         * try { Method method = HtmlToExcelFactory.getClass().getMethod("adjust",
          * List<Td>.class, Td.class); method.setAccessible(true);
          * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException e) { }
          * catch(IllegalAccessException e) { } catch(InvocationTargetException e) { }
