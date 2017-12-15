@@ -284,17 +284,27 @@ public class HtmlToExcelFactory {
         for (int i = td.getRow(); i <= boundRow; i++) {
             for (int j = td.getCol(); j <= boundCol; j++) {
                 cell = sheet.getRow(i).getCell(j);
-                if (useDefaultStyle) {
-                    if (td.isTh()) {
-                        cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
-                    } else {
-                        cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
-                    }
-                }
+                this.setCellStyle(cell, td.isTh());
             }
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), boundRow, td.getCol(), boundCol));
+        }
+    }
+
+    /**
+     * 设置单元格样式
+     * 
+     * @param cell 单元格
+     * @param isTh 是否为标题
+     */
+    private void setCellStyle(Cell cell, boolean isTh) {
+        if (useDefaultStyle) {
+            if (isTh) {
+                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
+            } else {
+                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+            }
         }
     }
 
