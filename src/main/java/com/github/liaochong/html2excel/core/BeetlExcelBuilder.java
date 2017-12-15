@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -22,34 +21,19 @@ import org.beetl.core.resource.ClasspathResourceLoader;
  * @author liaochong
  * @version 1.0
  */
-public class BeetlExcelBuilder implements ExcelBuilder {
-
-    private HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+public class BeetlExcelBuilder extends ExcelBuilder {
 
     private Template template;
 
     @Override
-    public ExcelBuilder type(WorkbookType workbookType) {
-        htmlToExcelFactory.type(workbookType);
-        return this;
-    }
-
-    @Override
-    public ExcelBuilder useDefaultStyle() {
-        htmlToExcelFactory.useDefaultStyle();
-        return this;
-    }
-
-    @Override
     public ExcelBuilder getTemplate(String path) {
         try {
-            int lastPackageIndex = path.lastIndexOf("/");
-            String basePackagePath = path.substring(0, lastPackageIndex);
-
-            ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader(basePackagePath);
+            String[] filePath = this.splitFilePath(path);
+            ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader(filePath[0]);
             Configuration cfg = Configuration.defaultConfiguration();
+            cfg.setCharset(CharEncoding.UTF_8);
             GroupTemplate gt = new GroupTemplate(resourceLoader, cfg);
-            template = gt.getTemplate(path.substring(lastPackageIndex));
+            template = gt.getTemplate(filePath[1]);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -59,15 +43,13 @@ public class BeetlExcelBuilder implements ExcelBuilder {
     @Override
     public Workbook build(Map<String, Object> renderData) {
         try {
-            template.binding(renderData);
-            File htmlFile = File.createTempFile("beetl_temp_" + UUID.randomUUID(), ".html");
+            File htmlFile = this.createTempFile("beetl_temp_");
             Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), CharEncoding.UTF_8));
+
+            template.binding(renderData);
             template.renderTo(out);
             Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile, htmlToExcelFactory).build();
-            boolean isDeleted = htmlFile.delete();
-            if (!isDeleted) {
-                throw new RuntimeException();
-            }
+            this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
             throw new RuntimeException(e);
