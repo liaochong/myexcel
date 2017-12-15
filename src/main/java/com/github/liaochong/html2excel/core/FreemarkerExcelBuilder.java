@@ -7,15 +7,14 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import com.github.liaochong.html2excel.exception.ExcelBuildException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.Version;
 
 /**
  * freemarker的excel创建者
@@ -27,19 +26,6 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
 
     private Template template;
 
-    private Version version;
-
-    /**
-     * 增加版本设置，若未设置，默认采用版本 Configuration.VERSION_2_3_23
-     * 
-     * @param version 版本
-     * @return FreemarkerExcelBuilder
-     */
-    public FreemarkerExcelBuilder version(Version version) {
-        this.version = version;
-        return this;
-    }
-
     /**
      * 设置模板信息
      * 
@@ -47,10 +33,7 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
      */
     @Override
     public ExcelBuilder getTemplate(String path) {
-        if (Objects.isNull(version)) {
-            version = Configuration.VERSION_2_3_23;
-        }
-        Configuration cfg = new Configuration(version);
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         cfg.setDefaultEncoding(CharEncoding.UTF_8);
 
@@ -80,7 +63,7 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
             this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("创建excel失败", e);
         }
     }
 
