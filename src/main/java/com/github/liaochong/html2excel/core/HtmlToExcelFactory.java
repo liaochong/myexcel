@@ -165,6 +165,11 @@ public class HtmlToExcelFactory {
             List<Td> tds = this.processTable(tables.get(i));
             // 3、设置单元格
             this.setUp(i, tds);
+            // 4、设置行高
+            for (int j = 0, size = trContainer.size(); j < size; j++) {
+                Row row = sheetMap.get(i).getRow(j);
+                row.setHeightInPoints(row.getHeightInPoints() + 3);
+            }
         }
         return workbook;
     }
