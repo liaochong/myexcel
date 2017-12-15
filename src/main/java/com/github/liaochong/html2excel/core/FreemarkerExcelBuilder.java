@@ -33,13 +33,13 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
      */
     @Override
     public ExcelBuilder getTemplate(String path) {
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        cfg.setDefaultEncoding(CharEncoding.UTF_8);
-
-        String[] filePath = this.splitFilePath(path);
-        cfg.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), filePath[0]);
         try {
+            Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            cfg.setDefaultEncoding(CharEncoding.UTF_8);
+
+            String[] filePath = this.splitFilePath(path);
+            cfg.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), filePath[0]);
             template = cfg.getTemplate(filePath[1]);
             return this;
         } catch (IOException e) {

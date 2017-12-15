@@ -34,10 +34,10 @@ public class BeetlExcelBuilder extends ExcelBuilder {
             cfg.setCharset(CharEncoding.UTF_8);
             GroupTemplate gt = new GroupTemplate(resourceLoader, cfg);
             template = gt.getTemplate(filePath[1]);
+            return this;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return this;
     }
 
     @Override
