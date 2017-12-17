@@ -33,6 +33,8 @@ public class ThCellStyle implements CellStyleFactory {
         style.setBorderBottom(BorderStyle.THIN);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.DOUBLE);
         return style;
     }
 }
