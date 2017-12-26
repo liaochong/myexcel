@@ -17,7 +17,7 @@ html2excel是一款将html中表格（table）转化成excel的工具.
 - **屏蔽POI操作**：不直接操作过重的POI；
 - **可生成任意复杂表格**：本工具使用迭代单元格方式进行excel绘制，可生成任意复杂度excel；
 - **支持.XLS、.XLSX**：支持生成.xls、.xlsx后缀的excel；
-- **支持多种模板引擎**：支持Freemarker、Beetl等常用模板引擎；
+- **支持多种模板引擎**：支持Freemarker、Groovy、Beetl等常用模板引擎；
 
 注意 | Attention
 ------------------
