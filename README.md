@@ -19,6 +19,10 @@ html2excel是一款将html中表格（table）转化成excel的工具.
 - **支持.XLS、.XLSX**：支持生成.xls、.xlsx后缀的excel；
 - **支持多种模板引擎**：支持Freemarker、Beetl等常用模板引擎；
 
+注意 | Attention
+------------------
+目前只支持模板文件存放在classpath下
+
 Maven 依赖
 ------------------
 ```xml
