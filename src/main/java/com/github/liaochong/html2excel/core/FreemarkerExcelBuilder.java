@@ -43,7 +43,7 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
             template = cfg.getTemplate(filePath[1]);
             return this;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("failed to get freemarker template", e);
         }
     }
 
@@ -63,7 +63,7 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
             this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
-            throw ExcelBuildException.of("创建excel失败", e);
+            throw ExcelBuildException.of("failed to build excel", e);
         }
     }
 

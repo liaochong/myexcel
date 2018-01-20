@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import com.github.liaochong.html2excel.exception.ExcelBuildException;
+
 /**
  * excel创建者接口
  * 
@@ -85,7 +87,7 @@ public abstract class ExcelBuilder {
         try {
             return File.createTempFile(prefix + UUID.randomUUID(), ".html");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("failed to create temp html file", e);
         }
     }
 
@@ -100,7 +102,7 @@ public abstract class ExcelBuilder {
         }
         boolean isDeleted = file.delete();
         if (!isDeleted) {
-            throw new RuntimeException();
+            throw new IllegalStateException("failed to delete temp html file");
         }
     }
 

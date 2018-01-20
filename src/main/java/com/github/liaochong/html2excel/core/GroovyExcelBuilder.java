@@ -14,6 +14,7 @@ import java.util.Map;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import com.github.liaochong.html2excel.exception.ExcelBuildException;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.markup.MarkupTemplateEngine;
@@ -37,7 +38,7 @@ public class GroovyExcelBuilder extends ExcelBuilder {
             template = engine.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("failed to get groovy template", e);
         }
     }
 
@@ -54,7 +55,7 @@ public class GroovyExcelBuilder extends ExcelBuilder {
             this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("failed to build excel", e);
         }
     }
 }

@@ -15,6 +15,8 @@ import org.beetl.core.GroupTemplate;
 import org.beetl.core.Template;
 import org.beetl.core.resource.ClasspathResourceLoader;
 
+import com.github.liaochong.html2excel.exception.ExcelBuildException;
+
 /**
  * beetl excel创建者
  *
@@ -36,7 +38,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
             template = gt.getTemplate(filePath[1]);
             return this;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("failed to get beetl template", e);
         }
     }
 
@@ -52,7 +54,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
             this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw ExcelBuildException.of("failed to build excel", e);
         }
     }
 }
