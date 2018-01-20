@@ -32,3 +32,24 @@ Maven 依赖
     <version>0.0.1-beat</version>
 </dependency>
 ```
+可选模板 | Template
+------------------
+```xml
+<dependency>
+    <groupId>org.freemarker</groupId>
+    <artifactId>freemarker</artifactId>
+    <version>2.3.23</version>
+</dependency>
+
+<dependency>
+    <groupId>com.ibeetl</groupId>
+    <artifactId>beetl</artifactId>
+    <version>2.7.23</version>
+</dependency>
+
+<dependency>
+    <groupId>org.codehaus.groovy</groupId>
+    <artifactId>groovy-templates</artifactId>
+    <version>2.4.13</version>
+</dependency>
+```
