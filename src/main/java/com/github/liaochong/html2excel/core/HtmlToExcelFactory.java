@@ -238,7 +238,7 @@ public class HtmlToExcelFactory {
             this.processTr(trs.get(i), tr);
         }
         this.getTotalCols();
-        return this.adjust();
+        return this.adjustTdPosition();
     }
 
     /**
@@ -316,40 +316,40 @@ public class HtmlToExcelFactory {
     /**
      * 处理行元素
      *
-     * @param tr tr
-     * @param container tr容器
+     * @param trElement tr
+     * @param tr tr容器
      */
-    private void processTr(Element tr, Tr container) {
-        Elements ths = tr.getElementsByTag(Tag.th.name());
-        this.processTd(ths, container, true);
-        Elements tds = tr.getElementsByTag(Tag.td.name());
-        this.processTd(tds, container, false);
+    private void processTr(Element trElement, Tr tr) {
+        Elements ths = trElement.getElementsByTag(Tag.th.name());
+        this.processTd(ths, tr, true);
+        Elements tds = trElement.getElementsByTag(Tag.td.name());
+        this.processTd(tds, tr, false);
     }
 
     /**
      * 处理行内元素
      *
-     * @param elements 元素：th、td
-     * @param container 元素容器
+     * @param tdElements 元素：th、td
+     * @param tr 元素容器
      * @param isTh 是否为表格标题
      */
-    private void processTd(Elements elements, Tr container, boolean isTh) {
-        if (elements.isEmpty()) {
+    private void processTd(Elements tdElements, Tr tr, boolean isTh) {
+        if (tdElements.isEmpty()) {
             return;
         }
-        for (int i = 0; i < elements.size(); i++) {
+        for (int i = 0; i < tdElements.size(); i++) {
             Td td = new Td();
             td.setTh(isTh);
-            td.setRow(container.getIndex());
+            td.setRow(tr.getIndex());
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
-                int shift = container.getTds().stream().filter(t -> t.getColSpan() > 0)
+                int shift = tr.getTds().stream().filter(t -> t.getColSpan() > 0)
                         .mapToInt(t -> t.getColSpan() - 1).sum();
                 td.setCol(i + shift);
             } else {
                 td.setCol(i);
             }
-            Element element = elements.get(i);
+            Element element = tdElements.get(i);
             String colSpan = element.attr(Tag.colspan.name());
             if (StringUtils.isNotBlank(colSpan)) {
                 td.setColSpan(Integer.parseInt(colSpan));
@@ -359,7 +359,7 @@ public class HtmlToExcelFactory {
                 td.setRowSpan(Integer.parseInt(rowSpan));
             }
             td.setContent(element.text());
-            container.getTds().add(td);
+            tr.getTds().add(td);
             // 设置每列最宽宽度
             int width = TdUtils.getStringWidth(td.getContent());
             Integer maxWidth = colMaxWidthMap.get(td.getCol());
@@ -374,11 +374,11 @@ public class HtmlToExcelFactory {
      *
      * @return 所有单元格
      */
-    private List<Td> adjust() {
-        // 排除第一行
+    private List<Td> adjustTdPosition() {
+        // 排除第一行，第一行不需要进行调整
         for (int i = 1; i < trContainer.size(); i++) {
-            int index = i;
-            trContainer.get(i).getTds().forEach(td -> this.adjust(td, index));
+            Tr tr = trContainer.get(i);
+            tr.getTds().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
         }
         return trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
     }
@@ -389,7 +389,7 @@ public class HtmlToExcelFactory {
      * @param td 单元格
      * @param trIndex 单元格所在行索引
      */
-    private void adjust(Td td, int trIndex) {
+    private void adjustTdPosition(Td td, int trIndex) {
         Predicate<Tr> predicate = tr -> tr.getIndex() < trIndex;
         List<Td> tds = trContainer.stream().filter(predicate).flatMap(tr -> tr.getTds().stream())
                 .collect(Collectors.toList());
