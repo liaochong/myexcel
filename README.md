@@ -58,7 +58,7 @@ Maven 依赖
 ```
 示例 | Example
 ------------------
-1. 已存在html文件
+1. 已存在html文件，使用这种方式时，html文件不局限于放在项目的classpath下
 ```java
 // get html file
 File htmlFile = new File("/Users/liaochong/Downloads/example.html");
