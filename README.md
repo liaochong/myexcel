@@ -60,10 +60,11 @@ Maven 依赖
 ------------------
 1. 已存在html文件
 ```java
+// get html file
 File htmlFile = new File("/Users/liaochong/Downloads/example.html");
-
+// read the html file and use default excel style to create excel
 Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile).useDefaultStyle().build();
-
+// this is a example,you can write the workbook to any valid outputstream
 OutputStream writer = new FileOutputStream(new File("/Users/liaochong/Downloads/excel.xlsx"));
 workbook.write(writer);
 ```
