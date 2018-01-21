@@ -18,6 +18,8 @@ package com.github.liaochong.html2excel.utils;
 import java.util.Objects;
 import java.util.function.IntSupplier;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 /**
  * @author liaochong
  * @version 1.0
@@ -52,5 +54,14 @@ public class TdUtils {
         }
         // 进位取整
         return (int) Math.ceil(valueLength);
+    }
+
+
+    public static int getSpan(String span) {
+        if (!NumberUtils.isDigits(span)) {
+            return 0;
+        }
+        int result = Integer.parseInt(span);
+        return result > 0 ? result : 0;
     }
 }

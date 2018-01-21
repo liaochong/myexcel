@@ -350,14 +350,13 @@ public class HtmlToExcelFactory {
                 td.setCol(i);
             }
             Element element = tdElements.get(i);
+
             String colSpan = element.attr(Tag.colspan.name());
-            if (StringUtils.isNotBlank(colSpan)) {
-                td.setColSpan(Integer.parseInt(colSpan));
-            }
+            td.setColSpan(TdUtils.getSpan(colSpan));
+
             String rowSpan = element.attr(Tag.rowspan.name());
-            if (StringUtils.isNotBlank(rowSpan)) {
-                td.setRowSpan(Integer.parseInt(rowSpan));
-            }
+            td.setRowSpan(TdUtils.getSpan(rowSpan));
+
             td.setContent(element.text());
             tr.getTds().add(td);
             // 设置每列最宽宽度
