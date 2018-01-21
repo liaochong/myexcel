@@ -68,3 +68,33 @@ Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile).useDefaultStyle().buil
 OutputStream writer = new FileOutputStream(new File("/Users/liaochong/Downloads/excel.xlsx"));
 workbook.write(writer);
 ```
+2. 使用freemarker模板引擎，具体请参照项目中的example
+```java
+@RestController
+public class FreemarkerExampleController {
+
+    @GetMapping("/freemarker/build")
+    public void build(HttpServletResponse response) {
+        Map<String, Object> data = getData();
+
+        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
+        Workbook workbook = excelBuilder.getTemplate("/templates/freemarker_template.ftl").useDefaultStyle().build(data);
+
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Map<String, Object> getData() {
+        Map<String, Object> data = new HashMap<>();
+        for (int i = 1; i <= 11; i++) {
+            data.put("n_"+String.valueOf(i), i);
+        }
+        return data;
+    }
+}
+```
