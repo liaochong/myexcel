@@ -100,7 +100,7 @@ public class HtmlToExcelFactory {
 
     /**
      * 读取html
-     * 
+     *
      * @param htmlFile html文件
      * @throws Exception 解析异常
      */
@@ -112,8 +112,8 @@ public class HtmlToExcelFactory {
 
     /**
      * 读取html
-     * 
-     * @param htmlFile html文件
+     *
+     * @param htmlFile           html文件
      * @param htmlToExcelFactory 实例对象
      * @return HtmlToExcelFactory
      * @throws Exception 解析异常
@@ -125,7 +125,7 @@ public class HtmlToExcelFactory {
 
     /**
      * 设置使用默认样式
-     * 
+     *
      * @return HtmlToExcelFactory
      */
     public HtmlToExcelFactory useDefaultStyle() {
@@ -135,7 +135,7 @@ public class HtmlToExcelFactory {
 
     /**
      * 设置workbook类型
-     * 
+     *
      * @param workbookType 工作簿类型
      * @return HtmlToExcelFactory
      */
@@ -150,7 +150,7 @@ public class HtmlToExcelFactory {
 
     /**
      * 开始解析
-     * 
+     *
      * @return Workbook
      */
     public Workbook build() {
@@ -164,7 +164,7 @@ public class HtmlToExcelFactory {
             // 2、处理解析表格
             List<Td> tds = this.processTable(tables.get(i));
             // 3、设置单元格
-            this.setUp(i, tds);
+            this.setTdOfTable(i, tds);
             // 4、设置行高
             for (int j = 0, size = trContainer.size(); j < size; j++) {
                 Row row = sheetMap.get(i).getRow(j);
@@ -176,7 +176,7 @@ public class HtmlToExcelFactory {
 
     /**
      * 创建workbook，因为创建workbook比较耗时，异步处理
-     * 
+     *
      * @param tables 表格集合
      */
     private void createWorkbook(Elements tables) {
@@ -232,21 +232,21 @@ public class HtmlToExcelFactory {
     private List<Td> processTable(Element table) {
         this.initialize();
         Elements trs = table.getElementsByTag(Tag.tr.name());
-        for (int i = 0; i < trs.size(); i++) {
+        for (int i = 0, size = trs.size(); i < size; i++) {
             Tr tr = new Tr(i);
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
-        this.getTotalCols();
+        this.countTotalCols();
         return this.adjustTdPosition();
     }
 
     /**
      * 创建
-     * 
+     *
      * @param tableIndex 表格索引
      */
-    private void setUp(int tableIndex, List<Td> allTds) {
+    private void setTdOfTable(int tableIndex, List<Td> allTds) {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
@@ -263,9 +263,9 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 获取总列数
+     * 计算总列数
      */
-    private void getTotalCols() {
+    private void countTotalCols() {
         ToIntFunction<Tr> function = tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol))
                 .max().orElse(0);
         totalCols = trContainer.parallelStream().mapToInt(function).max()
@@ -275,7 +275,7 @@ public class HtmlToExcelFactory {
     /**
      * 设置单元格
      *
-     * @param td 单元格
+     * @param td    单元格
      * @param sheet 单元格所在的sheet
      */
     private void setCell(Td td, Sheet sheet) {
@@ -299,7 +299,7 @@ public class HtmlToExcelFactory {
 
     /**
      * 设置单元格样式
-     * 
+     *
      * @param cell 单元格
      * @param isTh 是否为标题
      */
@@ -317,7 +317,7 @@ public class HtmlToExcelFactory {
      * 处理行元素
      *
      * @param trElement tr
-     * @param tr tr容器
+     * @param tr        tr容器
      */
     private void processTr(Element trElement, Tr tr) {
         Elements ths = trElement.getElementsByTag(Tag.th.name());
@@ -330,8 +330,8 @@ public class HtmlToExcelFactory {
      * 处理行内元素
      *
      * @param tdElements 元素：th、td
-     * @param tr 元素容器
-     * @param isTh 是否为表格标题
+     * @param tr         元素容器
+     * @param isTh       是否为表格标题
      */
     private void processTd(Elements tdElements, Tr tr, boolean isTh) {
         if (tdElements.isEmpty()) {
@@ -386,7 +386,7 @@ public class HtmlToExcelFactory {
     /**
      * 调整表格单元格位置
      *
-     * @param td 单元格
+     * @param td      单元格
      * @param trIndex 单元格所在行索引
      */
     private void adjustTdPosition(Td td, int trIndex) {
