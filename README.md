@@ -56,3 +56,14 @@ Maven 依赖
     <version>2.4.13</version>
 </dependency>
 ```
+示例 | Example
+------------------
+1. 已存在html文件
+```java
+File htmlFile = new File("/Users/liaochong/Downloads/example.html");
+
+Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile).useDefaultStyle().build();
+
+OutputStream writer = new FileOutputStream(new File("/Users/liaochong/Downloads/excel.xlsx"));
+workbook.write(writer);
+```
