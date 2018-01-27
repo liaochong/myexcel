@@ -68,7 +68,7 @@ Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile).useDefaultStyle().buil
 OutputStream writer = new FileOutputStream(new File("/Users/liaochong/Downloads/excel.xlsx"));
 workbook.write(writer);
 ```
-2. 使用freemarker模板引擎，具体请参照项目中的example
+2. 使用freemarker等模板引擎，具体请参照项目中的example
 ```java
 @RestController
 public class FreemarkerExampleController {
@@ -97,4 +97,15 @@ public class FreemarkerExampleController {
         return data;
     }
 }
+```
+扩展 | Extend
+------------------
+如需使用非Freemarker、Groovy、Beetl模板引擎，可自行扩展，扩展规则如下：
+1. 继承 `ExcelBuilder` 抽象类；
+2. 实现抽象方法 
+```java
+ExcelBuilder getTemplate(String path)
+```
+```java
+Workbook build(Map<String, Object> data)
 ```
