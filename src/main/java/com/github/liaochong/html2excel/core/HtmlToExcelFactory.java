@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -95,6 +96,8 @@ public class HtmlToExcelFactory {
      */
     private Map<Integer, Sheet> sheetMap;
 
+    private FreezePane[] freezePanes;
+
     public HtmlToExcelFactory() {
     }
 
@@ -130,6 +133,18 @@ public class HtmlToExcelFactory {
      */
     public HtmlToExcelFactory useDefaultStyle() {
         useDefaultStyle = true;
+        return this;
+    }
+
+
+    /**
+     * 创建固定区域
+     *
+     * @param freezePanes 固定区域，二维数组
+     * @return HtmlToExcelFactory
+     */
+    public HtmlToExcelFactory freezePanes(FreezePane... freezePanes) {
+        this.freezePanes = freezePanes;
         return this;
     }
 
@@ -219,6 +234,13 @@ public class HtmlToExcelFactory {
                     for (int k = 0; k <= cloNum; k++) {
                         row.createCell(k);
                     }
+                }
+                if (ArrayUtils.isNotEmpty(freezePanes) && freezePanes.length > i) {
+                    FreezePane freezePane = freezePanes[i];
+                    if (Objects.isNull(freezePane)) {
+                        throw new IllegalStateException("FreezePane is null");
+                    }
+                    sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
                 }
             }
         });
