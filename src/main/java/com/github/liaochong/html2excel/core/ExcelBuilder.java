@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -13,7 +14,7 @@ import com.github.liaochong.html2excel.exception.ExcelBuildException;
 
 /**
  * excel创建者接口
- * 
+ *
  * @author liaochong
  * @version 1.0
  */
@@ -43,6 +44,20 @@ public abstract class ExcelBuilder {
     }
 
     /**
+     * 选择固定区域
+     *
+     * @param freezePanes 固定区域
+     * @return ExcelBuilder
+     */
+    public ExcelBuilder freezePanes(FreezePane... freezePanes) {
+        if (ArrayUtils.isEmpty(freezePanes)) {
+            return this;
+        }
+        htmlToExcelFactory.freezePanes(freezePanes);
+        return this;
+    }
+
+    /**
      * 获取模板
      *
      * @param path 模板路径
@@ -60,7 +75,7 @@ public abstract class ExcelBuilder {
 
     /**
      * 分离文件路径
-     * 
+     *
      * @param path 文件路径
      * @return String[]
      */
@@ -74,12 +89,12 @@ public abstract class ExcelBuilder {
         }
         String basePackagePath = path.substring(0, lastPackageIndex);
         String templateName = path.substring(lastPackageIndex);
-        return new String[] { basePackagePath, templateName };
+        return new String[]{basePackagePath, templateName};
     }
 
     /**
      * 依据前缀名称创建临时文件
-     * 
+     *
      * @param prefix 临时文件前缀
      * @return File
      */
@@ -93,7 +108,7 @@ public abstract class ExcelBuilder {
 
     /**
      * 删除临时文件
-     * 
+     *
      * @param file 临时文件
      */
     void deleteTempFile(File file) {
