@@ -27,8 +27,8 @@ public abstract class ExcelBuilder {
      * @param workbookType workbookType
      * @return ExcelBuilder
      */
-    public ExcelBuilder type(WorkbookType workbookType) {
-        htmlToExcelFactory.type(workbookType);
+    public ExcelBuilder workbookType(WorkbookType workbookType) {
+        htmlToExcelFactory.workbookType(workbookType);
         return this;
     }
 

@@ -139,7 +139,7 @@ public class HtmlToExcelFactory {
      * @param workbookType 工作簿类型
      * @return HtmlToExcelFactory
      */
-    public HtmlToExcelFactory type(WorkbookType workbookType) {
+    public HtmlToExcelFactory workbookType(WorkbookType workbookType) {
         if (WorkbookType.isXls(workbookType)) {
             workbook = new HSSFWorkbook();
         } else {
