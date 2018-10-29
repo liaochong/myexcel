@@ -42,6 +42,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,6 +86,8 @@ public class HtmlToExcelFactory {
      * 样式容器
      */
     private Map<Tag, CellStyle> cellStyleFactoryEnumMap;
+
+    private Map<Map<String, String>, CellStyle> cellStyleMap;
     /**
      * 每列最大宽度
      */
@@ -207,6 +210,8 @@ public class HtmlToExcelFactory {
                 }
                 cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
                 cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
+            } else {
+                cellStyleMap = new HashMap<>();
             }
             sheetMap = new ConcurrentHashMap<>(tables.size());
             for (int i = 0; i < tables.size(); i++) {
@@ -339,6 +344,10 @@ public class HtmlToExcelFactory {
                 cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
             }
         } else {
+            if (cellStyleMap.containsKey(td.getStyle())) {
+                cell.setCellStyle(cellStyleMap.get(td.getStyle()));
+                return;
+            }
             CellStyle cellStyle;
             if (workbook instanceof HSSFWorkbook) {
                 cellStyle = ((HSSFWorkbook) workbook).createCellStyle();
