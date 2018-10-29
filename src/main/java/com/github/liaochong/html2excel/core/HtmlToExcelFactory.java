@@ -17,6 +17,7 @@ package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.TdCellStyle;
+import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
@@ -338,9 +339,20 @@ public class HtmlToExcelFactory {
                 cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
             }
         } else {
+            CellStyle cellStyle;
+            if (workbook instanceof HSSFWorkbook) {
+                cellStyle = ((HSSFWorkbook) workbook).createCellStyle();
+            } else {
+                cellStyle = ((XSSFWorkbook) workbook).createCellStyle();
+            }
             // background-color
             String bgColor = td.getStyle().get("background-color");
-            BackgroundStyle.setBackgroundColor(workbook, cell, bgColor);
+            BackgroundStyle.setBackgroundColor(workbook, cellStyle, bgColor);
+            // text-align
+            String textAlign = td.getStyle().get("text-align");
+            TextAlignStyle.setTextAlign(cellStyle, cell, textAlign);
+            // font
+            cell.setCellStyle(cellStyle);
         }
     }
 
