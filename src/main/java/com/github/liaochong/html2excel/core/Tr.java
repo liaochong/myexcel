@@ -1,11 +1,13 @@
 package com.github.liaochong.html2excel.core;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author liaochong
@@ -23,7 +25,21 @@ class Tr {
      */
     List<Td> tds = new ArrayList<>();
 
+    Map<String, String> style;
+
     Tr(int index) {
         this.index = index;
+    }
+
+    public void setStyle(Map<String, String> trStyle, Map<String, String> tableStyle) {
+        if (Objects.isNull(trStyle) && Objects.isNull(tableStyle)) {
+            return;
+        }
+        if (Objects.isNull(trStyle)) {
+            this.style = tableStyle;
+        } else {
+            tableStyle.forEach(trStyle::putIfAbsent);
+            this.style = trStyle;
+        }
     }
 }

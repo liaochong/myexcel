@@ -15,18 +15,11 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
-import java.util.stream.Collectors;
-
+import com.github.liaochong.html2excel.core.style.TdCellStyle;
+import com.github.liaochong.html2excel.core.style.ThCellStyle;
+import com.github.liaochong.html2excel.exception.NoTablesException;
+import com.github.liaochong.html2excel.utils.StyleUtils;
+import com.github.liaochong.html2excel.utils.TdUtils;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -44,10 +37,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.github.liaochong.html2excel.core.style.TdCellStyle;
-import com.github.liaochong.html2excel.core.style.ThCellStyle;
-import com.github.liaochong.html2excel.exception.NoTablesException;
-import com.github.liaochong.html2excel.utils.TdUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
 /**
  * HtmlToExcelFactory
@@ -135,7 +135,6 @@ public class HtmlToExcelFactory {
         useDefaultStyle = true;
         return this;
     }
-
 
     /**
      * 创建固定区域
@@ -253,9 +252,14 @@ public class HtmlToExcelFactory {
      */
     private List<Td> processTable(Element table) {
         this.initialize();
+        // 表样式
+        Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0, size = trs.size(); i < size; i++) {
+            // 行样式
+            Map<String, String> trStyle = StyleUtils.parseStyle(trs.get(i));
             Tr tr = new Tr(i);
+            tr.setStyle(trStyle, tableStyle);
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
@@ -360,9 +364,12 @@ public class HtmlToExcelFactory {
             return;
         }
         for (int i = 0; i < tdElements.size(); i++) {
+            Element element = tdElements.get(i);
+            Map<String, String> tdStyle = StyleUtils.parseStyle(element);
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(tr.getIndex());
+            td.setStyle(tdStyle, tr.getStyle());
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
                 int shift = tr.getTds().stream().filter(t -> t.getColSpan() > 0)
@@ -371,7 +378,6 @@ public class HtmlToExcelFactory {
             } else {
                 td.setCol(i);
             }
-            Element element = tdElements.get(i);
 
             String colSpan = element.attr(Tag.colspan.name());
             td.setColSpan(TdUtils.getSpan(colSpan));

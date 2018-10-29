@@ -4,6 +4,9 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * @author liaochong
  * @version 1.0
@@ -35,4 +38,19 @@ class Td {
      * 是否为th
      */
     boolean th;
+
+    Map<String, String> style;
+
+    public void setStyle(Map<String, String> tdStyle, Map<String, String> trStyle) {
+        if (Objects.isNull(trStyle) && Objects.isNull(tdStyle)) {
+            return;
+        }
+        if (Objects.isNull(tdStyle)) {
+            this.style = trStyle;
+        } else {
+            trStyle.forEach(trStyle::putIfAbsent);
+            this.style = tdStyle;
+        }
+    }
+
 }
