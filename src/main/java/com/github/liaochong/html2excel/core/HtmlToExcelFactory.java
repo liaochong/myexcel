@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.TdCellStyle;
 import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
@@ -315,7 +316,7 @@ public class HtmlToExcelFactory {
         for (int i = td.getRow(); i <= boundRow; i++) {
             for (int j = td.getCol(); j <= boundCol; j++) {
                 cell = sheet.getRow(i).getCell(j);
-                this.setCellStyle(cell, td.isTh());
+                this.setCellStyle(cell, td);
             }
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
@@ -327,15 +328,19 @@ public class HtmlToExcelFactory {
      * 设置单元格样式
      *
      * @param cell 单元格
-     * @param isTh 是否为标题
+     * @param td   td单元格
      */
-    private void setCellStyle(Cell cell, boolean isTh) {
+    private void setCellStyle(Cell cell, Td td) {
         if (useDefaultStyle) {
-            if (isTh) {
+            if (td.isTh()) {
                 cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
             } else {
                 cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
             }
+        } else {
+            // background-color
+            String bgColor = td.getStyle().get("background-color");
+            BackgroundStyle.setBackgroundColor((HSSFWorkbook) workbook, cell, bgColor);
         }
     }
 

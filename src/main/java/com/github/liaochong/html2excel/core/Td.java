@@ -48,7 +48,7 @@ class Td {
         if (Objects.isNull(tdStyle)) {
             this.style = trStyle;
         } else {
-            trStyle.forEach(trStyle::putIfAbsent);
+            trStyle.forEach(tdStyle::putIfAbsent);
             this.style = tdStyle;
         }
     }
