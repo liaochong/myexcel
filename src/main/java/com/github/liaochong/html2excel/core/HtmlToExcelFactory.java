@@ -340,7 +340,7 @@ public class HtmlToExcelFactory {
         } else {
             // background-color
             String bgColor = td.getStyle().get("background-color");
-            BackgroundStyle.setBackgroundColor((HSSFWorkbook) workbook, cell, bgColor);
+            BackgroundStyle.setBackgroundColor(workbook, cell, bgColor);
         }
     }
 

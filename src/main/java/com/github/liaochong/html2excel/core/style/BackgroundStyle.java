@@ -6,7 +6,13 @@ import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +37,7 @@ public class BackgroundStyle {
     }
 
 
-    public static void setBackgroundColor(HSSFWorkbook workbook, Cell cell, String color) {
+    public static void setBackgroundColor(Workbook workbook, Cell cell, String color) {
         if (Objects.isNull(color)) {
             return;
         }
@@ -48,13 +54,7 @@ public class BackgroundStyle {
             int g = Integer.parseInt((color.substring(3, 5)), 16);
             int b = Integer.parseInt((color.substring(5, 7)), 16);
             //自定义cell颜色
-            HSSFPalette palette = workbook.getCustomPalette();
-            //这里的9是索引
-            palette.setColorAtIndex((short) 999, (byte) r, (byte) g, (byte) b);
-            CellStyle style = workbook.createCellStyle();
-            style.setFillForegroundColor((short) 999);
-            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            cell.setCellStyle(style);
+            setCustomColor(workbook, cell, r, g, b);
             return;
         }
         if (color.startsWith(RGB)) {
@@ -66,13 +66,30 @@ public class BackgroundStyle {
             if (rgb.size() != 3) {
                 return;
             }
+            int r = rgb.get(0);   //转为16进制
+            int g = rgb.get(1);
+            int b = rgb.get(2);
             //自定义cell颜色
-            HSSFPalette palette = workbook.getCustomPalette();
-            palette.setColorAtIndex((short) 999, rgb.get(0).byteValue(), rgb.get(1).byteValue(), rgb.get(2).byteValue());
+            setCustomColor(workbook, cell, r, g, b);
+        }
+    }
+
+    private static void setCustomColor(Workbook workbook, Cell cell, int r, int g, int b) {
+        if (workbook instanceof HSSFWorkbook) {
+            HSSFWorkbook hssfWorkbook = (HSSFWorkbook) workbook;
+            HSSFPalette palette = hssfWorkbook.getCustomPalette();
+            //这里的9是索引
+            palette.setColorAtIndex((short) 999, (byte) r, (byte) g, (byte) b);
             CellStyle style = workbook.createCellStyle();
             style.setFillForegroundColor((short) 999);
             style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             cell.setCellStyle(style);
+        } else {
+            XSSFWorkbook xssfWorkbook = (XSSFWorkbook) workbook;
+            XSSFCellStyle style = xssfWorkbook.createCellStyle();
+            style.setFillForegroundColor(new XSSFColor(new Color(r, g, b), new DefaultIndexedColorMap()));
         }
     }
+
+
 }
