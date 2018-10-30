@@ -89,6 +89,7 @@ public class BackgroundStyle {
         } else {
             XSSFCellStyle xssfCellStyle = (XSSFCellStyle) style;
             xssfCellStyle.setFillForegroundColor(new XSSFColor(new Color(r, g, b), new DefaultIndexedColorMap()));
+            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         }
     }
 
