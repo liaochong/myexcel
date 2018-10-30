@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -103,6 +104,11 @@ public class HtmlToExcelFactory {
     private Map<Integer, Sheet> sheetMap;
 
     private FreezePane[] freezePanes;
+
+    /**
+     * 自定义颜色索引
+     */
+    private AtomicInteger colorIndex = new AtomicInteger(999);
 
     public HtmlToExcelFactory() {
     }
@@ -356,12 +362,14 @@ public class HtmlToExcelFactory {
                 cellStyle = ((XSSFWorkbook) workbook).createCellStyle();
             }
             // background-color
-            BackgroundStyle.setBackgroundColor(workbook, cellStyle, td.getStyle());
+            BackgroundStyle.setBackgroundColor(workbook, cellStyle, td.getStyle(), colorIndex);
             // text-align
             TextAlignStyle.setTextAlign(cellStyle, td.getStyle());
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
             cell.setCellStyle(cellStyle);
+
+            cellStyleMap.put(td.getStyle(), cellStyle);
         }
     }
 

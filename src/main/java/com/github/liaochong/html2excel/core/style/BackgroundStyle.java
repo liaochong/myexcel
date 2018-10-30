@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -35,12 +36,12 @@ public class BackgroundStyle {
     }
 
 
-    public static void setBackgroundColor(Workbook workbook, CellStyle style, Map<String, String> tdStyle) {
+    public static void setBackgroundColor(Workbook workbook, CellStyle style, Map<String, String> tdStyle, AtomicInteger colorIndex) {
         if (Objects.isNull(tdStyle)) {
             return;
         }
         String color = tdStyle.get("background-color");
-        if(Objects.isNull(color)){
+        if (Objects.isNull(color)) {
             return;
         }
         HSSFColor.HSSFColorPredefined colorPredefined = colorPredefinedMap.get(color);
@@ -50,11 +51,12 @@ public class BackgroundStyle {
             return;
         }
         if (color.startsWith(HASH)) {
-            int r = Integer.parseInt((color.substring(1, 3)), 16);   //转为16进制
+            // 转为16进制
+            int r = Integer.parseInt((color.substring(1, 3)), 16);
             int g = Integer.parseInt((color.substring(3, 5)), 16);
             int b = Integer.parseInt((color.substring(5, 7)), 16);
             //自定义cell颜色
-            setCustomColor(workbook, style, r, g, b);
+            setCustomColor(workbook, style, r, g, b, colorIndex);
             return;
         }
         if (color.startsWith(RGB)) {
@@ -66,21 +68,23 @@ public class BackgroundStyle {
             if (rgb.size() != 3) {
                 return;
             }
-            int r = rgb.get(0);   //转为16进制
+            // 转为16进制
+            int r = rgb.get(0);
             int g = rgb.get(1);
             int b = rgb.get(2);
             //自定义cell颜色
-            setCustomColor(workbook, style, r, g, b);
+            setCustomColor(workbook, style, r, g, b, colorIndex);
         }
     }
 
-    private static void setCustomColor(Workbook workbook, CellStyle style, int r, int g, int b) {
+    private static void setCustomColor(Workbook workbook, CellStyle style, int r, int g, int b, AtomicInteger colorIndex) {
         if (workbook instanceof HSSFWorkbook) {
             HSSFWorkbook hssfWorkbook = (HSSFWorkbook) workbook;
             HSSFPalette palette = hssfWorkbook.getCustomPalette();
             //这里的9是索引
-            palette.setColorAtIndex((short) 999, (byte) r, (byte) g, (byte) b);
-            style.setFillForegroundColor((short) 999);
+            short index = (short) colorIndex.getAndIncrement();
+            palette.setColorAtIndex(index, (byte) r, (byte) g, (byte) b);
+            style.setFillForegroundColor(index);
             style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         } else {
             XSSFCellStyle xssfCellStyle = (XSSFCellStyle) style;
