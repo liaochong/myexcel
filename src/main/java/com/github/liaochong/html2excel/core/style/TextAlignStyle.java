@@ -2,9 +2,12 @@ package com.github.liaochong.html2excel.core.style;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -12,37 +15,27 @@ import java.util.Objects;
  */
 public class TextAlignStyle {
 
-    private static final String LEFT = "left";
+    private static Map<String, HorizontalAlignment> horizontalAlignmentMap;
 
-    private static final String RIGHT = "right";
+    private static Map<String, VerticalAlignment> verticalAlignmentMap;
 
-    private static final String CENTER = "center";
-
-    private static final String JUSTIFY = "justify";
+    static {
+        horizontalAlignmentMap = Arrays.stream(HorizontalAlignment.values()).collect(Collectors.toMap(h -> h.name().toLowerCase(), h -> h));
+        verticalAlignmentMap = Arrays.stream(VerticalAlignment.values()).collect(Collectors.toMap(v -> v.name().toLowerCase(), v -> v));
+        verticalAlignmentMap.put("middle", VerticalAlignment.CENTER);
+    }
 
     public static void setTextAlign(CellStyle cellStyle, Map<String, String> tdStyle) {
         if (Objects.isNull(tdStyle)) {
             return;
         }
         String textAlign = tdStyle.get("text-align");
-        if(Objects.isNull(textAlign)){
-            return;
+        if (horizontalAlignmentMap.containsKey(textAlign)) {
+            cellStyle.setAlignment(horizontalAlignmentMap.get(textAlign));
         }
-        switch (textAlign) {
-            case LEFT:
-                cellStyle.setAlignment(HorizontalAlignment.LEFT);
-                break;
-            case RIGHT:
-                cellStyle.setAlignment(HorizontalAlignment.RIGHT);
-                break;
-            case CENTER:
-                cellStyle.setAlignment(HorizontalAlignment.CENTER);
-                break;
-            case JUSTIFY:
-                cellStyle.setAlignment(HorizontalAlignment.JUSTIFY);
-                break;
-            default:
-                cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        String verticalAlign = tdStyle.get("vertical-align");
+        if (verticalAlignmentMap.containsKey(verticalAlign)) {
+            cellStyle.setVerticalAlignment(verticalAlignmentMap.get(verticalAlign));
         }
     }
 }

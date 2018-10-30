@@ -108,7 +108,7 @@ public class HtmlToExcelFactory {
     /**
      * 自定义颜色索引
      */
-    private AtomicInteger colorIndex = new AtomicInteger(1);
+    private AtomicInteger colorIndex = new AtomicInteger(56);
 
     public HtmlToExcelFactory() {
     }
