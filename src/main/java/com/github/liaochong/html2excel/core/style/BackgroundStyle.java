@@ -35,8 +35,12 @@ public class BackgroundStyle {
     }
 
 
-    public static void setBackgroundColor(Workbook workbook, CellStyle style, String color) {
-        if (Objects.isNull(color)) {
+    public static void setBackgroundColor(Workbook workbook, CellStyle style, Map<String, String> tdStyle) {
+        if (Objects.isNull(tdStyle)) {
+            return;
+        }
+        String color = tdStyle.get("background-color");
+        if(Objects.isNull(color)){
             return;
         }
         HSSFColor.HSSFColorPredefined colorPredefined = colorPredefinedMap.get(color);

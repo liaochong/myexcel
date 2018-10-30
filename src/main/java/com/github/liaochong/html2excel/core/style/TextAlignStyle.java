@@ -1,9 +1,9 @@
 package com.github.liaochong.html2excel.core.style;
 
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -20,8 +20,12 @@ public class TextAlignStyle {
 
     private static final String JUSTIFY = "justify";
 
-    public static void setTextAlign(CellStyle cellStyle, Cell cell, String textAlign) {
-        if (Objects.isNull(textAlign)) {
+    public static void setTextAlign(CellStyle cellStyle, Map<String, String> tdStyle) {
+        if (Objects.isNull(tdStyle)) {
+            return;
+        }
+        String textAlign = tdStyle.get("text-align");
+        if(Objects.isNull(textAlign)){
             return;
         }
         switch (textAlign) {
