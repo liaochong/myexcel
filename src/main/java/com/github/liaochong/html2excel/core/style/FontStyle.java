@@ -14,27 +14,39 @@ import java.util.Objects;
 public final class FontStyle {
 
     public static void setFont(Workbook workbook, CellStyle cellStyle, Map<String, String> tdStyle) {
-        Font font = workbook.createFont();
+        Font font = null;
 
         String fs = tdStyle.get("font-size");
         if (Objects.nonNull(fs)) {
             fs = fs.replaceAll("\\D*", "");
             short fontSize = Short.parseShort(fs);
+            font = workbook.createFont();
             font.setFontHeightInPoints(fontSize);
         }
 
         String fontFamily = tdStyle.get("font-family");
         if (Objects.nonNull(fontFamily)) {
+            if (Objects.isNull(font)) {
+                font = workbook.createFont();
+            }
             font.setFontName(fontFamily);
         }
         String italic = tdStyle.get("font-style");
         if (Objects.equals("italic", italic)) {
+            if (Objects.isNull(font)) {
+                font = workbook.createFont();
+            }
             font.setItalic(true);
         }
         String strikeout = tdStyle.get("text-decoration");
         if (Objects.equals(strikeout, "line-through")) {
+            if (Objects.isNull(font)) {
+                font = workbook.createFont();
+            }
             font.setStrikeout(true);
         }
-        cellStyle.setFont(font);
+        if (Objects.nonNull(font)) {
+            cellStyle.setFont(font);
+        }
     }
 }
