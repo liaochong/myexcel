@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-public class TextAlignStyle {
+public final class TextAlignStyle {
 
     private static Map<String, HorizontalAlignment> horizontalAlignmentMap;
 

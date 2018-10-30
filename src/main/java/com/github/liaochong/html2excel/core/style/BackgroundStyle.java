@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-public class BackgroundStyle {
+public final class BackgroundStyle {
 
     private static final String HASH = "#";
 
@@ -81,7 +81,7 @@ public class BackgroundStyle {
         if (workbook instanceof HSSFWorkbook) {
             HSSFWorkbook hssfWorkbook = (HSSFWorkbook) workbook;
             HSSFPalette palette = hssfWorkbook.getCustomPalette();
-            //这里的9是索引
+
             short index = (short) colorIndex.getAndIncrement();
             palette.setColorAtIndex(index, (byte) r, (byte) g, (byte) b);
             style.setFillForegroundColor(index);

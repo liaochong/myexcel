@@ -17,6 +17,7 @@ package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
+import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.core.style.TdCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThCellStyle;
@@ -367,8 +368,9 @@ public class HtmlToExcelFactory {
             TextAlignStyle.setTextAlign(cellStyle, td.getStyle());
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
+            // font
+            FontStyle.setFont(workbook, cellStyle, td.getStyle());
             cell.setCellStyle(cellStyle);
-
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
     }
