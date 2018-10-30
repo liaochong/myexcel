@@ -91,10 +91,7 @@ public class HtmlToExcelFactory {
     private Map<Tag, CellStyle> cellStyleFactoryEnumMap;
 
     private Map<Map<String, String>, CellStyle> cellStyleMap;
-    /**
-     * 每列最大宽度
-     */
-    private Map<Integer, Integer> colMaxWidthMap;
+
     /**
      * future
      */
@@ -291,7 +288,10 @@ public class HtmlToExcelFactory {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value << 9));
+
+        for (int i = 0; i < totalCols; i++) {
+            sheet.autoSizeColumn(i);
+        }
     }
 
     /**
@@ -300,7 +300,7 @@ public class HtmlToExcelFactory {
     private void initialize() {
         totalCols = 0;
         trContainer = new ArrayList<>();
-        colMaxWidthMap = new ConcurrentHashMap<>();
+        cellStyleMap = new HashMap<>();
     }
 
     /**
@@ -423,12 +423,6 @@ public class HtmlToExcelFactory {
 
             td.setContent(element.text());
             tr.getTds().add(td);
-            // 设置每列最宽宽度
-            int width = TdUtils.getStringWidth(td.getContent());
-            Integer maxWidth = colMaxWidthMap.get(td.getCol());
-            if (Objects.isNull(maxWidth) || maxWidth < width) {
-                colMaxWidthMap.put(td.getCol(), width);
-            }
         }
     }
 
