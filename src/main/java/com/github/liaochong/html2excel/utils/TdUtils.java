@@ -17,14 +17,16 @@ package com.github.liaochong.html2excel.utils;
 
 import java.util.Objects;
 import java.util.function.IntSupplier;
+import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  * @author liaochong
  * @version 1.0
  */
 public class TdUtils {
+
+    private static Pattern pattern = Pattern.compile("^\\d*$");
 
     public static int get(IntSupplier firstSupplier, IntSupplier secondSupplier) {
         int firstValue = firstSupplier.getAsInt();
@@ -58,10 +60,11 @@ public class TdUtils {
 
 
     public static int getSpan(String span) {
-        if (!NumberUtils.isDigits(span)) {
+        if (!pattern.matcher(span).find()) {
             return 0;
         }
         int result = Integer.parseInt(span);
         return result > 0 ? result : 0;
     }
+
 }

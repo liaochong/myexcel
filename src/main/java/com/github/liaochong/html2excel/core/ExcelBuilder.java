@@ -1,16 +1,13 @@
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.exception.ExcelBuildException;
+import org.apache.poi.ss.usermodel.Workbook;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Workbook;
-
-import com.github.liaochong.html2excel.exception.ExcelBuildException;
 
 /**
  * excel创建者接口
@@ -50,7 +47,7 @@ public abstract class ExcelBuilder {
      * @return ExcelBuilder
      */
     public ExcelBuilder freezePanes(FreezePane... freezePanes) {
-        if (ArrayUtils.isEmpty(freezePanes)) {
+        if (Objects.isNull(freezePanes) || freezePanes.length == 0) {
             return this;
         }
         htmlToExcelFactory.freezePanes(freezePanes);
@@ -80,7 +77,7 @@ public abstract class ExcelBuilder {
      * @return String[]
      */
     String[] splitFilePath(String path) {
-        if (StringUtils.isBlank(path)) {
+        if (Objects.isNull(path)) {
             throw new NullPointerException();
         }
         int lastPackageIndex = path.lastIndexOf("/");

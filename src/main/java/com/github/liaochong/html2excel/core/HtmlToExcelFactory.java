@@ -26,8 +26,6 @@ import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -236,7 +234,7 @@ public class HtmlToExcelFactory {
                     Elements tds = tr.children();
                     return tds.stream().mapToInt(td -> {
                         String colSpan = td.attr(Tag.colspan.name());
-                        return StringUtils.isNotBlank(colSpan) ? Integer.parseInt(colSpan) : 1;
+                        return Objects.nonNull(colSpan) ? Integer.parseInt(colSpan) : 1;
                     }).sum();
                 }).max().orElse(0);
 
@@ -246,7 +244,7 @@ public class HtmlToExcelFactory {
                         row.createCell(k);
                     }
                 }
-                if (ArrayUtils.isNotEmpty(freezePanes) && freezePanes.length > i) {
+                if (Objects.nonNull(freezePanes) && freezePanes.length > i) {
                     FreezePane freezePane = freezePanes[i];
                     if (Objects.isNull(freezePane)) {
                         throw new IllegalStateException("FreezePane is null");
