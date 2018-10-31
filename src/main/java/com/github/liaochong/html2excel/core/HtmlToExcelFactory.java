@@ -87,9 +87,10 @@ public class HtmlToExcelFactory {
      * 样式容器
      */
     private Map<Tag, CellStyle> cellStyleFactoryEnumMap;
-
+    /**
+     * 单元格样式映射
+     */
     private Map<Map<String, String>, CellStyle> cellStyleMap;
-
     /**
      * future
      */
@@ -98,6 +99,8 @@ public class HtmlToExcelFactory {
      * sheet容器
      */
     private Map<Integer, Sheet> sheetMap;
+
+    private Map<Integer, Short> maxTdHeightMap;
 
     private FreezePane[] freezePanes;
 
@@ -189,6 +192,15 @@ public class HtmlToExcelFactory {
             List<Td> tds = this.processTable(tables.get(i));
             // 设置单元格样式
             this.setTdOfTable(i, tds);
+            // 设置行高
+            for (int j = 0, size = trContainer.size(); j < size; j++) {
+                Row row = sheetMap.get(i).getRow(j);
+                if (Objects.isNull(maxTdHeightMap) || Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
+                    row.setHeightInPoints(row.getHeightInPoints() + 5);
+                } else {
+                    row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
+                }
+            }
         }
         return workbook;
     }
@@ -328,8 +340,9 @@ public class HtmlToExcelFactory {
 
         for (int i = td.getRow(); i <= boundRow; i++) {
             for (int j = td.getCol(); j <= boundCol; j++) {
-                cell = sheet.getRow(i).getCell(j);
-                this.setCellStyle(cell, td);
+                Row row = sheet.getRow(i);
+                cell = row.getCell(j);
+                this.setCellStyle(row, cell, td);
             }
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
@@ -343,7 +356,7 @@ public class HtmlToExcelFactory {
      * @param cell 单元格
      * @param td   td单元格
      */
-    private void setCellStyle(Cell cell, Td td) {
+    private void setCellStyle(Row row, Cell cell, Td td) {
         if (useDefaultStyle) {
             if (td.isTh()) {
                 cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
@@ -354,6 +367,9 @@ public class HtmlToExcelFactory {
             if (cellStyleMap.containsKey(td.getStyle())) {
                 cell.setCellStyle(cellStyleMap.get(td.getStyle()));
                 return;
+            }
+            if (Objects.isNull(maxTdHeightMap)) {
+                maxTdHeightMap = new ConcurrentHashMap<>();
             }
             CellStyle cellStyle;
             if (workbook instanceof HSSFWorkbook) {
@@ -368,7 +384,7 @@ public class HtmlToExcelFactory {
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
             // font
-            FontStyle.setFont(workbook, cellStyle, td.getStyle());
+            FontStyle.setFont(workbook, row, cellStyle, td.getStyle(), maxTdHeightMap);
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }

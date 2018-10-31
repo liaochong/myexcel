@@ -17,6 +17,7 @@ package com.github.liaochong.html2excel.core.style;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.Map;
@@ -28,15 +29,17 @@ import java.util.Objects;
  */
 public final class FontStyle {
 
-    public static void setFont(Workbook workbook, CellStyle cellStyle, Map<String, String> tdStyle) {
+    public static void setFont(Workbook workbook, Row row, CellStyle cellStyle, Map<String, String> tdStyle, Map<Integer, Short> maxTdHeightMap) {
         Font font = null;
-
         String fs = tdStyle.get("font-size");
         if (Objects.nonNull(fs)) {
             fs = fs.replaceAll("\\D*", "");
             short fontSize = Short.parseShort(fs);
             font = workbook.createFont();
             font.setFontHeightInPoints(fontSize);
+            if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), (short) 12)) {
+                maxTdHeightMap.put(row.getRowNum(), fontSize);
+            }
         }
 
         String fontFamily = tdStyle.get("font-family");
