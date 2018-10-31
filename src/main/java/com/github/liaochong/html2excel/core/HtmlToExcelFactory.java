@@ -189,11 +189,6 @@ public class HtmlToExcelFactory {
             List<Td> tds = this.processTable(tables.get(i));
             // 设置单元格样式
             this.setTdOfTable(i, tds);
-            // 设置行高
-            for (int j = 0, size = trContainer.size(); j < size; j++) {
-                Row row = sheetMap.get(i).getRow(j);
-                row.setHeightInPoints(row.getHeightInPoints() + 3);
-            }
         }
         return workbook;
     }
@@ -236,7 +231,11 @@ public class HtmlToExcelFactory {
                     Elements tds = tr.children();
                     return tds.stream().mapToInt(td -> {
                         String colSpan = td.attr(Tag.colspan.name());
-                        return Objects.nonNull(colSpan) ? Integer.parseInt(colSpan) : 1;
+                        if (!TdUtils.isSpanValid(colSpan)) {
+                            return 1;
+                        }
+                        int colSpanVal = Integer.parseInt(colSpan);
+                        return colSpanVal > 0 ? colSpanVal : 1;
                     }).sum();
                 }).max().orElse(0);
 
@@ -307,7 +306,7 @@ public class HtmlToExcelFactory {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
-
+        // 自适应列宽
         for (int i = 0; i < totalCols; i++) {
             sheet.autoSizeColumn(i);
         }
