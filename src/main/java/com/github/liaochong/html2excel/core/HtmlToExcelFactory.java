@@ -280,21 +280,6 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 创建
-     *
-     * @param tableIndex 表格索引
-     */
-    private void setTdOfTable(int tableIndex, List<Td> allTds) {
-        workbookFuture.join();
-        Sheet sheet = sheetMap.get(tableIndex);
-        allTds.forEach(td -> this.setCell(td, sheet));
-
-        for (int i = 0; i < totalCols; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
-
-    /**
      * 初始化，每解析一个表格需要重新初始化
      */
     private void initialize() {
@@ -311,6 +296,21 @@ public class HtmlToExcelFactory {
                 .max().orElse(0);
         totalCols = trContainer.parallelStream().mapToInt(function).max()
                 .orElseThrow(() -> new NoTablesException("不存在任何单元格"));
+    }
+
+    /**
+     * 创建
+     *
+     * @param tableIndex 表格索引
+     */
+    private void setTdOfTable(int tableIndex, List<Td> allTds) {
+        workbookFuture.join();
+        Sheet sheet = sheetMap.get(tableIndex);
+        allTds.forEach(td -> this.setCell(td, sheet));
+
+        for (int i = 0; i < totalCols; i++) {
+            sheet.autoSizeColumn(i);
+        }
     }
 
     /**
