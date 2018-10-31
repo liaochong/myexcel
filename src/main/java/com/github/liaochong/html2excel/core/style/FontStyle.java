@@ -41,7 +41,6 @@ public final class FontStyle {
                 maxTdHeightMap.put(row.getRowNum(), fontSize);
             }
         }
-
         String fontFamily = tdStyle.get("font-family");
         if (Objects.nonNull(fontFamily)) {
             if (Objects.isNull(font)) {
@@ -62,6 +61,13 @@ public final class FontStyle {
                 font = workbook.createFont();
             }
             font.setStrikeout(true);
+        }
+        String fontWeight = tdStyle.get("font-weight");
+        if (Objects.equals(fontWeight, "bold")) {
+            if (Objects.isNull(font)) {
+                font = workbook.createFont();
+            }
+            font.setBold(true);
         }
         if (Objects.nonNull(font)) {
             cellStyle.setFont(font);
