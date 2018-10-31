@@ -193,16 +193,26 @@ public class HtmlToExcelFactory {
             // 设置单元格样式
             this.setTdOfTable(i, tds);
             // 设置行高
-            for (int j = 0, size = trContainer.size(); j < size; j++) {
-                Row row = sheetMap.get(i).getRow(j);
-                if (Objects.isNull(maxTdHeightMap) || Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
-                    row.setHeightInPoints(row.getHeightInPoints() + 5);
-                } else {
-                    row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
-                }
-            }
+            this.setRowHeight(i);
         }
         return workbook;
+    }
+
+    /**
+     * 设置行高，最小12
+     *
+     * @param i 表格索引
+     */
+    private void setRowHeight(int i) {
+        Sheet sheet = sheetMap.get(i);
+        for (int j = 0, size = trContainer.size(); j < size; j++) {
+            Row row = sheet.getRow(j);
+            if (Objects.isNull(maxTdHeightMap) || Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
+                row.setHeightInPoints(row.getHeightInPoints() + 5);
+            } else {
+                row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
+            }
+        }
     }
 
     /**
