@@ -24,7 +24,9 @@ class Tr {
      * 行单元格
      */
     List<Td> tds = new ArrayList<>();
-
+    /**
+     * 行样式
+     */
     Map<String, String> style;
 
     Tr(int index) {

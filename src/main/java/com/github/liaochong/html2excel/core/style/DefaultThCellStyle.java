@@ -25,15 +25,16 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @author liaochong
  * @version 1.0
  */
-public class TdCellStyle implements CellStyleFactory {
+public class DefaultThCellStyle implements CellStyleFactory {
+
     @Override
     public CellStyle supply(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
+        style.setBorderBottom(BorderStyle.THIN);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.DOUBLE);
         return style;
     }
 }

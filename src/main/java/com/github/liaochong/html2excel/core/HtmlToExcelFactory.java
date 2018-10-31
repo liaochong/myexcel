@@ -17,10 +17,10 @@ package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
+import com.github.liaochong.html2excel.core.style.DefaultTdCellStyle;
+import com.github.liaochong.html2excel.core.style.DefaultThCellStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
-import com.github.liaochong.html2excel.core.style.TdCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
-import com.github.liaochong.html2excel.core.style.ThCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
@@ -181,13 +181,15 @@ public class HtmlToExcelFactory {
             throw NoTablesException.of("There is no any table exist");
         }
         // 1、创建工作簿
-        createWorkbook(tables);
+        this.createWorkbook(tables);
+
+        // 2、处理解析表格
         for (int i = 0; i < tables.size(); i++) {
-            // 2、处理解析表格
+            // 获取所有单元格
             List<Td> tds = this.processTable(tables.get(i));
-            // 3、设置单元格
+            // 设置单元格样式
             this.setTdOfTable(i, tds);
-            // 4、设置行高
+            // 设置行高
             for (int j = 0, size = trContainer.size(); j < size; j++) {
                 Row row = sheetMap.get(i).getRow(j);
                 row.setHeightInPoints(row.getHeightInPoints() + 3);
@@ -211,8 +213,8 @@ public class HtmlToExcelFactory {
                 if (Objects.isNull(cellStyleFactoryEnumMap)) {
                     cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
                 }
-                cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new ThCellStyle().supply(workbook));
-                cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new TdCellStyle().supply(workbook));
+                cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new DefaultThCellStyle().supply(workbook));
+                cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new DefaultTdCellStyle().supply(workbook));
             } else {
                 cellStyleMap = new HashMap<>();
             }

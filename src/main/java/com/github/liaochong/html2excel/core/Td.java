@@ -38,7 +38,9 @@ class Td {
      * 是否为th
      */
     boolean th;
-
+    /**
+     * 单元格样式
+     */
     Map<String, String> style;
 
     public void setStyle(Map<String, String> tdStyle, Map<String, String> trStyle) {
