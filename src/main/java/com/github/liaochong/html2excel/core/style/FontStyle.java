@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 public final class FontStyle {
 
+    private static final short DEFAULT_FONT_SIZE = 12;
+
     public static void setFont(Workbook workbook, Row row, CellStyle cellStyle, Map<String, String> tdStyle, Map<Integer, Short> maxTdHeightMap) {
         Font font = null;
         String fs = tdStyle.get("font-size");
@@ -37,40 +39,39 @@ public final class FontStyle {
             short fontSize = Short.parseShort(fs);
             font = workbook.createFont();
             font.setFontHeightInPoints(fontSize);
-            if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), (short) 12)) {
+            if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), DEFAULT_FONT_SIZE)) {
                 maxTdHeightMap.put(row.getRowNum(), fontSize);
             }
         }
         String fontFamily = tdStyle.get("font-family");
         if (Objects.nonNull(fontFamily)) {
-            if (Objects.isNull(font)) {
-                font = workbook.createFont();
-            }
+            font = createFontIfNull(workbook, font);
             font.setFontName(fontFamily);
         }
         String italic = tdStyle.get("font-style");
         if (Objects.equals("italic", italic)) {
-            if (Objects.isNull(font)) {
-                font = workbook.createFont();
-            }
+            font = createFontIfNull(workbook, font);
             font.setItalic(true);
         }
         String strikeout = tdStyle.get("text-decoration");
         if (Objects.equals(strikeout, "line-through")) {
-            if (Objects.isNull(font)) {
-                font = workbook.createFont();
-            }
+            font = createFontIfNull(workbook, font);
             font.setStrikeout(true);
         }
         String fontWeight = tdStyle.get("font-weight");
         if (Objects.equals(fontWeight, "bold")) {
-            if (Objects.isNull(font)) {
-                font = workbook.createFont();
-            }
+            font = createFontIfNull(workbook, font);
             font.setBold(true);
         }
         if (Objects.nonNull(font)) {
             cellStyle.setFont(font);
         }
+    }
+
+    private static Font createFontIfNull(Workbook workbook, Font font) {
+        if (Objects.isNull(font)) {
+            font = workbook.createFont();
+        }
+        return font;
     }
 }
