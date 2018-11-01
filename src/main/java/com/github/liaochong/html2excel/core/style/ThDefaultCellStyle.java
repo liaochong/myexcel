@@ -25,7 +25,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @author liaochong
  * @version 1.0
  */
-public class DefaultThCellStyle implements CellStyleFactory {
+public class ThDefaultCellStyle implements DefaultCellStyle {
 
     @Override
     public CellStyle supply(Workbook workbook) {

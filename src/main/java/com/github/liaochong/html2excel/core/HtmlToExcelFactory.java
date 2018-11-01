@@ -17,10 +17,10 @@ package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
-import com.github.liaochong.html2excel.core.style.DefaultTdCellStyle;
-import com.github.liaochong.html2excel.core.style.DefaultThCellStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
+import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
+import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
@@ -80,13 +80,9 @@ public class HtmlToExcelFactory {
      */
     private int totalCols;
     /**
-     * 是否使用默认样式
-     */
-    private boolean useDefaultStyle;
-    /**
      * 样式容器
      */
-    private Map<Tag, CellStyle> cellStyleFactoryEnumMap;
+    private Map<Tag, CellStyle> defaultCellStyleMap;
     /**
      * 单元格样式映射
      */
@@ -143,7 +139,9 @@ public class HtmlToExcelFactory {
      * @return HtmlToExcelFactory
      */
     public HtmlToExcelFactory useDefaultStyle() {
-        useDefaultStyle = true;
+        defaultCellStyleMap = new EnumMap<>(Tag.class);
+        defaultCellStyleMap.putIfAbsent(Tag.th, new ThDefaultCellStyle().supply(workbook));
+        defaultCellStyleMap.putIfAbsent(Tag.td, new TdDefaultCellStyle().supply(workbook));
         return this;
     }
 
@@ -224,16 +222,6 @@ public class HtmlToExcelFactory {
         workbookFuture = CompletableFuture.runAsync(() -> {
             if (Objects.isNull(workbook)) {
                 workbook = new XSSFWorkbook();
-            }
-            // 使用默认样式时，加载默认样式
-            if (useDefaultStyle) {
-                if (Objects.isNull(cellStyleFactoryEnumMap)) {
-                    cellStyleFactoryEnumMap = new EnumMap<>(Tag.class);
-                }
-                cellStyleFactoryEnumMap.putIfAbsent(Tag.th, new DefaultThCellStyle().supply(workbook));
-                cellStyleFactoryEnumMap.putIfAbsent(Tag.td, new DefaultTdCellStyle().supply(workbook));
-            } else {
-                cellStyleMap = new HashMap<>();
             }
             sheetMap = new ConcurrentHashMap<>(tables.size());
             for (int i = 0; i < tables.size(); i++) {
@@ -348,6 +336,7 @@ public class HtmlToExcelFactory {
         int boundCol = TdUtils.get(td::getColSpan, td::getCol);
         int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
 
+        cellStyleMap = new HashMap<>();
         for (int i = td.getRow(); i <= boundRow; i++) {
             for (int j = td.getCol(); j <= boundCol; j++) {
                 Row row = sheet.getRow(i);
@@ -367,11 +356,11 @@ public class HtmlToExcelFactory {
      * @param td   td单元格
      */
     private void setCellStyle(Row row, Cell cell, Td td) {
-        if (useDefaultStyle) {
+        if (Objects.nonNull(defaultCellStyleMap)) {
             if (td.isTh()) {
-                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.th));
+                cell.setCellStyle(defaultCellStyleMap.get(Tag.th));
             } else {
-                cell.setCellStyle(cellStyleFactoryEnumMap.get(Tag.td));
+                cell.setCellStyle(defaultCellStyleMap.get(Tag.td));
             }
         } else {
             if (cellStyleMap.containsKey(td.getStyle())) {
