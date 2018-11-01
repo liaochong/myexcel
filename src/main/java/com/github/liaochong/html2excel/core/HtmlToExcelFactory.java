@@ -277,10 +277,8 @@ public class HtmlToExcelFactory {
         Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
         for (int i = 0, size = trs.size(); i < size; i++) {
-            // 行样式
-            Map<String, String> trStyle = StyleUtils.parseStyle(trs.get(i));
             Tr tr = new Tr(i);
-            tr.setStyle(trStyle, tableStyle);
+            tr.setStyle(StyleUtils.parseStyle(trs.get(i)), tableStyle);
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
@@ -409,12 +407,11 @@ public class HtmlToExcelFactory {
             return;
         }
         for (int i = 0; i < tdElements.size(); i++) {
-            Element element = tdElements.get(i);
-            Map<String, String> tdStyle = StyleUtils.parseStyle(element);
+            Element tdElement = tdElements.get(i);
             Td td = new Td();
             td.setTh(isTh);
             td.setRow(tr.getIndex());
-            td.setStyle(tdStyle, tr.getStyle());
+            td.setStyle(StyleUtils.parseStyle(tdElement), tr.getStyle());
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
                 int shift = tr.getTds().stream().filter(t -> t.getColSpan() > 0)
@@ -424,13 +421,13 @@ public class HtmlToExcelFactory {
                 td.setCol(i);
             }
 
-            String colSpan = element.attr(Tag.colspan.name());
+            String colSpan = tdElement.attr(Tag.colspan.name());
             td.setColSpan(TdUtils.getSpan(colSpan));
 
-            String rowSpan = element.attr(Tag.rowspan.name());
+            String rowSpan = tdElement.attr(Tag.rowspan.name());
             td.setRowSpan(TdUtils.getSpan(rowSpan));
 
-            td.setContent(element.text());
+            td.setContent(tdElement.text());
             tr.getTds().add(td);
         }
     }
