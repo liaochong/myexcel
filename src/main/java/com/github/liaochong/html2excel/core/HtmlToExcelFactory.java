@@ -370,12 +370,7 @@ public class HtmlToExcelFactory {
             if (Objects.isNull(maxTdHeightMap)) {
                 maxTdHeightMap = new ConcurrentHashMap<>();
             }
-            CellStyle cellStyle;
-            if (workbook instanceof HSSFWorkbook) {
-                cellStyle = ((HSSFWorkbook) workbook).createCellStyle();
-            } else {
-                cellStyle = ((XSSFWorkbook) workbook).createCellStyle();
-            }
+            CellStyle cellStyle = workbook.createCellStyle();
             // background-color
             BackgroundStyle.setBackgroundColor(workbook, cellStyle, td.getStyle(), colorIndex);
             // text-align
