@@ -22,6 +22,7 @@ import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.html2excel.exception.NoTablesException;
+import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
 import org.apache.commons.codec.CharEncoding;
@@ -40,6 +41,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -115,6 +117,9 @@ public class HtmlToExcelFactory {
      * @throws Exception 解析异常
      */
     public static HtmlToExcelFactory readHtml(File htmlFile) throws Exception {
+        if (Objects.isNull(htmlFile) || !htmlFile.exists()) {
+            throw new NoSuchFileException("html file is not exist");
+        }
         HtmlToExcelFactory factory = new HtmlToExcelFactory();
         factory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
         return factory;
@@ -129,6 +134,12 @@ public class HtmlToExcelFactory {
      * @throws Exception 解析异常
      */
     public static HtmlToExcelFactory readHtml(File htmlFile, HtmlToExcelFactory htmlToExcelFactory) throws Exception {
+        if (Objects.isNull(htmlFile) || !htmlFile.exists()) {
+            throw new NoSuchFileException("Html file is not exist");
+        }
+        if (Objects.isNull(htmlToExcelFactory)) {
+            throw new NullPointerException("HtmlToExcelFactory can not be null");
+        }
         htmlToExcelFactory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
         return htmlToExcelFactory;
     }
@@ -140,8 +151,8 @@ public class HtmlToExcelFactory {
      */
     public HtmlToExcelFactory useDefaultStyle() {
         defaultCellStyleMap = new EnumMap<>(Tag.class);
-        defaultCellStyleMap.putIfAbsent(Tag.th, new ThDefaultCellStyle().supply(workbook));
-        defaultCellStyleMap.putIfAbsent(Tag.td, new TdDefaultCellStyle().supply(workbook));
+        defaultCellStyleMap.put(Tag.th, new ThDefaultCellStyle().supply(workbook));
+        defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
         return this;
     }
 
@@ -163,10 +174,19 @@ public class HtmlToExcelFactory {
      * @return HtmlToExcelFactory
      */
     public HtmlToExcelFactory workbookType(WorkbookType workbookType) {
-        if (WorkbookType.isXls(workbookType)) {
-            workbook = new HSSFWorkbook();
-        } else {
-            workbook = new XSSFWorkbook();
+        if (Objects.isNull(workbookType)) {
+            throw new IllegalArgumentException("WorkbookType must be specified,or remove this method, use the default workbookType");
+        }
+        switch (workbookType) {
+            case XLS:
+                workbook = new HSSFWorkbook();
+                break;
+            case XLSX:
+                workbook = new XSSFWorkbook();
+                break;
+            case SXLSX:
+                throw new UnsupportedWorkbookTypeException("SXSSFWorkbook is not supported at this version");
+            default:
         }
         return this;
     }

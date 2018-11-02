@@ -12,7 +12,11 @@ public enum WorkbookType {
     /**
      * .xlsx
      */
-    XLSX;
+    XLSX,
+    /**
+     * .xlsx，not supported at this version
+     */
+    SXLSX;
 
     public static boolean isXls(WorkbookType workbookType) {
         return XLS.equals(workbookType);
