@@ -247,12 +247,7 @@ public class HtmlToExcelFactory {
             for (int i = 0; i < tables.size(); i++) {
                 Element table = tables.get(i);
                 Elements captions = table.getElementsByTag(Tag.caption.name());
-                String sheetName;
-                if (!captions.isEmpty()) {
-                    sheetName = captions.first().text();
-                } else {
-                    sheetName = "sheet" + (i + 1);
-                }
+                String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
                 Sheet sheet = workbook.createSheet(sheetName);
                 sheetMap.put(i, sheet);
 
