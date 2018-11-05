@@ -43,6 +43,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -74,6 +75,14 @@ public class HtmlToExcelFactory {
      */
     private Workbook workbook;
     /**
+     * sheet容器
+     */
+    private Map<Integer, Sheet> sheetMap;
+    /**
+     * 冻结区域
+     */
+    private FreezePane[] freezePanes;
+    /**
      * tr容器
      */
     private List<Tr> trContainer;
@@ -94,17 +103,9 @@ public class HtmlToExcelFactory {
      */
     private CompletableFuture<Void> workbookFuture;
     /**
-     * sheet容器
-     */
-    private Map<Integer, Sheet> sheetMap;
-    /**
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap;
-    /**
-     * 冻结区域
-     */
-    private FreezePane[] freezePanes;
     /**
      * 是否使用默认样式
      */
@@ -197,7 +198,7 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 开始解析
+     * 开始构建
      *
      * @return Workbook
      */
@@ -213,6 +214,9 @@ public class HtmlToExcelFactory {
         for (int i = 0; i < tables.size(); i++) {
             // 获取所有单元格
             List<Td> tds = this.processTable(tables.get(i));
+            if (Objects.isNull(tds) || tds.isEmpty()) {
+                continue;
+            }
             // 设置单元格样式
             this.setTdOfTable(i, tds);
             // 设置行高
@@ -301,6 +305,9 @@ public class HtmlToExcelFactory {
         // 表样式
         Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
+        if (Objects.isNull(trs) || trs.isEmpty()) {
+            return Collections.emptyList();
+        }
         for (int i = 0, size = trs.size(); i < size; i++) {
             Tr tr = new Tr(i);
             tr.setStyle(StyleUtils.parseStyle(trs.get(i)), tableStyle);
