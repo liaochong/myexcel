@@ -38,7 +38,7 @@ public class TdUtils {
             return 0;
         }
         int result = Integer.parseInt(span);
-        return result > 0 ? result : 0;
+        return result > 1 ? result : 0;
     }
 
     public static boolean isSpanValid(String span) {

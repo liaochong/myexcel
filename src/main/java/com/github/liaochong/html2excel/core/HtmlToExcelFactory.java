@@ -97,11 +97,18 @@ public class HtmlToExcelFactory {
      * sheet容器
      */
     private Map<Integer, Sheet> sheetMap;
-
+    /**
+     * 每行的单元格最大高度map
+     */
     private Map<Integer, Short> maxTdHeightMap;
-
+    /**
+     * 冻结区域
+     */
     private FreezePane[] freezePanes;
-
+    /**
+     * 是否使用默认样式
+     */
+    private boolean useDefaultStyle;
     /**
      * 自定义颜色索引
      */
@@ -150,9 +157,7 @@ public class HtmlToExcelFactory {
      * @return HtmlToExcelFactory
      */
     public HtmlToExcelFactory useDefaultStyle() {
-        defaultCellStyleMap = new EnumMap<>(Tag.class);
-        defaultCellStyleMap.put(Tag.th, new ThDefaultCellStyle().supply(workbook));
-        defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
+        this.useDefaultStyle = true;
         return this;
     }
 
@@ -242,6 +247,11 @@ public class HtmlToExcelFactory {
         workbookFuture = CompletableFuture.runAsync(() -> {
             if (Objects.isNull(workbook)) {
                 workbook = new XSSFWorkbook();
+            }
+            if (useDefaultStyle) {
+                defaultCellStyleMap = new EnumMap<>(Tag.class);
+                defaultCellStyleMap.put(Tag.th, new ThDefaultCellStyle().supply(workbook));
+                defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
             }
             sheetMap = new ConcurrentHashMap<>(tables.size());
             for (int i = 0; i < tables.size(); i++) {
@@ -369,7 +379,7 @@ public class HtmlToExcelFactory {
      * @param td   td单元格
      */
     private void setCellStyle(Row row, Cell cell, Td td) {
-        if (Objects.nonNull(defaultCellStyleMap)) {
+        if (useDefaultStyle) {
             if (td.isTh()) {
                 cell.setCellStyle(defaultCellStyleMap.get(Tag.th));
             } else {
