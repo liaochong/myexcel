@@ -421,10 +421,8 @@ public class HtmlToExcelFactory {
      * @param tr        tr容器
      */
     private void processTr(Element trElement, Tr tr) {
-        Elements ths = trElement.getElementsByTag(Tag.th.name());
-        this.processTd(ths, tr, true);
-        Elements tds = trElement.getElementsByTag(Tag.td.name());
-        this.processTd(tds, tr, false);
+        Elements childrenElements = trElement.children();
+        this.processTd(childrenElements, tr);
     }
 
     /**
@@ -432,16 +430,15 @@ public class HtmlToExcelFactory {
      *
      * @param tdElements 元素：th、td
      * @param tr         元素容器
-     * @param isTh       是否为表格标题
      */
-    private void processTd(Elements tdElements, Tr tr, boolean isTh) {
+    private void processTd(Elements tdElements, Tr tr) {
         if (tdElements.isEmpty()) {
             return;
         }
-        for (int i = 0; i < tdElements.size(); i++) {
+        for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
-            td.setTh(isTh);
+            td.setTh(Objects.equals(Tag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
             td.setStyle(StyleUtils.parseStyle(tdElement), tr.getStyle());
             // 除每行第一个单元格外，修正含跨列的单元格位置
