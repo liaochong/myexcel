@@ -53,7 +53,7 @@ public class GroovyExcelBuilder extends ExcelBuilder {
             template = engine.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
-            throw ExcelBuildException.of("failed to get groovy template", e);
+            throw ExcelBuildException.of("Failed to get groovy template", e);
         }
     }
 
@@ -71,7 +71,7 @@ public class GroovyExcelBuilder extends ExcelBuilder {
             this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
-            throw ExcelBuildException.of("failed to build excel", e);
+            throw ExcelBuildException.of("Failed to build excel", e);
         }
     }
 }

@@ -54,7 +54,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
             template = gt.getTemplate(filePath[1]);
             return this;
         } catch (IOException e) {
-            throw ExcelBuildException.of("failed to get beetl template", e);
+            throw ExcelBuildException.of("Failed to get beetl template", e);
         }
     }
 
@@ -71,7 +71,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
             this.deleteTempFile(htmlFile);
             return workbook;
         } catch (Exception e) {
-            throw ExcelBuildException.of("failed to build excel", e);
+            throw ExcelBuildException.of("Failed to build excel", e);
         }
     }
 }
