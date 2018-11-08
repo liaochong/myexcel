@@ -17,6 +17,7 @@ package com.github.liaochong.html2excel.core.style;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -34,7 +35,9 @@ public class ThDefaultCellStyle implements DefaultCellStyle {
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         style.setBorderRight(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.DOUBLE);
+        Font font = workbook.createFont();
+        font.setBold(true);
+        style.setFont(font);
         return style;
     }
 }
