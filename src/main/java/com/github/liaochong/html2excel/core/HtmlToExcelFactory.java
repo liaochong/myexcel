@@ -25,6 +25,7 @@ import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -66,6 +67,7 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class HtmlToExcelFactory {
     /**
      * html解析后文档
@@ -210,7 +212,8 @@ public class HtmlToExcelFactory {
     public Workbook build() {
         Elements tables = document.getElementsByTag(Tag.table.name());
         if (tables.isEmpty()) {
-            throw NoTablesException.of("There is no any table exist");
+            log.warn("There is no any table exist");
+            return new XSSFWorkbook();
         }
         // 1、创建工作簿
         this.createWorkbook(tables);

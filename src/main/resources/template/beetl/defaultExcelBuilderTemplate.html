@@ -8,6 +8,28 @@
     <title>Document</title>
 </head>
 <body>
+<table>
+    <% if(title!=null){ %>
+    <thead>
+    <tr>
+        <% for(t in title){ %>
+        <th>${t}</th>
+        <% } %>
+    </tr>
+    </thead>
+    <% } %>
 
+    <% if(contents!=null){ %>
+    <tbody>
+    <% for(c in contents){ %>
+    <tr>
+        <% for(d in c){ %>
+        <td>${d}</td>
+        <% } %>
+    </tr>
+    <% } %>
+    </tbody>
+    <% } %>
+</table>
 </body>
 </html>
