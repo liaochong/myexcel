@@ -30,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -106,6 +107,10 @@ public class HtmlToExcelFactory {
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap;
+    /**
+     * 字体map
+     */
+    private Map<String, Font> fontMap;
     /**
      * 是否使用默认样式
      */
@@ -310,7 +315,7 @@ public class HtmlToExcelFactory {
         }
         for (int i = 0, size = trs.size(); i < size; i++) {
             Tr tr = new Tr(i);
-            tr.setStyle(StyleUtils.mixStyle(StyleUtils.parseStyle(trs.get(i)), tableStyle));
+            tr.setStyle(StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(trs.get(i))));
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
@@ -400,6 +405,9 @@ public class HtmlToExcelFactory {
             if (Objects.isNull(maxTdHeightMap)) {
                 maxTdHeightMap = new ConcurrentHashMap<>();
             }
+            if (Objects.isNull(fontMap)) {
+                fontMap = new ConcurrentHashMap<>();
+            }
             CellStyle cellStyle = workbook.createCellStyle();
             // background-color
             BackgroundStyle.setBackgroundColor(workbook, cellStyle, td.getStyle(), colorIndex);
@@ -408,7 +416,7 @@ public class HtmlToExcelFactory {
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
             // font
-            FontStyle.setFont(workbook, row, cellStyle, td.getStyle(), maxTdHeightMap);
+            FontStyle.setFont(workbook, row, cellStyle, td.getStyle(), fontMap, maxTdHeightMap);
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
@@ -440,7 +448,7 @@ public class HtmlToExcelFactory {
             Td td = new Td();
             td.setTh(Objects.equals(Tag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
-            td.setStyle(StyleUtils.mixStyle(StyleUtils.parseStyle(tdElement), tr.getStyle()));
+            td.setStyle(StyleUtils.mixStyle(tr.getStyle(), StyleUtils.parseStyle(tdElement)));
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
                 int shift = tr.getTds().stream().filter(t -> t.getColSpan() > 0)

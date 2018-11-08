@@ -31,7 +31,12 @@ public final class FontStyle {
 
     private static final short DEFAULT_FONT_SIZE = 12;
 
-    public static void setFont(Workbook workbook, Row row, CellStyle cellStyle, Map<String, String> tdStyle, Map<Integer, Short> maxTdHeightMap) {
+    public static void setFont(Workbook workbook, Row row, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap, Map<Integer, Short> maxTdHeightMap) {
+        String cacheKey = getCacheKey(tdStyle);
+        if (Objects.nonNull(fontMap.get(cacheKey))) {
+            cellStyle.setFont(fontMap.get(cacheKey));
+            return;
+        }
         Font font = null;
         String fs = tdStyle.get("font-size");
         if (Objects.nonNull(fs)) {
@@ -65,6 +70,7 @@ public final class FontStyle {
         }
         if (Objects.nonNull(font)) {
             cellStyle.setFont(font);
+            fontMap.put(cacheKey, font);
         }
     }
 
@@ -73,5 +79,22 @@ public final class FontStyle {
             font = workbook.createFont();
         }
         return font;
+    }
+
+    private static String getCacheKey(Map<String, String> tdStyle) {
+        StringBuilder result = new StringBuilder();
+        appendKey(tdStyle, "font-size", result);
+        appendKey(tdStyle, "font-family", result);
+        appendKey(tdStyle, "font-style", result);
+        appendKey(tdStyle, "text-decoration", result);
+        appendKey(tdStyle, "font-weight", result);
+        return result.toString();
+    }
+
+    private static void appendKey(Map<String, String> tdStyle, String styleName, StringBuilder result) {
+        String style = tdStyle.get(styleName);
+        if (Objects.nonNull(style)) {
+            result.append(styleName).append(":").append(style).append("_");
+        }
     }
 }
