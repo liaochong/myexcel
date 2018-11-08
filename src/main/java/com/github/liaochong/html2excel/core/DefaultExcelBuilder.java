@@ -15,26 +15,33 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.util.Map;
+
 /**
  * @author liaochong
  * @version 1.0
  */
-public enum WorkbookType {
-    /**
-     * .xls
-     */
-    XLS,
-    /**
-     * .xlsx
-     */
-    XLSX,
-    /**
-     * .xlsx，not supported at this version
-     */
-    SXLSX;
+public class DefaultExcelBuilder extends ExcelBuilder {
 
-    public static boolean isXls(WorkbookType workbookType) {
-        return XLS.equals(workbookType);
+    private ExcelBuilder excelBuilder;
+
+    private DefaultExcelBuilder() {
+        this.excelBuilder = new BeetlExcelBuilder();
     }
 
+    public static ExcelBuilder newInstance() {
+        return new DefaultExcelBuilder();
+    }
+
+    @Override
+    public ExcelBuilder setTemplate(String path) {
+        return excelBuilder.setTemplate("/template/beetl/defaultExcelBuilderTemplate.btl");
+    }
+
+    @Override
+    public Workbook build(Map<String, Object> renderData) {
+        return excelBuilder.build(renderData);
+    }
 }
