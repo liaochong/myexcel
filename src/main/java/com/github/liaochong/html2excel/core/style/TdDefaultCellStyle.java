@@ -34,6 +34,7 @@ public class TdDefaultCellStyle implements DefaultCellStyle {
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
         return style;
     }
 }

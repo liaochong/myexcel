@@ -31,10 +31,12 @@ public class ThDefaultCellStyle implements DefaultCellStyle {
     @Override
     public CellStyle supply(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
-        style.setBorderBottom(BorderStyle.THIN);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setBorderBottom(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
         Font font = workbook.createFont();
         font.setBold(true);
         style.setFont(font);
