@@ -28,7 +28,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * freemarker的excel创建者
@@ -69,9 +71,10 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
      */
     @Override
     public Workbook build(Map<String, Object> data) {
+        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         try {
             File htmlFile = this.createTempFile("freemarker_temp_");
-            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), CharEncoding.UTF_8));
+            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), StandardCharsets.UTF_8));
             template.process(data, out);
             Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile, htmlToExcelFactory).build();
             this.deleteTempFile(htmlFile);

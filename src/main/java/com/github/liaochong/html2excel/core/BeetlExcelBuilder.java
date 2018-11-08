@@ -29,7 +29,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * beetl excel创建者
@@ -58,9 +60,10 @@ public class BeetlExcelBuilder extends ExcelBuilder {
 
     @Override
     public Workbook build(Map<String, Object> renderData) {
+        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         try {
             File htmlFile = this.createTempFile("beetl_temp_");
-            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), CharEncoding.UTF_8));
+            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), StandardCharsets.UTF_8));
 
             template.binding(renderData);
             template.renderTo(out);

@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class DefaultExcelBuilder extends ExcelBuilder {
 
     private ExcelBuilder excelBuilder;

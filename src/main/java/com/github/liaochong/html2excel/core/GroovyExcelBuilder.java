@@ -20,7 +20,6 @@ import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
-import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.BufferedWriter;
@@ -32,7 +31,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author liaochong
@@ -58,9 +59,10 @@ public class GroovyExcelBuilder extends ExcelBuilder {
 
     @Override
     public Workbook build(Map<String, Object> renderData) {
+        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         try {
             File htmlFile = this.createTempFile("groovy_temp_");
-            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), CharEncoding.UTF_8));
+            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), StandardCharsets.UTF_8));
 
             Writable output = template.make(renderData);
             output.writeTo(out);
