@@ -95,6 +95,6 @@ public class DefaultExcelBuilder {
                     }
                 }).collect(Collectors.toList())).collect(Collectors.toList());
         renderData.put("contents", contents);
-        return excelBuilder.template(DEFAULT_TEMPLATE_PATH).useDefaultStyle().build(renderData);
+        return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
     }
 }
