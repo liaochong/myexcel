@@ -211,7 +211,7 @@ public class HtmlToExcelFactory {
         this.createWorkbook(tables);
 
         // 2、处理解析表格
-        for (int i = 0; i < tables.size(); i++) {
+        for (int i = 0, size = tables.size(); i < size; i++) {
             // 获取所有单元格
             List<Td> tds = this.processTable(tables.get(i));
             if (Objects.isNull(tds) || tds.isEmpty()) {
@@ -310,7 +310,7 @@ public class HtmlToExcelFactory {
         }
         for (int i = 0, size = trs.size(); i < size; i++) {
             Tr tr = new Tr(i);
-            tr.setStyle(StyleUtils.parseStyle(trs.get(i)), tableStyle);
+            tr.setStyle(StyleUtils.mixStyle(StyleUtils.parseStyle(trs.get(i)), tableStyle));
             trContainer.add(tr);
             this.processTr(trs.get(i), tr);
         }
@@ -440,7 +440,7 @@ public class HtmlToExcelFactory {
             Td td = new Td();
             td.setTh(Objects.equals(Tag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
-            td.setStyle(StyleUtils.parseStyle(tdElement), tr.getStyle());
+            td.setStyle(StyleUtils.mixStyle(StyleUtils.parseStyle(tdElement), tr.getStyle()));
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
                 int shift = tr.getTds().stream().filter(t -> t.getColSpan() > 0)
@@ -510,6 +510,14 @@ public class HtmlToExcelFactory {
          * caption
          */
         caption,
+        /**
+         * thead
+         */
+        thead,
+        /**
+         * tbody
+         */
+        tbody,
         /**
          * tr
          */

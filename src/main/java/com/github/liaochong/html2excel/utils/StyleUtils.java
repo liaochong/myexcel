@@ -38,4 +38,23 @@ public final class StyleUtils {
         }
         return result;
     }
+
+    /**
+     * 样式融合
+     *
+     * @param originStyle 源样式
+     * @param targetStyle 目标样式
+     * @return 结果
+     */
+    public static Map<String, String> mixStyle(Map<String, String> originStyle, Map<String, String> targetStyle) {
+        if (Objects.isNull(targetStyle) && Objects.isNull(originStyle)) {
+            return Collections.emptyMap();
+        }
+        if (Objects.isNull(targetStyle)) {
+            return originStyle;
+        } else {
+            originStyle.forEach(targetStyle::putIfAbsent);
+            return targetStyle;
+        }
+    }
 }

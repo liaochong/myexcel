@@ -7,7 +7,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author liaochong
@@ -31,17 +30,5 @@ class Tr {
 
     Tr(int index) {
         this.index = index;
-    }
-
-    public void setStyle(Map<String, String> trStyle, Map<String, String> tableStyle) {
-        if (Objects.isNull(trStyle) && Objects.isNull(tableStyle)) {
-            return;
-        }
-        if (Objects.isNull(trStyle)) {
-            this.style = tableStyle;
-        } else {
-            tableStyle.forEach(trStyle::putIfAbsent);
-            this.style = trStyle;
-        }
     }
 }

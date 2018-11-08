@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author liaochong
@@ -42,17 +41,5 @@ class Td {
      * 单元格样式
      */
     Map<String, String> style;
-
-    public void setStyle(Map<String, String> tdStyle, Map<String, String> trStyle) {
-        if (Objects.isNull(trStyle) && Objects.isNull(tdStyle)) {
-            return;
-        }
-        if (Objects.isNull(tdStyle)) {
-            this.style = trStyle;
-        } else {
-            trStyle.forEach(tdStyle::putIfAbsent);
-            this.style = tdStyle;
-        }
-    }
 
 }
