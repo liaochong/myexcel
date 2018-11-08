@@ -44,7 +44,7 @@ public class GroovyExcelBuilder extends ExcelBuilder {
     private Template template;
 
     @Override
-    public ExcelBuilder setTemplate(String path) {
+    public ExcelBuilder template(String path) {
         TemplateConfiguration config = new TemplateConfiguration();
         MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
         try {

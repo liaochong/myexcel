@@ -44,7 +44,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
     private Template template;
 
     @Override
-    public ExcelBuilder setTemplate(String path) {
+    public ExcelBuilder template(String path) {
         try {
             String[] filePath = this.splitFilePath(path);
             ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader(filePath[0]);

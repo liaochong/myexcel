@@ -75,7 +75,7 @@ public abstract class ExcelBuilder {
      * @param path 模板路径
      * @return ExcelBuilder
      */
-    public abstract ExcelBuilder setTemplate(String path);
+    public abstract ExcelBuilder template(String path);
 
     /**
      * 构建

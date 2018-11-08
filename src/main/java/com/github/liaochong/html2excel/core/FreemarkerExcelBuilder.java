@@ -48,7 +48,7 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
      * @param path 模板路径，相对路径
      */
     @Override
-    public ExcelBuilder setTemplate(String path) {
+    public ExcelBuilder template(String path) {
         try {
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
             cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
