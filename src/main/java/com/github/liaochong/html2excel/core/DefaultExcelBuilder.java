@@ -85,6 +85,9 @@ public class DefaultExcelBuilder {
 
         List<List<Object>> contents = data.stream().map(d ->
                 sortedField.stream().map(f -> {
+                    if (Objects.isNull(f)) {
+                        return null;
+                    }
                     try {
                         return f.get(d);
                     } catch (Exception e) {
