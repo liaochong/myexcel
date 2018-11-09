@@ -37,4 +37,11 @@ public class FreezePane {
      */
     int rowSplit;
 
+    public FreezePane() {
+    }
+
+    public FreezePane(int rowSplit, int colSplit) {
+        this.colSplit = colSplit;
+        this.rowSplit = rowSplit;
+    }
 }
