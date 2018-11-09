@@ -129,6 +129,7 @@ public class HtmlToExcelFactory {
      * 读取html
      *
      * @param htmlFile html文件
+     * @return HtmlToExcelFactory
      * @throws Exception 解析异常
      */
     public static HtmlToExcelFactory readHtml(File htmlFile) throws Exception {
