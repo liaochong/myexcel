@@ -376,8 +376,8 @@ public class HtmlToExcelFactory {
 
         cellStyleMap = new HashMap<>();
         for (int i = td.getRow(); i <= boundRow; i++) {
+            Row row = sheet.getRow(i);
             for (int j = td.getCol(); j <= boundCol; j++) {
-                Row row = sheet.getRow(i);
                 cell = row.getCell(j);
                 this.setCellStyle(row, cell, td);
             }
