@@ -332,7 +332,7 @@ public class HtmlToExcelFactory {
     private void initialize() {
         totalCols = 0;
         trContainer = new ArrayList<>();
-        cellStyleMap = new HashMap<>();
+        maxTdHeightMap = new HashMap<>();
     }
 
     /**
