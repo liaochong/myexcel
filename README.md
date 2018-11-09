@@ -3,16 +3,14 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/html2excel/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/html2excel)
 [![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-html2excel是一款将html中表格（table）转化成excel的工具.
+html2excel是一款将html中表格（table）转化成excel的工具包.
 
 版本支持 | Support Version
 ------------------
-
 - All version - only support for Java 8+
 
 优点 | Advantages
 ------------------
-
 - **零学习成本**：使用html作为模板，学习成本几乎为零；
 - **屏蔽POI操作**：不直接操作过重的POI；
 - **可生成任意复杂表格**：本工具使用迭代单元格方式进行excel绘制，可生成任意复杂度excel；
