@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import com.github.liaochong.html2excel.core.cache.CellStyleCache;
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
@@ -32,6 +31,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -98,6 +98,10 @@ public class HtmlToExcelFactory {
      */
     private Map<Tag, CellStyle> defaultCellStyleMap;
     /**
+     * 单元格样式映射
+     */
+    private Map<Map<String, String>, CellStyle> cellStyleMap;
+    /**
      * future
      */
     private CompletableFuture<Void> workbookFuture;
@@ -105,6 +109,10 @@ public class HtmlToExcelFactory {
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap;
+    /**
+     * 字体map
+     */
+    private Map<String, Font> fontMap;
     /**
      * 是否使用默认样式
      */
@@ -367,6 +375,7 @@ public class HtmlToExcelFactory {
         int boundCol = TdUtils.get(td::getColSpan, td::getCol);
         int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
 
+        cellStyleMap = new HashMap<>();
         for (int i = td.getRow(); i <= boundRow; i++) {
             Row row = sheet.getRow(i);
             for (int j = td.getCol(); j <= boundCol; j++) {
@@ -393,12 +402,15 @@ public class HtmlToExcelFactory {
                 cell.setCellStyle(defaultCellStyleMap.get(Tag.td));
             }
         } else {
-            if (CellStyleCache.contains(td.getStyle())) {
-                cell.setCellStyle(CellStyleCache.get(td.getStyle()));
+            if (cellStyleMap.containsKey(td.getStyle())) {
+                cell.setCellStyle(cellStyleMap.get(td.getStyle()));
                 return;
             }
             if (Objects.isNull(maxTdHeightMap)) {
                 maxTdHeightMap = new ConcurrentHashMap<>();
+            }
+            if (Objects.isNull(fontMap)) {
+                fontMap = new ConcurrentHashMap<>();
             }
             CellStyle cellStyle = workbook.createCellStyle();
             // background-color
@@ -408,9 +420,9 @@ public class HtmlToExcelFactory {
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
             // font
-            FontStyle.setFont(workbook, row, cellStyle, td.getStyle(), maxTdHeightMap);
+            FontStyle.setFont(workbook, row, cellStyle, td.getStyle(), fontMap, maxTdHeightMap);
             cell.setCellStyle(cellStyle);
-            CellStyleCache.cache(td.getStyle(), cellStyle);
+            cellStyleMap.put(td.getStyle(), cellStyle);
         }
     }
 
