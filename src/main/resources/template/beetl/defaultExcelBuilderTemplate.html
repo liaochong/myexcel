@@ -8,14 +8,14 @@
     <title>Document</title>
 </head>
 <body>
-<table style="text-align: center;">
+<table style="text-align: center;vertical-align: center;">
     <% if(sheetName!=null){ %>
     <caption>${sheetName}</caption>
     <% } %>
 
     <% if(titles!=null){ %>
     <thead>
-    <tr style="border-bottom-style: thin;font-weight: bold;font-size: 13px;">
+    <tr style="border-bottom-style: thin;font-weight: bold;font-size: 13px;border-right-style: thin;">
         <% for(t in titles){ %>
         <th>${t}</th>
         <% } %>

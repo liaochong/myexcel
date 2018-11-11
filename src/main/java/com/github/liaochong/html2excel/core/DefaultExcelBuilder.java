@@ -77,7 +77,7 @@ public class DefaultExcelBuilder {
 
     public Workbook build(List<?> data) {
         if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
-            throw new IllegalArgumentException("TitleFieldMapping is necessary");
+            throw new IllegalArgumentException("FieldDisplayOrder is necessary");
         }
         // 设置标题
         Map<String, Object> renderData = new HashMap<>();
