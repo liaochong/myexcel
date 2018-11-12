@@ -79,6 +79,7 @@ public class DefaultExcelBuilder {
         if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
             throw new IllegalArgumentException("FieldDisplayOrder is necessary");
         }
+        this.selfAdaption();
         // 设置标题
         Map<String, Object> renderData = new HashMap<>();
         renderData.put("titles", titles);
@@ -105,17 +106,33 @@ public class DefaultExcelBuilder {
                 .collect(Collectors.toMap(Field::getName, f -> f));
 
         List<Field> sortedField = new ArrayList<>(fields.length);
-        fieldDisplayOrder.forEach(fieldName -> sortedField.add(fieldMap.get(fieldName)));
+        fieldDisplayOrder.forEach(fieldName ->
+                sortedField.add(Objects.isNull(fieldName) ? null : fieldMap.get(fieldName)));
         if (sortedField.isEmpty()) {
             log.info("The specified field mapping does not exist");
             return excelBuilder.useDefaultStyle().build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
-                sortedField.stream().map(f -> getFieldValue(d, f)).collect(Collectors.toList()))
+                sortedField.stream().map(f -> Objects.isNull(f) ? null : getFieldValue(d, f)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
         renderData.put("contents", contents);
         return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
+    }
+
+    private void selfAdaption() {
+        if (Objects.isNull(titles)) {
+            return;
+        }
+        if (fieldDisplayOrder.size() < titles.size()) {
+            for (int i = 0, size = titles.size() - fieldDisplayOrder.size(); i < size; i++) {
+                fieldDisplayOrder.add(null);
+            }
+        } else {
+            for (int i = 0, size = fieldDisplayOrder.size() - titles.size(); i < size; i++) {
+                titles.add(null);
+            }
+        }
     }
 
     private Object getFieldValue(Object d, Field f) {

@@ -8,14 +8,14 @@
     <title>Document</title>
 </head>
 <body>
-<table style="text-align: center;vertical-align: center;">
+<table style="text-align: center;vertical-align: center;border-bottom-style: thin;border-left-style: thin;border-right-style:thin;">
     <% if(sheetName!=null){ %>
     <caption>${sheetName}</caption>
     <% } %>
 
     <% if(titles!=null){ %>
     <thead>
-    <tr style="border-bottom-style: thin;font-weight: bold;font-size: 13px;">
+    <tr style="font-weight: bold;font-size: 14px;">
         <% for(t in titles){ %>
         <th>${t}</th>
         <% } %>
@@ -26,7 +26,8 @@
     <% if(contents!=null){ %>
     <tbody>
     <% for(c in contents){ %>
-    <tr>
+    <tr
+    <% if(cLP.even){ %> style="background-color: #8FBC8F;" <% } %> >
         <% for(d in c){ %>
         <td>${d}</td>
         <% } %>
