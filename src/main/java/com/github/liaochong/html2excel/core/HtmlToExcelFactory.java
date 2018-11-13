@@ -317,11 +317,21 @@ public class HtmlToExcelFactory {
         if (Objects.isNull(trs) || trs.isEmpty()) {
             return Collections.emptyList();
         }
+        Map<Element, Map<String, String>> upperStyleMap = new HashMap<>();
         for (int i = 0, size = trs.size(); i < size; i++) {
             Tr tr = new Tr(i);
-            tr.setStyle(StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(trs.get(i))));
+            Element trElement = trs.get(i);
+            Element parent = trElement.parent();
+            Map<String, String> upperStyle;
+            if (upperStyleMap.containsKey(parent)) {
+                upperStyle = upperStyleMap.get(parent);
+            } else {
+                upperStyle = StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(parent));
+                upperStyleMap.put(parent, upperStyle);
+            }
+            tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
             trContainer.add(tr);
-            this.processTr(trs.get(i), tr);
+            this.processTr(trElement, tr);
         }
         this.countTotalCols();
         return this.adjustTdPosition();
