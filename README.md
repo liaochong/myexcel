@@ -71,9 +71,14 @@ border-left-style|thin、dashed、medium、dotted、thick、double、hair、medi
 CSS样式名称|样式值|示例
 ---------|-----|---
 font-size|数值：14px（只会截取数值）|style="font-size:14px"
-font-family|Times New Roman（不支持备选字体）|style="font-family:"Times New Roman"
+font-family|Times New Roman（不支持备选字体）|style="font-family:Times New Roman"
 font-style|italic|style="font-style:italic"
 font-weight|bold|style="font-weight:bold"
+
+CSS样式名称|样式值|示例
+---------|-----|---
+text-align|general,left,center,right,fill,justify,center_selection,distributed|style="text-align:center"
+vertical-align|top,center,bottom,justify,distributed|style="vertical-align:center"
 
 示例 | Example
 ------------------
