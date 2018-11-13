@@ -117,6 +117,8 @@ public class FreemarkerExampleController {
     }
 }
 ```
+3. Excel sheet名称设置：table中添加 `<caption>Monthly savings</caption>`
+
 可操作项 | Operational item
 -------------------------
 操作方法|说明
