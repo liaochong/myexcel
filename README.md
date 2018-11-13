@@ -117,7 +117,8 @@ public class FreemarkerExampleController {
     }
 }
 ```
-3. 可操作项
+可操作项 | Operational item
+-------------------------
 操作方法|说明
 ------|----
 useDefaultStyle()|使用默认样式，忽略html文件中自定义样式
