@@ -97,7 +97,7 @@ public class FreemarkerExampleController {
         Map<String, Object> data = getData();
 
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Workbook workbook = excelBuilder.getTemplate("/templates/freemarker_template.ftl").useDefaultStyle().build(data);
+        Workbook workbook = excelBuilder.template("/templates/freemarker_template.ftl").useDefaultStyle().build(data);
 
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
