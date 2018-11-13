@@ -68,6 +68,12 @@ border-right-style|thin、dashed、medium、dotted、thick、double、hair、med
 border-bottom-style|thin、dashed、medium、dotted、thick、double、hair、medium_dashed、dash_dot|style="border-top-style:thin"
 border-left-style|thin、dashed、medium、dotted、thick、double、hair、medium_dashed、dash_dot|style="border-top-style:thin"
 
+CSS样式名称|样式值|示例
+---------|-----|---
+font-size|数值：14px（只会截取数值）|style="font-size:14px"
+font-family|Times New Roman（不支持备选字体）|style="font-family:"Times New Roman"
+font-style|italic|style="font-style:italic"
+font-weight|bold|style="font-weight:bold"
 
 示例 | Example
 ------------------
