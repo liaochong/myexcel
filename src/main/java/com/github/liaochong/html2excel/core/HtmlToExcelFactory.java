@@ -373,7 +373,7 @@ public class HtmlToExcelFactory {
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
         // 自适应列宽
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 256));
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, (int) Math.ceil(value * 1.6 * 256)));
     }
 
     /**
