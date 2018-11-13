@@ -121,7 +121,7 @@ public class FreemarkerExampleController {
 -------------------------
 操作方法|说明
 ------|----
-useDefaultStyle()|使用默认样式，忽略html文件中自定义样式
+useDefaultStyle|使用默认样式，忽略html文件中自定义样式
 freezePanes|固定窗口，可固定指定的行列
 
 扩展 | Extend
