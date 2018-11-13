@@ -15,7 +15,7 @@
 
     <% if(titles!=null){ %>
     <thead>
-    <tr style="font-weight: bold;font-size: 14px;">
+    <tr style="font-weight: bold;font-size: 14px; vertical-align: bottom">
         <% for(t in titles){ %>
         <th>${t}</th>
         <% } %>
@@ -27,7 +27,7 @@
     <tbody>
     <% for(c in contents){ %>
     <tr
-    <% if(cLP.even){ %> style="background-color: #8FBC8F;" <% } %> >
+    <% if(cLP.even){ %> style="background-color: #f6f8fa;" <% } %> >
         <% for(d in c){ %>
         <td>${d}</td>
         <% } %>
