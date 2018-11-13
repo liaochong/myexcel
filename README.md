@@ -59,7 +59,14 @@ Maven 依赖
 ------------------
 CSS样式名称|样式值|示例
 ---------|-----|---
-background-color|十六进制：#FFFFFF、rgb(0,255,255)、常用背景色名称：green|style="background-color:#ABFF00"
+background-color|十六进制：#FFFFFF、RGB：rgb(0,255,255)、常用背景色名称：green|style="background-color:#ABFF00"
+
+CSS样式名称|样式值|示例
+---------|-----|---
+border-top-style|thin、dashed、medium、dotted、thick、double、hair、medium_dashed、dash_dot|style="border-top-style:thin"
+border-right-style|thin、dashed、medium、dotted、thick、double、hair、medium_dashed、dash_dot|style="border-top-style:thin"
+border-bottom-style|thin、dashed、medium、dotted、thick、double、hair、medium_dashed、dash_dot|style="border-top-style:thin"
+border-left-style|thin、dashed、medium、dotted、thick、double、hair、medium_dashed、dash_dot|style="border-top-style:thin"
 
 
 示例 | Example
