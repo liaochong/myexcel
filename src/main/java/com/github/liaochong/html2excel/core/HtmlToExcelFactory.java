@@ -236,7 +236,7 @@ public class HtmlToExcelFactory {
             // 设置行高
             this.setRowHeight(i);
         }
-        log.info("Build takes {} milliseconds", System.currentTimeMillis() - startTime);
+        log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }
 
