@@ -226,6 +226,7 @@ public class HtmlToExcelFactory {
 
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
+            this.initialize();
             // 获取所有单元格
             List<Td> tds = this.processTable(tables.get(i));
             if (Objects.isNull(tds) || tds.isEmpty()) {
@@ -249,7 +250,7 @@ public class HtmlToExcelFactory {
         Sheet sheet = sheetMap.get(i);
         for (int j = 0, size = trContainer.size(); j < size; j++) {
             Row row = sheet.getRow(j);
-            if (Objects.isNull(maxTdHeightMap) || Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
+            if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
                 row.setHeightInPoints(row.getHeightInPoints() + 5);
             } else {
                 row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
@@ -316,7 +317,6 @@ public class HtmlToExcelFactory {
      * @param table 表格
      */
     private List<Td> processTable(Element table) {
-        this.initialize();
         // 表样式
         Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
@@ -351,6 +351,12 @@ public class HtmlToExcelFactory {
         trContainer = new ArrayList<>();
         maxTdHeightMap = new HashMap<>();
         colMaxWidthMap = new HashMap<>();
+        if (Objects.isNull(cellStyleMap)) {
+            cellStyleMap = new HashMap<>();
+        }
+        if (Objects.isNull(fontMap)) {
+            fontMap = new HashMap<>();
+        }
     }
 
     /**
@@ -390,7 +396,6 @@ public class HtmlToExcelFactory {
         int boundCol = TdUtils.get(td::getColSpan, td::getCol);
         int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
 
-        cellStyleMap = new HashMap<>();
         for (int i = td.getRow(); i <= boundRow; i++) {
             Row row = sheet.getRow(i);
             for (int j = td.getCol(); j <= boundCol; j++) {
@@ -420,12 +425,6 @@ public class HtmlToExcelFactory {
             if (cellStyleMap.containsKey(td.getStyle())) {
                 cell.setCellStyle(cellStyleMap.get(td.getStyle()));
                 return;
-            }
-            if (Objects.isNull(maxTdHeightMap)) {
-                maxTdHeightMap = new ConcurrentHashMap<>();
-            }
-            if (Objects.isNull(fontMap)) {
-                fontMap = new ConcurrentHashMap<>();
             }
             CellStyle cellStyle = workbook.createCellStyle();
             // background-color
