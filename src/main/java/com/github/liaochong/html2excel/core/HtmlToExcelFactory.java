@@ -110,6 +110,10 @@ public class HtmlToExcelFactory {
      */
     private Map<Integer, Short> maxTdHeightMap;
     /**
+     * 每列最大宽度map
+     */
+    private Map<Integer, Integer> colMaxWidthMap;
+    /**
      * 字体map
      */
     private Map<String, Font> fontMap;
@@ -216,6 +220,7 @@ public class HtmlToExcelFactory {
             log.warn("There is no any table exist");
             return new XSSFWorkbook();
         }
+        long startTime = System.currentTimeMillis();
         // 1、创建工作簿
         this.createWorkbook(tables);
 
@@ -231,6 +236,7 @@ public class HtmlToExcelFactory {
             // 设置行高
             this.setRowHeight(i);
         }
+        log.info("Build takes {} milliseconds", System.currentTimeMillis() - startTime);
         return workbook;
     }
 
@@ -344,6 +350,7 @@ public class HtmlToExcelFactory {
         totalCols = 0;
         trContainer = new ArrayList<>();
         maxTdHeightMap = new HashMap<>();
+        colMaxWidthMap = new HashMap<>();
     }
 
     /**
@@ -366,9 +373,7 @@ public class HtmlToExcelFactory {
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
         // 自适应列宽
-        for (int i = 0; i < totalCols; i++) {
-            sheet.autoSizeColumn(i);
-        }
+        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value << 8));
     }
 
     /**
@@ -480,6 +485,13 @@ public class HtmlToExcelFactory {
 
             td.setContent(tdElement.text());
             tr.getTds().add(td);
+
+            // 设置每列最宽宽度
+            int width = TdUtils.getStringWidth(td.getContent());
+            Integer maxWidth = colMaxWidthMap.get(td.getCol());
+            if (Objects.isNull(maxWidth) || maxWidth < width) {
+                colMaxWidthMap.put(td.getCol(), width);
+            }
         }
     }
 
