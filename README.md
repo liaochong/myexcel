@@ -28,7 +28,7 @@ Maven 依赖
 <dependency>
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 可选模板 | Template
@@ -55,6 +55,13 @@ Maven 依赖
     <version>2.4.13</version>
 </dependency>
 ```
+支持样式 | Support Style
+------------------
+CSS样式名称|样式值|示例
+---------|-----|---
+background-color|十六进制：#FFFFFF、rgb(0,255,255)、常用背景色名称：green|style="background-color:#ABFF00"
+
+
 示例 | Example
 ------------------
 1. 已存在html文件，使用这种方式时，html文件不局限于放在项目的classpath下
