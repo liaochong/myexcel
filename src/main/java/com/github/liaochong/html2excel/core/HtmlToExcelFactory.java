@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -273,8 +272,8 @@ public class HtmlToExcelFactory {
                 defaultCellStyleMap.put(Tag.th, new ThDefaultCellStyle().supply(workbook));
                 defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
             }
-            sheetMap = new ConcurrentHashMap<>(tables.size());
-            for (int i = 0; i < tables.size(); i++) {
+            sheetMap = new HashMap<>(tables.size());
+            for (int i = 0, size = tables.size(); i < size; i++) {
                 Element table = tables.get(i);
                 Elements captions = table.getElementsByTag(Tag.caption.name());
                 String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
