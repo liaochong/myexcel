@@ -334,7 +334,6 @@ public class HtmlToExcelFactory {
         }
         Map<Element, Map<String, String>> upperStyleMap = new HashMap<>();
         for (int i = 0, size = trs.size(); i < size; i++) {
-            Tr tr = new Tr(i);
             Element trElement = trs.get(i);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
@@ -344,6 +343,7 @@ public class HtmlToExcelFactory {
                 upperStyle = StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(parent));
                 upperStyleMap.put(parent, upperStyle);
             }
+            Tr tr = new Tr(i);
             tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
             trContainer.add(tr);
             this.processTr(trElement, tr);
@@ -522,10 +522,9 @@ public class HtmlToExcelFactory {
      */
     private List<Td> adjustTdPosition() {
         // 排除第一行，第一行不需要进行调整
-        for (int i = 1; i < trContainer.size(); i++) {
-            Tr tr = trContainer.get(i);
-            tr.getTds().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
-        }
+        trContainer.subList(1, trContainer.size()).parallelStream().forEach(tr -> {
+            tr.getTds().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
+        });
         return trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
     }
 
