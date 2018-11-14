@@ -219,6 +219,7 @@ public class HtmlToExcelFactory {
             log.warn("There is no any table exist");
             return new XSSFWorkbook();
         }
+        log.info("Start building excel");
         long startTime = System.currentTimeMillis();
         // 1、创建工作簿
         this.createWorkbook(tables);
