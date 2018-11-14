@@ -278,8 +278,6 @@ public class HtmlToExcelFactory {
                 defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
             }
             sheetMap = new HashMap<>(tables.size());
-
-            Map<Integer, Integer> trsMap = new HashMap<>();
             for (int i = 0, size = tables.size(); i < size; i++) {
                 Element table = tables.get(i);
 
@@ -297,20 +295,13 @@ public class HtmlToExcelFactory {
                 }).max().orElse(0);
 
                 totalColMap.put(i, cloNum);
-                trsMap.put(i, trs.size());
 
                 Elements captions = table.getElementsByTag(Tag.caption.name());
                 String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
                 Sheet sheet = workbook.createSheet(sheetName);
                 sheetMap.put(i, sheet);
-            }
 
-            for (int i = 0, size = tables.size(); i < size; i++) {
-                Sheet sheet = sheetMap.get(i);
-                int trsSize = trsMap.get(i);
-                int cloNum = totalColMap.get(i);
-
-                for (int j = 0; j < trsSize; j++) {
+                for (int j = 0; j < trs.size(); j++) {
                     Row row = sheet.createRow(j);
                     for (int k = 0; k <= cloNum; k++) {
                         row.createCell(k);
