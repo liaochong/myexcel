@@ -531,9 +531,11 @@ public class HtmlToExcelFactory {
      */
     private List<Td> adjustTdPosition() {
         // 排除第一行，第一行不需要进行调整
-        trContainer.subList(1, trContainer.size()).parallelStream().forEach(tr -> {
-            tr.getTds().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
-        });
+        if (trContainer.size() > 1) {
+            trContainer.subList(1, trContainer.size()).parallelStream().forEach(tr -> {
+                tr.getTds().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
+            });
+        }
         return trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
     }
 
