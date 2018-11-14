@@ -370,16 +370,22 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 创建
+     * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      *
      * @param tableIndex 表格索引
+     * @param allTds     所有单元格
      */
     private void setTdOfTable(int tableIndex, List<Td> allTds) {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
-        // 自适应列宽
-        colMaxWidthMap.forEach((key, value) -> sheet.setColumnWidth(key, value * 2 * 256));
+        colMaxWidthMap.forEach((key, value) -> {
+            int contentLength = value * 2;
+            if (contentLength > 255) {
+                contentLength = 255;
+            }
+            sheet.setColumnWidth(key, contentLength * 256);
+        });
     }
 
     /**
