@@ -93,6 +93,10 @@ public class HtmlToExcelFactory {
      */
     private int totalCols;
     /**
+     * 总列数map
+     */
+    private volatile Map<Integer, Integer> totalColMap = new HashMap<>();
+    /**
      * 样式容器
      */
     private Map<Tag, CellStyle> defaultCellStyleMap;
@@ -228,7 +232,7 @@ public class HtmlToExcelFactory {
         for (int i = 0, size = tables.size(); i < size; i++) {
             this.initialize();
             // 获取所有单元格
-            List<Td> tds = this.processTable(tables.get(i));
+            List<Td> tds = this.processTable(tables.get(i), i);
             if (Objects.isNull(tds) || tds.isEmpty()) {
                 continue;
             }
@@ -294,6 +298,8 @@ public class HtmlToExcelFactory {
                     }).sum();
                 }).max().orElse(0);
 
+                totalColMap.put(i, cloNum);
+
                 for (int j = 0; j < trs.size(); j++) {
                     Row row = sheet.createRow(j);
                     for (int k = 0; k <= cloNum; k++) {
@@ -314,9 +320,11 @@ public class HtmlToExcelFactory {
     /**
      * 解析每一个table
      *
-     * @param table 表格
+     * @param table      表格元素
+     * @param tableIndex 表格索引
+     * @return 当前表格的所有单元格
      */
-    private List<Td> processTable(Element table) {
+    private List<Td> processTable(Element table, int tableIndex) {
         // 表样式
         Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
@@ -339,7 +347,7 @@ public class HtmlToExcelFactory {
             trContainer.add(tr);
             this.processTr(trElement, tr);
         }
-        this.countTotalCols();
+        this.countTotalCols(tableIndex);
         return this.adjustTdPosition();
     }
 
@@ -361,8 +369,14 @@ public class HtmlToExcelFactory {
 
     /**
      * 计算总列数
+     *
+     * @param tableIndex 表格索引
      */
-    private void countTotalCols() {
+    private void countTotalCols(int tableIndex) {
+        if (Objects.nonNull(totalColMap.get(tableIndex))) {
+            totalCols = totalColMap.get(tableIndex);
+            return;
+        }
         ToIntFunction<Tr> function = tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol))
                 .max().orElse(0);
         totalCols = trContainer.parallelStream().mapToInt(function).max()
