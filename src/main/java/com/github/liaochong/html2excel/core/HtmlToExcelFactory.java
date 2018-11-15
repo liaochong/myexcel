@@ -21,7 +21,6 @@ import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
-import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
@@ -54,7 +53,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -92,10 +90,6 @@ public class HtmlToExcelFactory {
      * 总列数
      */
     private int totalCols;
-    /**
-     * 总列数map
-     */
-    private volatile Map<Integer, Integer> totalColMap = new HashMap<>();
     /**
      * 样式容器
      */
@@ -232,7 +226,7 @@ public class HtmlToExcelFactory {
         for (int i = 0, size = tables.size(); i < size; i++) {
             this.initialize();
             // 获取所有单元格
-            List<Td> tds = this.processTable(tables.get(i), i);
+            List<Td> tds = this.processTable(tables.get(i));
             if (Objects.isNull(tds) || tds.isEmpty()) {
                 continue;
             }
@@ -294,8 +288,6 @@ public class HtmlToExcelFactory {
                     }).sum();
                 }).max().orElse(0);
 
-                totalColMap.put(i, cloNum);
-
                 Elements captions = table.getElementsByTag(Tag.caption.name());
                 String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
                 Sheet sheet = workbook.createSheet(sheetName);
@@ -322,10 +314,9 @@ public class HtmlToExcelFactory {
      * 解析每一个table
      *
      * @param table      表格元素
-     * @param tableIndex 表格索引
      * @return 当前表格的所有单元格
      */
-    private List<Td> processTable(Element table, int tableIndex) {
+    private List<Td> processTable(Element table) {
         // 表样式
         Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
@@ -348,7 +339,6 @@ public class HtmlToExcelFactory {
             trContainer.add(tr);
             this.processTr(trElement, tr);
         }
-        this.countTotalCols(tableIndex);
         return this.adjustTdPosition();
     }
 
@@ -366,22 +356,6 @@ public class HtmlToExcelFactory {
         if (Objects.isNull(fontMap)) {
             fontMap = new HashMap<>();
         }
-    }
-
-    /**
-     * 计算总列数
-     *
-     * @param tableIndex 表格索引
-     */
-    private void countTotalCols(int tableIndex) {
-        if (Objects.nonNull(totalColMap.get(tableIndex))) {
-            totalCols = totalColMap.get(tableIndex);
-            return;
-        }
-        ToIntFunction<Tr> function = tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol))
-                .max().orElse(0);
-        totalCols = trContainer.parallelStream().mapToInt(function).max()
-                .orElseThrow(() -> new NoTablesException("不存在任何单元格"));
     }
 
     /**
@@ -511,6 +485,11 @@ public class HtmlToExcelFactory {
             Integer maxWidth = colMaxWidthMap.get(td.getCol());
             if (Objects.isNull(maxWidth) || maxWidth < width) {
                 colMaxWidthMap.put(td.getCol(), width);
+            }
+
+            int colIndex = TdUtils.get(td::getColSpan, td::getCol);
+            if (colIndex > totalCols) {
+                totalCols = colIndex;
             }
         }
     }
