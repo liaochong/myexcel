@@ -18,6 +18,7 @@ package com.github.liaochong.html2excel.core.parse;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import org.jsoup.nodes.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,9 @@ import java.util.Map;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class Tr {
+public class Tr {
+
+    Element trElement;
     /**
      * 索引
      */
@@ -37,7 +40,7 @@ class Tr {
     /**
      * 行单元格
      */
-    List<Td> tds = new ArrayList<>();
+    List<Td> tdList = new ArrayList<>();
     /**
      * 行样式
      */

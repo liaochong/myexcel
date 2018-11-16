@@ -27,7 +27,7 @@ import java.util.Map;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class Td {
+public class Td {
     /**
      * 所在行
      */
