@@ -33,20 +33,20 @@ Maven 依赖
 ```
 可选模板 | Template
 ------------------
-1. 以下模板引擎默认均未被引入，使用者可根据自身需要选择在pom.xml中声明引入；
+1. 以下模板引擎除Beetl外默认均未被引入，使用者可根据自身需要选择在pom.xml中声明引入；
 2. 以下模板引擎版本为最低版本号；
 
 ```xml
 <dependency>
-    <groupId>org.freemarker</groupId>
-    <artifactId>freemarker</artifactId>
-    <version>2.3.23</version>
-</dependency>
-
-<dependency>
     <groupId>com.ibeetl</groupId>
     <artifactId>beetl</artifactId>
     <version>2.7.23</version>
+</dependency>
+
+<dependency>
+    <groupId>org.freemarker</groupId>
+    <artifactId>freemarker</artifactId>
+    <version>2.3.23</version>
 </dependency>
 
 <dependency>
