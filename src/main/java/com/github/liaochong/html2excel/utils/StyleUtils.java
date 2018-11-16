@@ -50,6 +50,9 @@ public final class StyleUtils {
         if (Objects.isNull(targetStyle) && Objects.isNull(originStyle)) {
             return Collections.emptyMap();
         }
+        if (Objects.equals(originStyle, targetStyle)) {
+            return targetStyle;
+        }
         if (Objects.isNull(targetStyle)) {
             return originStyle;
         } else {

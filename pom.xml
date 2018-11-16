@@ -10,7 +10,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <name>html2excel</name>
@@ -49,6 +49,11 @@
             <version>1.7.25</version>
         </dependency>
         <dependency>
+            <groupId>com.ibeetl</groupId>
+            <artifactId>beetl</artifactId>
+            <version>2.9.3</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
@@ -58,12 +63,6 @@
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.23</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.ibeetl</groupId>
-            <artifactId>beetl</artifactId>
-            <version>2.7.23</version>
             <optional>true</optional>
         </dependency>
         <dependency>

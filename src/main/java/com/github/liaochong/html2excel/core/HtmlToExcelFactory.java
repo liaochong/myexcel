@@ -21,7 +21,6 @@ import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
-import com.github.liaochong.html2excel.exception.NoTablesException;
 import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
@@ -52,10 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -109,6 +106,10 @@ public class HtmlToExcelFactory {
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap;
+    /**
+     * 每列最大宽度map
+     */
+    private Map<Integer, Integer> colMaxWidthMap;
     /**
      * 字体map
      */
@@ -216,11 +217,14 @@ public class HtmlToExcelFactory {
             log.warn("There is no any table exist");
             return new XSSFWorkbook();
         }
+        log.info("Start building excel");
+        long startTime = System.currentTimeMillis();
         // 1、创建工作簿
         this.createWorkbook(tables);
 
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
+            this.initialize();
             // 获取所有单元格
             List<Td> tds = this.processTable(tables.get(i));
             if (Objects.isNull(tds) || tds.isEmpty()) {
@@ -231,6 +235,7 @@ public class HtmlToExcelFactory {
             // 设置行高
             this.setRowHeight(i);
         }
+        log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }
 
@@ -243,7 +248,7 @@ public class HtmlToExcelFactory {
         Sheet sheet = sheetMap.get(i);
         for (int j = 0, size = trContainer.size(); j < size; j++) {
             Row row = sheet.getRow(j);
-            if (Objects.isNull(maxTdHeightMap) || Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
+            if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
                 row.setHeightInPoints(row.getHeightInPoints() + 5);
             } else {
                 row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
@@ -266,13 +271,9 @@ public class HtmlToExcelFactory {
                 defaultCellStyleMap.put(Tag.th, new ThDefaultCellStyle().supply(workbook));
                 defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
             }
-            sheetMap = new ConcurrentHashMap<>(tables.size());
-            for (int i = 0; i < tables.size(); i++) {
+            sheetMap = new HashMap<>(tables.size());
+            for (int i = 0, size = tables.size(); i < size; i++) {
                 Element table = tables.get(i);
-                Elements captions = table.getElementsByTag(Tag.caption.name());
-                String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
-                Sheet sheet = workbook.createSheet(sheetName);
-                sheetMap.put(i, sheet);
 
                 Elements trs = table.getElementsByTag(Tag.tr.name());
                 int cloNum = trs.parallelStream().mapToInt(tr -> {
@@ -286,6 +287,11 @@ public class HtmlToExcelFactory {
                         return colSpanVal > 0 ? colSpanVal : 1;
                     }).sum();
                 }).max().orElse(0);
+
+                Elements captions = table.getElementsByTag(Tag.caption.name());
+                String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
+                Sheet sheet = workbook.createSheet(sheetName);
+                sheetMap.put(i, sheet);
 
                 for (int j = 0; j < trs.size(); j++) {
                     Row row = sheet.createRow(j);
@@ -307,23 +313,32 @@ public class HtmlToExcelFactory {
     /**
      * 解析每一个table
      *
-     * @param table 表格
+     * @param table      表格元素
+     * @return 当前表格的所有单元格
      */
     private List<Td> processTable(Element table) {
-        this.initialize();
         // 表样式
         Map<String, String> tableStyle = StyleUtils.parseStyle(table);
         Elements trs = table.getElementsByTag(Tag.tr.name());
         if (Objects.isNull(trs) || trs.isEmpty()) {
             return Collections.emptyList();
         }
+        Map<Element, Map<String, String>> upperStyleMap = new HashMap<>();
         for (int i = 0, size = trs.size(); i < size; i++) {
+            Element trElement = trs.get(i);
+            Element parent = trElement.parent();
+            Map<String, String> upperStyle;
+            if (upperStyleMap.containsKey(parent)) {
+                upperStyle = upperStyleMap.get(parent);
+            } else {
+                upperStyle = StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(parent));
+                upperStyleMap.put(parent, upperStyle);
+            }
             Tr tr = new Tr(i);
-            tr.setStyle(StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(trs.get(i))));
+            tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
             trContainer.add(tr);
-            this.processTr(trs.get(i), tr);
+            this.processTr(trElement, tr);
         }
-        this.countTotalCols();
         return this.adjustTdPosition();
     }
 
@@ -334,31 +349,32 @@ public class HtmlToExcelFactory {
         totalCols = 0;
         trContainer = new ArrayList<>();
         maxTdHeightMap = new HashMap<>();
+        colMaxWidthMap = new HashMap<>();
+        if (Objects.isNull(cellStyleMap)) {
+            cellStyleMap = new HashMap<>();
+        }
+        if (Objects.isNull(fontMap)) {
+            fontMap = new HashMap<>();
+        }
     }
 
     /**
-     * 计算总列数
-     */
-    private void countTotalCols() {
-        ToIntFunction<Tr> function = tr -> tr.getTds().stream().mapToInt(td -> TdUtils.get(td::getColSpan, td::getCol))
-                .max().orElse(0);
-        totalCols = trContainer.parallelStream().mapToInt(function).max()
-                .orElseThrow(() -> new NoTablesException("不存在任何单元格"));
-    }
-
-    /**
-     * 创建
+     * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      *
      * @param tableIndex 表格索引
+     * @param allTds     所有单元格
      */
     private void setTdOfTable(int tableIndex, List<Td> allTds) {
         workbookFuture.join();
         Sheet sheet = sheetMap.get(tableIndex);
         allTds.forEach(td -> this.setCell(td, sheet));
-        // 自适应列宽
-        for (int i = 0; i < totalCols; i++) {
-            sheet.autoSizeColumn(i);
-        }
+        colMaxWidthMap.forEach((key, value) -> {
+            int contentLength = value << 1;
+            if (contentLength > 255) {
+                contentLength = 255;
+            }
+            sheet.setColumnWidth(key, contentLength << 8);
+        });
     }
 
     /**
@@ -375,7 +391,6 @@ public class HtmlToExcelFactory {
         int boundCol = TdUtils.get(td::getColSpan, td::getCol);
         int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
 
-        cellStyleMap = new HashMap<>();
         for (int i = td.getRow(); i <= boundRow; i++) {
             Row row = sheet.getRow(i);
             for (int j = td.getCol(); j <= boundCol; j++) {
@@ -405,12 +420,6 @@ public class HtmlToExcelFactory {
             if (cellStyleMap.containsKey(td.getStyle())) {
                 cell.setCellStyle(cellStyleMap.get(td.getStyle()));
                 return;
-            }
-            if (Objects.isNull(maxTdHeightMap)) {
-                maxTdHeightMap = new ConcurrentHashMap<>();
-            }
-            if (Objects.isNull(fontMap)) {
-                fontMap = new ConcurrentHashMap<>();
             }
             CellStyle cellStyle = workbook.createCellStyle();
             // background-color
@@ -470,6 +479,18 @@ public class HtmlToExcelFactory {
 
             td.setContent(tdElement.text());
             tr.getTds().add(td);
+
+            // 设置每列最宽宽度
+            int width = TdUtils.getStringWidth(td.getContent());
+            Integer maxWidth = colMaxWidthMap.get(td.getCol());
+            if (Objects.isNull(maxWidth) || maxWidth < width) {
+                colMaxWidthMap.put(td.getCol(), width);
+            }
+
+            int colIndex = TdUtils.get(td::getColSpan, td::getCol);
+            if (colIndex > totalCols) {
+                totalCols = colIndex;
+            }
         }
     }
 
@@ -480,9 +501,10 @@ public class HtmlToExcelFactory {
      */
     private List<Td> adjustTdPosition() {
         // 排除第一行，第一行不需要进行调整
-        for (int i = 1; i < trContainer.size(); i++) {
-            Tr tr = trContainer.get(i);
-            tr.getTds().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
+        if (trContainer.size() > 1) {
+            trContainer.subList(1, trContainer.size()).parallelStream().forEach(tr -> {
+                tr.getTds().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
+            });
         }
         return trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
     }
