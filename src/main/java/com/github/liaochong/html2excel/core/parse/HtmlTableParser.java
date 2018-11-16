@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
+ * html table parser
+ *
  * @author liaochong
  * @version 1.0
  */
@@ -80,17 +82,17 @@ public class HtmlTableParser {
         if (trElements.isEmpty()) {
             return;
         }
-        Map<Element, Map<String, String>> upperStyleMap = new HashMap<>();
+        Map<Element, Map<String, String>> parentStyleMap = new HashMap<>();
 
         List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
-            if (upperStyleMap.containsKey(parent)) {
-                upperStyle = upperStyleMap.get(parent);
+            if (parentStyleMap.containsKey(parent)) {
+                upperStyle = parentStyleMap.get(parent);
             } else {
                 upperStyle = StyleUtils.mixStyle(tableStyleMap, StyleUtils.parseStyle(parent));
-                upperStyleMap.put(parent, upperStyle);
+                parentStyleMap.put(parent, upperStyle);
             }
             Tr tr = new Tr(index);
             tr.setTrElement(trElement);
@@ -103,13 +105,14 @@ public class HtmlTableParser {
 
         int lastColumnNum = trList.parallelStream().max(Comparator.comparing(Tr::getLastColumnNum)).get().getLastColumnNum();
         table.setLastColumnNum(lastColumnNum);
-        // 调整td位置
-        // 排除第一行，第一行不需要进行调整
-        if (trList.size() > 1) {
-            trList.subList(1, trList.size()).parallelStream().forEach(tr -> {
-                tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), trList, lastColumnNum));
-            });
+
+        // 调整td位置,排除第一行，第一行不需要进行调整
+        if (trList.size() == 1) {
+            return;
         }
+        trList.subList(1, trList.size()).parallelStream().forEach(tr -> {
+            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), trList, lastColumnNum));
+        });
     }
 
     /**
@@ -120,12 +123,12 @@ public class HtmlTableParser {
      * @param table     table
      */
     private void parseTdOfTr(Element trElement, Tr tr, Table table) {
-        Elements childrenElements = trElement.children();
-        if (childrenElements.isEmpty()) {
+        Elements tdElements = trElement.children();
+        if (tdElements.isEmpty()) {
             return;
         }
-        for (int i = 0, size = childrenElements.size(); i < size; i++) {
-            Element tdElement = childrenElements.get(i);
+        for (int i = 0, size = tdElements.size(); i < size; i++) {
+            Element tdElement = tdElements.get(i);
             Td td = new Td();
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
@@ -165,8 +168,10 @@ public class HtmlTableParser {
     /**
      * 调整表格单元格位置
      *
-     * @param td      单元格
-     * @param trIndex 单元格所在行索引
+     * @param td            单元格
+     * @param trIndex       行索引
+     * @param trList        所有行
+     * @param lastColumnNum 最后列编号
      */
     private void adjustTdPosition(Td td, int trIndex, List<Tr> trList, int lastColumnNum) {
         Predicate<Tr> predicate = tr -> tr.getIndex() < trIndex;
