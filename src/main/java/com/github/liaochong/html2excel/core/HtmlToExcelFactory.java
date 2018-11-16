@@ -248,7 +248,7 @@ public class HtmlToExcelFactory {
                 Sheet sheet = workbook.createSheet(sheetName);
                 sheetMap.put(i, sheet);
 
-                for (int j = 0; j < table.getTrList().size(); j++) {
+                for (int j = 0, trSize = table.getTrList().size(); j < trSize; j++) {
                     Row row = sheet.createRow(j);
                     for (int k = 0; k <= table.getLastColumnNum(); k++) {
                         row.createCell(k);
