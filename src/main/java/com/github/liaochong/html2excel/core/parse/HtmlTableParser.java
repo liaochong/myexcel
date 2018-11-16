@@ -26,6 +26,7 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -112,7 +113,7 @@ public class HtmlTableParser {
             Tr tr = new Tr(index);
             tr.setTrElement(trElement);
             tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
-            this.parseTdOfTr(trElement, tr, table);
+            this.parseTdOfTr(trElement, tr);
             return tr;
         }).collect(Collectors.toList());
 
@@ -120,6 +121,17 @@ public class HtmlTableParser {
 
         int lastColumnNum = trList.parallelStream().max(Comparator.comparing(Tr::getLastColumnNum)).get().getLastColumnNum();
         table.setLastColumnNum(lastColumnNum);
+
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>();
+        trList.stream().map(Tr::getColWidthMap).forEach(map -> {
+            map.forEach((k, v) -> {
+                Integer width = colMaxWidthMap.get(k);
+                if (Objects.isNull(width) || v > width) {
+                    colMaxWidthMap.put(k, v);
+                }
+            });
+        });
+        table.setColMaxWidthMap(colMaxWidthMap);
 
         // 调整td位置,排除第一行，第一行不需要进行调整
         if (trList.size() == 1) {
@@ -135,13 +147,14 @@ public class HtmlTableParser {
      *
      * @param trElement tr元素
      * @param tr        tr
-     * @param table     table
      */
-    private void parseTdOfTr(Element trElement, Tr tr, Table table) {
+    private void parseTdOfTr(Element trElement, Tr tr) {
         Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
             return;
         }
+        tr.setTdList(new ArrayList<>());
+        tr.setColWidthMap(new HashMap<>());
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
@@ -168,10 +181,7 @@ public class HtmlTableParser {
 
             // 设置每列最宽宽度
             int width = TdUtils.getStringWidth(td.getContent());
-            Integer maxWidth = table.getColMaxWidthMap().get(td.getCol());
-            if (Objects.isNull(maxWidth) || maxWidth < width) {
-                table.getColMaxWidthMap().put(td.getCol(), width);
-            }
+            tr.getColWidthMap().put(td.getCol(), width);
 
             int colIndex = TdUtils.get(td::getColSpan, td::getCol);
             if (Objects.isNull(tr.getLastColumnNum()) || colIndex > tr.getLastColumnNum()) {

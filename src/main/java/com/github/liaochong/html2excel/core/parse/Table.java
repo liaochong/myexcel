@@ -20,7 +20,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.jsoup.nodes.Element;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,5 +45,5 @@ public class Table {
 
     Integer index;
 
-    Map<Integer, Integer> colMaxWidthMap = new HashMap<>();
+    Map<Integer, Integer> colMaxWidthMap;
 }

@@ -20,7 +20,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.jsoup.nodes.Element;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,13 +39,19 @@ public class Tr {
     /**
      * 行单元格
      */
-    List<Td> tdList = new ArrayList<>();
+    List<Td> tdList;
     /**
      * 行样式
      */
     Map<String, String> style;
-
+    /**
+     * 当前最后列编号
+     */
     Integer lastColumnNum;
+    /**
+     * 最大宽度
+     */
+    Map<Integer, Integer> colWidthMap;
 
     public Tr(int index) {
         this.index = index;
