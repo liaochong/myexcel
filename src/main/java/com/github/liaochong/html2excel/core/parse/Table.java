@@ -31,7 +31,7 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Table {
 
-    Element tableElement;
+    Element element;
 
     String caption;
 

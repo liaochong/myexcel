@@ -71,7 +71,7 @@ public class HtmlTableParser {
             Element tableElement = tableElements.get(i);
             Table table = new Table();
             table.setIndex(i);
-            table.setTableElement(tableElement);
+            table.setElement(tableElement);
 
             Elements captionElements = tableElement.getElementsByTag(TableTag.caption.name());
             if (!captionElements.isEmpty()) {
@@ -108,7 +108,7 @@ public class HtmlTableParser {
                 parentStyleMap.put(parent, upperStyle);
             }
             Tr tr = new Tr(index);
-            tr.setTrElement(trElement);
+            tr.setElement(trElement);
             tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
             this.parseTdOfTr(trElement, tr);
             return tr;
@@ -155,6 +155,7 @@ public class HtmlTableParser {
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
+            td.setElement(tdElement);
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
             td.setStyle(StyleUtils.mixStyle(tr.getStyle(), StyleUtils.parseStyle(tdElement)));
