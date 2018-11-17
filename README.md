@@ -125,10 +125,17 @@ public class FreemarkerExampleController {
 ```
 3. 默认模板引擎使用
 ```java
+// title
 List<String> titles = new ArrayList<>();
 titles.add("姓名");
 titles.add("年龄");
 
+// field display order
+List<String> order = new ArrayList<>();
+order.add("name");
+order.add("age");
+
+// display data
 TestDO testDO = new TestDO();
 testDO.setName("张三");
 TestDO testDO1 = new TestDO();
@@ -146,10 +153,6 @@ dataList.add(testDO);
 dataList.add(testDO1);
 dataList.add(testDO2);
 dataList.add(testDO3);
-
-List<String> order = new ArrayList<>();
-order.add("name");
-order.add("age");
 
 Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("default example").fieldDisplayOrder(order).build(dataList);
 ```
