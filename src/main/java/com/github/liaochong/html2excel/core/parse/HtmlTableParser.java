@@ -156,6 +156,7 @@ public class HtmlTableParser {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
             td.setElement(tdElement);
+            td.setContent(tdElement.text());
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
             td.setStyle(StyleUtils.mixStyle(tr.getStyle(), StyleUtils.parseStyle(tdElement)));
@@ -174,12 +175,6 @@ public class HtmlTableParser {
             String rowSpan = tdElement.attr(TableTag.rowspan.name());
             td.setRowSpan(TdUtils.getSpan(rowSpan));
 
-            int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
-            td.setBoundRow(boundRow);
-            int boundCol = TdUtils.get(td::getColSpan, td::getCol);
-            td.setBoundCol(boundCol);
-
-            td.setContent(tdElement.text());
             tr.getTdList().add(td);
 
             // 设置每列宽度

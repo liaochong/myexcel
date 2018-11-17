@@ -25,6 +25,7 @@ import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
+import com.github.liaochong.html2excel.utils.TdUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -304,16 +305,19 @@ public class HtmlToExcelFactory {
         Cell cell = sheet.getRow(td.getRow()).getCell(td.getCol());
         cell.setCellValue(td.getContent());
 
+        int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
+        int boundCol = TdUtils.get(td::getColSpan, td::getCol);
+
         // 设置单元格样式
-        for (int i = td.getRow(), boundRow = td.getBoundRow(); i <= boundRow; i++) {
+        for (int i = td.getRow(); i <= boundRow; i++) {
             Row row = sheet.getRow(i);
-            for (int j = td.getCol(), boundCol = td.getBoundCol(); j <= boundCol; j++) {
+            for (int j = td.getCol(); j <= boundCol; j++) {
                 cell = row.getCell(j);
                 this.setCellStyle(row, cell, td);
             }
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
-            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getBoundRow(), td.getCol(), td.getBoundCol()));
+            sheet.addMergedRegion(new CellRangeAddress(td.getRow(), boundRow, td.getCol(), boundCol));
         }
     }
 
