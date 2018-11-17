@@ -123,7 +123,37 @@ public class FreemarkerExampleController {
     }
 }
 ```
-3. Excel sheet名称设置：table中添加 `<caption>Monthly savings</caption>`
+3. 默认模板引擎使用
+```java
+List<String> titles = new ArrayList<>();
+titles.add("姓名");
+titles.add("年龄");
+
+TestDO testDO = new TestDO();
+testDO.setName("张三");
+TestDO testDO1 = new TestDO();
+testDO1.setName("李四");
+
+TestDO testDO2 = new TestDO();
+testDO2.setName("王五");
+testDO2.setAge(15);
+TestDO testDO3 = new TestDO();
+testDO3.setName("陈六");
+testDO3.setAge(25);
+
+List<TestDO> dataList = new ArrayList<>();
+dataList.add(testDO);
+dataList.add(testDO1);
+dataList.add(testDO2);
+dataList.add(testDO3);
+
+List<String> order = new ArrayList<>();
+order.add("name");
+order.add("age");
+
+Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("default example").fieldDisplayOrder(order).build(dataList);
+```
+4. Excel sheet名称设置：table中添加 `<caption>Monthly savings</caption>`
 
 可操作项 | Operational item
 -------------------------
