@@ -15,6 +15,8 @@
  */
 package com.github.liaochong.html2excel.utils;
 
+import com.github.liaochong.html2excel.core.cache.DefaultCache;
+
 import java.util.Objects;
 import java.util.function.IntSupplier;
 import java.util.regex.Pattern;
@@ -28,6 +30,8 @@ public class TdUtils {
 
     private static Pattern pattern = Pattern.compile("^\\d+$");
 
+    private static final DefaultCache<String, Integer> SPAN_CACHE = new DefaultCache<>();
+
     public static int get(IntSupplier firstSupplier, IntSupplier secondSupplier) {
         int firstValue = firstSupplier.getAsInt();
         int secondValue = secondSupplier.getAsInt();
@@ -35,11 +39,18 @@ public class TdUtils {
     }
 
     public static int getSpan(String span) {
+        Integer cacheResult = SPAN_CACHE.get(span);
+        if (Objects.nonNull(cacheResult)) {
+            return cacheResult;
+        }
         if (!isSpanValid(span)) {
+            SPAN_CACHE.cache(span, 0);
             return 0;
         }
-        int result = Integer.parseInt(span);
-        return result > 1 ? result : 0;
+        int spanVal = Integer.parseInt(span);
+        int result = spanVal > 1 ? spanVal : 0;
+        SPAN_CACHE.cache(span, result);
+        return result;
     }
 
     public static boolean isSpanValid(String span) {

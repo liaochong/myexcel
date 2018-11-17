@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.utils;
 
+import com.github.liaochong.html2excel.core.cache.DefaultCache;
 import org.jsoup.nodes.Element;
 
 import java.util.Collections;
@@ -28,10 +29,16 @@ import java.util.Objects;
  */
 public final class StyleUtils {
 
+    private static final DefaultCache<String, Map<String, String>> STYLE_CACHE = new DefaultCache<>();
+
     public static Map<String, String> parseStyle(Element element) {
         String style = element.attr("style");
         if (Objects.isNull(style)) {
             return Collections.emptyMap();
+        }
+        Map<String, String> cacheResult = STYLE_CACHE.get(style);
+        if (Objects.nonNull(cacheResult)) {
+            return cacheResult;
         }
         String[] styleArr = style.split(";");
 
@@ -51,6 +58,7 @@ public final class StyleUtils {
             }
             result.put(styleName, styleValue);
         }
+        STYLE_CACHE.cache(style, result);
         return result;
     }
 
