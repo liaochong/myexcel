@@ -17,7 +17,7 @@ html2excel是一款将html中表格（table）转化成excel的工具包.
 - **支持常用背景色、边框、字体等样式设置**：具体参见详情部分；
 - **支持.XLS、.XLSX**：支持生成.xls、.xlsx后缀的excel；
 - **支持多种模板引擎**：支持Freemarker、Groovy、Beetl等常用模板引擎，默认内置Beetl模板引擎（推荐引擎，[Beetl文档](http://ibeetl.com/guide/#beetl)）；
-- **提供默认模板引擎，直接输出简单excel**：无需编写任何html，已内置默认模板，可直接根据数据列表输出；
+- **提供默认模板引擎，直接输出简单excel**：无需编写任何html，已内置默认模板，可直接根据POJO数据列表输出；
 
 注意 | Attention
 ------------------
@@ -123,7 +123,7 @@ public class FreemarkerExampleController {
     }
 }
 ```
-3. 默认模板引擎使用
+3. 默认模板引擎使用（暂不支持继承属性）
 ```java
 // title
 List<String> titles = new ArrayList<>();
