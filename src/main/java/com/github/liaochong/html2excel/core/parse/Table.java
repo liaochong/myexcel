@@ -13,26 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.exception;
+package com.github.liaochong.html2excel.core.parse;
+
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
+import org.jsoup.nodes.Element;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class NoTablesException extends RuntimeException {
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Table {
 
-    public NoTablesException() {
-    }
+    Element tableElement;
 
-    public NoTablesException(String message) {
-        super(message);
-    }
+    String caption;
 
-    public NoTablesException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    List<Tr> trList;
 
-    public static NoTablesException of(String message) {
-        return new NoTablesException(message);
-    }
+    Map<String, String> styleMap;
+
+    Integer lastColumnNum;
+
+    Integer lastRowNum;
+
+    Integer index;
+
+    Map<Integer, Integer> colMaxWidthMap;
 }

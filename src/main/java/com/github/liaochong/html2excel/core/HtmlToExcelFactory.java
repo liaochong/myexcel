@@ -15,6 +15,9 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.core.parse.HtmlTableParser;
+import com.github.liaochong.html2excel.core.parse.Table;
+import com.github.liaochong.html2excel.core.parse.Td;
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
@@ -22,11 +25,8 @@ import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
-import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.CharEncoding;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -36,15 +36,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.nio.file.NoSuchFileException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -52,8 +46,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * HtmlToExcelFactory
@@ -66,10 +58,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class HtmlToExcelFactory {
-    /**
-     * html解析后文档
-     */
-    private Document document;
+
+    private HtmlTableParser htmlTableParser;
     /**
      * excel workbook
      */
@@ -83,17 +73,9 @@ public class HtmlToExcelFactory {
      */
     private FreezePane[] freezePanes;
     /**
-     * tr容器
-     */
-    private List<Tr> trContainer;
-    /**
-     * 总列数
-     */
-    private int totalCols;
-    /**
      * 样式容器
      */
-    private Map<Tag, CellStyle> defaultCellStyleMap;
+    private Map<HtmlTableParser.TableTag, CellStyle> defaultCellStyleMap;
     /**
      * 单元格样式映射
      */
@@ -106,10 +88,6 @@ public class HtmlToExcelFactory {
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap;
-    /**
-     * 每列最大宽度map
-     */
-    private Map<Integer, Integer> colMaxWidthMap;
     /**
      * 字体map
      */
@@ -138,7 +116,7 @@ public class HtmlToExcelFactory {
             throw new NoSuchFileException("html file is not exist");
         }
         HtmlToExcelFactory factory = new HtmlToExcelFactory();
-        factory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        factory.htmlTableParser = HtmlTableParser.of(htmlFile);
         return factory;
     }
 
@@ -157,7 +135,7 @@ public class HtmlToExcelFactory {
         if (Objects.isNull(htmlToExcelFactory)) {
             throw new NullPointerException("HtmlToExcelFactory can not be null");
         }
-        htmlToExcelFactory.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        htmlToExcelFactory.htmlTableParser = HtmlTableParser.of(htmlFile);
         return htmlToExcelFactory;
     }
 
@@ -212,7 +190,7 @@ public class HtmlToExcelFactory {
      * @return Workbook
      */
     public Workbook build() {
-        Elements tables = document.getElementsByTag(Tag.table.name());
+        List<Table> tables = htmlTableParser.getAllTable();
         if (tables.isEmpty()) {
             log.warn("There is no any table exist");
             return new XSSFWorkbook();
@@ -221,19 +199,13 @@ public class HtmlToExcelFactory {
         long startTime = System.currentTimeMillis();
         // 1、创建工作簿
         this.createWorkbook(tables);
-
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
             this.initialize();
-            // 获取所有单元格
-            List<Td> tds = this.processTable(tables.get(i));
-            if (Objects.isNull(tds) || tds.isEmpty()) {
-                continue;
-            }
             // 设置单元格样式
-            this.setTdOfTable(i, tds);
+            this.setTdOfTable(tables.get(i));
             // 设置行高
-            this.setRowHeight(i);
+            this.setRowHeight(tables.get(i));
         }
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
@@ -241,12 +213,10 @@ public class HtmlToExcelFactory {
 
     /**
      * 设置行高，最小12
-     *
-     * @param i 表格索引
      */
-    private void setRowHeight(int i) {
-        Sheet sheet = sheetMap.get(i);
-        for (int j = 0, size = trContainer.size(); j < size; j++) {
+    private void setRowHeight(Table table) {
+        Sheet sheet = sheetMap.get(table.getIndex());
+        for (int j = 0, size = table.getTrList().size(); j < size; j++) {
             Row row = sheet.getRow(j);
             if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
                 row.setHeightInPoints(row.getHeightInPoints() + 5);
@@ -261,41 +231,26 @@ public class HtmlToExcelFactory {
      *
      * @param tables 表格集合
      */
-    private void createWorkbook(Elements tables) {
+    private void createWorkbook(List<Table> tables) {
         workbookFuture = CompletableFuture.runAsync(() -> {
             if (Objects.isNull(workbook)) {
                 workbook = new XSSFWorkbook();
             }
             if (useDefaultStyle) {
-                defaultCellStyleMap = new EnumMap<>(Tag.class);
-                defaultCellStyleMap.put(Tag.th, new ThDefaultCellStyle().supply(workbook));
-                defaultCellStyleMap.put(Tag.td, new TdDefaultCellStyle().supply(workbook));
+                defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
+                defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
+                defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
             }
             sheetMap = new HashMap<>(tables.size());
             for (int i = 0, size = tables.size(); i < size; i++) {
-                Element table = tables.get(i);
-
-                Elements trs = table.getElementsByTag(Tag.tr.name());
-                int cloNum = trs.parallelStream().mapToInt(tr -> {
-                    Elements tds = tr.children();
-                    return tds.stream().mapToInt(td -> {
-                        String colSpan = td.attr(Tag.colspan.name());
-                        if (!TdUtils.isSpanValid(colSpan)) {
-                            return 1;
-                        }
-                        int colSpanVal = Integer.parseInt(colSpan);
-                        return colSpanVal > 0 ? colSpanVal : 1;
-                    }).sum();
-                }).max().orElse(0);
-
-                Elements captions = table.getElementsByTag(Tag.caption.name());
-                String sheetName = captions.isEmpty() ? "sheet" + (i + 1) : captions.first().text();
+                Table table = tables.get(i);
+                String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
                 Sheet sheet = workbook.createSheet(sheetName);
                 sheetMap.put(i, sheet);
 
-                for (int j = 0; j < trs.size(); j++) {
+                for (int j = 0, trSize = table.getTrList().size(); j < trSize; j++) {
                     Row row = sheet.createRow(j);
-                    for (int k = 0; k <= cloNum; k++) {
+                    for (int k = 0; k <= table.getLastColumnNum(); k++) {
                         row.createCell(k);
                     }
                 }
@@ -311,45 +266,10 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 解析每一个table
-     *
-     * @param table      表格元素
-     * @return 当前表格的所有单元格
-     */
-    private List<Td> processTable(Element table) {
-        // 表样式
-        Map<String, String> tableStyle = StyleUtils.parseStyle(table);
-        Elements trs = table.getElementsByTag(Tag.tr.name());
-        if (Objects.isNull(trs) || trs.isEmpty()) {
-            return Collections.emptyList();
-        }
-        Map<Element, Map<String, String>> upperStyleMap = new HashMap<>();
-        for (int i = 0, size = trs.size(); i < size; i++) {
-            Element trElement = trs.get(i);
-            Element parent = trElement.parent();
-            Map<String, String> upperStyle;
-            if (upperStyleMap.containsKey(parent)) {
-                upperStyle = upperStyleMap.get(parent);
-            } else {
-                upperStyle = StyleUtils.mixStyle(tableStyle, StyleUtils.parseStyle(parent));
-                upperStyleMap.put(parent, upperStyle);
-            }
-            Tr tr = new Tr(i);
-            tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
-            trContainer.add(tr);
-            this.processTr(trElement, tr);
-        }
-        return this.adjustTdPosition();
-    }
-
-    /**
      * 初始化，每解析一个表格需要重新初始化
      */
     private void initialize() {
-        totalCols = 0;
-        trContainer = new ArrayList<>();
         maxTdHeightMap = new HashMap<>();
-        colMaxWidthMap = new HashMap<>();
         if (Objects.isNull(cellStyleMap)) {
             cellStyleMap = new HashMap<>();
         }
@@ -360,15 +280,13 @@ public class HtmlToExcelFactory {
 
     /**
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
-     *
-     * @param tableIndex 表格索引
-     * @param allTds     所有单元格
      */
-    private void setTdOfTable(int tableIndex, List<Td> allTds) {
+    private void setTdOfTable(Table table) {
         workbookFuture.join();
-        Sheet sheet = sheetMap.get(tableIndex);
-        allTds.forEach(td -> this.setCell(td, sheet));
-        colMaxWidthMap.forEach((key, value) -> {
+        Sheet sheet = sheetMap.get(table.getIndex());
+        table.getTrList().stream().flatMap(tr -> tr.getTdList().stream()).forEach(td -> this.setCell(td, sheet));
+
+        table.getColMaxWidthMap().forEach((key, value) -> {
             int contentLength = value << 1;
             if (contentLength > 255) {
                 contentLength = 255;
@@ -412,9 +330,9 @@ public class HtmlToExcelFactory {
     private void setCellStyle(Row row, Cell cell, Td td) {
         if (useDefaultStyle) {
             if (td.isTh()) {
-                cell.setCellStyle(defaultCellStyleMap.get(Tag.th));
+                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.th));
             } else {
-                cell.setCellStyle(defaultCellStyleMap.get(Tag.td));
+                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
             }
         } else {
             if (cellStyleMap.containsKey(td.getStyle())) {
@@ -433,144 +351,5 @@ public class HtmlToExcelFactory {
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
-    }
-
-    /**
-     * 处理行元素
-     *
-     * @param trElement tr
-     * @param tr        tr容器
-     */
-    private void processTr(Element trElement, Tr tr) {
-        Elements childrenElements = trElement.children();
-        this.processTd(childrenElements, tr);
-    }
-
-    /**
-     * 处理行内元素
-     *
-     * @param tdElements 元素：th、td
-     * @param tr         元素容器
-     */
-    private void processTd(Elements tdElements, Tr tr) {
-        if (tdElements.isEmpty()) {
-            return;
-        }
-        for (int i = 0, size = tdElements.size(); i < size; i++) {
-            Element tdElement = tdElements.get(i);
-            Td td = new Td();
-            td.setTh(Objects.equals(Tag.th.name(), tdElement.tagName()));
-            td.setRow(tr.getIndex());
-            td.setStyle(StyleUtils.mixStyle(tr.getStyle(), StyleUtils.parseStyle(tdElement)));
-            // 除每行第一个单元格外，修正含跨列的单元格位置
-            if (i > 0) {
-                int shift = tr.getTds().stream().filter(t -> t.getColSpan() > 0)
-                        .mapToInt(t -> t.getColSpan() - 1).sum();
-                td.setCol(i + shift);
-            } else {
-                td.setCol(i);
-            }
-
-            String colSpan = tdElement.attr(Tag.colspan.name());
-            td.setColSpan(TdUtils.getSpan(colSpan));
-
-            String rowSpan = tdElement.attr(Tag.rowspan.name());
-            td.setRowSpan(TdUtils.getSpan(rowSpan));
-
-            td.setContent(tdElement.text());
-            tr.getTds().add(td);
-
-            // 设置每列最宽宽度
-            int width = TdUtils.getStringWidth(td.getContent());
-            Integer maxWidth = colMaxWidthMap.get(td.getCol());
-            if (Objects.isNull(maxWidth) || maxWidth < width) {
-                colMaxWidthMap.put(td.getCol(), width);
-            }
-
-            int colIndex = TdUtils.get(td::getColSpan, td::getCol);
-            if (colIndex > totalCols) {
-                totalCols = colIndex;
-            }
-        }
-    }
-
-    /**
-     * 调整表格单元格位置
-     *
-     * @return 所有单元格
-     */
-    private List<Td> adjustTdPosition() {
-        // 排除第一行，第一行不需要进行调整
-        if (trContainer.size() > 1) {
-            trContainer.subList(1, trContainer.size()).parallelStream().forEach(tr -> {
-                tr.getTds().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex()));
-            });
-        }
-        return trContainer.stream().flatMap(tr -> tr.getTds().stream()).collect(Collectors.toList());
-    }
-
-    /**
-     * 调整表格单元格位置
-     *
-     * @param td      单元格
-     * @param trIndex 单元格所在行索引
-     */
-    private void adjustTdPosition(Td td, int trIndex) {
-        Predicate<Tr> predicate = tr -> tr.getIndex() < trIndex;
-        List<Td> tds = trContainer.stream().filter(predicate).flatMap(tr -> tr.getTds().stream())
-                .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(tds)) {
-            return;
-        }
-        for (int i = 0; i < totalCols; i++) {
-            Td td1 = tds.stream().filter(prevTd -> prevTd.getCol() <= td.getCol()
-                    && TdUtils.get(prevTd::getRowSpan, prevTd::getRow) >= td.getRow()).findFirst().orElse(null);
-            if (Objects.isNull(td1)) {
-                return;
-            }
-            int prevTdColSpan = td1.getColSpan();
-            int realCol = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
-            td.setCol(realCol);
-            tds.remove(td1);
-        }
-    }
-
-    private enum Tag {
-        /**
-         * table
-         */
-        table,
-        /**
-         * caption
-         */
-        caption,
-        /**
-         * thead
-         */
-        thead,
-        /**
-         * tbody
-         */
-        tbody,
-        /**
-         * tr
-         */
-        tr,
-        /**
-         * th
-         */
-        th,
-        /**
-         * td
-         */
-        td,
-        /**
-         * colspan
-         */
-        colspan,
-        /**
-         * rowspan
-         */
-        rowspan;
     }
 }

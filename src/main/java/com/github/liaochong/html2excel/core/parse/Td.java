@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.core;
+package com.github.liaochong.html2excel.core.parse;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,21 +27,34 @@ import java.util.Map;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class Tr {
+public class Td {
     /**
-     * 索引
+     * 所在行
      */
-    int index;
+    int row;
     /**
-     * 行单元格
+     * 所在列
      */
-    List<Td> tds = new ArrayList<>();
+    int col;
     /**
-     * 行样式
+     * 跨行数
+     */
+    int rowSpan;
+    /**
+     * 跨列数
+     */
+    int colSpan;
+    /**
+     * 内容
+     */
+    String content;
+    /**
+     * 是否为th
+     */
+    boolean th;
+    /**
+     * 单元格样式
      */
     Map<String, String> style;
 
-    Tr(int index) {
-        this.index = index;
-    }
 }
