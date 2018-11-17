@@ -62,4 +62,8 @@ public class Td {
      */
     Map<String, String> style;
 
+    int boundRow;
+
+    int boundCol;
+
 }

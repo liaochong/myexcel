@@ -174,6 +174,11 @@ public class HtmlTableParser {
             String rowSpan = tdElement.attr(TableTag.rowspan.name());
             td.setRowSpan(TdUtils.getSpan(rowSpan));
 
+            int boundRow = TdUtils.get(td::getRowSpan, td::getRow);
+            td.setBoundRow(boundRow);
+            int boundCol = TdUtils.get(td::getColSpan, td::getCol);
+            td.setBoundCol(boundCol);
+
             td.setContent(tdElement.text());
             tr.getTdList().add(td);
 
