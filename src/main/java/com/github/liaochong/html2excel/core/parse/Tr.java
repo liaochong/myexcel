@@ -47,7 +47,7 @@ public class Tr {
     /**
      * 当前最后列编号
      */
-    Integer lastColumnNum;
+    int lastColumnNum;
     /**
      * 最大宽度
      */

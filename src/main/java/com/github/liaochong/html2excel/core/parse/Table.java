@@ -39,11 +39,11 @@ public class Table {
 
     Map<String, String> styleMap;
 
-    Integer lastColumnNum;
+    int lastColumnNum;
 
-    Integer lastRowNum;
+    int lastRowNum;
 
-    Integer index;
+    int index;
 
     Map<Integer, Integer> colMaxWidthMap;
 }

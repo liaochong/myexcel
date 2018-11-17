@@ -177,7 +177,7 @@ public class HtmlTableParser {
             td.setContent(tdElement.text());
             tr.getTdList().add(td);
 
-            // 设置每列最宽宽度
+            // 设置每列宽度
             int width = TdUtils.getStringWidth(td.getContent());
             tr.getColWidthMap().put(td.getCol(), width);
 
