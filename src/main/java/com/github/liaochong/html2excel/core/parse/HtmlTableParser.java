@@ -77,11 +77,9 @@ public class HtmlTableParser {
             if (!captionElements.isEmpty()) {
                 table.setCaption(captionElements.next().text());
             }
+            table.setStyleMap(StyleUtils.parseStyle(tableElement));
 
-            Map<String, String> tableStyleMap = StyleUtils.parseStyle(tableElement);
-            table.setStyleMap(tableStyleMap);
-
-            this.parseTrOfTable(tableElement, table, tableStyleMap);
+            this.parseTrOfTable(tableElement, table);
             return table;
         }).collect(Collectors.toList());
     }
@@ -89,11 +87,10 @@ public class HtmlTableParser {
     /**
      * 解析table中的tr
      *
-     * @param tableElement  table元素
-     * @param table         table
-     * @param tableStyleMap table style map
+     * @param tableElement table元素
+     * @param table        table
      */
-    private void parseTrOfTable(Element tableElement, Table table, Map<String, String> tableStyleMap) {
+    private void parseTrOfTable(Element tableElement, Table table) {
         Elements trElements = tableElement.getElementsByTag(TableTag.tr.name());
         if (trElements.isEmpty()) {
             return;
@@ -107,7 +104,7 @@ public class HtmlTableParser {
             if (parentStyleMap.containsKey(parent)) {
                 upperStyle = parentStyleMap.get(parent);
             } else {
-                upperStyle = StyleUtils.mixStyle(tableStyleMap, StyleUtils.parseStyle(parent));
+                upperStyle = StyleUtils.mixStyle(table.getStyleMap(), StyleUtils.parseStyle(parent));
                 parentStyleMap.put(parent, upperStyle);
             }
             Tr tr = new Tr(index);
