@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * 样式工具
+ *
  * @author liaochong
  * @version 1.0
  */
@@ -33,9 +35,6 @@ public final class StyleUtils {
 
     public static Map<String, String> parseStyle(Element element) {
         String style = element.attr("style");
-        if (Objects.isNull(style)) {
-            return Collections.emptyMap();
-        }
         Map<String, String> cacheResult = STYLE_CACHE.get(style);
         if (Objects.nonNull(cacheResult)) {
             return cacheResult;
