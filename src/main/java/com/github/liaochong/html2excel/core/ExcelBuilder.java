@@ -16,6 +16,7 @@
 package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.exception.ExcelBuildException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
@@ -30,7 +31,18 @@ import java.util.UUID;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public abstract class ExcelBuilder {
+
+    private static File templateDir;
+
+    static {
+        try {
+            templateDir = new File(new File("").getCanonicalPath() + "/html2excel_temp");
+        } catch (IOException e) {
+            log.warn("Unable to set valid template path");
+        }
+    }
 
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
@@ -112,7 +124,7 @@ public abstract class ExcelBuilder {
      */
     File createTempFile(String prefix) {
         try {
-            return File.createTempFile(prefix + UUID.randomUUID(), ".html");
+            return File.createTempFile(prefix + UUID.randomUUID(), ".html", templateDir);
         } catch (IOException e) {
             throw ExcelBuildException.of("failed to create temp html file", e);
         }
@@ -129,7 +141,7 @@ public abstract class ExcelBuilder {
         }
         boolean isDeleted = file.delete();
         if (!isDeleted) {
-            throw new IllegalStateException("failed to delete temp html file");
+            log.warn("Failed to delete temp html file");
         }
     }
 
