@@ -38,13 +38,7 @@ public abstract class ExcelBuilder {
 
     static {
         try {
-            templateDir = new File(new File("").getCanonicalPath() + "/html2excel_temp");
-            if (!templateDir.exists()) {
-                boolean mkDir = templateDir.mkdir();
-                if (!mkDir) {
-                    templateDir = null;
-                }
-            }
+            templateDir = new File(new File("").getCanonicalPath());
         } catch (IOException e) {
             log.warn("Unable to set valid template path");
         }
