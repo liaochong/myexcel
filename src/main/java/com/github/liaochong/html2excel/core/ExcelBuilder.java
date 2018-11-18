@@ -38,7 +38,7 @@ public abstract class ExcelBuilder {
 
     static {
         try {
-            templateDir = new File(new File("").getCanonicalPath());
+            templateDir = new File("").getCanonicalFile();
         } catch (IOException e) {
             log.warn("Unable to set valid template path");
         }
