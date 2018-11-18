@@ -75,7 +75,7 @@ public class HtmlTableParser {
 
             Elements captionElements = tableElement.getElementsByTag(TableTag.caption.name());
             if (!captionElements.isEmpty()) {
-                table.setCaption(captionElements.next().text());
+                table.setCaption(captionElements.first().text());
             }
             table.setStyleMap(StyleUtils.parseStyle(tableElement));
 
