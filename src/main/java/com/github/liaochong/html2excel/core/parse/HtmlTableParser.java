@@ -97,7 +97,7 @@ public class HtmlTableParser {
         }
         Map<Element, Map<String, String>> parentStyleMap = new HashMap<>();
 
-        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+        List<Tr> trList = IntStream.range(0, trElements.size()).mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
