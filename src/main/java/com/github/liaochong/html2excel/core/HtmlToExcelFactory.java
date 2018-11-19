@@ -15,9 +15,9 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import com.github.liaochong.html2excel.core.parse.HtmlTableParser;
-import com.github.liaochong.html2excel.core.parse.Table;
-import com.github.liaochong.html2excel.core.parse.Td;
+import com.github.liaochong.html2excel.core.parser.HtmlTableParser;
+import com.github.liaochong.html2excel.core.parser.Table;
+import com.github.liaochong.html2excel.core.parser.Td;
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.core.parse;
+package com.github.liaochong.html2excel.core.parser;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.jsoup.nodes.Element;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,38 +29,21 @@ import java.util.Map;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Td {
-    /**
-     * td 元素
-     */
-    Element element;
-    /**
-     * 所在行
-     */
-    int row;
-    /**
-     * 所在列
-     */
-    int col;
-    /**
-     * 跨行数
-     */
-    int rowSpan;
-    /**
-     * 跨列数
-     */
-    int colSpan;
-    /**
-     * 内容
-     */
-    String content;
-    /**
-     * 是否为th
-     */
-    boolean th;
-    /**
-     * 单元格样式
-     */
-    Map<String, String> style;
+public class Table {
 
+    Element element;
+
+    String caption;
+
+    List<Tr> trList;
+
+    Map<String, String> styleMap;
+
+    int lastColumnNum;
+
+    int lastRowNum;
+
+    int index;
+
+    Map<Integer, Integer> colMaxWidthMap;
 }

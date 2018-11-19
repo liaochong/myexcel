@@ -37,8 +37,8 @@ public class HtmlToExcelFactoryTest {
     }
 
     /**
-     * 
-     * Method: parse()
+     *
+     * Method: parser()
      * 
      */
     @Test

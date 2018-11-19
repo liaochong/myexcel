@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.core.parse;
+package com.github.liaochong.html2excel.core.parser;
 
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
