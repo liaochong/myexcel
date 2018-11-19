@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * excel创建者接口
@@ -38,15 +39,9 @@ public abstract class ExcelBuilder {
 
     static {
         try {
-            templateDir = new File(new File("").getCanonicalPath() + "/html2excel_temp");
-            if (!templateDir.exists()) {
-                boolean mkDir = templateDir.mkdir();
-                if (!mkDir) {
-                    templateDir = null;
-                }
-            }
+            templateDir = new File("").getCanonicalFile();
         } catch (IOException e) {
-            log.warn("Unable to set valid template path");
+            log.warn("Unable to get valid template path");
         }
     }
 
@@ -130,7 +125,9 @@ public abstract class ExcelBuilder {
      */
     File createTempFile(String prefix) {
         try {
-            return File.createTempFile(prefix + UUID.randomUUID(), ".html", templateDir);
+            File tempFile = File.createTempFile(prefix + UUID.randomUUID(), ".html", templateDir);
+            tempFile.deleteOnExit();
+            return tempFile;
         } catch (IOException e) {
             throw ExcelBuildException.of("failed to create temp html file", e);
         }
@@ -145,10 +142,22 @@ public abstract class ExcelBuilder {
         if (Objects.isNull(file) || !file.exists()) {
             return;
         }
-        boolean isDeleted = file.delete();
-        if (!isDeleted) {
-            log.warn("Failed to delete temp html file");
-        }
+        CompletableFuture.runAsync(() -> {
+            int maxDeleteCount = 20;
+            int deleteCount = 0;
+            while (file.exists() && deleteCount < maxDeleteCount) {
+                file.delete();
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    // do nothing
+                }
+                deleteCount++;
+            }
+            if (file.exists()) {
+                log.warn("Failed to delete temp html file");
+            }
+        });
     }
 
 }
