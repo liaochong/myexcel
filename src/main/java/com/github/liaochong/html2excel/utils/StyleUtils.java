@@ -75,14 +75,16 @@ public final class StyleUtils {
         if (Objects.isNull(targetStyle) && Objects.isNull(originStyle)) {
             return Collections.emptyMap();
         }
-        if (Objects.equals(originStyle, targetStyle)) {
-            return targetStyle;
-        }
+        Map<String, String> result = new HashMap<>();
         if (Objects.isNull(targetStyle)) {
-            return originStyle;
-        } else {
-            originStyle.forEach(targetStyle::putIfAbsent);
-            return targetStyle;
+            originStyle.forEach(result::put);
+            return result;
+        } else if (Objects.isNull(originStyle)) {
+            targetStyle.forEach(result::put);
+            return result;
         }
+        targetStyle.forEach(result::put);
+        originStyle.forEach(result::putIfAbsent);
+        return result;
     }
 }
