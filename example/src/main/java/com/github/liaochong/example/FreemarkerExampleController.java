@@ -29,8 +29,6 @@ public class FreemarkerExampleController {
 
     @GetMapping("/freemarker/build")
     public void build(HttpServletResponse response) {
-        Map<String, Object> data = getData();
-
         List<Test> dataList = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
             Test t1 = new Test();
@@ -48,7 +46,7 @@ public class FreemarkerExampleController {
 
 
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Workbook workbook = excelBuilder.template("/templates/freemarker_template.ftl").useDefaultStyle().build(data);
+        Workbook workbook = excelBuilder.template("/templates/freemarker_template.ftl").useDefaultStyle().build(new HashMap<>());
 
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
