@@ -36,7 +36,7 @@ public final class StyleUtils {
     public static Map<String, String> parseStyle(Element element) {
         String style = element.attr("style");
         if (style.length() == 0) {
-            return new HashMap<>();
+            return Collections.emptyMap();
         }
         Map<String, String> cacheResult = STYLE_CACHE.get(style);
         if (Objects.nonNull(cacheResult)) {
