@@ -16,6 +16,8 @@
 package com.github.liaochong.html2excel.core.cache;
 
 /**
+ * 缓存接口
+ *
  * @author liaochong
  * @version 1.0
  */

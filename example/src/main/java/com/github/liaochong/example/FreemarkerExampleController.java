@@ -24,7 +24,6 @@ import java.util.List;
  */
 @RestController
 public class FreemarkerExampleController {
-
     /**
      * use default excel builder
      *
@@ -44,6 +43,11 @@ public class FreemarkerExampleController {
         order.add("age");
         order.add("name");
         Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("测试").fieldDisplayOrder(order).build(dataList);
+
+//        List<String> titles = new ArrayList<>();
+//        titles.add("年龄");
+//        titles.add("姓名");
+//        Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("测试").titles(titles).fieldDisplayOrder(order).build(dataList);
 
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
