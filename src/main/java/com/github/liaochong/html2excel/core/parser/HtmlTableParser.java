@@ -17,6 +17,7 @@ package com.github.liaochong.html2excel.core.parser;
 
 import com.github.liaochong.html2excel.utils.StyleUtils;
 import com.github.liaochong.html2excel.utils.TdUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jsoup.Jsoup;
@@ -42,6 +43,7 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class HtmlTableParser {
 
     /**
@@ -56,7 +58,10 @@ public class HtmlTableParser {
     public static HtmlTableParser of(File htmlFile) throws IOException {
         Objects.requireNonNull(htmlFile);
         HtmlTableParser parser = new HtmlTableParser();
+        log.info("Start parsing html file");
+        long startTime = System.currentTimeMillis();
         parser.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        log.info("Complete html file parsing,takes {} milliseconds", System.currentTimeMillis() - startTime);
         return parser;
     }
 
