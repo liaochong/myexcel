@@ -61,7 +61,7 @@ public class HtmlTableParser {
         log.info("Start parsing html file");
         long startTime = System.currentTimeMillis();
         parser.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
-        log.info("Complete html file parsing,takes {} milliseconds", System.currentTimeMillis() - startTime);
+        log.info("Complete html file parsing,takes {} ms", System.currentTimeMillis() - startTime);
         return parser;
     }
 
