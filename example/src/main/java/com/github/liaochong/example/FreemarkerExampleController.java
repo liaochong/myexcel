@@ -1,13 +1,5 @@
 package com.github.liaochong.example;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletResponse;
-
 import com.github.liaochong.html2excel.core.DefaultExcelBuilder;
 import com.github.liaochong.html2excel.core.ExcelBuilder;
 import com.github.liaochong.html2excel.core.FreemarkerExcelBuilder;
@@ -19,6 +11,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 
 /**
  * @author liaochong
@@ -27,8 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FreemarkerExampleController {
 
-    @GetMapping("/freemarker/build")
-    public void build(HttpServletResponse response) {
+    /**
+     * use default excel builder
+     *
+     * @param response response
+     */
+    @GetMapping("/freemarker/default/build")
+    public void defaultBuild(HttpServletResponse response) {
         List<Test> dataList = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
             Test t1 = new Test();
@@ -40,11 +43,43 @@ public class FreemarkerExampleController {
         List<String> order = new ArrayList<>();
         order.add("age");
         order.add("name");
+        Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("测试").fieldDisplayOrder(order).build(dataList);
 
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-//        Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("测试").fieldDisplayOrder(order).build(dataList);
+    /**
+     * use non-default-style excel builder
+     *
+     * @param response response
+     */
+    @GetMapping("/freemarker/build")
+    public void build(HttpServletResponse response) {
+        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
+        Workbook workbook = excelBuilder.template("/templates/freemarker_template.ftl").build(new HashMap<>());
 
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    /**
+     * use default-style excel builder
+     *
+     * @param response response
+     */
+    @GetMapping("/freemarker/default_style/build")
+    public void buildWithDefaultStyle(HttpServletResponse response) {
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
         Workbook workbook = excelBuilder.template("/templates/freemarker_template.ftl").useDefaultStyle().build(new HashMap<>());
 
@@ -56,6 +91,7 @@ public class FreemarkerExampleController {
             e.printStackTrace();
         }
     }
+
 
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
