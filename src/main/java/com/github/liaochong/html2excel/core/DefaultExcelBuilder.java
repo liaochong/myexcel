@@ -15,11 +15,11 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -98,24 +98,20 @@ public class DefaultExcelBuilder {
             return excelBuilder.useDefaultStyle().build(renderData);
         }
         Class<?> clazz = findResult.get().getClass();
-        Field[] fields = clazz.getDeclaredFields();
-        if (Objects.isNull(fields) || fields.length == 0) {
+        Method[] methods = clazz.getMethods();
+        if (Objects.isNull(methods) || methods.length == 0) {
             return excelBuilder.useDefaultStyle().build(renderData);
         }
-        Map<String, Field> fieldMap = Arrays.stream(fields)
-                .peek(field -> field.setAccessible(true))
-                .filter(field -> Modifier.isPrivate(field.getModifiers()))
-                .collect(Collectors.toMap(Field::getName, f -> f));
+        Map<String, Method> methodMap = Arrays.stream(methods).collect(Collectors.toMap(Method::getName, method -> method));
 
-        List<Field> sortedField = new ArrayList<>(fields.length);
-        fieldDisplayOrder.forEach(fieldName ->
-                sortedField.add(Objects.isNull(fieldName) ? null : fieldMap.get(fieldName)));
-        if (sortedField.isEmpty()) {
+        List<Method> sortedMethod = new ArrayList<>(fieldDisplayOrder.size());
+        fieldDisplayOrder.forEach(fieldName -> sortedMethod.add(this.getMethod(methodMap, fieldName)));
+        if (sortedMethod.isEmpty()) {
             log.info("The specified field mapping does not exist");
             return excelBuilder.useDefaultStyle().build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
-                sortedField.stream().map(f -> Objects.isNull(f) ? null : getFieldValue(d, f)).collect(Collectors.toList()))
+                sortedMethod.stream().map(m -> getFieldValue(d, m)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
         renderData.put("contents", contents);
@@ -137,12 +133,24 @@ public class DefaultExcelBuilder {
         }
     }
 
-    private Object getFieldValue(Object d, Field f) {
-        if (Objects.isNull(f)) {
+    private Method getMethod(Map<String, Method> methodMap, String fieldName) {
+        if (Objects.isNull(fieldName) || fieldName.isEmpty()) {
+            return null;
+        }
+        String formatFieldName = StringUtils.toUpperCaseFirst(fieldName);
+        Method method = methodMap.get("get" + formatFieldName);
+        if (Objects.isNull(method)) {
+            method = methodMap.get("is" + formatFieldName);
+        }
+        return method;
+    }
+
+    private Object getFieldValue(Object o, Method method) {
+        if (Objects.isNull(o) || Objects.isNull(method)) {
             return null;
         }
         try {
-            return f.get(d);
+            return method.invoke(o);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
