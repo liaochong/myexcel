@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
 public class DefaultExcelBuilder {
 
     private static final String DEFAULT_TEMPLATE_PATH = "/template/beetl/defaultExcelBuilderTemplate.html";
+
+    private static final Pattern IS_PATTERN = Pattern.compile("is[A-Z]*");
 
     private ExcelBuilder excelBuilder;
     /**
@@ -102,7 +105,10 @@ public class DefaultExcelBuilder {
         if (Objects.isNull(methods) || methods.length == 0) {
             return excelBuilder.useDefaultStyle().build(renderData);
         }
-        Map<String, Method> methodMap = Arrays.stream(methods).collect(Collectors.toMap(Method::getName, method -> method));
+        Map<String, Method> methodMap = Arrays.stream(methods)
+                .filter(method -> method.getDeclaringClass() != Object.class
+                        && method.getParameterCount() == 0)
+                .collect(Collectors.toMap(Method::getName, method -> method));
 
         List<Method> sortedMethod = new ArrayList<>(fieldDisplayOrder.size());
         fieldDisplayOrder.forEach(fieldName -> sortedMethod.add(this.getMethod(methodMap, fieldName)));
@@ -136,6 +142,9 @@ public class DefaultExcelBuilder {
     private Method getMethod(Map<String, Method> methodMap, String fieldName) {
         if (Objects.isNull(fieldName) || fieldName.isEmpty()) {
             return null;
+        }
+        if (IS_PATTERN.matcher(fieldName).find()) {
+            return methodMap.get(fieldName);
         }
         String formatFieldName = StringUtils.toUpperCaseFirst(fieldName);
         Method method = methodMap.get("get" + formatFieldName);
