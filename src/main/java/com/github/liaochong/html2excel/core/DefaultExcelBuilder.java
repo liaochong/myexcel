@@ -41,7 +41,7 @@ public class DefaultExcelBuilder {
 
     private static final String DEFAULT_TEMPLATE_PATH = "/template/beetl/defaultExcelBuilderTemplate.html";
 
-    private static final Pattern IS_PATTERN = Pattern.compile("is[A-Z]*");
+    private static final Pattern IS_PATTERN = Pattern.compile("^is[A-Z]+$");
 
     private ExcelBuilder excelBuilder;
     /**
