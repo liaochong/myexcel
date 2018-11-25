@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -40,8 +39,6 @@ import java.util.stream.Collectors;
 public class DefaultExcelBuilder {
 
     private static final String DEFAULT_TEMPLATE_PATH = "/template/beetl/defaultExcelBuilderTemplate.html";
-
-    private static final Pattern IS_PATTERN = Pattern.compile("^is[A-Z]+$");
 
     private ExcelBuilder excelBuilder;
     /**
@@ -93,17 +90,17 @@ public class DefaultExcelBuilder {
 
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
-            return excelBuilder.useDefaultStyle().build(renderData);
+            return excelBuilder.build(renderData);
         }
         Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
         if (!findResult.isPresent()) {
             log.info("No valid data exists");
-            return excelBuilder.useDefaultStyle().build(renderData);
+            return excelBuilder.build(renderData);
         }
         Class<?> clazz = findResult.get().getClass();
         Method[] methods = clazz.getMethods();
         if (Objects.isNull(methods) || methods.length == 0) {
-            return excelBuilder.useDefaultStyle().build(renderData);
+            return excelBuilder.build(renderData);
         }
         Map<String, Method> methodMap = Arrays.stream(methods)
                 .filter(method -> method.getDeclaringClass() != Object.class
@@ -114,7 +111,7 @@ public class DefaultExcelBuilder {
         fieldDisplayOrder.forEach(fieldName -> sortedMethod.add(this.getMethod(methodMap, fieldName)));
         if (sortedMethod.isEmpty()) {
             log.info("The specified field mapping does not exist");
-            return excelBuilder.useDefaultStyle().build(renderData);
+            return excelBuilder.build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
                 sortedMethod.stream().map(m -> getFieldValue(d, m)).collect(Collectors.toList()))
@@ -143,13 +140,14 @@ public class DefaultExcelBuilder {
         if (Objects.isNull(fieldName) || fieldName.isEmpty()) {
             return null;
         }
-        if (IS_PATTERN.matcher(fieldName).find()) {
-            return methodMap.get(fieldName);
-        }
         String formatFieldName = StringUtils.toUpperCaseFirst(fieldName);
         Method method = methodMap.get("get" + formatFieldName);
+        if (Objects.nonNull(method)) {
+            return method;
+        }
+        method = methodMap.get("is" + formatFieldName);
         if (Objects.isNull(method)) {
-            method = methodMap.get("is" + formatFieldName);
+            method = methodMap.get(fieldName);
         }
         return method;
     }
