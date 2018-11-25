@@ -135,7 +135,7 @@ workbook.write(writer);
     }
 
 ```
-3. 默认模板引擎使用（暂不支持继承属性）
+3. 默认模板引擎使用
 ```java
 // title
 List<String> titles = new ArrayList<>();
