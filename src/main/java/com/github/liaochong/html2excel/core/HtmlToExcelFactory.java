@@ -64,10 +64,6 @@ public class HtmlToExcelFactory {
      */
     private Workbook workbook;
     /**
-     * sheet容器
-     */
-    private Map<Integer, Sheet> sheetMap;
-    /**
      * 冻结区域
      */
     private FreezePane[] freezePanes;
@@ -204,14 +200,12 @@ public class HtmlToExcelFactory {
         // 2、处理解析表格
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
-        sheetMap = new HashMap<>(tables.size());
         for (int i = 0, size = tables.size(); i < size; i++) {
             maxTdHeightMap = new HashMap<>();
 
             Table table = tables.get(i);
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
             Sheet sheet = workbook.createSheet(sheetName);
-            sheetMap.put(i, sheet);
 
             for (int j = 0, trSize = table.getTrList().size(); j < trSize; j++) {
                 Row row = sheet.createRow(j);
@@ -227,9 +221,9 @@ public class HtmlToExcelFactory {
                 sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
             }
             // 设置单元格样式
-            this.setTdOfTable(table);
+            this.setTdOfTable(table, sheet);
             // 设置行高
-            this.setRowHeight(table);
+            this.setRowHeight(table, sheet);
         }
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
@@ -238,8 +232,7 @@ public class HtmlToExcelFactory {
     /**
      * 设置行高，最小12
      */
-    private void setRowHeight(Table table) {
-        Sheet sheet = sheetMap.get(table.getIndex());
+    private void setRowHeight(Table table, Sheet sheet) {
         for (int j = 0, size = table.getTrList().size(); j < size; j++) {
             Row row = sheet.getRow(j);
             if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
@@ -253,8 +246,7 @@ public class HtmlToExcelFactory {
     /**
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
-    private void setTdOfTable(Table table) {
-        Sheet sheet = sheetMap.get(table.getIndex());
+    private void setTdOfTable(Table table, Sheet sheet) {
         table.getTrList().stream().flatMap(tr -> tr.getTdList().stream()).forEach(td -> this.setCell(td, sheet));
 
         table.getColMaxWidthMap().forEach((key, value) -> {
