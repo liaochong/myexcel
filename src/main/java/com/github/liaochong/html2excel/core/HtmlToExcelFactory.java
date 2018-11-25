@@ -15,9 +15,9 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import com.github.liaochong.html2excel.core.parse.HtmlTableParser;
-import com.github.liaochong.html2excel.core.parse.Table;
-import com.github.liaochong.html2excel.core.parse.Td;
+import com.github.liaochong.html2excel.core.parser.HtmlTableParser;
+import com.github.liaochong.html2excel.core.parser.Table;
+import com.github.liaochong.html2excel.core.parser.Td;
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -80,10 +79,6 @@ public class HtmlToExcelFactory {
      * 单元格样式映射
      */
     private Map<Map<String, String>, CellStyle> cellStyleMap;
-    /**
-     * future
-     */
-    private CompletableFuture<Void> workbookFuture;
     /**
      * 每行的单元格最大高度map
      */
@@ -198,14 +193,43 @@ public class HtmlToExcelFactory {
         log.info("Start building excel");
         long startTime = System.currentTimeMillis();
         // 1、创建工作簿
-        this.createWorkbook(tables);
+        if (Objects.isNull(workbook)) {
+            workbook = new XSSFWorkbook();
+        }
+        if (useDefaultStyle) {
+            defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
+            defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
+        }
         // 2、处理解析表格
+        cellStyleMap = new HashMap<>();
+        fontMap = new HashMap<>();
+        sheetMap = new HashMap<>(tables.size());
         for (int i = 0, size = tables.size(); i < size; i++) {
-            this.initialize();
+            maxTdHeightMap = new HashMap<>();
+
+            Table table = tables.get(i);
+            String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
+            Sheet sheet = workbook.createSheet(sheetName);
+            sheetMap.put(i, sheet);
+
+            for (int j = 0, trSize = table.getTrList().size(); j < trSize; j++) {
+                Row row = sheet.createRow(j);
+                for (int k = 0; k <= table.getLastColumnNum(); k++) {
+                    row.createCell(k);
+                }
+            }
+            if (Objects.nonNull(freezePanes) && freezePanes.length > i) {
+                FreezePane freezePane = freezePanes[i];
+                if (Objects.isNull(freezePane)) {
+                    throw new IllegalStateException("FreezePane is null");
+                }
+                sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
+            }
             // 设置单元格样式
-            this.setTdOfTable(tables.get(i));
+            this.setTdOfTable(table);
             // 设置行高
-            this.setRowHeight(tables.get(i));
+            this.setRowHeight(table);
         }
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
@@ -227,62 +251,9 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 创建workbook，因为创建workbook比较耗时，异步处理
-     *
-     * @param tables 表格集合
-     */
-    private void createWorkbook(List<Table> tables) {
-        workbookFuture = CompletableFuture.runAsync(() -> {
-            if (Objects.isNull(workbook)) {
-                workbook = new XSSFWorkbook();
-            }
-            if (useDefaultStyle) {
-                defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
-                defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
-                defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
-            }
-            sheetMap = new HashMap<>(tables.size());
-            for (int i = 0, size = tables.size(); i < size; i++) {
-                Table table = tables.get(i);
-                String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
-                Sheet sheet = workbook.createSheet(sheetName);
-                sheetMap.put(i, sheet);
-
-                for (int j = 0, trSize = table.getTrList().size(); j < trSize; j++) {
-                    Row row = sheet.createRow(j);
-                    for (int k = 0; k <= table.getLastColumnNum(); k++) {
-                        row.createCell(k);
-                    }
-                }
-                if (Objects.nonNull(freezePanes) && freezePanes.length > i) {
-                    FreezePane freezePane = freezePanes[i];
-                    if (Objects.isNull(freezePane)) {
-                        throw new IllegalStateException("FreezePane is null");
-                    }
-                    sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
-                }
-            }
-        });
-    }
-
-    /**
-     * 初始化，每解析一个表格需要重新初始化
-     */
-    private void initialize() {
-        maxTdHeightMap = new HashMap<>();
-        if (Objects.isNull(cellStyleMap)) {
-            cellStyleMap = new HashMap<>();
-        }
-        if (Objects.isNull(fontMap)) {
-            fontMap = new HashMap<>();
-        }
-    }
-
-    /**
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
     private void setTdOfTable(Table table) {
-        workbookFuture.join();
         Sheet sheet = sheetMap.get(table.getIndex());
         table.getTrList().stream().flatMap(tr -> tr.getTdList().stream()).forEach(td -> this.setCell(td, sheet));
 

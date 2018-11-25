@@ -13,37 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.core.parse;
+package com.github.liaochong.html2excel.utils;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-import org.jsoup.nodes.Element;
-
-import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class Table {
+public final class StringUtils {
 
-    Element element;
+    public static String toUpperCaseFirst(String content) {
+        if (Objects.isNull(content) || content.isEmpty()) {
+            return content;
+        }
+        if (content.length() == 1) {
+            return content.toUpperCase();
+        }
+        String charAtFirst = content.substring(0, 1);
+        return charAtFirst.toUpperCase() + content.substring(1);
+    }
 
-    String caption;
-
-    List<Tr> trList;
-
-    Map<String, String> styleMap;
-
-    int lastColumnNum;
-
-    int lastRowNum;
-
-    int index;
-
-    Map<Integer, Integer> colMaxWidthMap;
 }
