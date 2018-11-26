@@ -30,7 +30,7 @@ Maven 依赖
 <dependency>
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>1.2.0</version>
+    <version>x.x.x（参见上方最新版本）</version>
 </dependency>
 ```
 可选模板 | Template
