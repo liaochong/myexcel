@@ -96,12 +96,11 @@ public class HtmlTableParser {
      * @param table table
      */
     private void parseTrOfTable(Table table) {
-        Elements trElements = table.getElement().getElementsByTag(TableTag.tr.name());
-        if (trElements.isEmpty()) {
+        List<Tr> sortedTrList = this.getSortedTrList(table);
+        table.setTrList(sortedTrList);
+        if (sortedTrList.isEmpty()) {
             return;
         }
-        List<Tr> sortedTrList = getSortedTrList(table, trElements);
-        table.setTrList(sortedTrList);
 
         int lastColumnNum = sortedTrList.parallelStream().max(Comparator.comparing(Tr::getLastColumnNum)).get().getLastColumnNum();
         table.setLastColumnNum(lastColumnNum);
@@ -115,6 +114,41 @@ public class HtmlTableParser {
         sortedTrList.subList(1, sortedTrList.size()).parallelStream().forEach(tr -> {
             tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), sortedTrList, lastColumnNum));
         });
+    }
+
+    /**
+     * 获取已排序的Tr集合
+     *
+     * @param table table
+     * @return trList
+     */
+    private List<Tr> getSortedTrList(Table table) {
+        Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
+
+        Elements trElements = table.getElement().getElementsByTag(TableTag.tr.name());
+        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+            Element trElement = trElements.get(index);
+            Element parent = trElement.parent();
+            Map<String, String> upperStyle;
+            if (Objects.equals(parent, table.getElement())) {
+                upperStyle = table.getStyleMap();
+            } else {
+                if (parentStyleMap.containsKey(parent)) {
+                    upperStyle = parentStyleMap.get(parent);
+                } else {
+                    upperStyle = StyleUtils.mixStyle(table.getStyleMap(), StyleUtils.parseStyle(parent));
+                    parentStyleMap.putIfAbsent(parent, upperStyle);
+                }
+            }
+            Tr tr = new Tr(index);
+            tr.setElement(trElement);
+            tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
+            this.parseTdOfTr(tr);
+            return tr;
+        }).collect(Collectors.toList());
+
+        // 重排序
+        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
     }
 
     /**
@@ -134,36 +168,6 @@ public class HtmlTableParser {
             });
         });
         table.setColMaxWidthMap(colMaxWidthMap);
-    }
-
-    /**
-     * 获取已排序的Tr集合
-     *
-     * @param table      table
-     * @param trElements tr elements
-     * @return trList
-     */
-    private List<Tr> getSortedTrList(Table table, Elements trElements) {
-        Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
-        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
-            Element trElement = trElements.get(index);
-            Element parent = trElement.parent();
-            Map<String, String> upperStyle;
-            if (parentStyleMap.containsKey(parent)) {
-                upperStyle = parentStyleMap.get(parent);
-            } else {
-                upperStyle = StyleUtils.mixStyle(table.getStyleMap(), StyleUtils.parseStyle(parent));
-                parentStyleMap.putIfAbsent(parent, upperStyle);
-            }
-            Tr tr = new Tr(index);
-            tr.setElement(trElement);
-            tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
-            this.parseTdOfTr(tr);
-            return tr;
-        }).collect(Collectors.toList());
-
-        // 重排序
-        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
     }
 
     /**
@@ -208,7 +212,7 @@ public class HtmlTableParser {
             tr.getColWidthMap().put(td.getCol(), width);
 
             int colIndex = TdUtils.get(td::getColSpan, td::getCol);
-            if (Objects.isNull(tr.getLastColumnNum()) || colIndex > tr.getLastColumnNum()) {
+            if (colIndex > tr.getLastColumnNum()) {
                 tr.setLastColumnNum(colIndex);
             }
         }
