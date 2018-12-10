@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -112,7 +111,7 @@ public class HtmlTableParser {
             return;
         }
         sortedTrList.subList(1, sortedTrList.size()).parallelStream().forEach(tr -> {
-            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), sortedTrList, lastColumnNum));
+            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), sortedTrList));
         });
     }
 
@@ -221,29 +220,25 @@ public class HtmlTableParser {
     /**
      * 调整表格单元格位置
      *
-     * @param td            单元格
-     * @param trIndex       行索引
-     * @param trList        所有行
-     * @param lastColumnNum 最后列编号
+     * @param td      单元格
+     * @param trIndex 行索引
+     * @param trList  所有行
      */
-    private void adjustTdPosition(Td td, int trIndex, List<Tr> trList, int lastColumnNum) {
-        Predicate<Tr> predicate = tr -> tr.getIndex() < trIndex;
-        List<Td> tds = trList.stream().filter(predicate).flatMap(tr -> tr.getTdList().stream())
+    private void adjustTdPosition(Td td, int trIndex, List<Tr> trList) {
+        List<Td> rowSpanTds = trList.subList(0, trIndex).stream()
+                .flatMap(tr -> tr.getTdList().stream())
+                .filter(t -> t.getRowSpan() > 0 && t.getCol() <= td.getCol()
+                        && TdUtils.get(t::getRowSpan, t::getRow) >= td.getRow())
                 .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(tds)) {
+
+        if (CollectionUtils.isEmpty(rowSpanTds)) {
             return;
         }
-        for (int i = 0; i < lastColumnNum; i++) {
-            Td td1 = tds.stream().filter(prevTd -> prevTd.getCol() <= td.getCol()
-                    && TdUtils.get(prevTd::getRowSpan, prevTd::getRow) >= td.getRow()).findFirst().orElse(null);
-            if (Objects.isNull(td1)) {
-                return;
-            }
-            int prevTdColSpan = td1.getColSpan();
+        rowSpanTds.forEach(t -> {
+            int prevTdColSpan = t.getColSpan();
             int realCol = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
             td.setCol(realCol);
-            tds.remove(td1);
-        }
+        });
     }
 
     public enum TableTag {
