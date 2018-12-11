@@ -233,7 +233,7 @@ public class HtmlTableParser {
         List<Td> rowSpanTds = trList.subList(0, trIndex).stream()
                 .flatMap(tr -> tr.getTdList().stream())
                 .filter(t -> t.getRowSpan() > 0 && t.getCol() <= td.getCol()
-                        && td.getRowBound() >= td.getRow())
+                        && t.getRowBound() >= td.getRow())
                 .collect(Collectors.toList());
 
         if (CollectionUtils.isEmpty(rowSpanTds)) {
