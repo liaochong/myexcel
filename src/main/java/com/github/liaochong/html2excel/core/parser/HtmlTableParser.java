@@ -205,17 +205,21 @@ public class HtmlTableParser {
             String rowSpan = tdElement.attr(TableTag.rowspan.name());
             td.setRowSpan(TdUtils.getSpan(rowSpan));
 
+            int rowBound = TdUtils.get(td::getRowSpan, td::getRow);
+            td.setRowBound(rowBound);
+
+            int colBound = TdUtils.get(td::getColSpan, td::getCol);
+            td.setColBound(colBound);
+
             tr.getTdList().add(td);
 
             // 设置每列宽度
             int width = TdUtils.getStringWidth(td.getContent());
             tr.getColWidthMap().put(td.getCol(), width);
-
-            int colIndex = TdUtils.get(td::getColSpan, td::getCol);
-            if (colIndex > tr.getLastColumnNum()) {
-                tr.setLastColumnNum(colIndex);
-            }
         }
+
+        int lastColNumber = tr.getTdList().stream().mapToInt(td -> td.getColSpan() > 0 ? td.getColSpan() : 1).sum();
+        tr.setLastColumnNum(lastColNumber);
     }
 
     /**
@@ -240,6 +244,10 @@ public class HtmlTableParser {
             int realCol = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
             td.setCol(realCol);
         });
+
+        // 重调
+        int colBound = TdUtils.get(td::getColSpan, td::getCol);
+        td.setColBound(colBound);
     }
 
     public enum TableTag {
