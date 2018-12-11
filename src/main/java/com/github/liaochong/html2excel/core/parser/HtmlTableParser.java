@@ -105,7 +105,7 @@ public class HtmlTableParser {
         int lastColumnNum = sortedTrList.parallelStream().max(Comparator.comparing(Tr::getLastColumnNum)).get().getLastColumnNum();
         table.setLastColumnNum(lastColumnNum);
 
-        this.setColMaxWidthMap(table, sortedTrList);
+        this.setColMaxWidthMap(table);
 
         // 调整td位置,排除第一行，第一行不需要进行调整
         if (sortedTrList.size() == 1) {
@@ -154,12 +154,11 @@ public class HtmlTableParser {
     /**
      * 设置每列最大宽度
      *
-     * @param table        table
-     * @param sortedTrList sortedTrList
+     * @param table table
      */
-    private void setColMaxWidthMap(Table table, List<Tr> sortedTrList) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>();
-        sortedTrList.stream().map(Tr::getColWidthMap).forEach(map -> {
+    private void setColMaxWidthMap(Table table) {
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getLastColumnNum());
+        table.getTrList().stream().map(Tr::getColWidthMap).forEach(map -> {
             map.forEach((k, v) -> {
                 Integer width = colMaxWidthMap.get(k);
                 if (Objects.isNull(width) || v > width) {
