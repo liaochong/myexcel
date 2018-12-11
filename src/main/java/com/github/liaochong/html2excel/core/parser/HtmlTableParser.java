@@ -58,10 +58,7 @@ public class HtmlTableParser {
     public static HtmlTableParser of(File htmlFile) throws IOException {
         Objects.requireNonNull(htmlFile);
         HtmlTableParser parser = new HtmlTableParser();
-        log.info("Start parsing html file");
-        long startTime = System.currentTimeMillis();
         parser.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
-        log.info("Complete html file parsing,takes {} ms", System.currentTimeMillis() - startTime);
         return parser;
     }
 
@@ -71,8 +68,10 @@ public class HtmlTableParser {
      * @return 所有表格
      */
     public List<Table> getAllTable() {
+        log.info("Start parsing html file");
+        long startTime = System.currentTimeMillis();
         Elements tableElements = document.getElementsByTag(TableTag.table.name());
-        return IntStream.range(0, tableElements.size()).mapToObj(i -> {
+        List<Table> result = IntStream.range(0, tableElements.size()).mapToObj(i -> {
             Element tableElement = tableElements.get(i);
             Table table = new Table();
             table.setIndex(i);
@@ -87,6 +86,8 @@ public class HtmlTableParser {
             this.parseTrOfTable(table);
             return table;
         }).collect(Collectors.toList());
+        log.info("Complete html file parsing,takes {} ms", System.currentTimeMillis() - startTime);
+        return result;
     }
 
     /**
