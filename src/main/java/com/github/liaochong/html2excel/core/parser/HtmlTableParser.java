@@ -180,7 +180,7 @@ public class HtmlTableParser {
             return;
         }
         tr.setTdList(new ArrayList<>());
-        tr.setColWidthMap(new HashMap<>());
+        tr.setColWidthMap(new HashMap<>(tdElements.size()));
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
