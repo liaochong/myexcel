@@ -58,6 +58,14 @@ public class Td {
      */
     boolean th;
     /**
+     * 行边界
+     */
+    int rowBound;
+    /**
+     * 列边界
+     */
+    int colBound;
+    /**
      * 单元格样式
      */
     Map<String, String> style;
