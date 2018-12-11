@@ -166,7 +166,11 @@ dataList.add(testDO1);
 dataList.add(testDO2);
 dataList.add(testDO3);
 
-Workbook workbook = DefaultExcelBuilder.getInstance().sheetName("default example").fieldDisplayOrder(order).build(dataList);
+Workbook workbook = DefaultExcelBuilder.getInstance()
+                                    .sheetName("default example")
+                                    .titles(titles)
+                                    .fieldDisplayOrder(order)
+                                    .build(dataList);
 ```
 4. Excel sheet名称设置：table中添加 `<caption>Monthly savings</caption>`
 
