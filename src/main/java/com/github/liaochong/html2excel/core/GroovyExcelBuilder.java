@@ -22,16 +22,14 @@ import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
@@ -47,9 +45,8 @@ public class GroovyExcelBuilder extends ExcelBuilder {
     public ExcelBuilder template(String path) {
         TemplateConfiguration config = new TemplateConfiguration();
         MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
-        try {
-            InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-            Reader reader = new InputStreamReader(is);
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+             Reader reader = new InputStreamReader(is)) {
             template = engine.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
@@ -60,18 +57,15 @@ public class GroovyExcelBuilder extends ExcelBuilder {
     @Override
     public Workbook build(Map<String, Object> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        try {
-            File htmlFile = this.createTempFile("groovy_temp_");
-            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), StandardCharsets.UTF_8));
-
+        Path htmlFile = tempFileOperator.createTempFile("groovy_temp_");
+        try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
             Writable output = template.make(renderData);
             output.writeTo(out);
-
-            Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile, htmlToExcelFactory).build();
-            this.deleteTempFile(htmlFile);
-            return workbook;
+            return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to build excel", e);
+        } finally {
+            tempFileOperator.deleteTempFile();
         }
     }
 }
