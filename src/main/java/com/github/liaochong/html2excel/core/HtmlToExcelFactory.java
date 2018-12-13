@@ -237,7 +237,7 @@ public class HtmlToExcelFactory {
         if (Objects.isNull(workbook)) {
             workbook = new XSSFWorkbook();
         }
-        Sheet sheet = workbook.createSheet("sheet");
+        Sheet sheet = workbook.createSheet();
         Row row = sheet.createRow(0);
         row.createCell(0);
         return workbook;
