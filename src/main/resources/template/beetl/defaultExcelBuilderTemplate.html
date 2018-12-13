@@ -8,6 +8,9 @@
     <title>Document</title>
 </head>
 <body>
+<%
+DIRECTIVE SAFE_OUTPUT_OPEN;
+%>
 <table style="border-bottom-style: thin;border-left-style: thin;border-right-style:thin;">
     <% if(sheetName!=null){ %>
     <caption>${sheetName}</caption>
@@ -36,5 +39,9 @@
     </tbody>
     <% } %>
 </table>
+<%
+//关闭安全输出。
+DIRECTIVE SAFE_OUTPUT_CLOSE;
+%>
 </body>
 </html>

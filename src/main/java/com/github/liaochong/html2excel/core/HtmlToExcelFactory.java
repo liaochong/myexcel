@@ -183,7 +183,7 @@ public class HtmlToExcelFactory {
         List<Table> tables = htmlTableParser.getAllTable();
         if (tables.isEmpty()) {
             log.warn("There is no any table exist");
-            return new XSSFWorkbook();
+            return emptyWorkbook();
         }
         log.info("Start building excel");
         long startTime = System.currentTimeMillis();
@@ -225,6 +225,21 @@ public class HtmlToExcelFactory {
             this.setRowHeight(table, sheet);
         }
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
+        return workbook;
+    }
+
+    /**
+     * 空工作簿
+     *
+     * @return Workbook
+     */
+    private Workbook emptyWorkbook() {
+        if (Objects.isNull(workbook)) {
+            workbook = new XSSFWorkbook();
+        }
+        Sheet sheet = workbook.createSheet("sheet");
+        Row row = sheet.createRow(0);
+        row.createCell(0);
         return workbook;
     }
 

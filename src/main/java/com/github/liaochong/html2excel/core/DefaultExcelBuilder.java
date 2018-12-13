@@ -90,17 +90,17 @@ public class DefaultExcelBuilder {
 
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
-            return excelBuilder.build(renderData);
+            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
         if (!findResult.isPresent()) {
             log.info("No valid data exists");
-            return excelBuilder.build(renderData);
+            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         Class<?> clazz = findResult.get().getClass();
         Method[] methods = clazz.getMethods();
         if (Objects.isNull(methods) || methods.length == 0) {
-            return excelBuilder.build(renderData);
+            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         Map<String, Method> methodMap = Arrays.stream(methods)
                 .filter(method -> method.getDeclaringClass() != Object.class
@@ -111,7 +111,7 @@ public class DefaultExcelBuilder {
         fieldDisplayOrder.forEach(fieldName -> sortedMethod.add(this.getMethod(methodMap, fieldName)));
         if (sortedMethod.isEmpty()) {
             log.info("The specified field mapping does not exist");
-            return excelBuilder.build(renderData);
+            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
                 sortedMethod.stream().map(m -> getFieldValue(d, m)).collect(Collectors.toList()))

@@ -28,6 +28,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +100,7 @@ public class HtmlTableParser {
         List<Tr> sortedTrList = this.getSortedTrList(table);
         table.setTrList(sortedTrList);
         if (sortedTrList.isEmpty()) {
+            table.setColMaxWidthMap(Collections.emptyMap());
             return;
         }
 
