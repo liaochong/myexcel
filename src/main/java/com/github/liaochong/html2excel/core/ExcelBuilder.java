@@ -15,16 +15,12 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import com.github.liaochong.html2excel.exception.ExcelBuildException;
+import com.github.liaochong.html2excel.core.io.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * excel创建者接口
@@ -35,17 +31,9 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public abstract class ExcelBuilder {
 
-    private static File templateDir;
-
-    static {
-        try {
-            templateDir = new File("").getCanonicalFile();
-        } catch (IOException e) {
-            log.warn("Unable to get valid template path");
-        }
-    }
-
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+
+    protected TempFileOperator tempFileOperator = new TempFileOperator();
 
     /**
      * excel类型
@@ -115,49 +103,6 @@ public abstract class ExcelBuilder {
         String basePackagePath = path.substring(0, lastPackageIndex);
         String templateName = path.substring(lastPackageIndex);
         return new String[]{basePackagePath, templateName};
-    }
-
-    /**
-     * 依据前缀名称创建临时文件
-     *
-     * @param prefix 临时文件前缀
-     * @return File
-     */
-    File createTempFile(String prefix) {
-        try {
-            File tempFile = File.createTempFile(prefix + UUID.randomUUID(), ".html", templateDir);
-            tempFile.deleteOnExit();
-            return tempFile;
-        } catch (IOException e) {
-            throw ExcelBuildException.of("failed to create temp html file", e);
-        }
-    }
-
-    /**
-     * 删除临时文件
-     *
-     * @param file 临时文件
-     */
-    void deleteTempFile(File file) {
-        if (Objects.isNull(file) || !file.exists()) {
-            return;
-        }
-        CompletableFuture.runAsync(() -> {
-            int maxDeleteCount = 20;
-            int deleteCount = 0;
-            while (file.exists() && deleteCount < maxDeleteCount) {
-                file.delete();
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    // do nothing
-                }
-                deleteCount++;
-            }
-            if (file.exists()) {
-                log.warn("Failed to delete temp html file");
-            }
-        });
     }
 
 }

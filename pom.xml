@@ -10,7 +10,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <packaging>jar</packaging>
 
     <name>html2excel</name>

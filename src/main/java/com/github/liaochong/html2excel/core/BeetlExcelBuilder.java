@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.core.io.TempFileOperator;
 import com.github.liaochong.html2excel.exception.ExcelBuildException;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -23,13 +24,11 @@ import org.beetl.core.GroupTemplate;
 import org.beetl.core.Template;
 import org.beetl.core.resource.ClasspathResourceLoader;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
@@ -61,17 +60,15 @@ public class BeetlExcelBuilder extends ExcelBuilder {
     @Override
     public Workbook build(Map<String, Object> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        try {
-            File htmlFile = this.createTempFile("beetl_temp_");
-            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile), StandardCharsets.UTF_8));
-
+        Path htmlFile = tempFileOperator.createTempFile("beetl_temp_", TempFileOperator.HTML_SUFFIX);
+        try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
             template.binding(renderData);
             template.renderTo(out);
-            Workbook workbook = HtmlToExcelFactory.readHtml(htmlFile, htmlToExcelFactory).build();
-            this.deleteTempFile(htmlFile);
-            return workbook;
+            return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to build excel", e);
+        } finally {
+            tempFileOperator.deleteTempFile();
         }
     }
 }
