@@ -35,6 +35,8 @@ import java.util.UUID;
 @Slf4j
 public class TempFileOperator {
 
+    public static final String HTML_SUFFIX = ".html";
+
     private static Path templateDir;
 
     private Path templateFile;
@@ -51,14 +53,15 @@ public class TempFileOperator {
      * 依据前缀名称创建临时文件
      *
      * @param prefix 临时文件前缀
+     * @param suffix 临时文件后缀
      * @return Path
      */
-    public Path createTempFile(String prefix) {
+    public Path createTempFile(String prefix, String suffix) {
         try {
-            templateFile = Files.createTempFile(templateDir, prefix + UUID.randomUUID(), ".html");
+            templateFile = Files.createTempFile(templateDir, prefix + UUID.randomUUID(), suffix);
             return templateFile;
         } catch (IOException e) {
-            throw ExcelBuildException.of("Failed to create temp html file", e);
+            throw ExcelBuildException.of("Failed to create temp file", e);
         }
     }
 
@@ -69,7 +72,7 @@ public class TempFileOperator {
         try {
             Files.deleteIfExists(templateFile);
         } catch (IOException e) {
-            log.warn("Delete temp html file failure");
+            log.warn("Delete temp file failure");
         }
     }
 

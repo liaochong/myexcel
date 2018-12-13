@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.core.io.TempFileOperator;
 import com.github.liaochong.html2excel.exception.ExcelBuildException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -70,7 +71,7 @@ public class FreemarkerExcelBuilder extends ExcelBuilder {
     @Override
     public Workbook build(Map<String, Object> data) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        Path htmlFile = tempFileOperator.createTempFile("freemarker_temp_");
+        Path htmlFile = tempFileOperator.createTempFile("freemarker_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
             template.process(data, out);
             return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();

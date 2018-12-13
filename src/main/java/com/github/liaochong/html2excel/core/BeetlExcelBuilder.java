@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.core.io.TempFileOperator;
 import com.github.liaochong.html2excel.exception.ExcelBuildException;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -59,7 +60,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
     @Override
     public Workbook build(Map<String, Object> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        Path htmlFile = tempFileOperator.createTempFile("beetl_temp_");
+        Path htmlFile = tempFileOperator.createTempFile("beetl_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
             template.binding(renderData);
             template.renderTo(out);
