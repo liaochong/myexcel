@@ -15,8 +15,8 @@
  */
 package com.github.liaochong.html2excel.core.parser;
 
-import com.github.liaochong.html2excel.utils.StyleUtils;
-import com.github.liaochong.html2excel.utils.TdUtils;
+import com.github.liaochong.html2excel.utils.StyleUtil;
+import com.github.liaochong.html2excel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.collections4.CollectionUtils;
@@ -82,7 +82,7 @@ public class HtmlTableParser {
             if (!captionElements.isEmpty()) {
                 table.setCaption(captionElements.first().text());
             }
-            table.setStyleMap(StyleUtils.parseStyle(tableElement));
+            table.setStyleMap(StyleUtil.parseStyle(tableElement));
 
             this.parseTrOfTable(table);
             return table;
@@ -138,13 +138,13 @@ public class HtmlTableParser {
                 if (parentStyleMap.containsKey(parent)) {
                     upperStyle = parentStyleMap.get(parent);
                 } else {
-                    upperStyle = StyleUtils.mixStyle(table.getStyleMap(), StyleUtils.parseStyle(parent));
+                    upperStyle = StyleUtil.mixStyle(table.getStyleMap(), StyleUtil.parseStyle(parent));
                     parentStyleMap.putIfAbsent(parent, upperStyle);
                 }
             }
             Tr tr = new Tr(index);
             tr.setElement(trElement);
-            tr.setStyle(StyleUtils.mixStyle(upperStyle, StyleUtils.parseStyle(trElement)));
+            tr.setStyle(StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)));
             this.parseTdOfTr(tr);
             return tr;
         }).collect(Collectors.toList());
@@ -190,7 +190,7 @@ public class HtmlTableParser {
             td.setContent(tdElement.text());
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
-            td.setStyle(StyleUtils.mixStyle(tr.getStyle(), StyleUtils.parseStyle(tdElement)));
+            td.setStyle(StyleUtil.mixStyle(tr.getStyle(), StyleUtil.parseStyle(tdElement)));
             // 除每行第一个单元格外，修正含跨列的单元格位置
             if (i > 0) {
                 int shift = tr.getTdList().stream().filter(t -> t.getColSpan() > 0)
@@ -201,21 +201,21 @@ public class HtmlTableParser {
             }
 
             String colSpan = tdElement.attr(TableTag.colspan.name());
-            td.setColSpan(TdUtils.getSpan(colSpan));
+            td.setColSpan(TdUtil.getSpan(colSpan));
 
             String rowSpan = tdElement.attr(TableTag.rowspan.name());
-            td.setRowSpan(TdUtils.getSpan(rowSpan));
+            td.setRowSpan(TdUtil.getSpan(rowSpan));
 
-            int rowBound = TdUtils.get(td::getRowSpan, td::getRow);
+            int rowBound = TdUtil.get(td::getRowSpan, td::getRow);
             td.setRowBound(rowBound);
 
-            int colBound = TdUtils.get(td::getColSpan, td::getCol);
+            int colBound = TdUtil.get(td::getColSpan, td::getCol);
             td.setColBound(colBound);
 
             tr.getTdList().add(td);
 
             // 设置每列宽度
-            int width = TdUtils.getStringWidth(td.getContent());
+            int width = TdUtil.getStringWidth(td.getContent());
             tr.getColWidthMap().put(td.getCol(), width);
         }
 
@@ -247,7 +247,7 @@ public class HtmlTableParser {
         });
 
         // 重调
-        int colBound = TdUtils.get(td::getColSpan, td::getCol);
+        int colBound = TdUtil.get(td::getColSpan, td::getCol);
         td.setColBound(colBound);
     }
 

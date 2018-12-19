@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
-public class TdUtils {
+public final class TdUtil {
 
     private static Pattern pattern = Pattern.compile("^\\d+$");
 

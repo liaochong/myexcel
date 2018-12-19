@@ -29,7 +29,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public final class StyleUtils {
+public final class StyleUtil {
 
     private static final DefaultCache<String, Map<String, String>> STYLE_CACHE = new DefaultCache<>();
 

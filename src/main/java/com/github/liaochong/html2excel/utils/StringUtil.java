@@ -21,7 +21,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public final class StringUtils {
+public final class StringUtil {
 
     public static String toUpperCaseFirst(String content) {
         if (Objects.isNull(content) || content.isEmpty()) {
