@@ -42,11 +42,11 @@ public class ClassFieldContainer {
 
     ClassFieldContainer parent;
 
-    public Field getFieldByFieldName(String fieldName) {
-        return this.getFieldByFieldName(fieldName, this);
+    public Field getFieldByName(String fieldName) {
+        return this.getFieldByName(fieldName, this);
     }
 
-    private Field getFieldByFieldName(String fieldName, ClassFieldContainer container) {
+    private Field getFieldByName(String fieldName, ClassFieldContainer container) {
         Field field = container.getFieldMap().get(fieldName);
         if (Objects.nonNull(field)) {
             return field;
@@ -55,7 +55,7 @@ public class ClassFieldContainer {
         if (Objects.isNull(parentContainer)) {
             return null;
         }
-        return getFieldByFieldName(fieldName, parentContainer);
+        return getFieldByName(fieldName, parentContainer);
     }
 
 }

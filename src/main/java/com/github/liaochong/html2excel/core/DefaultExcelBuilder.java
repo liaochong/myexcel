@@ -98,7 +98,7 @@ public class DefaultExcelBuilder {
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
         List<Field> sortedFields = fieldDisplayOrder.stream()
-                .map(classFieldContainer::getFieldByFieldName)
+                .map(classFieldContainer::getFieldByName)
                 .collect(Collectors.toList());
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
