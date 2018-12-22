@@ -116,7 +116,7 @@ public class DefaultExcelBuilder {
      * 展示字段order与标题title长度一致性自适应
      */
     private void selfAdaption() {
-        if (Objects.isNull(titles)) {
+        if (Objects.isNull(titles) || titles.isEmpty()) {
             return;
         }
         if (fieldDisplayOrder.size() < titles.size()) {
