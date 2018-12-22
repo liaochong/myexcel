@@ -16,7 +16,7 @@ DIRECTIVE SAFE_OUTPUT_OPEN;
     <caption>${sheetName}</caption>
     <% } %>
 
-    <% if(titles!=null){ %>
+    <% if(isNotEmpty(titles)){ %>
     <thead style="font-weight: bold;font-size: 14px; text-align: center; vertical-align: center">
     <tr>
         <% for(t in titles){ %>
@@ -26,7 +26,7 @@ DIRECTIVE SAFE_OUTPUT_OPEN;
     </thead>
     <% } %>
 
-    <% if(contents!=null){ %>
+    <% if(isNotEmpty(contents)){ %>
     <tbody>
     <% for(c in contents){ %>
     <tr

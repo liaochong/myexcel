@@ -15,13 +15,12 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import com.github.liaochong.html2excel.utils.StringUtils;
+import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.html2excel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,32 +96,27 @@ public class DefaultExcelBuilder {
             log.info("No valid data exists");
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
-        Class<?> clazz = findResult.get().getClass();
-        Method[] methods = clazz.getMethods();
-        if (Objects.isNull(methods) || methods.length == 0) {
-            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
-        }
-        Map<String, Method> methodMap = Arrays.stream(methods)
-                .filter(method -> method.getDeclaringClass() != Object.class
-                        && method.getParameterCount() == 0)
-                .collect(Collectors.toMap(Method::getName, method -> method));
-
-        List<Method> sortedMethod = new ArrayList<>(fieldDisplayOrder.size());
-        fieldDisplayOrder.forEach(fieldName -> sortedMethod.add(this.getMethod(methodMap, fieldName)));
-        if (sortedMethod.isEmpty()) {
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
+        List<Field> sortedFields = fieldDisplayOrder.stream()
+                .map(classFieldContainer::getFieldByName)
+                .collect(Collectors.toList());
+        if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
-                sortedMethod.stream().map(m -> getFieldValue(d, m)).collect(Collectors.toList()))
+                sortedFields.stream().map(field -> ReflectUtil.getFieldValue(d, field)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
         renderData.put("contents", contents);
         return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
     }
 
+    /**
+     * 展示字段order与标题title长度一致性自适应
+     */
     private void selfAdaption() {
-        if (Objects.isNull(titles)) {
+        if (Objects.isNull(titles) || titles.isEmpty()) {
             return;
         }
         if (fieldDisplayOrder.size() < titles.size()) {
@@ -133,33 +127,6 @@ public class DefaultExcelBuilder {
             for (int i = 0, size = fieldDisplayOrder.size() - titles.size(); i < size; i++) {
                 titles.add(null);
             }
-        }
-    }
-
-    private Method getMethod(Map<String, Method> methodMap, String fieldName) {
-        if (Objects.isNull(fieldName) || fieldName.isEmpty()) {
-            return null;
-        }
-        String formatFieldName = StringUtils.toUpperCaseFirst(fieldName);
-        Method method = methodMap.get("get" + formatFieldName);
-        if (Objects.nonNull(method)) {
-            return method;
-        }
-        method = methodMap.get("is" + formatFieldName);
-        if (Objects.isNull(method)) {
-            method = methodMap.get(fieldName);
-        }
-        return method;
-    }
-
-    private Object getFieldValue(Object o, Method method) {
-        if (Objects.isNull(o) || Objects.isNull(method)) {
-            return null;
-        }
-        try {
-            return method.invoke(o);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 }
