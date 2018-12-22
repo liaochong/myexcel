@@ -18,6 +18,7 @@ package com.github.liaochong.html2excel.utils;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 /**
  * @author liaochong
@@ -25,10 +26,34 @@ import java.lang.reflect.Field;
  */
 public final class ReflectUtil {
 
+    /**
+     * 获取指定类的所有字段，包含父类字段，其中
+     *
+     * @param clazz 类
+     * @return 类的所有字段
+     */
     public static ClassFieldContainer getAllFieldsOfClass(Class<?> clazz) {
         ClassFieldContainer container = new ClassFieldContainer();
         getAllFieldsOfClass(clazz, container);
         return container;
+    }
+
+    /**
+     * 根据对象以及指定字段，获取字段的值
+     *
+     * @param o     对象
+     * @param field 指定字段
+     * @return 字段值
+     */
+    public static Object getFieldValue(Object o, Field field) {
+        if (Objects.isNull(o) || Objects.isNull(field)) {
+            return null;
+        }
+        try {
+            return field.get(o);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void getAllFieldsOfClass(Class<?> clazz, ClassFieldContainer container) {

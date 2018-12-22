@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author liaochong
@@ -40,5 +41,21 @@ public class ClassFieldContainer {
     Map<String, Field> fieldMap = new HashMap<>();
 
     ClassFieldContainer parent;
+
+    public Field getFieldByFieldName(String fieldName) {
+        return this.getFieldByFieldName(fieldName, this);
+    }
+
+    private Field getFieldByFieldName(String fieldName, ClassFieldContainer container) {
+        Field field = container.getFieldMap().get(fieldName);
+        if (Objects.nonNull(field)) {
+            return field;
+        }
+        ClassFieldContainer parentContainer = container.getParent();
+        if (Objects.isNull(parentContainer)) {
+            return null;
+        }
+        return getFieldByFieldName(fieldName, parentContainer);
+    }
 
 }

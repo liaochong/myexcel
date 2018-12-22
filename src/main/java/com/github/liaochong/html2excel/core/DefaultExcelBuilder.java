@@ -98,20 +98,23 @@ public class DefaultExcelBuilder {
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
         List<Field> sortedFields = fieldDisplayOrder.stream()
-                .map(fieldName -> this.getField(fieldName, classFieldContainer))
+                .map(classFieldContainer::getFieldByFieldName)
                 .collect(Collectors.toList());
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
-                sortedFields.stream().map(field -> getFieldValue(d, field)).collect(Collectors.toList()))
+                sortedFields.stream().map(field -> ReflectUtil.getFieldValue(d, field)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
         renderData.put("contents", contents);
         return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
     }
 
+    /**
+     * 展示字段order与标题title长度一致性自适应
+     */
     private void selfAdaption() {
         if (Objects.isNull(titles)) {
             return;
@@ -124,29 +127,6 @@ public class DefaultExcelBuilder {
             for (int i = 0, size = fieldDisplayOrder.size() - titles.size(); i < size; i++) {
                 titles.add(null);
             }
-        }
-    }
-
-    private Field getField(String fieldName, ClassFieldContainer container) {
-        Field field = container.getFieldMap().get(fieldName);
-        if (Objects.nonNull(field)) {
-            return field;
-        }
-        ClassFieldContainer parentContainer = container.getParent();
-        if (Objects.isNull(parentContainer)) {
-            return null;
-        }
-        return getField(fieldName, parentContainer);
-    }
-
-    private Object getFieldValue(Object o, Field field) {
-        if (Objects.isNull(o) || Objects.isNull(field)) {
-            return null;
-        }
-        try {
-            return field.get(o);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 }
