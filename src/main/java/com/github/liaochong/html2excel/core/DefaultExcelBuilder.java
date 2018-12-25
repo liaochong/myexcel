@@ -15,12 +15,14 @@
  */
 package com.github.liaochong.html2excel.core;
 
+import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,14 +79,8 @@ public class DefaultExcelBuilder {
     }
 
     public Workbook build(List<?> data) {
-        if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
-            throw new IllegalArgumentException("FieldDisplayOrder is necessary");
-        }
-        this.selfAdaption();
-        // 设置标题
         Map<String, Object> renderData = new HashMap<>();
         renderData.put("titles", titles);
-
         renderData.put("sheetName", sheetName);
 
         if (Objects.isNull(data) || data.isEmpty()) {
@@ -97,9 +93,8 @@ public class DefaultExcelBuilder {
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = fieldDisplayOrder.stream()
-                .map(classFieldContainer::getFieldByName)
-                .collect(Collectors.toList());
+        List<Field> sortedFields = getSortedFieldsAndSetTitles(classFieldContainer, renderData);
+
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
@@ -110,6 +105,47 @@ public class DefaultExcelBuilder {
 
         renderData.put("contents", contents);
         return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
+    }
+
+    /**
+     * 获取排序后字段并设置标题
+     *
+     * @param classFieldContainer classFieldContainer
+     * @param renderData          需要被渲染的数据
+     * @return Field
+     */
+    private List<Field> getSortedFieldsAndSetTitles(ClassFieldContainer classFieldContainer, Map<String, Object> renderData) {
+        List<Field> excelColumnFields = classFieldContainer.getFieldByAnnotation(ExcelColumn.class);
+        if (excelColumnFields.isEmpty()) {
+            if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
+                throw new IllegalArgumentException("FieldDisplayOrder is necessary");
+            }
+            this.selfAdaption();
+            return fieldDisplayOrder.stream()
+                    .map(classFieldContainer::getFieldByName)
+                    .collect(Collectors.toList());
+        }
+
+        List<String> titles = new ArrayList<>();
+        List<Field> sortedFields = excelColumnFields.stream()
+                .sorted((field1, field2) -> {
+                    int order1 = field1.getAnnotation(ExcelColumn.class).order();
+                    int order2 = field2.getAnnotation(ExcelColumn.class).order();
+                    if (order1 == order2) {
+                        return 0;
+                    }
+                    return order1 > order2 ? 1 : -1;
+                }).peek(field -> {
+                    String title = field.getAnnotation(ExcelColumn.class).title();
+                    titles.add(title);
+                })
+                .collect(Collectors.toList());
+
+        boolean hasTitle = titles.stream().anyMatch(title -> Objects.nonNull(title) && title.length() > 0);
+        if (hasTitle) {
+            renderData.put("titles", titles);
+        }
+        return sortedFields;
     }
 
     /**

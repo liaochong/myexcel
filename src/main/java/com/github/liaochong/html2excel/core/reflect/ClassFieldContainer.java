@@ -19,12 +19,14 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -44,6 +46,23 @@ public class ClassFieldContainer {
 
     public Field getFieldByName(String fieldName) {
         return this.getFieldByName(fieldName, this);
+    }
+
+    public List<Field> getFieldByAnnotation(Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass);
+        List<Field> annotationFields = new ArrayList<>();
+        this.getFieldByAnnotation(this, annotationClass, annotationFields);
+        return annotationFields;
+    }
+
+    private void getFieldByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
+        List<Field> annotationFields = classFieldContainer.fields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
+        annotationFieldContainer.addAll(annotationFields);
+        ClassFieldContainer parentContainer = classFieldContainer.getParent();
+        if (Objects.isNull(parentContainer)) {
+            return;
+        }
+        this.getFieldByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
     }
 
     private Field getFieldByName(String fieldName, ClassFieldContainer container) {
