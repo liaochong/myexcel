@@ -27,7 +27,6 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -181,7 +180,6 @@ public class HtmlTableParser {
         if (tdElements.isEmpty()) {
             return;
         }
-        tr.setTdList(new ArrayList<>());
         tr.setColWidthMap(new HashMap<>(tdElements.size()));
         // 单元格偏移量
         int shift = 0;

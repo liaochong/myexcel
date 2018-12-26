@@ -33,4 +33,11 @@ public @interface ExcelColumn {
     String title() default "";
 
     int order() default 0;
+
+    /**
+     * 时间格式化
+     *
+     * @return 时间格式化
+     */
+    String dateFormatPattern() default "";
 }

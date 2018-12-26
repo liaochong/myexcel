@@ -16,13 +16,20 @@
 package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
+import com.github.liaochong.html2excel.core.cache.Cache;
+import com.github.liaochong.html2excel.core.cache.DefaultCache;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +47,8 @@ import java.util.stream.Collectors;
 public class DefaultExcelBuilder {
 
     private static final String DEFAULT_TEMPLATE_PATH = "/template/beetl/defaultExcelBuilderTemplate.html";
+
+    private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new DefaultCache<>();
 
     private ExcelBuilder excelBuilder;
     /**
@@ -100,7 +109,7 @@ public class DefaultExcelBuilder {
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
         List<List<Object>> contents = data.stream().map(d ->
-                sortedFields.stream().map(field -> ReflectUtil.getFieldValue(d, field)).collect(Collectors.toList()))
+                sortedFields.stream().map(field -> this.getAndConvertFieldValue(d, field)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
         renderData.put("contents", contents);
@@ -164,5 +173,54 @@ public class DefaultExcelBuilder {
                 titles.add(null);
             }
         }
+    }
+
+    /**
+     * 获取并且转换字段值
+     *
+     * @param data  数据
+     * @param field 对应字段
+     * @return 结果
+     */
+    private Object getAndConvertFieldValue(Object data, Field field) {
+        Object result = ReflectUtil.getFieldValue(data, field);
+        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+        if (Objects.isNull(excelColumn) || Objects.isNull(result)) {
+            return result;
+        }
+        // 时间格式化
+        String dateFormat = excelColumn.dateFormatPattern();
+        if (dateFormat.length() > 0) {
+            Class<?> fieldType = field.getType();
+            if (fieldType == LocalDateTime.class) {
+                LocalDateTime localDateTime = (LocalDateTime) result;
+                DateTimeFormatter formatter = getDateTimeFormatter(dateFormat);
+                return formatter.format(localDateTime);
+            } else if (fieldType == LocalDate.class) {
+                LocalDate localDate = (LocalDate) result;
+                DateTimeFormatter formatter = getDateTimeFormatter(dateFormat);
+                return formatter.format(localDate);
+            } else if (fieldType == Date.class) {
+                Date date = (Date) result;
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+                return simpleDateFormat.format(date);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 获取时间格式化
+     *
+     * @param dateFormat 时间格式化
+     * @return DateTimeFormatter
+     */
+    private DateTimeFormatter getDateTimeFormatter(String dateFormat) {
+        DateTimeFormatter formatter = DATETIME_FORMATTER_CONTAINER.get(dateFormat);
+        if (Objects.isNull(formatter)) {
+            formatter = DateTimeFormatter.ofPattern(dateFormat);
+            DATETIME_FORMATTER_CONTAINER.cache(dateFormat, formatter);
+        }
+        return formatter;
     }
 }

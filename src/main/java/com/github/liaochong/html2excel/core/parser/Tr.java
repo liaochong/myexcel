@@ -20,6 +20,7 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.jsoup.nodes.Element;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class Tr {
     /**
      * 行单元格
      */
-    List<Td> tdList;
+    List<Td> tdList = new ArrayList<>();
     /**
      * 行样式
      */
