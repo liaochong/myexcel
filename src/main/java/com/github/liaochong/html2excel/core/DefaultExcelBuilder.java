@@ -18,12 +18,10 @@ package com.github.liaochong.html2excel.core;
 import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.cache.Cache;
 import com.github.liaochong.html2excel.core.cache.DefaultCache;
+import com.github.liaochong.html2excel.core.parallel.ParallelContainer;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
 import com.github.liaochong.html2excel.utils.StringUtil;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -235,29 +233,16 @@ public class DefaultExcelBuilder {
      * @return 结果集
      */
     private List<List<Object>> getRenderContent(List<?> data, List<Field> sortedFields) {
-        List<ResolvedDataContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            ResolvedDataContainer resolvedDataContainer = new ResolvedDataContainer();
+        List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
             List<Object> resolvedDataList = sortedFields.stream()
                     .map(field -> this.getAndConvertFieldValue(data.get(index), field))
                     .collect(Collectors.toList());
-            resolvedDataContainer.setIndex(index);
-            resolvedDataContainer.setDataList(resolvedDataList);
-            return resolvedDataContainer;
+            return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toList());
 
         // 重排序
         return resolvedDataContainers.stream()
-                .sorted(Comparator.comparing(ResolvedDataContainer::getIndex))
-                .map(ResolvedDataContainer::getDataList).collect(Collectors.toList());
-    }
-
-    @Data
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    private class ResolvedDataContainer {
-
-        int index;
-
-        List<Object> dataList;
-
+                .sorted(Comparator.comparing(ParallelContainer::getIndex))
+                .map(ParallelContainer<List<Object>>::getData).collect(Collectors.toList());
     }
 }
