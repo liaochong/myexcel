@@ -20,6 +20,9 @@ import com.github.liaochong.html2excel.core.cache.Cache;
 import com.github.liaochong.html2excel.core.cache.DefaultCache;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -29,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * 默认excel创建者
@@ -88,7 +93,7 @@ public class DefaultExcelBuilder {
     }
 
     public Workbook build(List<?> data) {
-        Map<String, Object> renderData = new HashMap<>();
+        Map<String, Object> renderData = new HashMap<>(3);
         renderData.put("titles", titles);
         renderData.put("sheetName", sheetName);
 
@@ -108,10 +113,7 @@ public class DefaultExcelBuilder {
             log.info("The specified field mapping does not exist");
             return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
         }
-        List<List<Object>> contents = data.stream().map(d ->
-                sortedFields.stream().map(field -> this.getAndConvertFieldValue(d, field)).collect(Collectors.toList()))
-                .collect(Collectors.toList());
-
+        List<List<Object>> contents = getRenderContent(data, sortedFields);
         renderData.put("contents", contents);
         return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
     }
@@ -222,5 +224,39 @@ public class DefaultExcelBuilder {
             DATETIME_FORMATTER_CONTAINER.cache(dateFormat, formatter);
         }
         return formatter;
+    }
+
+    /**
+     * 获取需要被渲染的内容
+     *
+     * @param data         数据集合
+     * @param sortedFields 排序字段
+     * @return 结果集
+     */
+    private List<List<Object>> getRenderContent(List<?> data, List<Field> sortedFields) {
+        List<ResolvedDataContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
+            ResolvedDataContainer resolvedDataContainer = new ResolvedDataContainer();
+            List<Object> resolvedDataList = sortedFields.stream()
+                    .map(field -> this.getAndConvertFieldValue(data.get(index), field))
+                    .collect(Collectors.toList());
+            resolvedDataContainer.setIndex(index);
+            resolvedDataContainer.setDataList(resolvedDataList);
+            return resolvedDataContainer;
+        }).collect(Collectors.toList());
+
+        // 重排序
+        return resolvedDataContainers.stream()
+                .sorted(Comparator.comparing(ResolvedDataContainer::getIndex))
+                .map(ResolvedDataContainer::getDataList).collect(Collectors.toList());
+    }
+
+    @Data
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    private class ResolvedDataContainer {
+
+        int index;
+
+        List<Object> dataList;
+
     }
 }
