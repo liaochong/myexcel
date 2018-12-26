@@ -34,4 +34,8 @@ public final class StringUtil {
         return charAtFirst.toUpperCase() + content.substring(1);
     }
 
+    public static boolean isNotBlank(String content) {
+        return Objects.nonNull(content) && content.trim().length() > 0;
+    }
+
 }

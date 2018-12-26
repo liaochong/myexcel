@@ -20,6 +20,7 @@ import com.github.liaochong.html2excel.core.cache.Cache;
 import com.github.liaochong.html2excel.core.cache.DefaultCache;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
+import com.github.liaochong.html2excel.utils.StringUtil;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -152,7 +153,7 @@ public class DefaultExcelBuilder {
                 })
                 .collect(Collectors.toList());
 
-        boolean hasTitle = titles.stream().anyMatch(title -> Objects.nonNull(title) && title.length() > 0);
+        boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
         if (hasTitle) {
             renderData.put("titles", titles);
         }
@@ -191,20 +192,20 @@ public class DefaultExcelBuilder {
             return result;
         }
         // 时间格式化
-        String dateFormat = excelColumn.dateFormatPattern();
-        if (dateFormat.length() > 0) {
+        String dateFormatPattern = excelColumn.dateFormatPattern();
+        if (StringUtil.isNotBlank(dateFormatPattern)) {
             Class<?> fieldType = field.getType();
             if (fieldType == LocalDateTime.class) {
                 LocalDateTime localDateTime = (LocalDateTime) result;
-                DateTimeFormatter formatter = getDateTimeFormatter(dateFormat);
+                DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
                 return formatter.format(localDateTime);
             } else if (fieldType == LocalDate.class) {
                 LocalDate localDate = (LocalDate) result;
-                DateTimeFormatter formatter = getDateTimeFormatter(dateFormat);
+                DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
                 return formatter.format(localDate);
             } else if (fieldType == Date.class) {
                 Date date = (Date) result;
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
                 return simpleDateFormat.format(date);
             }
         }
