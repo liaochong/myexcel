@@ -19,9 +19,13 @@ import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.cache.Cache;
 import com.github.liaochong.html2excel.core.cache.DefaultCache;
 import com.github.liaochong.html2excel.core.parallel.ParallelContainer;
+import com.github.liaochong.html2excel.core.parser.Table;
+import com.github.liaochong.html2excel.core.parser.Td;
+import com.github.liaochong.html2excel.core.parser.Tr;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
 import com.github.liaochong.html2excel.utils.StringUtil;
+import com.github.liaochong.html2excel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -31,6 +35,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,11 +55,8 @@ import java.util.stream.IntStream;
 @Slf4j
 public class DefaultExcelBuilder {
 
-    private static final String DEFAULT_TEMPLATE_PATH = "/template/beetl/defaultExcelBuilderTemplate.html";
-
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new DefaultCache<>();
 
-    private ExcelBuilder excelBuilder;
     /**
      * 标题
      */
@@ -69,7 +71,6 @@ public class DefaultExcelBuilder {
     private List<String> fieldDisplayOrder;
 
     private DefaultExcelBuilder() {
-        this.excelBuilder = new BeetlExcelBuilder();
     }
 
     public static DefaultExcelBuilder getInstance() {
@@ -92,39 +93,36 @@ public class DefaultExcelBuilder {
     }
 
     public Workbook build(List<?> data) {
-        Map<String, Object> renderData = new HashMap<>(3);
-        renderData.put("titles", titles);
-        renderData.put("sheetName", sheetName);
-
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
-            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
+            return new HtmlToExcelFactory().build(Collections.emptyList());
         }
         Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
         if (!findResult.isPresent()) {
             log.info("No valid data exists");
-            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
+            return new HtmlToExcelFactory().build(Collections.emptyList());
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = getSortedFieldsAndSetTitles(classFieldContainer, renderData);
+        List<Field> sortedFields = getSortedFieldsAndSetTitles(classFieldContainer);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
-            return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
+            return new HtmlToExcelFactory().build(Collections.emptyList());
         }
         List<List<Object>> contents = getRenderContent(data, sortedFields);
-        renderData.put("contents", contents);
-        return excelBuilder.template(DEFAULT_TEMPLATE_PATH).build(renderData);
+
+        List<Table> tableList = new ArrayList<>();
+        tableList.add(this.getTable(contents));
+        return new HtmlToExcelFactory().build(tableList);
     }
 
     /**
      * 获取排序后字段并设置标题
      *
      * @param classFieldContainer classFieldContainer
-     * @param renderData          需要被渲染的数据
      * @return Field
      */
-    private List<Field> getSortedFieldsAndSetTitles(ClassFieldContainer classFieldContainer, Map<String, Object> renderData) {
+    private List<Field> getSortedFieldsAndSetTitles(ClassFieldContainer classFieldContainer) {
         List<Field> excelColumnFields = classFieldContainer.getFieldByAnnotation(ExcelColumn.class);
         if (excelColumnFields.isEmpty()) {
             if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
@@ -153,7 +151,7 @@ public class DefaultExcelBuilder {
 
         boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
         if (hasTitle) {
-            renderData.put("titles", titles);
+            this.titles = titles;
         }
         return sortedFields;
     }
@@ -245,4 +243,118 @@ public class DefaultExcelBuilder {
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
                 .map(ParallelContainer<List<Object>>::getData).collect(Collectors.toList());
     }
+
+    /**
+     * 获取table
+     *
+     * @param contents 渲染内容
+     * @return table
+     */
+    private Table getTable(List<List<Object>> contents) {
+        Table table = new Table();
+        table.setCaption(sheetName);
+
+        table.setTrList(new ArrayList<>());
+        table.setLastColumnNum(contents.get(0).size());
+
+        Map<String, String> commonStyle = new HashMap<>();
+        commonStyle.put("border-bottom-style", "thin");
+        commonStyle.put("border-left-style", "thin");
+        commonStyle.put("border-right-style", "thin");
+
+        boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
+        if (hasTitles) {
+            if (titles.size() > table.getLastColumnNum()) {
+                table.setLastColumnNum(titles.size());
+            }
+            Tr tr = getThead(commonStyle);
+            table.getTrList().add(tr);
+        }
+
+        Map<String, String> oddTdStyle = new HashMap<>(commonStyle);
+        oddTdStyle.put("background-color", "#f6f8fa");
+
+        // 偏移量
+        int shift = hasTitles ? 1 : 0;
+        List<Tr> contentTrList = IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
+            int trIndex = index + shift;
+            Tr tr = new Tr(trIndex);
+            List<Object> dataList = contents.get(index);
+            Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
+            tr.setColWidthMap(colMaxWidthMap);
+            Map<String, String> tdStyle = tr.getIndex() % 2 == 0 ? commonStyle : oddTdStyle;
+            List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
+                Td td = new Td();
+                td.setRow(trIndex);
+                td.setRowBound(trIndex);
+                td.setCol(i);
+                td.setColBound(i);
+                td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
+                td.setStyle(tdStyle);
+                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+                return td;
+            }).collect(Collectors.toList());
+            tr.setTdList(tdList);
+            return tr;
+        }).collect(Collectors.toList());
+        // 重排序
+        contentTrList = contentTrList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
+        table.getTrList().addAll(contentTrList);
+
+        this.setColMaxWidthMap(table);
+        return table;
+    }
+
+    /**
+     * 获取thead
+     *
+     * @param commonStyle 公共style
+     * @return tr
+     */
+    private Tr getThead(Map<String, String> commonStyle) {
+        Tr tr = new Tr(0);
+        Map<String, String> thStyle = new HashMap<>();
+        thStyle.put("font-weight", "bold");
+        thStyle.put("font-size", "14");
+        thStyle.put("text-align", "center");
+        thStyle.put("vertical-align", "center");
+        thStyle.putAll(commonStyle);
+
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
+        tr.setColWidthMap(colMaxWidthMap);
+
+        List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
+            Td td = new Td();
+            td.setTh(true);
+            td.setRow(0);
+            td.setRowBound(0);
+            td.setCol(index);
+            td.setColBound(index);
+            td.setContent(titles.get(index));
+            td.setStyle(thStyle);
+            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent()));
+            return td;
+        }).collect(Collectors.toList());
+        tr.setTdList(ths);
+        return tr;
+    }
+
+    /**
+     * 设置每列最大宽度
+     *
+     * @param table table
+     */
+    private void setColMaxWidthMap(Table table) {
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getLastColumnNum());
+        table.getTrList().stream().map(Tr::getColWidthMap).forEach(map -> {
+            map.forEach((k, v) -> {
+                Integer width = colMaxWidthMap.get(k);
+                if (Objects.isNull(width) || v > width) {
+                    colMaxWidthMap.put(k, v);
+                }
+            });
+        });
+        table.setColMaxWidthMap(colMaxWidthMap);
+    }
+
 }
