@@ -38,7 +38,7 @@ public class ClassFieldContainer {
 
     Class<?> clazz;
 
-    List<Field> fields = new ArrayList<>();
+    List<Field> declaredFields = new ArrayList<>();
 
     Map<String, Field> fieldMap = new HashMap<>();
 
@@ -48,27 +48,21 @@ public class ClassFieldContainer {
         return this.getFieldByName(fieldName, this);
     }
 
-    public List<Field> getFieldByAnnotationWithExcludeCondition(Class<? extends Annotation> annotationClass, Class<? extends Annotation> excludeAnnotationClass) {
-        Objects.requireNonNull(excludeAnnotationClass);
-        List<Field> annotationFields = this.getFieldByAnnotation(annotationClass);
-        return annotationFields.stream().filter(field -> !field.isAnnotationPresent(excludeAnnotationClass)).collect(Collectors.toList());
-    }
-
-    public List<Field> getFieldByAnnotation(Class<? extends Annotation> annotationClass) {
+    public List<Field> getFieldsByAnnotation(Class<? extends Annotation> annotationClass) {
         Objects.requireNonNull(annotationClass);
         List<Field> annotationFields = new ArrayList<>();
-        this.getFieldByAnnotation(this, annotationClass, annotationFields);
+        this.getFieldsByAnnotation(this, annotationClass, annotationFields);
         return annotationFields;
     }
 
-    public List<Field> getAllFields() {
+    public List<Field> getFields() {
         List<Field> fields = new ArrayList<>();
         this.getFieldsByContainer(this, fields);
         return fields;
     }
 
     private void getFieldsByContainer(ClassFieldContainer classFieldContainer, List<Field> fields) {
-        fields.addAll(classFieldContainer.getFields());
+        fields.addAll(classFieldContainer.getDeclaredFields());
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (Objects.isNull(parentContainer)) {
             return;
@@ -76,14 +70,14 @@ public class ClassFieldContainer {
         this.getFieldsByContainer(parentContainer, fields);
     }
 
-    private void getFieldByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
-        List<Field> annotationFields = classFieldContainer.fields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
+    private void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
+        List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
         annotationFieldContainer.addAll(annotationFields);
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (Objects.isNull(parentContainer)) {
             return;
         }
-        this.getFieldByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
+        this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
     }
 
     private Field getFieldByName(String fieldName, ClassFieldContainer container) {

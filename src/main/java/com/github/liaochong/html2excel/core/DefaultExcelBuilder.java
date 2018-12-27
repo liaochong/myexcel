@@ -131,9 +131,9 @@ public class DefaultExcelBuilder {
         if (Objects.nonNull(excelTable)) {
             boolean excludeParent = excelTable.excludeParent();
             if (excludeParent) {
-                sortedFields = classFieldContainer.getFields();
+                sortedFields = classFieldContainer.getDeclaredFields();
             } else {
-                sortedFields = classFieldContainer.getAllFields();
+                sortedFields = classFieldContainer.getFields();
             }
             sortedFields = sortedFields.stream()
                     .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
@@ -167,7 +167,7 @@ public class DefaultExcelBuilder {
                     })
                     .collect(Collectors.toList());
         } else {
-            List<Field> excelColumnFields = classFieldContainer.getFieldByAnnotationWithExcludeCondition(ExcelColumn.class, ExcludeColumn.class);
+            List<Field> excelColumnFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             if (excelColumnFields.isEmpty()) {
                 if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
                     throw new IllegalArgumentException("FieldDisplayOrder is necessary");
@@ -178,6 +178,7 @@ public class DefaultExcelBuilder {
                         .collect(Collectors.toList());
             }
             sortedFields = excelColumnFields.stream()
+                    .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
                     .sorted((field1, field2) -> {
                         int order1 = field1.getAnnotation(ExcelColumn.class).order();
                         int order2 = field2.getAnnotation(ExcelColumn.class).order();
