@@ -16,6 +16,8 @@
 package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
+import com.github.liaochong.html2excel.core.annotation.ExcelTable;
+import com.github.liaochong.html2excel.core.annotation.ExcludeColumn;
 import com.github.liaochong.html2excel.core.cache.Cache;
 import com.github.liaochong.html2excel.core.cache.DefaultCache;
 import com.github.liaochong.html2excel.core.parallel.ParallelContainer;
@@ -112,7 +114,7 @@ public class DefaultExcelBuilder {
         List<List<Object>> contents = getRenderContent(data, sortedFields);
 
         List<Table> tableList = new ArrayList<>();
-        tableList.add(this.getTable(contents));
+        tableList.add(this.createTable(contents));
         return new HtmlToExcelFactory().build(tableList);
     }
 
@@ -123,31 +125,72 @@ public class DefaultExcelBuilder {
      * @return Field
      */
     private List<Field> getSortedFieldsAndSetTitles(ClassFieldContainer classFieldContainer) {
-        List<Field> excelColumnFields = classFieldContainer.getFieldByAnnotation(ExcelColumn.class);
-        if (excelColumnFields.isEmpty()) {
-            if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
-                throw new IllegalArgumentException("FieldDisplayOrder is necessary");
+        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
+        List<String> titles = new ArrayList<>();
+        List<Field> sortedFields;
+        if (Objects.nonNull(excelTable)) {
+            boolean excludeParent = excelTable.excludeParent();
+            if (excludeParent) {
+                sortedFields = classFieldContainer.getFields();
+            } else {
+                sortedFields = classFieldContainer.getAllFields();
             }
-            this.selfAdaption();
-            return fieldDisplayOrder.stream()
-                    .map(classFieldContainer::getFieldByName)
+            sortedFields = sortedFields.stream()
+                    .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
+                    .sorted((field1, field2) -> {
+                        ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
+                        ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
+                        if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
+                            return 0;
+                        }
+                        int defaultOrder = 0;
+                        int order1 = defaultOrder;
+                        if (Objects.nonNull(excelColumn1)) {
+                            order1 = excelColumn1.order();
+                        }
+                        int order2 = defaultOrder;
+                        if (Objects.nonNull(excelColumn2)) {
+                            order2 = excelColumn2.order();
+                        }
+                        if (order1 == order2) {
+                            return 0;
+                        }
+                        return order1 > order2 ? 1 : -1;
+                    })
+                    .peek(field -> {
+                        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                        if (Objects.isNull(excelColumn)) {
+                            titles.add(null);
+                        } else {
+                            titles.add(excelColumn.title());
+                        }
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            List<Field> excelColumnFields = classFieldContainer.getFieldByAnnotationWithExcludeCondition(ExcelColumn.class, ExcludeColumn.class);
+            if (excelColumnFields.isEmpty()) {
+                if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
+                    throw new IllegalArgumentException("FieldDisplayOrder is necessary");
+                }
+                this.selfAdaption();
+                return fieldDisplayOrder.stream()
+                        .map(classFieldContainer::getFieldByName)
+                        .collect(Collectors.toList());
+            }
+            sortedFields = excelColumnFields.stream()
+                    .sorted((field1, field2) -> {
+                        int order1 = field1.getAnnotation(ExcelColumn.class).order();
+                        int order2 = field2.getAnnotation(ExcelColumn.class).order();
+                        if (order1 == order2) {
+                            return 0;
+                        }
+                        return order1 > order2 ? 1 : -1;
+                    }).peek(field -> {
+                        String title = field.getAnnotation(ExcelColumn.class).title();
+                        titles.add(title);
+                    })
                     .collect(Collectors.toList());
         }
-
-        List<String> titles = new ArrayList<>();
-        List<Field> sortedFields = excelColumnFields.stream()
-                .sorted((field1, field2) -> {
-                    int order1 = field1.getAnnotation(ExcelColumn.class).order();
-                    int order2 = field2.getAnnotation(ExcelColumn.class).order();
-                    if (order1 == order2) {
-                        return 0;
-                    }
-                    return order1 > order2 ? 1 : -1;
-                }).peek(field -> {
-                    String title = field.getAnnotation(ExcelColumn.class).title();
-                    titles.add(title);
-                })
-                .collect(Collectors.toList());
 
         boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
         if (hasTitle) {
@@ -250,7 +293,7 @@ public class DefaultExcelBuilder {
      * @param contents 渲染内容
      * @return table
      */
-    private Table getTable(List<List<Object>> contents) {
+    private Table createTable(List<List<Object>> contents) {
         Table table = new Table();
         table.setCaption(sheetName);
 

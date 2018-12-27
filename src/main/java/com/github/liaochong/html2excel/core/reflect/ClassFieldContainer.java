@@ -48,11 +48,32 @@ public class ClassFieldContainer {
         return this.getFieldByName(fieldName, this);
     }
 
+    public List<Field> getFieldByAnnotationWithExcludeCondition(Class<? extends Annotation> annotationClass, Class<? extends Annotation> excludeAnnotationClass) {
+        Objects.requireNonNull(excludeAnnotationClass);
+        List<Field> annotationFields = this.getFieldByAnnotation(annotationClass);
+        return annotationFields.stream().filter(field -> !field.isAnnotationPresent(excludeAnnotationClass)).collect(Collectors.toList());
+    }
+
     public List<Field> getFieldByAnnotation(Class<? extends Annotation> annotationClass) {
         Objects.requireNonNull(annotationClass);
         List<Field> annotationFields = new ArrayList<>();
         this.getFieldByAnnotation(this, annotationClass, annotationFields);
         return annotationFields;
+    }
+
+    public List<Field> getAllFields() {
+        List<Field> fields = new ArrayList<>();
+        this.getFieldsByContainer(this, fields);
+        return fields;
+    }
+
+    private void getFieldsByContainer(ClassFieldContainer classFieldContainer, List<Field> fields) {
+        fields.addAll(classFieldContainer.getFields());
+        ClassFieldContainer parentContainer = classFieldContainer.getParent();
+        if (Objects.isNull(parentContainer)) {
+            return;
+        }
+        this.getFieldsByContainer(parentContainer, fields);
     }
 
     private void getFieldByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
