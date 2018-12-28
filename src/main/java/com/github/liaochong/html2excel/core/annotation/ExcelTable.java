@@ -31,4 +31,6 @@ import java.lang.annotation.Target;
 public @interface ExcelTable {
 
     boolean excludeParent() default false;
+
+    String sheetName() default "";
 }

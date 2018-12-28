@@ -135,7 +135,7 @@ public class DefaultExcelBuilder {
             return new HtmlToExcelFactory().build(Collections.emptyList());
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = getSortedFieldsAndSetTitles(classFieldContainer);
+        List<Field> sortedFields = getSortedFieldsAndSetSheetNameAndSetTitles(classFieldContainer);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
@@ -154,11 +154,15 @@ public class DefaultExcelBuilder {
      * @param classFieldContainer classFieldContainer
      * @return Field
      */
-    private List<Field> getSortedFieldsAndSetTitles(ClassFieldContainer classFieldContainer) {
+    private List<Field> getSortedFieldsAndSetSheetNameAndSetTitles(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
         List<String> titles = new ArrayList<>();
         List<Field> sortedFields;
         if (Objects.nonNull(excelTable)) {
+            String sheetName = excelTable.sheetName();
+            if (StringUtil.isNotBlank(sheetName)) {
+                this.sheetName = sheetName;
+            }
             boolean excludeParent = excelTable.excludeParent();
             if (excludeParent) {
                 sortedFields = classFieldContainer.getDeclaredFields();
