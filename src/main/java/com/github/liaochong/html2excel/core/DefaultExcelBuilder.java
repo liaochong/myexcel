@@ -78,7 +78,7 @@ public class DefaultExcelBuilder {
     /**
      * 内存数据保有量
      */
-    private Integer rowAccessWindowSize;
+    private int rowAccessWindowSize;
 
     private DefaultExcelBuilder() {
     }

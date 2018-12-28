@@ -175,6 +175,9 @@ public class HtmlToExcelFactory {
      * @return HtmlToExcelFactory
      */
     public HtmlToExcelFactory rowAccessWindowSize(int rowAccessWindowSize) {
+        if (rowAccessWindowSize == 0) {
+            return this;
+        }
         this.rowAccessWindowSize = rowAccessWindowSize;
         return this;
     }
@@ -198,6 +201,7 @@ public class HtmlToExcelFactory {
                 break;
             case SXLSX:
                 workbook = new SXSSFWorkbook(rowAccessWindowSize);
+                break;
             default:
         }
         return this;
