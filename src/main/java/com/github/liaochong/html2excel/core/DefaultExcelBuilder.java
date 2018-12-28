@@ -71,6 +71,14 @@ public class DefaultExcelBuilder {
      * 字段展示顺序
      */
     private List<String> fieldDisplayOrder;
+    /**
+     * excel workbook
+     */
+    private WorkbookType workbookType = WorkbookType.XLSX;
+    /**
+     * 内存数据保有量
+     */
+    private Integer rowAccessWindowSize;
 
     private DefaultExcelBuilder() {
     }
@@ -91,6 +99,28 @@ public class DefaultExcelBuilder {
 
     public DefaultExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
+        return this;
+    }
+
+    /**
+     * 设置workbookType为SXSSFWorkbook的内存数据保有量
+     *
+     * @param rowAccessWindowSize 内存数据保有量
+     * @return HtmlToExcelFactory
+     */
+    public DefaultExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
+        this.rowAccessWindowSize = rowAccessWindowSize;
+        return this;
+    }
+
+    /**
+     * 设置workbook类型
+     *
+     * @param workbookType 工作簿类型
+     * @return HtmlToExcelFactory
+     */
+    public DefaultExcelBuilder workbookType(WorkbookType workbookType) {
+        this.workbookType = workbookType;
         return this;
     }
 
@@ -115,7 +145,7 @@ public class DefaultExcelBuilder {
 
         List<Table> tableList = new ArrayList<>();
         tableList.add(this.createTable(contents));
-        return new HtmlToExcelFactory().build(tableList);
+        return new HtmlToExcelFactory().rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).build(tableList);
     }
 
     /**
@@ -279,6 +309,7 @@ public class DefaultExcelBuilder {
             List<Object> resolvedDataList = sortedFields.stream()
                     .map(field -> this.getAndConvertFieldValue(data.get(index), field))
                     .collect(Collectors.toList());
+            data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toList());
 
@@ -342,10 +373,8 @@ public class DefaultExcelBuilder {
             contents.set(index, null);
             return tr;
         }).collect(Collectors.toList());
-        // 重排序
-        contentTrList = contentTrList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
-        table.getTrList().addAll(contentTrList);
 
+        table.getTrList().addAll(contentTrList);
         this.setColMaxWidthMap(table);
         return table;
     }

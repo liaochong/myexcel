@@ -134,7 +134,7 @@ public class HtmlTableParser {
         Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
 
         Elements trElements = table.getElement().getElementsByTag(TableTag.tr.name());
-        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+        return IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
@@ -154,9 +154,6 @@ public class HtmlTableParser {
             this.parseTdOfTr(tr);
             return tr;
         }).collect(Collectors.toList());
-
-        // 重排序
-        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
     }
 
     /**
