@@ -339,6 +339,7 @@ public class DefaultExcelBuilder {
                 return td;
             }).collect(Collectors.toList());
             tr.setTdList(tdList);
+            contents.set(index, null);
             return tr;
         }).collect(Collectors.toList());
         // 重排序
