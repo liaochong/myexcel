@@ -62,6 +62,13 @@ public class HtmlTableParser {
         return parser;
     }
 
+    public static HtmlTableParser of(String html) {
+        Objects.requireNonNull(html);
+        HtmlTableParser parser = new HtmlTableParser();
+        parser.document = Jsoup.parse(html, CharEncoding.UTF_8);
+        return parser;
+    }
+
     /**
      * 获取所有表格
      *

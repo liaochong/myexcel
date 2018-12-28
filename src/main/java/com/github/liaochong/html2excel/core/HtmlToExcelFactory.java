@@ -114,6 +114,19 @@ public class HtmlToExcelFactory {
     /**
      * 读取html
      *
+     * @param html html字符串
+     * @return HtmlToExcelFactory
+     */
+    public static HtmlToExcelFactory readHtml(String html) {
+        Objects.requireNonNull(html);
+        HtmlToExcelFactory factory = new HtmlToExcelFactory();
+        factory.htmlTableParser = HtmlTableParser.of(html);
+        return factory;
+    }
+
+    /**
+     * 读取html
+     *
      * @param htmlFile           html文件
      * @param htmlToExcelFactory 实例对象
      * @return HtmlToExcelFactory
