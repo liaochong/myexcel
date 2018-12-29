@@ -150,7 +150,7 @@ public class DefaultExcelBuilder {
     }
 
     /**
-     * 获取排序后字段并设置标题
+     * 获取排序后字段并设置标题、workbookType等
      *
      * @param classFieldContainer classFieldContainer
      * @return Field
@@ -161,6 +161,8 @@ public class DefaultExcelBuilder {
         List<Field> sortedFields;
         if (Objects.nonNull(excelTable)) {
             setWorkbookWithExcelTableAnnotation(excelTable);
+        }
+        if (Objects.nonNull(excelTable) && excelTable.includeAllField()) {
             boolean excludeParent = excelTable.excludeParent();
             if (excludeParent) {
                 sortedFields = classFieldContainer.getDeclaredFields();

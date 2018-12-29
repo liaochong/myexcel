@@ -14,8 +14,7 @@
     <packaging>jar</packaging>
 
     <name>html2excel</name>
-    <description>A toolkit for generating excel of arbitrary complex layouts with Html table templates, supports .xls, .xlsx formats, supports personalization of background colors, borders, fonts, etc, and supports merged cells.
-    </description>
+    <description>A toolkit for generating excel of arbitrary complex layouts with Html table templates, supports .xls, .xlsx formats, supports personalization of background colors, borders, fonts, etc, and supports merged cells.</description>
     <url>https://github.com/liaochong/html2excel</url>
 
     <properties>

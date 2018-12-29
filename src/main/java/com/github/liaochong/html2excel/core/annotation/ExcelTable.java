@@ -33,6 +33,13 @@ import java.lang.annotation.Target;
 public @interface ExcelTable {
 
     /**
+     * 创建的excel包含所有字段
+     *
+     * @return true/false
+     */
+    boolean includeAllField() default true;
+
+    /**
      * 是否忽略父类属性
      *
      * @return true/false
