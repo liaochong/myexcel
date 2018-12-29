@@ -231,13 +231,17 @@ public class DefaultExcelBuilder {
         if (Objects.isNull(workbookType)) {
             this.workbookType = excelTable.workbookType();
         }
-        int rowAccessWindowSize = excelTable.rowAccessWindowSize();
-        if (rowAccessWindowSize > 0) {
-            this.rowAccessWindowSize = rowAccessWindowSize;
+        if (this.rowAccessWindowSize <= 0) {
+            int rowAccessWindowSize = excelTable.rowAccessWindowSize();
+            if (rowAccessWindowSize > 0) {
+                this.rowAccessWindowSize = rowAccessWindowSize;
+            }
         }
-        String sheetName = excelTable.sheetName();
-        if (StringUtil.isNotBlank(sheetName)) {
-            this.sheetName = sheetName;
+        if (StringUtil.isBlank(this.sheetName)) {
+            String sheetName = excelTable.sheetName();
+            if (StringUtil.isNotBlank(sheetName)) {
+                this.sheetName = sheetName;
+            }
         }
     }
 
