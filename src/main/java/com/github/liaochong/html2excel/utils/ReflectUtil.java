@@ -61,7 +61,7 @@ public final class ReflectUtil {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
-            container.getFields().add(field);
+            container.getDeclaredFields().add(field);
             container.getFieldMap().put(field.getName(), field);
         }
         if (clazz.getSuperclass() != null) {

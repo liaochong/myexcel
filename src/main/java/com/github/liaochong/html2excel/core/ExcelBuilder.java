@@ -47,6 +47,17 @@ public abstract class ExcelBuilder {
     }
 
     /**
+     * 设置workbookType为SXSSFWorkbook的内存数据保有量
+     *
+     * @param rowAccessWindowSize 内存数据保有量
+     * @return ExcelBuilder
+     */
+    public ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
+        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize);
+        return this;
+    }
+
+    /**
      * 使用默认样式
      *
      * @return ExcelBuilder

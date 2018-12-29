@@ -27,7 +27,6 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -60,6 +59,13 @@ public class HtmlTableParser {
         Objects.requireNonNull(htmlFile);
         HtmlTableParser parser = new HtmlTableParser();
         parser.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        return parser;
+    }
+
+    public static HtmlTableParser of(String html) {
+        Objects.requireNonNull(html);
+        HtmlTableParser parser = new HtmlTableParser();
+        parser.document = Jsoup.parse(html, CharEncoding.UTF_8);
         return parser;
     }
 
@@ -128,7 +134,7 @@ public class HtmlTableParser {
         Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
 
         Elements trElements = table.getElement().getElementsByTag(TableTag.tr.name());
-        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+        return IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
@@ -148,9 +154,6 @@ public class HtmlTableParser {
             this.parseTdOfTr(tr);
             return tr;
         }).collect(Collectors.toList());
-
-        // 重排序
-        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
     }
 
     /**
@@ -181,8 +184,9 @@ public class HtmlTableParser {
         if (tdElements.isEmpty()) {
             return;
         }
-        tr.setTdList(new ArrayList<>());
         tr.setColWidthMap(new HashMap<>(tdElements.size()));
+        // 单元格偏移量
+        int shift = 0;
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
@@ -192,13 +196,7 @@ public class HtmlTableParser {
             td.setRow(tr.getIndex());
             td.setStyle(StyleUtil.mixStyle(tr.getStyle(), StyleUtil.parseStyle(tdElement)));
             // 除每行第一个单元格外，修正含跨列的单元格位置
-            if (i > 0) {
-                int shift = tr.getTdList().stream().filter(t -> t.getColSpan() > 0)
-                        .mapToInt(t -> t.getColSpan() - 1).sum();
-                td.setCol(i + shift);
-            } else {
-                td.setCol(i);
-            }
+            td.setCol(i + shift);
 
             String colSpan = tdElement.attr(TableTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));
@@ -211,6 +209,10 @@ public class HtmlTableParser {
 
             int colBound = TdUtil.get(td::getColSpan, td::getCol);
             td.setColBound(colBound);
+
+            if (td.getColSpan() > 0) {
+                shift += td.getColSpan() - 1;
+            }
 
             tr.getTdList().add(td);
 

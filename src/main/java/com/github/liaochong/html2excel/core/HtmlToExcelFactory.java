@@ -18,13 +18,13 @@ package com.github.liaochong.html2excel.core;
 import com.github.liaochong.html2excel.core.parser.HtmlTableParser;
 import com.github.liaochong.html2excel.core.parser.Table;
 import com.github.liaochong.html2excel.core.parser.Td;
+import com.github.liaochong.html2excel.core.parser.Tr;
 import com.github.liaochong.html2excel.core.style.BackgroundStyle;
 import com.github.liaochong.html2excel.core.style.BorderStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
-import com.github.liaochong.html2excel.exception.UnsupportedWorkbookTypeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -34,6 +34,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
@@ -87,6 +88,10 @@ public class HtmlToExcelFactory {
      */
     private boolean useDefaultStyle;
     /**
+     * 内存数据保有量
+     */
+    private Integer rowAccessWindowSize = SXSSFWorkbook.DEFAULT_WINDOW_SIZE;
+    /**
      * 自定义颜色索引
      */
     private AtomicInteger colorIndex = new AtomicInteger(56);
@@ -107,6 +112,19 @@ public class HtmlToExcelFactory {
         }
         HtmlToExcelFactory factory = new HtmlToExcelFactory();
         factory.htmlTableParser = HtmlTableParser.of(htmlFile);
+        return factory;
+    }
+
+    /**
+     * 读取html
+     *
+     * @param html html字符串
+     * @return HtmlToExcelFactory
+     */
+    public static HtmlToExcelFactory readHtml(String html) {
+        Objects.requireNonNull(html);
+        HtmlToExcelFactory factory = new HtmlToExcelFactory();
+        factory.htmlTableParser = HtmlTableParser.of(html);
         return factory;
     }
 
@@ -151,6 +169,20 @@ public class HtmlToExcelFactory {
     }
 
     /**
+     * 设置workbookType为SXSSFWorkbook的内存数据保有量
+     *
+     * @param rowAccessWindowSize 内存数据保有量
+     * @return HtmlToExcelFactory
+     */
+    public HtmlToExcelFactory rowAccessWindowSize(int rowAccessWindowSize) {
+        if (rowAccessWindowSize <= 0) {
+            return this;
+        }
+        this.rowAccessWindowSize = rowAccessWindowSize;
+        return this;
+    }
+
+    /**
      * 设置workbook类型
      *
      * @param workbookType 工作簿类型
@@ -168,7 +200,8 @@ public class HtmlToExcelFactory {
                 workbook = new XSSFWorkbook();
                 break;
             case SXLSX:
-                throw new UnsupportedWorkbookTypeException("SXSSFWorkbook is not supported at this version");
+                workbook = new SXSSFWorkbook(rowAccessWindowSize);
+                break;
             default:
         }
         return this;
@@ -181,7 +214,16 @@ public class HtmlToExcelFactory {
      */
     public Workbook build() {
         List<Table> tables = htmlTableParser.getAllTable();
-        if (tables.isEmpty()) {
+        return this.build(tables);
+    }
+
+    /**
+     * 开始构建
+     *
+     * @return Workbook
+     */
+    public Workbook build(List<Table> tables) {
+        if (Objects.isNull(tables) || tables.isEmpty()) {
             log.warn("There is no any table exist");
             return emptyWorkbook();
         }
@@ -200,18 +242,13 @@ public class HtmlToExcelFactory {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
         for (int i = 0, size = tables.size(); i < size; i++) {
-            maxTdHeightMap = new HashMap<>();
-
             Table table = tables.get(i);
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
             Sheet sheet = workbook.createSheet(sheetName);
 
-            for (int j = 0, trSize = table.getTrList().size(); j < trSize; j++) {
-                Row row = sheet.createRow(j);
-                for (int k = 0; k <= table.getLastColumnNum(); k++) {
-                    row.createCell(k);
-                }
-            }
+            // 设置单元格样式
+            this.setTdOfTable(table, sheet);
+
             if (Objects.nonNull(freezePanes) && freezePanes.length > i) {
                 FreezePane freezePane = freezePanes[i];
                 if (Objects.isNull(freezePane)) {
@@ -219,10 +256,6 @@ public class HtmlToExcelFactory {
                 }
                 sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
             }
-            // 设置单元格样式
-            this.setTdOfTable(table, sheet);
-            // 设置行高
-            this.setRowHeight(table, sheet);
         }
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
@@ -244,24 +277,23 @@ public class HtmlToExcelFactory {
     }
 
     /**
-     * 设置行高，最小12
+     * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
-    private void setRowHeight(Table table, Sheet sheet) {
-        for (int j = 0, size = table.getTrList().size(); j < size; j++) {
-            Row row = sheet.getRow(j);
+    private void setTdOfTable(Table table, Sheet sheet) {
+        maxTdHeightMap = new HashMap<>();
+        for (int i = 0, size = table.getTrList().size(); i < size; i++) {
+            Tr tr = table.getTrList().get(i);
+            tr.getTdList().forEach(td -> this.setCell(td, sheet));
+
+            // 设置行高，最小12
+            Row row = sheet.getRow(tr.getIndex());
             if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
                 row.setHeightInPoints(row.getHeightInPoints() + 5);
             } else {
                 row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
             }
+            table.getTrList().set(i, null);
         }
-    }
-
-    /**
-     * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
-     */
-    private void setTdOfTable(Table table, Sheet sheet) {
-        table.getTrList().stream().flatMap(tr -> tr.getTdList().stream()).forEach(td -> this.setCell(td, sheet));
 
         table.getColMaxWidthMap().forEach((key, value) -> {
             int contentLength = value << 1;
@@ -279,14 +311,29 @@ public class HtmlToExcelFactory {
      * @param sheet 单元格所在的sheet
      */
     private void setCell(Td td, Sheet sheet) {
-        Cell cell = sheet.getRow(td.getRow()).getCell(td.getCol());
+        Row currentRow = sheet.getRow(td.getRow());
+        if (Objects.isNull(currentRow)) {
+            currentRow = sheet.createRow(td.getRow());
+        }
+
+        Cell cell = currentRow.getCell(td.getCol());
+        if (Objects.isNull(cell)) {
+            cell = currentRow.createCell(td.getCol());
+        }
         cell.setCellValue(td.getContent());
+
 
         // 设置单元格样式
         for (int i = td.getRow(), rowBound = td.getRowBound(); i <= rowBound; i++) {
             Row row = sheet.getRow(i);
+            if (Objects.isNull(row)) {
+                row = sheet.createRow(i);
+            }
             for (int j = td.getCol(), colBound = td.getColBound(); j <= colBound; j++) {
                 cell = row.getCell(j);
+                if (Objects.isNull(cell)) {
+                    cell = row.createCell(j);
+                }
                 this.setCellStyle(row, cell, td);
             }
         }
