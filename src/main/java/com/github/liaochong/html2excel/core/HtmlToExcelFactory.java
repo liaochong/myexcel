@@ -175,7 +175,7 @@ public class HtmlToExcelFactory {
      * @return HtmlToExcelFactory
      */
     public HtmlToExcelFactory rowAccessWindowSize(int rowAccessWindowSize) {
-        if (rowAccessWindowSize == 0) {
+        if (rowAccessWindowSize <= 0) {
             return this;
         }
         this.rowAccessWindowSize = rowAccessWindowSize;

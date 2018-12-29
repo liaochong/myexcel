@@ -74,7 +74,7 @@ public class DefaultExcelBuilder {
     /**
      * excel workbook
      */
-    private WorkbookType workbookType = WorkbookType.XLSX;
+    private WorkbookType workbookType;
     /**
      * 内存数据保有量
      */
@@ -135,7 +135,7 @@ public class DefaultExcelBuilder {
             return new HtmlToExcelFactory().build(Collections.emptyList());
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = getSortedFieldsAndSetSheetNameAndSetTitles(classFieldContainer);
+        List<Field> sortedFields = getSortedFieldsAndSetting(classFieldContainer);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
@@ -145,6 +145,7 @@ public class DefaultExcelBuilder {
 
         List<Table> tableList = new ArrayList<>();
         tableList.add(this.createTable(contents));
+        workbookType = Objects.nonNull(workbookType) ? workbookType : WorkbookType.XLSX;
         return new HtmlToExcelFactory().rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).build(tableList);
     }
 
@@ -154,15 +155,12 @@ public class DefaultExcelBuilder {
      * @param classFieldContainer classFieldContainer
      * @return Field
      */
-    private List<Field> getSortedFieldsAndSetSheetNameAndSetTitles(ClassFieldContainer classFieldContainer) {
+    private List<Field> getSortedFieldsAndSetting(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
         List<String> titles = new ArrayList<>();
         List<Field> sortedFields;
         if (Objects.nonNull(excelTable)) {
-            String sheetName = excelTable.sheetName();
-            if (StringUtil.isNotBlank(sheetName)) {
-                this.sheetName = sheetName;
-            }
+            setWorkbookWithExcelTableAnnotation(excelTable);
             boolean excludeParent = excelTable.excludeParent();
             if (excludeParent) {
                 sortedFields = classFieldContainer.getDeclaredFields();
@@ -232,6 +230,25 @@ public class DefaultExcelBuilder {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    /**
+     * 设置workbook
+     *
+     * @param excelTable excelTable
+     */
+    private void setWorkbookWithExcelTableAnnotation(ExcelTable excelTable) {
+        if (Objects.isNull(workbookType)) {
+            this.workbookType = excelTable.workbookType();
+        }
+        int rowAccessWindowSize = excelTable.rowAccessWindowSize();
+        if (rowAccessWindowSize > 0) {
+            this.rowAccessWindowSize = rowAccessWindowSize;
+        }
+        String sheetName = excelTable.sheetName();
+        if (StringUtil.isNotBlank(sheetName)) {
+            this.sheetName = sheetName;
+        }
     }
 
     /**

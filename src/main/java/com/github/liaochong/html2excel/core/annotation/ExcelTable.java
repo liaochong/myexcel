@@ -15,6 +15,8 @@
  */
 package com.github.liaochong.html2excel.core.annotation;
 
+import com.github.liaochong.html2excel.core.WorkbookType;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -30,7 +32,31 @@ import java.lang.annotation.Target;
 @Documented
 public @interface ExcelTable {
 
+    /**
+     * 是否忽略父类属性
+     *
+     * @return true/false
+     */
     boolean excludeParent() default false;
 
+    /**
+     * 工作簿类型，.xls、.xlsx
+     *
+     * @return WorkbookType
+     */
+    WorkbookType workbookType() default WorkbookType.XLSX;
+
+    /**
+     * sheeName
+     *
+     * @return sheeName
+     */
     String sheetName() default "";
+
+    /**
+     * 内存行数保有量，只在WorkbookType.SXLSX有效
+     *
+     * @return 行数
+     */
+    int rowAccessWindowSize() default -1;
 }
