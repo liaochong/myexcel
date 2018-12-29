@@ -242,8 +242,6 @@ public class HtmlToExcelFactory {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
         for (int i = 0, size = tables.size(); i < size; i++) {
-            maxTdHeightMap = new HashMap<>();
-
             Table table = tables.get(i);
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
             Sheet sheet = workbook.createSheet(sheetName);
@@ -282,6 +280,7 @@ public class HtmlToExcelFactory {
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
     private void setTdOfTable(Table table, Sheet sheet) {
+        maxTdHeightMap = new HashMap<>();
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             Tr tr = table.getTrList().get(i);
             tr.getTdList().forEach(td -> this.setCell(td, sheet));

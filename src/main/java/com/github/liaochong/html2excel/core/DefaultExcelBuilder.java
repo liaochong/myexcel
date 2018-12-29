@@ -157,52 +157,21 @@ public class DefaultExcelBuilder {
      */
     private List<Field> getSortedFieldsAndSetting(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-        List<String> titles = new ArrayList<>();
-        List<Field> sortedFields;
         if (Objects.nonNull(excelTable)) {
             setWorkbookWithExcelTableAnnotation(excelTable);
         }
+
+        List<Field> preelectionFields;
         if (Objects.nonNull(excelTable) && excelTable.includeAllField()) {
             boolean excludeParent = excelTable.excludeParent();
             if (excludeParent) {
-                sortedFields = classFieldContainer.getDeclaredFields();
+                preelectionFields = classFieldContainer.getDeclaredFields();
             } else {
-                sortedFields = classFieldContainer.getFields();
+                preelectionFields = classFieldContainer.getFields();
             }
-            sortedFields = sortedFields.stream()
-                    .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
-                    .sorted((field1, field2) -> {
-                        ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
-                        ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-                        if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
-                            return 0;
-                        }
-                        int defaultOrder = 0;
-                        int order1 = defaultOrder;
-                        if (Objects.nonNull(excelColumn1)) {
-                            order1 = excelColumn1.order();
-                        }
-                        int order2 = defaultOrder;
-                        if (Objects.nonNull(excelColumn2)) {
-                            order2 = excelColumn2.order();
-                        }
-                        if (order1 == order2) {
-                            return 0;
-                        }
-                        return order1 > order2 ? 1 : -1;
-                    })
-                    .peek(field -> {
-                        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                        if (Objects.isNull(excelColumn)) {
-                            titles.add(null);
-                        } else {
-                            titles.add(excelColumn.title());
-                        }
-                    })
-                    .collect(Collectors.toList());
         } else {
-            List<Field> excelColumnFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-            if (excelColumnFields.isEmpty()) {
+            preelectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            if (preelectionFields.isEmpty()) {
                 if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
                     throw new IllegalArgumentException("FieldDisplayOrder is necessary");
                 }
@@ -211,21 +180,40 @@ public class DefaultExcelBuilder {
                         .map(classFieldContainer::getFieldByName)
                         .collect(Collectors.toList());
             }
-            sortedFields = excelColumnFields.stream()
-                    .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
-                    .sorted((field1, field2) -> {
-                        int order1 = field1.getAnnotation(ExcelColumn.class).order();
-                        int order2 = field2.getAnnotation(ExcelColumn.class).order();
-                        if (order1 == order2) {
-                            return 0;
-                        }
-                        return order1 > order2 ? 1 : -1;
-                    }).peek(field -> {
-                        String title = field.getAnnotation(ExcelColumn.class).title();
-                        titles.add(title);
-                    })
-                    .collect(Collectors.toList());
         }
+
+        List<String> titles = new ArrayList<>();
+        List<Field> sortedFields = preelectionFields.stream()
+                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
+                .sorted((field1, field2) -> {
+                    ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
+                    ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
+                    if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
+                        return 0;
+                    }
+                    int defaultOrder = 0;
+                    int order1 = defaultOrder;
+                    if (Objects.nonNull(excelColumn1)) {
+                        order1 = excelColumn1.order();
+                    }
+                    int order2 = defaultOrder;
+                    if (Objects.nonNull(excelColumn2)) {
+                        order2 = excelColumn2.order();
+                    }
+                    if (order1 == order2) {
+                        return 0;
+                    }
+                    return order1 > order2 ? 1 : -1;
+                })
+                .peek(field -> {
+                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                    if (Objects.isNull(excelColumn)) {
+                        titles.add(null);
+                    } else {
+                        titles.add(excelColumn.title());
+                    }
+                })
+                .collect(Collectors.toList());
 
         boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
         if (hasTitle) {
