@@ -21,3 +21,8 @@ https://github.com/liaochong/html2excel/wiki
 - **提供默认模板引擎，直接输出简单excel**：无需编写任何html，已内置默认模板，可直接根据POJO数据列表输出；
 - **支持一次生成多sheet**：以table作为sheet单元，支持一份excel文档中多sheet；
 
+联系以及问题反馈 | Contact me
+--------------------------
+QQ： 1475958950
+Email：liaochong8950@163.com
+Issue：[issues](https://github.com/liaochong/html2excel/issues)
