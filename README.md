@@ -26,3 +26,7 @@ https://github.com/liaochong/html2excel/wiki
 * QQ： 1475958950
 * Email：liaochong8950@163.com
 * Issue：[issues](https://github.com/liaochong/html2excel/issues)
+
+> 如本项目对您有所帮助，还请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，谢谢！
+
+![avatar](https://www.liaochong.site/images/weixin_pay.jpg)
