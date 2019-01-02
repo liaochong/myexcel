@@ -29,7 +29,7 @@ https://github.com/liaochong/html2excel/wiki
 
 > 如本项目对您有所帮助，还请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，谢谢！
 
-<p align="center">
+<p>
     <img src="https://www.liaochong.site/images/alipay.jpg" height="250"/>
     <img src="https://www.liaochong.site/images/weixin_pay.jpg"  height="250" >
 </p>
