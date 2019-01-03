@@ -157,20 +157,29 @@ public class DefaultExcelBuilder {
      */
     private List<Field> getSortedFieldsAndSetting(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
+
+        boolean excludeParent = false;
+        boolean includeAllField = false;
         if (Objects.nonNull(excelTable)) {
             setWorkbookWithExcelTableAnnotation(excelTable);
+            excludeParent = excelTable.excludeParent();
+            includeAllField = excelTable.includeAllField();
         }
 
         List<Field> preelectionFields;
-        if (Objects.nonNull(excelTable) && excelTable.includeAllField()) {
-            boolean excludeParent = excelTable.excludeParent();
+        if (includeAllField) {
             if (excludeParent) {
                 preelectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preelectionFields = classFieldContainer.getFields();
             }
         } else {
-            preelectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            if (excludeParent) {
+                preelectionFields = classFieldContainer.getDeclaredFields().stream()
+                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
+            } else {
+                preelectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            }
             if (preelectionFields.isEmpty()) {
                 if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
                     throw new IllegalArgumentException("FieldDisplayOrder is necessary");

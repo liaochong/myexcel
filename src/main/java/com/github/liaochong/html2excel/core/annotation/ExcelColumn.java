@@ -29,13 +29,22 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Documented
 public @interface ExcelColumn {
-
+    /**
+     * 列标题
+     *
+     * @return 标题
+     */
     String title() default "";
 
+    /**
+     * 顺序，数值越大越靠后
+     *
+     * @return int
+     */
     int order() default 0;
 
     /**
-     * 时间格式化
+     * 时间格式化，如yyyy-MM-dd HH:mm:ss
      *
      * @return 时间格式化
      */

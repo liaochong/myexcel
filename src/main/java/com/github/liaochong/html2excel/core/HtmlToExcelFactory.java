@@ -74,7 +74,7 @@ public class HtmlToExcelFactory {
     /**
      * 单元格样式映射
      */
-    private Map<Map<String, String>, CellStyle> cellStyleMap;
+    private Map<Map<String, String>, CellStyle> cellStyleMap = new HashMap<>();
     /**
      * 每行的单元格最大高度map
      */
@@ -82,7 +82,7 @@ public class HtmlToExcelFactory {
     /**
      * 字体map
      */
-    private Map<String, Font> fontMap;
+    private Map<String, Font> fontMap = new HashMap<>();
     /**
      * 是否使用默认样式
      */
@@ -239,8 +239,6 @@ public class HtmlToExcelFactory {
             defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
         }
         // 2、处理解析表格
-        cellStyleMap = new HashMap<>();
-        fontMap = new HashMap<>();
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
@@ -291,6 +289,7 @@ public class HtmlToExcelFactory {
                 row.setHeightInPoints(row.getHeightInPoints() + 5);
             } else {
                 row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
+                maxTdHeightMap.remove(row.getRowNum());
             }
             table.getTrList().set(i, null);
         }
