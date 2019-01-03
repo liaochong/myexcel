@@ -354,7 +354,6 @@ public class DefaultExcelBuilder {
         table.setCaption(sheetName);
 
         table.setTrList(new ArrayList<>());
-        table.setLastColumnNum(contents.get(0).size());
 
         Map<String, String> commonStyle = new HashMap<>();
         commonStyle.put("border-bottom-style", "thin");
@@ -363,9 +362,6 @@ public class DefaultExcelBuilder {
 
         boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
         if (hasTitles) {
-            if (titles.size() > table.getLastColumnNum()) {
-                table.setLastColumnNum(titles.size());
-            }
             Tr tr = getThead(commonStyle);
             table.getTrList().add(tr);
         }
@@ -443,14 +439,15 @@ public class DefaultExcelBuilder {
      * @param table table
      */
     private void setColMaxWidthMap(Table table) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getLastColumnNum());
-        table.getTrList().stream().map(Tr::getColWidthMap).forEach(map -> {
-            map.forEach((k, v) -> {
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>();
+        table.getTrList().forEach(tr -> {
+            tr.getColWidthMap().forEach((k, v) -> {
                 Integer width = colMaxWidthMap.get(k);
                 if (Objects.isNull(width) || v > width) {
                     colMaxWidthMap.put(k, v);
                 }
             });
+            tr.setColWidthMap(null);
         });
         table.setColMaxWidthMap(colMaxWidthMap);
     }
