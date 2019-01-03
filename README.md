@@ -27,7 +27,7 @@ https://github.com/liaochong/html2excel/wiki
 * Email：liaochong8950@163.com
 * Issue：[issues](https://github.com/liaochong/html2excel/issues)
 
-> 如本项目对您有所帮助，还请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，谢谢！
+> 如本项目对您有所帮助，烦请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，十分感谢您的关注！
 
 <p>
     <img src="https://www.liaochong.site/images/alipay.jpg" height="250"/>
