@@ -244,6 +244,10 @@ public class HtmlToExcelFactory {
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
             Sheet sheet = workbook.createSheet(sheetName);
 
+            boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
+            if (!hasTd) {
+                continue;
+            }
             // 设置单元格样式
             this.setTdOfTable(table, sheet);
 
