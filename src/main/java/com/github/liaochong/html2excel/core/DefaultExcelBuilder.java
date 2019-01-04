@@ -439,7 +439,7 @@ public class DefaultExcelBuilder {
      * @param table table
      */
     private void setColMaxWidthMap(Table table) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>();
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getTrList().get(0).getTdList().size());
         table.getTrList().forEach(tr -> {
             tr.getColWidthMap().forEach((k, v) -> {
                 Integer width = colMaxWidthMap.get(k);

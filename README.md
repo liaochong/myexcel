@@ -12,7 +12,7 @@ https://github.com/liaochong/html2excel/wiki
 优点 | Advantages
 ------------------
 - **零学习成本**：使用html作为模板，学习成本几乎为零；
-- **可生成任意复杂表格**：本工具使用迭代单元格方式进行excel绘制，可生成任意复杂度excel；
+- **可生成任意复杂表格**：本工具使用迭代单元格方式进行excel绘制，可生成任意复杂度excel，自适应宽度、高度；
 - **支持常用背景色、边框、字体等样式设置**：具体参见下方Style-support（样式支持）部分；
 - **支持.XLS、.XLSX**：支持生成.xls、.xlsx后缀的excel；
 - **支持低内存SXSSF模式**：支持低内存的SXSSF模式，可利用极低的内存生成.xlsx；

@@ -28,6 +28,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,9 +97,9 @@ public class HtmlTableParser {
      * @param table table
      */
     private void parseTrOfTable(Table table, Element tableElement, Map<String, String> tableStyle) {
-        List<Tr> sortedTrList = this.getSortedTrList(tableElement, tableStyle);
-        table.setTrList(sortedTrList);
-        if (sortedTrList.isEmpty()) {
+        List<Tr> trList = this.getTrList(tableElement, tableStyle);
+        table.setTrList(trList);
+        if (trList.isEmpty()) {
             table.setColMaxWidthMap(Collections.emptyMap());
             return;
         }
@@ -106,24 +107,24 @@ public class HtmlTableParser {
         this.setColMaxWidthMap(table);
 
         // 调整td位置,排除第一行，第一行不需要进行调整
-        if (sortedTrList.size() == 1) {
+        if (trList.size() == 1) {
             return;
         }
-        sortedTrList.subList(1, sortedTrList.size()).parallelStream().forEach(tr -> {
-            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), sortedTrList));
+        trList.subList(1, trList.size()).parallelStream().forEach(tr -> {
+            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, trList));
         });
     }
 
     /**
-     * 获取已排序的Tr集合
+     * 获取Tr集合
      *
      * @return trList
      */
-    private List<Tr> getSortedTrList(Element tableElement, Map<String, String> tableStyle) {
+    private List<Tr> getTrList(Element tableElement, Map<String, String> tableStyle) {
         Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
 
         Elements trElements = tableElement.getElementsByTag(TableTag.tr.name());
-        return IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
@@ -141,6 +142,8 @@ public class HtmlTableParser {
             this.parseTdOfTr(tr, trElement, StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)));
             return tr;
         }).collect(Collectors.toList());
+
+        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
     }
 
     /**
@@ -149,7 +152,7 @@ public class HtmlTableParser {
      * @param table table
      */
     private void setColMaxWidthMap(Table table) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>();
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getTrList().get(0).getTdList().size());
         table.getTrList().forEach(tr -> {
             tr.getColWidthMap().forEach((k, v) -> {
                 Integer width = colMaxWidthMap.get(k);
@@ -212,12 +215,11 @@ public class HtmlTableParser {
     /**
      * 调整表格单元格位置
      *
-     * @param td      单元格
-     * @param trIndex 行索引
-     * @param trList  所有行
+     * @param td     单元格
+     * @param trList 所有行
      */
-    private void adjustTdPosition(Td td, int trIndex, List<Tr> trList) {
-        List<Td> rowSpanTds = trList.subList(0, trIndex).stream()
+    private void adjustTdPosition(Td td, List<Tr> trList) {
+        List<Td> rowSpanTds = trList.subList(0, td.getRow()).stream()
                 .flatMap(tr -> tr.getTdList().stream())
                 .filter(t -> t.getRowSpan() > 0 && t.getCol() <= td.getCol()
                         && t.getRowBound() >= td.getRow())
