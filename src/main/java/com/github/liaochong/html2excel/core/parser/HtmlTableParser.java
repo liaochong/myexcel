@@ -100,11 +100,8 @@ public class HtmlTableParser {
         List<Tr> trList = this.getTrList(tableElement, tableStyle);
         table.setTrList(trList);
         if (trList.isEmpty()) {
-            table.setColMaxWidthMap(Collections.emptyMap());
             return;
         }
-
-        this.setColMaxWidthMap(table);
 
         // 调整td位置,排除第一行，第一行不需要进行调整
         if (trList.size() == 1) {
@@ -147,25 +144,6 @@ public class HtmlTableParser {
     }
 
     /**
-     * 设置每列最大宽度
-     *
-     * @param table table
-     */
-    private void setColMaxWidthMap(Table table) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getTrList().get(0).getTdList().size());
-        table.getTrList().forEach(tr -> {
-            tr.getColWidthMap().forEach((k, v) -> {
-                Integer width = colMaxWidthMap.get(k);
-                if (Objects.isNull(width) || v > width) {
-                    colMaxWidthMap.put(k, v);
-                }
-            });
-            tr.setColWidthMap(null);
-        });
-        table.setColMaxWidthMap(colMaxWidthMap);
-    }
-
-    /**
      * 获取tr中的td
      *
      * @param tr tr
@@ -173,6 +151,7 @@ public class HtmlTableParser {
     private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle) {
         Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
+            tr.setColWidthMap(Collections.emptyMap());
             return;
         }
         tr.setColWidthMap(new HashMap<>(tdElements.size()));

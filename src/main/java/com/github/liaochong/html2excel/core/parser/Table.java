@@ -20,7 +20,6 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author liaochong
@@ -33,6 +32,4 @@ public class Table {
     String caption;
 
     List<Tr> trList;
-
-    Map<Integer, Integer> colMaxWidthMap;
 }
