@@ -241,7 +241,7 @@ public class HtmlToExcelFactory {
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
-            String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
+            String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "Sheet" + (i + 1) : table.getCaption();
             Sheet sheet = workbook.createSheet(sheetName);
 
             boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
@@ -272,9 +272,7 @@ public class HtmlToExcelFactory {
         if (Objects.isNull(workbook)) {
             workbook = new XSSFWorkbook();
         }
-        Sheet sheet = workbook.createSheet();
-        Row row = sheet.createRow(0);
-        row.createCell(0);
+        workbook.createSheet();
         return workbook;
     }
 
