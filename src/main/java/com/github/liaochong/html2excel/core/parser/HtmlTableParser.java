@@ -78,19 +78,13 @@ public class HtmlTableParser {
         log.info("Start parsing html file");
         long startTime = System.currentTimeMillis();
         Elements tableElements = document.getElementsByTag(TableTag.table.name());
-        List<Table> result = IntStream.range(0, tableElements.size()).mapToObj(i -> {
-            Element tableElement = tableElements.get(i);
+        List<Table> result = tableElements.stream().map(tableElement -> {
             Table table = new Table();
-            table.setIndex(i);
-            table.setElement(tableElement);
-
             Elements captionElements = tableElement.getElementsByTag(TableTag.caption.name());
             if (!captionElements.isEmpty()) {
                 table.setCaption(captionElements.first().text());
             }
-            table.setStyleMap(StyleUtil.parseStyle(tableElement));
-
-            this.parseTrOfTable(table);
+            this.parseTrOfTable(table, tableElement, StyleUtil.parseStyle(tableElement));
             return table;
         }).collect(Collectors.toList());
         log.info("Complete html file parsing,takes {} ms", System.currentTimeMillis() - startTime);
@@ -102,76 +96,51 @@ public class HtmlTableParser {
      *
      * @param table table
      */
-    private void parseTrOfTable(Table table) {
-        List<Tr> sortedTrList = this.getSortedTrList(table);
-        table.setTrList(sortedTrList);
-        if (sortedTrList.isEmpty()) {
-            table.setColMaxWidthMap(Collections.emptyMap());
+    private void parseTrOfTable(Table table, Element tableElement, Map<String, String> tableStyle) {
+        List<Tr> trList = this.getTrList(tableElement, tableStyle);
+        table.setTrList(trList);
+        if (trList.isEmpty()) {
             return;
         }
-
-        int lastColumnNum = sortedTrList.parallelStream().max(Comparator.comparing(Tr::getLastColumnNum)).get().getLastColumnNum();
-        table.setLastColumnNum(lastColumnNum);
-
-        this.setColMaxWidthMap(table);
 
         // 调整td位置,排除第一行，第一行不需要进行调整
-        if (sortedTrList.size() == 1) {
+        if (trList.size() == 1) {
             return;
         }
-        sortedTrList.subList(1, sortedTrList.size()).parallelStream().forEach(tr -> {
-            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, tr.getIndex(), sortedTrList));
+        trList.subList(1, trList.size()).parallelStream().forEach(tr -> {
+            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, trList));
         });
     }
 
     /**
-     * 获取已排序的Tr集合
+     * 获取Tr集合
      *
-     * @param table table
      * @return trList
      */
-    private List<Tr> getSortedTrList(Table table) {
+    private List<Tr> getTrList(Element tableElement, Map<String, String> tableStyle) {
         Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
 
-        Elements trElements = table.getElement().getElementsByTag(TableTag.tr.name());
-        return IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+        Elements trElements = tableElement.getElementsByTag(TableTag.tr.name());
+        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
-            if (Objects.equals(parent, table.getElement())) {
-                upperStyle = table.getStyleMap();
+            if (Objects.equals(parent, tableElement)) {
+                upperStyle = tableStyle;
             } else {
                 if (parentStyleMap.containsKey(parent)) {
                     upperStyle = parentStyleMap.get(parent);
                 } else {
-                    upperStyle = StyleUtil.mixStyle(table.getStyleMap(), StyleUtil.parseStyle(parent));
+                    upperStyle = StyleUtil.mixStyle(tableStyle, StyleUtil.parseStyle(parent));
                     parentStyleMap.putIfAbsent(parent, upperStyle);
                 }
             }
             Tr tr = new Tr(index);
-            tr.setElement(trElement);
-            tr.setStyle(StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)));
-            this.parseTdOfTr(tr);
+            this.parseTdOfTr(tr, trElement, StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)));
             return tr;
         }).collect(Collectors.toList());
-    }
 
-    /**
-     * 设置每列最大宽度
-     *
-     * @param table table
-     */
-    private void setColMaxWidthMap(Table table) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getLastColumnNum());
-        table.getTrList().stream().map(Tr::getColWidthMap).forEach(map -> {
-            map.forEach((k, v) -> {
-                Integer width = colMaxWidthMap.get(k);
-                if (Objects.isNull(width) || v > width) {
-                    colMaxWidthMap.put(k, v);
-                }
-            });
-        });
-        table.setColMaxWidthMap(colMaxWidthMap);
+        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
     }
 
     /**
@@ -179,9 +148,10 @@ public class HtmlTableParser {
      *
      * @param tr tr
      */
-    private void parseTdOfTr(Tr tr) {
-        Elements tdElements = tr.getElement().children();
+    private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle) {
+        Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
+            tr.setColWidthMap(Collections.emptyMap());
             return;
         }
         tr.setColWidthMap(new HashMap<>(tdElements.size()));
@@ -190,11 +160,10 @@ public class HtmlTableParser {
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
             Td td = new Td();
-            td.setElement(tdElement);
             td.setContent(tdElement.text());
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
             td.setRow(tr.getIndex());
-            td.setStyle(StyleUtil.mixStyle(tr.getStyle(), StyleUtil.parseStyle(tdElement)));
+            td.setStyle(StyleUtil.mixStyle(trStyle, StyleUtil.parseStyle(tdElement)));
             // 除每行第一个单元格外，修正含跨列的单元格位置
             td.setCol(i + shift);
 
@@ -220,20 +189,16 @@ public class HtmlTableParser {
             int width = TdUtil.getStringWidth(td.getContent());
             tr.getColWidthMap().put(td.getCol(), width);
         }
-
-        int lastColNumber = tr.getTdList().stream().mapToInt(td -> td.getColSpan() > 0 ? td.getColSpan() : 1).sum();
-        tr.setLastColumnNum(lastColNumber);
     }
 
     /**
      * 调整表格单元格位置
      *
-     * @param td      单元格
-     * @param trIndex 行索引
-     * @param trList  所有行
+     * @param td     单元格
+     * @param trList 所有行
      */
-    private void adjustTdPosition(Td td, int trIndex, List<Tr> trList) {
-        List<Td> rowSpanTds = trList.subList(0, trIndex).stream()
+    private void adjustTdPosition(Td td, List<Tr> trList) {
+        List<Td> rowSpanTds = trList.subList(0, td.getRow()).stream()
                 .flatMap(tr -> tr.getTdList().stream())
                 .filter(t -> t.getRowSpan() > 0 && t.getCol() <= td.getCol()
                         && t.getRowBound() >= td.getRow())

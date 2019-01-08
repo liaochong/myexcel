@@ -18,7 +18,6 @@ package com.github.liaochong.html2excel.core.parser;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.jsoup.nodes.Element;
 
 import java.util.Map;
 
@@ -29,10 +28,6 @@ import java.util.Map;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Td {
-    /**
-     * td 元素
-     */
-    Element element;
     /**
      * 所在行
      */

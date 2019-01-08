@@ -74,7 +74,7 @@ public class HtmlToExcelFactory {
     /**
      * 单元格样式映射
      */
-    private Map<Map<String, String>, CellStyle> cellStyleMap;
+    private Map<Map<String, String>, CellStyle> cellStyleMap = new HashMap<>();
     /**
      * 每行的单元格最大高度map
      */
@@ -82,7 +82,7 @@ public class HtmlToExcelFactory {
     /**
      * 字体map
      */
-    private Map<String, Font> fontMap;
+    private Map<String, Font> fontMap = new HashMap<>();
     /**
      * 是否使用默认样式
      */
@@ -239,13 +239,15 @@ public class HtmlToExcelFactory {
             defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
         }
         // 2、处理解析表格
-        cellStyleMap = new HashMap<>();
-        fontMap = new HashMap<>();
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
-            String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "sheet" + (i + 1) : table.getCaption();
+            String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "Sheet" + (i + 1) : table.getCaption();
             Sheet sheet = workbook.createSheet(sheetName);
 
+            boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
+            if (!hasTd) {
+                continue;
+            }
             // 设置单元格样式
             this.setTdOfTable(table, sheet);
 
@@ -270,9 +272,7 @@ public class HtmlToExcelFactory {
         if (Objects.isNull(workbook)) {
             workbook = new XSSFWorkbook();
         }
-        Sheet sheet = workbook.createSheet();
-        Row row = sheet.createRow(0);
-        row.createCell(0);
+        workbook.createSheet();
         return workbook;
     }
 
@@ -281,6 +281,7 @@ public class HtmlToExcelFactory {
      */
     private void setTdOfTable(Table table, Sheet sheet) {
         maxTdHeightMap = new HashMap<>();
+        Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table);
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             Tr tr = table.getTrList().get(i);
             tr.getTdList().forEach(td -> this.setCell(td, sheet));
@@ -291,17 +292,38 @@ public class HtmlToExcelFactory {
                 row.setHeightInPoints(row.getHeightInPoints() + 5);
             } else {
                 row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
+                maxTdHeightMap.remove(row.getRowNum());
             }
             table.getTrList().set(i, null);
         }
 
-        table.getColMaxWidthMap().forEach((key, value) -> {
+        colMaxWidthMap.forEach((key, value) -> {
             int contentLength = value << 1;
             if (contentLength > 255) {
                 contentLength = 255;
             }
             sheet.setColumnWidth(key, contentLength << 8);
         });
+    }
+
+    /**
+     * 获取每列最大宽度
+     *
+     * @param table table
+     */
+    private Map<Integer, Integer> getColMaxWidthMap(Table table) {
+        int mapMaxSize = table.getTrList().stream().mapToInt(tr -> tr.getColWidthMap().size()).max().orElse(16);
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(mapMaxSize);
+        table.getTrList().forEach(tr -> {
+            tr.getColWidthMap().forEach((k, v) -> {
+                Integer width = colMaxWidthMap.get(k);
+                if (Objects.isNull(width) || v > width) {
+                    colMaxWidthMap.put(k, v);
+                }
+            });
+            tr.setColWidthMap(null);
+        });
+        return colMaxWidthMap;
     }
 
     /**
@@ -356,6 +378,14 @@ public class HtmlToExcelFactory {
                 cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
             }
         } else {
+            String fs = td.getStyle().get("font-size");
+            if (Objects.nonNull(fs)) {
+                fs = fs.replaceAll("\\D*", "");
+                short fontSize = Short.parseShort(fs);
+                if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
+                    maxTdHeightMap.put(row.getRowNum(), fontSize);
+                }
+            }
             if (cellStyleMap.containsKey(td.getStyle())) {
                 cell.setCellStyle(cellStyleMap.get(td.getStyle()));
                 return;
@@ -368,7 +398,7 @@ public class HtmlToExcelFactory {
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
             // font
-            FontStyle.setFont(workbook, row, cellStyle, td.getStyle(), fontMap, maxTdHeightMap);
+            FontStyle.setFont(workbook, cellStyle, td.getStyle(), fontMap);
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }

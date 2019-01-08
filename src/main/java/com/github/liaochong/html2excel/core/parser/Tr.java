@@ -18,7 +18,6 @@ package com.github.liaochong.html2excel.core.parser;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.jsoup.nodes.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Tr {
 
-    Element element;
     /**
      * 索引
      */
@@ -41,14 +39,6 @@ public class Tr {
      * 行单元格
      */
     List<Td> tdList = new ArrayList<>();
-    /**
-     * 行样式
-     */
-    Map<String, String> style;
-    /**
-     * 当前最后列编号
-     */
-    int lastColumnNum;
     /**
      * 最大宽度
      */

@@ -157,20 +157,29 @@ public class DefaultExcelBuilder {
      */
     private List<Field> getSortedFieldsAndSetting(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
+
+        boolean excludeParent = false;
+        boolean includeAllField = false;
         if (Objects.nonNull(excelTable)) {
             setWorkbookWithExcelTableAnnotation(excelTable);
+            excludeParent = excelTable.excludeParent();
+            includeAllField = excelTable.includeAllField();
         }
 
         List<Field> preelectionFields;
-        if (Objects.nonNull(excelTable) && excelTable.includeAllField()) {
-            boolean excludeParent = excelTable.excludeParent();
+        if (includeAllField) {
             if (excludeParent) {
                 preelectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preelectionFields = classFieldContainer.getFields();
             }
         } else {
-            preelectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            if (excludeParent) {
+                preelectionFields = classFieldContainer.getDeclaredFields().stream()
+                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
+            } else {
+                preelectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            }
             if (preelectionFields.isEmpty()) {
                 if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
                     throw new IllegalArgumentException("FieldDisplayOrder is necessary");
@@ -345,7 +354,6 @@ public class DefaultExcelBuilder {
         table.setCaption(sheetName);
 
         table.setTrList(new ArrayList<>());
-        table.setLastColumnNum(contents.get(0).size());
 
         Map<String, String> commonStyle = new HashMap<>();
         commonStyle.put("border-bottom-style", "thin");
@@ -354,9 +362,6 @@ public class DefaultExcelBuilder {
 
         boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
         if (hasTitles) {
-            if (titles.size() > table.getLastColumnNum()) {
-                table.setLastColumnNum(titles.size());
-            }
             Tr tr = getThead(commonStyle);
             table.getTrList().add(tr);
         }
@@ -390,7 +395,6 @@ public class DefaultExcelBuilder {
         }).collect(Collectors.toList());
 
         table.getTrList().addAll(contentTrList);
-        this.setColMaxWidthMap(table);
         return table;
     }
 
@@ -426,24 +430,6 @@ public class DefaultExcelBuilder {
         }).collect(Collectors.toList());
         tr.setTdList(ths);
         return tr;
-    }
-
-    /**
-     * 设置每列最大宽度
-     *
-     * @param table table
-     */
-    private void setColMaxWidthMap(Table table) {
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(table.getLastColumnNum());
-        table.getTrList().stream().map(Tr::getColWidthMap).forEach(map -> {
-            map.forEach((k, v) -> {
-                Integer width = colMaxWidthMap.get(k);
-                if (Objects.isNull(width) || v > width) {
-                    colMaxWidthMap.put(k, v);
-                }
-            });
-        });
-        table.setColMaxWidthMap(colMaxWidthMap);
     }
 
 }

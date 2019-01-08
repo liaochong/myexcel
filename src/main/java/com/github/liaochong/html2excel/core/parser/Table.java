@@ -18,10 +18,8 @@ package com.github.liaochong.html2excel.core.parser;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import org.jsoup.nodes.Element;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author liaochong
@@ -31,19 +29,7 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Table {
 
-    Element element;
-
     String caption;
 
     List<Tr> trList;
-
-    Map<String, String> styleMap;
-
-    int lastColumnNum;
-
-    int lastRowNum;
-
-    int index;
-
-    Map<Integer, Integer> colMaxWidthMap;
 }
