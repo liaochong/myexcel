@@ -6,9 +6,6 @@ import com.github.liaochong.html2excel.core.FreemarkerExcelBuilder;
 import com.github.liaochong.html2excel.core.WorkbookType;
 import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.annotation.ExcelTable;
-import com.github.liaochong.html2excel.core.annotation.ExcludeColumn;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,12 +32,15 @@ public class FreemarkerExampleController {
     @GetMapping("/freemarker/default/build")
     public void defaultBuild(HttpServletResponse response) {
         List<Child> dataList = new ArrayList<>();
-        for (int i = 0; i < 500000; i++) {
+        for (int i = 0; i < 1000; i++) {
             Child child = new Child();
             child.setName("liaochong");
             child.setAge(i);
-            child.setSex(1);
-            child.setIndex(i);
+            if (i % 2 == 0) {
+                child.setGender("man");
+            } else {
+                child.setGender("women");
+            }
             dataList.add(child);
         }
         Workbook workbook = DefaultExcelBuilder.getInstance().build(dataList);
@@ -95,10 +95,24 @@ public class FreemarkerExampleController {
 
     @ExcelTable(workbookType = WorkbookType.SXLSX, rowAccessWindowSize = 100, sheetName = "测试")
     public static class Child extends Parent {
-        @ExcelColumn(order = 3, title = "姓名")
+
+        @ExcelColumn(title = "性别", order = 1)
+        private String gender;
+
+        public String getGender() {
+            return gender;
+        }
+
+        public void setGender(String gender) {
+            this.gender = gender;
+        }
+    }
+
+    public static class Parent {
+        @ExcelColumn(title = "姓名")
         private String name;
 
-        @ExcludeColumn
+        @ExcelColumn(title = "年龄")
         private Integer age;
 
         public String getName() {
@@ -115,33 +129,6 @@ public class FreemarkerExampleController {
 
         public void setAge(Integer age) {
             this.age = age;
-        }
-    }
-
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class Parent {
-
-        @ExcelColumn(title = "性别")
-        private Integer sex;
-
-        //        @ExcelColumn(order = -1, title = "index")
-        @ExcludeColumn
-        private Integer index;
-
-        public Integer getSex() {
-            return sex;
-        }
-
-        public void setSex(Integer sex) {
-            this.sex = sex;
-        }
-
-        public Integer getIndex() {
-            return index;
-        }
-
-        public void setIndex(Integer index) {
-            this.index = index;
         }
     }
 }
