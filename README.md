@@ -9,7 +9,7 @@
 ------------------------
 Html2excel，是一个可直接使用Html table或者借助Freemarker、Groovy、Beetl等模板引擎生成Html table作为Excel模板，以生成任意复杂布局的Excel的工具包，支持.xls、.xlsx格式，支持对背景色、边框、字体等进行个性化设置，支持合并单元格。
 
-Html2excel is a toolkit for generating Html table as an Excel template to generate arbitrarily complex layouts with the help of template engines such as Freemarker, Groovy, Beetl, etc. Supports .xls, .xlsx formats, and supports personality for background colors, borders, fonts, etc. Settings, support for merging cells. 
+Html2excel, is a toolkit that can directly use Html table or generate Html table as an Excel template by using template engine such as Freemarker, Groovy, Beetl, etc. to generate arbitrary complex layout of excel, support .xls, .xlsx format, support background color, Borders, fonts, etc. are personalized and support for merging cells.
 
 优点 | Advantages
 -----------------
