@@ -146,7 +146,9 @@ public class DefaultExcelBuilder {
         List<Table> tableList = new ArrayList<>();
         tableList.add(this.createTable(contents));
         workbookType = Objects.nonNull(workbookType) ? workbookType : WorkbookType.XLSX;
-        return new HtmlToExcelFactory().rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).build(tableList);
+        HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
+        return htmlToExcelFactory.build(tableList);
     }
 
     /**

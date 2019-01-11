@@ -10,11 +10,15 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>1.3.1</version>
+    <version>1.4.0</version>
     <packaging>jar</packaging>
 
     <name>html2excel</name>
-    <description>A toolkit for generating excel of arbitrary complex layouts with Html table templates, supports .xls, .xlsx formats, supports personalization of background colors, borders, fonts, etc, and supports merged cells.</description>
+    <description>Html2excel, is a toolkit that can directly use Html files, or use the built-in Freemarker, Groovy,
+        Beetl and other template engine Excel builder to generate Html files, and use the Table in the Html file as an
+        Excel template to generate Excel of any complex layout. Supports .xls and .xlsx formats, supports
+        personalization of background colors, borders, fonts, etc., and supports merging of cells.
+    </description>
     <url>https://github.com/liaochong/html2excel</url>
 
     <properties>
