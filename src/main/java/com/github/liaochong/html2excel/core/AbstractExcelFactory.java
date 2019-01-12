@@ -52,7 +52,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 每行的单元格最大高度map
      */
-    protected Map<Integer, Short> maxTdHeightMap;
+    private Map<Integer, Short> maxTdHeightMap = new HashMap<>();
     /**
      * 是否使用默认样式
      */

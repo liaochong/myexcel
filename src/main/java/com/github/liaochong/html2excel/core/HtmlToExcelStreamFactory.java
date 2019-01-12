@@ -23,6 +23,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -46,6 +47,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private long startTime;
 
     private String sheetName = "Sheet";
+
+    private Map<Integer, Integer> colWidthMap;
 
     public HtmlToExcelStreamFactory(BlockingQueue<List<Tr>> trWaitQueue) {
         this.trWaitQueue = trWaitQueue;
@@ -93,6 +96,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             for (Tr tr : trList) {
                 this.createRow(tr, sheet);
             }
+            colWidthMap = this.getColMaxWidthMap(trList);
             trList = this.getTrListFromQueue();
         }
         log.info("End of reception");
@@ -117,6 +121,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        this.setColWidth(colWidthMap, sheet);
         this.freezePane(0, sheet);
         log.info("Build Excel success, takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;

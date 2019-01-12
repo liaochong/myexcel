@@ -25,7 +25,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.nio.file.NoSuchFileException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -143,7 +142,6 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
     private void setTdOfTable(Table table, Sheet sheet) {
-        maxTdHeightMap = new HashMap<>();
         Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             this.createRow(table.getTrList().get(i), sheet);
