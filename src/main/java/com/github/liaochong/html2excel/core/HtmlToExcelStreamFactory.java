@@ -30,11 +30,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * HtmlToExcelStreamFactory 流工厂
+ *
  * @author liaochong
  * @version 1.0
  */
 @Slf4j
 class HtmlToExcelStreamFactory extends AbstractExcelFactory {
+
+    public static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
     private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
 
@@ -50,16 +54,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private Map<Integer, Integer> colWidthMap;
 
-    public HtmlToExcelStreamFactory(BlockingQueue<List<Tr>> trWaitQueue) {
-        this.trWaitQueue = trWaitQueue;
-    }
+    private int rowNum;
 
     public HtmlToExcelStreamFactory(int waitSize) {
         this.trWaitQueue = new ArrayBlockingQueue<>(waitSize);
     }
 
     public void start(Table table) {
-        log.info("Start building excel");
+        log.info("Start streaming building excel");
         startTime = System.currentTimeMillis();
 
         if (Objects.isNull(this.workbook)) {
@@ -90,16 +92,24 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void receive() {
-        log.info("Start receiving");
         List<Tr> trList = this.getTrListFromQueue();
+        int appendSize = 0;
         while (trList != STOP_FLAG_LIST) {
+            log.info("Received data,size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
             for (Tr tr : trList) {
+                tr.setIndex(rowNum);
+                tr.getTdList().forEach(td -> {
+                    td.setRow(rowNum);
+                    td.setRowBound(rowNum);
+                });
+                rowNum++;
                 this.createRow(tr, sheet);
             }
+            appendSize++;
             colWidthMap = this.getColMaxWidthMap(trList);
             trList = this.getTrListFromQueue();
         }
-        log.info("End of reception");
+        log.info("End of reception,append size:{}", appendSize);
     }
 
     private List<Tr> getTrListFromQueue() {
@@ -121,9 +131,12 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        while (!trWaitQueue.isEmpty()) {
+            // wait all tr received
+        }
         this.setColWidth(colWidthMap, sheet);
         this.freezePane(0, sheet);
-        log.info("Build Excel success, takes {} ms", System.currentTimeMillis() - startTime);
+        log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }
 }

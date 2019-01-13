@@ -79,6 +79,14 @@ public class DefaultExcelBuilder {
      * 内存数据保有量
      */
     private int rowAccessWindowSize;
+    /**
+     * 流工厂
+     */
+    private HtmlToExcelStreamFactory htmlToExcelStreamFactory;
+    /**
+     * 已排序字段
+     */
+    private List<Field> sortedFields;
 
     private DefaultExcelBuilder() {
     }
@@ -149,6 +157,44 @@ public class DefaultExcelBuilder {
         HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
         return htmlToExcelFactory.build(tableList);
+    }
+
+    public void startStreamBuild(Class<?> clazz) {
+        this.startStreamBuild(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
+    }
+
+    public void startStreamBuild(Class<?> clazz, int waitQueueSize) {
+        Objects.requireNonNull(clazz);
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize);
+
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
+        sortedFields = getSortedFieldsAndSetting(classFieldContainer);
+
+        Table table = new Table();
+        table.setCaption(sheetName);
+
+        htmlToExcelStreamFactory.start(table);
+
+        Tr head = this.getThead();
+        if (Objects.isNull(head)) {
+            return;
+        }
+        List<Tr> headList = new ArrayList<>();
+        headList.add(head);
+        htmlToExcelStreamFactory.append(headList);
+    }
+
+    public void append(List<?> data) {
+        if (Objects.isNull(data) || data.isEmpty()) {
+            return;
+        }
+        List<List<Object>> contents = getRenderContent(data, sortedFields);
+        List<Tr> trList = this.getTbody(0, contents);
+        htmlToExcelStreamFactory.append(trList);
+    }
+
+    public Workbook streamBuild() {
+        return htmlToExcelStreamFactory.build();
     }
 
     /**
@@ -357,23 +403,66 @@ public class DefaultExcelBuilder {
 
         table.setTrList(new ArrayList<>());
 
+        Tr thead = this.getThead();
+        boolean hasTitles = Objects.nonNull(thead);
+        if (hasTitles) {
+            table.getTrList().add(thead);
+        }
+        List<Tr> contentTrList = this.getTbody(hasTitles ? 1 : 0, contents);
+        table.getTrList().addAll(contentTrList);
+        return table;
+    }
+
+    /**
+     * 获取thead
+     *
+     * @return tr
+     */
+    private Tr getThead() {
+        boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
+        if (!hasTitles) {
+            return null;
+        }
+        Map<String, String> thStyle = new HashMap<>();
+        thStyle.put("font-weight", "bold");
+        thStyle.put("font-size", "14");
+        thStyle.put("text-align", "center");
+        thStyle.put("vertical-align", "center");
+        thStyle.put("border-bottom-style", "thin");
+        thStyle.put("border-left-style", "thin");
+        thStyle.put("border-right-style", "thin");
+
+        Tr tr = new Tr(0);
+        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
+        tr.setColWidthMap(colMaxWidthMap);
+
+        List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
+            Td td = new Td();
+            td.setTh(true);
+            td.setRow(0);
+            td.setRowBound(0);
+            td.setCol(index);
+            td.setColBound(index);
+            td.setContent(titles.get(index));
+            td.setStyle(thStyle);
+            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent()));
+            return td;
+        }).collect(Collectors.toList());
+        tr.setTdList(ths);
+        return tr;
+    }
+
+
+    private List<Tr> getTbody(int shift, List<List<Object>> contents) {
         Map<String, String> commonStyle = new HashMap<>();
         commonStyle.put("border-bottom-style", "thin");
         commonStyle.put("border-left-style", "thin");
         commonStyle.put("border-right-style", "thin");
 
-        boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
-        if (hasTitles) {
-            Tr tr = getThead(commonStyle);
-            table.getTrList().add(tr);
-        }
-
         Map<String, String> oddTdStyle = new HashMap<>(commonStyle);
         oddTdStyle.put("background-color", "#f6f8fa");
-
         // 偏移量
-        int shift = hasTitles ? 1 : 0;
-        List<Tr> contentTrList = IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
+        return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Object> dataList = contents.get(index);
@@ -395,43 +484,6 @@ public class DefaultExcelBuilder {
             contents.set(index, null);
             return tr;
         }).collect(Collectors.toList());
-
-        table.getTrList().addAll(contentTrList);
-        return table;
-    }
-
-    /**
-     * 获取thead
-     *
-     * @param commonStyle 公共style
-     * @return tr
-     */
-    private Tr getThead(Map<String, String> commonStyle) {
-        Tr tr = new Tr(0);
-        Map<String, String> thStyle = new HashMap<>();
-        thStyle.put("font-weight", "bold");
-        thStyle.put("font-size", "14");
-        thStyle.put("text-align", "center");
-        thStyle.put("vertical-align", "center");
-        thStyle.putAll(commonStyle);
-
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
-        tr.setColWidthMap(colMaxWidthMap);
-
-        List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
-            Td td = new Td();
-            td.setTh(true);
-            td.setRow(0);
-            td.setRowBound(0);
-            td.setCol(index);
-            td.setColBound(index);
-            td.setContent(titles.get(index));
-            td.setStyle(thStyle);
-            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent()));
-            return td;
-        }).collect(Collectors.toList());
-        tr.setTdList(ths);
-        return tr;
     }
 
 }
