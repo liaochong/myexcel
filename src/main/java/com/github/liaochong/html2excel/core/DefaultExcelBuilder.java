@@ -59,6 +59,8 @@ public class DefaultExcelBuilder {
 
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new DefaultCache<>();
 
+    private static final Map<String, String> COMMON_STYLE = new HashMap<>();
+
     /**
      * 标题
      */
@@ -87,6 +89,12 @@ public class DefaultExcelBuilder {
      * 已排序字段
      */
     private List<Field> sortedFields;
+
+    static {
+        COMMON_STYLE.put("border-bottom-style", "thin");
+        COMMON_STYLE.put("border-left-style", "thin");
+        COMMON_STYLE.put("border-right-style", "thin");
+    }
 
     private DefaultExcelBuilder() {
     }
@@ -454,12 +462,7 @@ public class DefaultExcelBuilder {
 
 
     private List<Tr> getTbody(int shift, List<List<Object>> contents) {
-        Map<String, String> commonStyle = new HashMap<>();
-        commonStyle.put("border-bottom-style", "thin");
-        commonStyle.put("border-left-style", "thin");
-        commonStyle.put("border-right-style", "thin");
-
-        Map<String, String> oddTdStyle = new HashMap<>(commonStyle);
+        Map<String, String> oddTdStyle = new HashMap<>(COMMON_STYLE);
         oddTdStyle.put("background-color", "#f6f8fa");
         // 偏移量
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
@@ -468,7 +471,7 @@ public class DefaultExcelBuilder {
             List<Object> dataList = contents.get(index);
             Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
             tr.setColWidthMap(colMaxWidthMap);
-            Map<String, String> tdStyle = tr.getIndex() % 2 == 0 ? commonStyle : oddTdStyle;
+            Map<String, String> tdStyle = tr.getIndex() % 2 == 0 ? COMMON_STYLE : oddTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
