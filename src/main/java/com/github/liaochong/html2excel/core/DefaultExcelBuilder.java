@@ -167,11 +167,12 @@ public class DefaultExcelBuilder {
         return htmlToExcelFactory.build(tableList);
     }
 
-    public void startStreamBuild(Class<?> clazz) {
+    public DefaultExcelBuilder startStreamBuild(Class<?> clazz) {
         this.startStreamBuild(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
+        return this;
     }
 
-    public void startStreamBuild(Class<?> clazz, int waitQueueSize) {
+    public DefaultExcelBuilder startStreamBuild(Class<?> clazz, int waitQueueSize) {
         Objects.requireNonNull(clazz);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize);
 
@@ -185,11 +186,12 @@ public class DefaultExcelBuilder {
 
         Tr head = this.getThead();
         if (Objects.isNull(head)) {
-            return;
+            return this;
         }
         List<Tr> headList = new ArrayList<>();
         headList.add(head);
         htmlToExcelStreamFactory.append(headList);
+        return this;
     }
 
     public void append(List<?> data) {

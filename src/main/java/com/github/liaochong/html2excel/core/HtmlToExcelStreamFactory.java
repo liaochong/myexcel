@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,8 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
+    private static final int MAX_ROW_COUNT = 1048576;
+
     public static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
     private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
@@ -48,6 +51,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private boolean stop;
 
+    private boolean exception;
+
     private long startTime;
 
     private String sheetName = "Sheet";
@@ -55,6 +60,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private Map<Integer, Integer> colWidthMap;
 
     private int rowNum;
+
+    private int sheetNum;
 
     public HtmlToExcelStreamFactory(int waitSize) {
         this.trWaitQueue = new ArrayBlockingQueue<>(waitSize);
@@ -77,7 +84,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     public void append(List<Tr> trList) {
-        if (stop) {
+        if (stop || exception) {
+            log.error("Received a termination command,may be active stop or an exception");
             throw new UnsupportedOperationException("Received a termination command");
         }
         if (Objects.isNull(trList) || trList.isEmpty()) {
@@ -94,22 +102,40 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private void receive() {
         List<Tr> trList = this.getTrListFromQueue();
         int appendSize = 0;
-        while (trList != STOP_FLAG_LIST) {
-            log.info("Received data,size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
-            for (Tr tr : trList) {
-                tr.setIndex(rowNum);
-                tr.getTdList().forEach(td -> {
-                    td.setRow(rowNum);
-                    td.setRowBound(rowNum);
-                });
-                rowNum++;
-                this.createRow(tr, sheet);
+        try {
+            while (trList != STOP_FLAG_LIST) {
+                log.info("Received data,size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
+
+                for (Tr tr : trList) {
+                    if (rowNum == MAX_ROW_COUNT) {
+                        sheetNum++;
+                        sheet = workbook.createSheet(sheetName + " " + sheetNum);
+                        rowNum = 0;
+                    }
+                    tr.setIndex(rowNum);
+                    tr.getTdList().forEach(td -> {
+                        td.setRow(rowNum);
+                        td.setRowBound(rowNum);
+                    });
+                    rowNum++;
+                    this.createRow(tr, sheet);
+                }
+                appendSize++;
+                colWidthMap = this.getColMaxWidthMap(trList);
+                trList = this.getTrListFromQueue();
             }
-            appendSize++;
-            colWidthMap = this.getColMaxWidthMap(trList);
-            trList = this.getTrListFromQueue();
+            log.info("End of reception,append size:{}", appendSize);
+        } catch (Exception e) {
+            log.error("An exception occurred while processing", e);
+            exception = true;
+            try {
+                workbook.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            trWaitQueue.clear();
+            trWaitQueue = null;
         }
-        log.info("End of reception,append size:{}", appendSize);
     }
 
     private List<Tr> getTrListFromQueue() {
@@ -122,6 +148,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     @Override
     public Workbook build() {
+        if (exception) {
+            throw new IllegalStateException("An exception occurred while processing");
+        }
         this.stop = true;
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
