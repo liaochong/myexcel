@@ -41,7 +41,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private static final int MAX_ROW_COUNT = 1048576;
 
-    public static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
+    protected static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
     private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
 
@@ -84,8 +84,12 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     public void append(List<Tr> trList) {
-        if (stop || exception) {
-            log.error("Received a termination command,may be active stop or an exception");
+        if (exception) {
+            log.error("Received a termination command,an exception occurred while processing");
+            throw new UnsupportedOperationException("Received a termination command");
+        }
+        if (stop) {
+            log.error("Received a termination command,the build method has been called");
             throw new UnsupportedOperationException("Received a termination command");
         }
         if (Objects.isNull(trList) || trList.isEmpty()) {
@@ -104,8 +108,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         int appendSize = 0;
         try {
             while (trList != STOP_FLAG_LIST) {
-                log.info("Received data,size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
-
+                log.info("Received data size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
                 for (Tr tr : trList) {
                     if (rowNum == MAX_ROW_COUNT) {
                         sheetNum++;
