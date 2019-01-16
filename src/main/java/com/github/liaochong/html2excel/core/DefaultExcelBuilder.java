@@ -59,8 +59,14 @@ public class DefaultExcelBuilder {
 
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new DefaultCache<>();
 
-    private static final Map<String, String> COMMON_STYLE = new HashMap<>();
-
+    /**
+     * 一般单元格样式
+     */
+    private Map<String, String> commonTdStyle;
+    /**
+     * 奇数行单元格样式
+     */
+    private Map<String, String> oddTdStyle;
     /**
      * 标题
      */
@@ -90,29 +96,46 @@ public class DefaultExcelBuilder {
      */
     private List<Field> sortedFields;
 
-    static {
-        COMMON_STYLE.put("border-bottom-style", "thin");
-        COMMON_STYLE.put("border-left-style", "thin");
-        COMMON_STYLE.put("border-right-style", "thin");
-    }
-
     private DefaultExcelBuilder() {
     }
 
+    /**
+     * 获取实例
+     *
+     * @return DefaultExcelBuilder
+     */
     public static DefaultExcelBuilder getInstance() {
         return new DefaultExcelBuilder();
     }
 
+    /**
+     * 标题设置
+     *
+     * @param titles 标题集合
+     * @return DefaultExcelBuilder
+     */
     public DefaultExcelBuilder titles(List<String> titles) {
         this.titles = titles;
         return this;
     }
 
+    /**
+     * 设置sheet名称
+     *
+     * @param sheetName sheet名称
+     * @return DefaultExcelBuilder
+     */
     public DefaultExcelBuilder sheetName(String sheetName) {
         this.sheetName = Objects.isNull(sheetName) ? "sheet" : sheetName;
         return this;
     }
 
+    /**
+     * 设置字段的展示顺序
+     *
+     * @param fieldDisplayOrder 展示的字段集合
+     * @return DefaultExcelBuilder
+     */
     public DefaultExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
@@ -140,6 +163,12 @@ public class DefaultExcelBuilder {
         return this;
     }
 
+    /**
+     * 根据指定的数据集合构建，需指明数据集合数据的类类型，使用该方法，如设定了标题但无数据，则标题行也不展示
+     *
+     * @param data 数据列表
+     * @return Workbook
+     */
     public Workbook build(List<?> data) {
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
@@ -159,32 +188,93 @@ public class DefaultExcelBuilder {
         }
         List<List<Object>> contents = getRenderContent(data, sortedFields);
 
+        this.initStyleMap();
+
+        Table table = this.createTable();
+        Tr thead = this.createThead();
+        List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
+        if (Objects.nonNull(thead)) {
+            table.getTrList().add(thead);
+        }
+        table.getTrList().addAll(tbody);
+
         List<Table> tableList = new ArrayList<>();
-        tableList.add(this.createTable(contents));
+        tableList.add(table);
+
         workbookType = Objects.nonNull(workbookType) ? workbookType : WorkbookType.XLSX;
         HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
         return htmlToExcelFactory.build(tableList);
     }
 
-    public DefaultExcelBuilder startStreamBuild(Class<?> clazz) {
-        this.startStreamBuild(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
+    /**
+     * 根据指定的数据集合构建，需指明数据集合数据的类类型，使用该方法，可以存在标题行而无数据
+     *
+     * @param data  数据列表
+     * @param clazz 数据的类类型
+     * @return Workbook
+     */
+    public Workbook build(List<?> data, Class<?> clazz) {
+        Objects.requireNonNull(clazz);
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
+        List<Field> sortedFields = getSortedFieldsAndSetting(classFieldContainer);
+
+        if (sortedFields.isEmpty()) {
+            log.info("The specified field mapping does not exist");
+            return new HtmlToExcelFactory().build(Collections.emptyList());
+        }
+
+        Table table = this.createTable();
+        Tr thead = this.createThead();
+        if (Objects.nonNull(thead)) {
+            table.getTrList().add(thead);
+        }
+        List<Table> tableList = new ArrayList<>();
+        tableList.add(table);
+
+        if (Objects.isNull(data) || data.isEmpty()) {
+            log.info("No valid data exists");
+            return new HtmlToExcelFactory().build(tableList);
+        }
+
+        this.initStyleMap();
+
+        List<List<Object>> contents = getRenderContent(data, sortedFields);
+        List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
+        table.getTrList().addAll(tbody);
+        return new HtmlToExcelFactory().build(tableList);
+    }
+
+    /**
+     * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
+     *
+     * @param clazz 列表数据类型
+     * @return DefaultExcelBuilder
+     */
+    public DefaultExcelBuilder startBuild(Class<?> clazz) {
+        this.startBuild(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
         return this;
     }
 
-    public DefaultExcelBuilder startStreamBuild(Class<?> clazz, int waitQueueSize) {
+    /**
+     * 流式构建启动，包含一些初始化操作
+     *
+     * @param clazz         列表数据类型
+     * @param waitQueueSize 等待队列容量
+     * @return DefaultExcelBuilder
+     */
+    public DefaultExcelBuilder startBuild(Class<?> clazz, int waitQueueSize) {
         Objects.requireNonNull(clazz);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
         sortedFields = getSortedFieldsAndSetting(classFieldContainer);
 
-        Table table = new Table();
-        table.setCaption(sheetName);
-
+        this.initStyleMap();
+        Table table = this.createTable();
         htmlToExcelStreamFactory.start(table);
 
-        Tr head = this.getThead();
+        Tr head = this.createThead();
         if (Objects.isNull(head)) {
             return this;
         }
@@ -194,16 +284,21 @@ public class DefaultExcelBuilder {
         return this;
     }
 
+    /**
+     * 数据追加
+     *
+     * @param data 需要追加的数据
+     */
     public void append(List<?> data) {
         if (Objects.isNull(data) || data.isEmpty()) {
             return;
         }
         List<List<Object>> contents = getRenderContent(data, sortedFields);
-        List<Tr> trList = this.getTbody(0, contents);
+        List<Tr> trList = this.createTbody(contents, 0);
         htmlToExcelStreamFactory.append(trList);
     }
 
-    public Workbook streamBuild() {
+    public Workbook build() {
         return htmlToExcelStreamFactory.build();
     }
 
@@ -402,33 +497,23 @@ public class DefaultExcelBuilder {
     }
 
     /**
-     * 获取table
+     * 创建table
      *
-     * @param contents 渲染内容
      * @return table
      */
-    private Table createTable(List<List<Object>> contents) {
+    private Table createTable() {
         Table table = new Table();
         table.setCaption(sheetName);
-
         table.setTrList(new ArrayList<>());
-
-        Tr thead = this.getThead();
-        boolean hasTitles = Objects.nonNull(thead);
-        if (hasTitles) {
-            table.getTrList().add(thead);
-        }
-        List<Tr> contentTrList = this.getTbody(hasTitles ? 1 : 0, contents);
-        table.getTrList().addAll(contentTrList);
         return table;
     }
 
     /**
-     * 获取thead
+     * 创建标题行
      *
-     * @return tr
+     * @return 标题行
      */
-    private Tr getThead() {
+    private Tr createThead() {
         boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
         if (!hasTitles) {
             return null;
@@ -462,18 +547,21 @@ public class DefaultExcelBuilder {
         return tr;
     }
 
-
-    private List<Tr> getTbody(int shift, List<List<Object>> contents) {
-        Map<String, String> oddTdStyle = new HashMap<>(COMMON_STYLE);
-        oddTdStyle.put("background-color", "#f6f8fa");
-        // 偏移量
+    /**
+     * 创建内容行
+     *
+     * @param contents 内容集合
+     * @param shift    行序号偏移量
+     * @return 内容行集合
+     */
+    private List<Tr> createTbody(List<List<Object>> contents, int shift) {
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Object> dataList = contents.get(index);
             Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
             tr.setColWidthMap(colMaxWidthMap);
-            Map<String, String> tdStyle = tr.getIndex() % 2 == 0 ? COMMON_STYLE : oddTdStyle;
+            Map<String, String> tdStyle = tr.getIndex() % 2 == 0 ? commonTdStyle : oddTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
@@ -491,4 +579,17 @@ public class DefaultExcelBuilder {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 初始化单元格样式
+     */
+    private void initStyleMap() {
+        commonTdStyle = new HashMap<>(3);
+        commonTdStyle.put("border-bottom-style", "thin");
+        commonTdStyle.put("border-left-style", "thin");
+        commonTdStyle.put("border-right-style", "thin");
+
+        oddTdStyle = new HashMap<>(4);
+        oddTdStyle.put("background-color", "#f6f8fa");
+        oddTdStyle.putAll(commonTdStyle);
+    }
 }
