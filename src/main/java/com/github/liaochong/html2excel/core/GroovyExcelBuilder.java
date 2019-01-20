@@ -17,13 +17,16 @@ package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.io.TempFileOperator;
 import com.github.liaochong.html2excel.exception.ExcelBuildException;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateExceptionHandler;
-import org.apache.commons.codec.CharEncoding;
+import groovy.lang.Writable;
+import groovy.text.Template;
+import groovy.text.markup.MarkupTemplateEngine;
+import groovy.text.markup.TemplateConfiguration;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,48 +35,33 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * freemarker的excel创建者
- *
  * @author liaochong
  * @version 1.0
  */
-public class FreemarkerAbstractExcelBuilder extends AbstractExcelBuilder {
+public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
-    /**
-     * 设置模板信息
-     *
-     * @param path 模板路径，相对路径
-     */
     @Override
     public ExcelBuilder template(String path) {
-        try {
-            Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
-            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-            cfg.setDefaultEncoding(CharEncoding.UTF_8);
-
-            String[] filePath = this.splitFilePath(path);
-            cfg.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), filePath[0]);
-            template = cfg.getTemplate(filePath[1]);
+        TemplateConfiguration config = new TemplateConfiguration();
+        MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+             Reader reader = new InputStreamReader(is)) {
+            template = engine.createTemplate(reader);
             return this;
-        } catch (IOException e) {
-            throw ExcelBuildException.of("Failed to get freemarker template", e);
+        } catch (ClassNotFoundException | IOException e) {
+            throw ExcelBuildException.of("Failed to get groovy template", e);
         }
     }
 
-    /**
-     * 构建
-     *
-     * @param data 模板参数
-     * @return Workbook
-     */
     @Override
-    public Workbook build(Map<String, Object> data) {
+    public Workbook build(Map<String, Object> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        Path htmlFile = tempFileOperator.createTempFile("freemarker_temp_", TempFileOperator.HTML_SUFFIX);
+        Path htmlFile = tempFileOperator.createTempFile("groovy_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
-            template.process(data, out);
+            Writable output = template.make(renderData);
+            output.writeTo(out);
             return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to build excel", e);
@@ -81,5 +69,4 @@ public class FreemarkerAbstractExcelBuilder extends AbstractExcelBuilder {
             tempFileOperator.deleteTempFile();
         }
     }
-
 }

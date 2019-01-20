@@ -38,7 +38,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class BeetlAbstractExcelBuilder extends AbstractExcelBuilder {
+public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
