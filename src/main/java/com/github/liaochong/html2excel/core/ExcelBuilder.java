@@ -15,25 +15,17 @@
  */
 package com.github.liaochong.html2excel.core;
 
-import com.github.liaochong.html2excel.core.io.TempFileOperator;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
- * excel创建者接口
+ * excel构建器
  *
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
-public abstract class ExcelBuilder {
-
-    protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
-
-    protected TempFileOperator tempFileOperator = new TempFileOperator();
+public interface ExcelBuilder {
 
     /**
      * excel类型
@@ -41,10 +33,7 @@ public abstract class ExcelBuilder {
      * @param workbookType workbookType
      * @return ExcelBuilder
      */
-    public ExcelBuilder workbookType(WorkbookType workbookType) {
-        htmlToExcelFactory.workbookType(workbookType);
-        return this;
-    }
+    ExcelBuilder workbookType(WorkbookType workbookType);
 
     /**
      * 设置workbookType为SXSSFWorkbook的内存数据保有量
@@ -52,42 +41,30 @@ public abstract class ExcelBuilder {
      * @param rowAccessWindowSize 内存数据保有量
      * @return ExcelBuilder
      */
-    public ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize);
-        return this;
-    }
+    ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize);
 
     /**
      * 使用默认样式
      *
      * @return ExcelBuilder
      */
-    public ExcelBuilder useDefaultStyle() {
-        htmlToExcelFactory.useDefaultStyle();
-        return this;
-    }
+    ExcelBuilder useDefaultStyle();
 
     /**
      * 选择固定区域
      *
      * @param freezePanes 固定区域
-     * @return ExcelBuilder
+     * @return AbstractExcelBuilder
      */
-    public ExcelBuilder freezePanes(FreezePane... freezePanes) {
-        if (Objects.isNull(freezePanes) || freezePanes.length == 0) {
-            return this;
-        }
-        htmlToExcelFactory.freezePanes(freezePanes);
-        return this;
-    }
+    ExcelBuilder freezePanes(FreezePane... freezePanes);
 
     /**
      * 设置模板
      *
      * @param path 模板路径
-     * @return ExcelBuilder
+     * @return AbstractExcelBuilder
      */
-    public abstract ExcelBuilder template(String path);
+    ExcelBuilder template(String path);
 
     /**
      * 构建
@@ -95,25 +72,5 @@ public abstract class ExcelBuilder {
      * @param renderData 渲染数据
      * @return Workbook
      */
-    public abstract Workbook build(Map<String, Object> renderData);
-
-    /**
-     * 分离文件路径
-     *
-     * @param path 文件路径
-     * @return String[]
-     */
-    String[] splitFilePath(String path) {
-        if (Objects.isNull(path)) {
-            throw new NullPointerException();
-        }
-        int lastPackageIndex = path.lastIndexOf("/");
-        if (lastPackageIndex == -1 || lastPackageIndex == path.length() - 1) {
-            throw new IllegalArgumentException();
-        }
-        String basePackagePath = path.substring(0, lastPackageIndex);
-        String templateName = path.substring(lastPackageIndex);
-        return new String[]{basePackagePath, templateName};
-    }
-
+    Workbook build(Map<String, Object> renderData);
 }

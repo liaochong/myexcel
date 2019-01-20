@@ -55,7 +55,7 @@ import java.util.stream.IntStream;
  * @version 1.0
  */
 @Slf4j
-public class DefaultExcelBuilder {
+public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExcelBuilder {
 
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new DefaultCache<>();
 
@@ -108,67 +108,37 @@ public class DefaultExcelBuilder {
         return new DefaultExcelBuilder();
     }
 
-    /**
-     * 标题设置
-     *
-     * @param titles 标题集合
-     * @return DefaultExcelBuilder
-     */
+    @Override
     public DefaultExcelBuilder titles(List<String> titles) {
         this.titles = titles;
         return this;
     }
 
-    /**
-     * 设置sheet名称
-     *
-     * @param sheetName sheet名称
-     * @return DefaultExcelBuilder
-     */
+    @Override
     public DefaultExcelBuilder sheetName(String sheetName) {
         this.sheetName = Objects.isNull(sheetName) ? "sheet" : sheetName;
         return this;
     }
 
-    /**
-     * 设置字段的展示顺序
-     *
-     * @param fieldDisplayOrder 展示的字段集合
-     * @return DefaultExcelBuilder
-     */
+    @Override
     public DefaultExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
-    /**
-     * 设置workbookType为SXSSFWorkbook的内存数据保有量
-     *
-     * @param rowAccessWindowSize 内存数据保有量
-     * @return HtmlToExcelFactory
-     */
+    @Override
     public DefaultExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
         this.rowAccessWindowSize = rowAccessWindowSize;
         return this;
     }
 
-    /**
-     * 设置workbook类型
-     *
-     * @param workbookType 工作簿类型
-     * @return HtmlToExcelFactory
-     */
+    @Override
     public DefaultExcelBuilder workbookType(WorkbookType workbookType) {
         this.workbookType = workbookType;
         return this;
     }
 
-    /**
-     * 根据指定的数据集合构建，需指明数据集合数据的类类型，使用该方法，如设定了标题但无数据，则标题行也不展示
-     *
-     * @param data 数据列表
-     * @return Workbook
-     */
+    @Override
     public Workbook build(List<?> data) {
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
@@ -270,19 +240,13 @@ public class DefaultExcelBuilder {
      * @param clazz 列表数据类型
      * @return DefaultExcelBuilder
      */
-    public DefaultExcelBuilder startBuild(Class<?> clazz) {
-        this.startBuild(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
+    public DefaultExcelBuilder start(Class<?> clazz) {
+        this.start(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
         return this;
     }
 
-    /**
-     * 流式构建启动，包含一些初始化操作
-     *
-     * @param clazz         列表数据类型
-     * @param waitQueueSize 等待队列容量
-     * @return DefaultExcelBuilder
-     */
-    public DefaultExcelBuilder startBuild(Class<?> clazz, int waitQueueSize) {
+    @Override
+    public DefaultExcelBuilder start(Class<?> clazz, int waitQueueSize) {
         Objects.requireNonNull(clazz);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize);
 
@@ -303,11 +267,7 @@ public class DefaultExcelBuilder {
         return this;
     }
 
-    /**
-     * 数据追加
-     *
-     * @param data 需要追加的数据
-     */
+    @Override
     public void append(List<?> data) {
         if (Objects.isNull(data) || data.isEmpty()) {
             return;
@@ -317,6 +277,7 @@ public class DefaultExcelBuilder {
         htmlToExcelStreamFactory.append(trList);
     }
 
+    @Override
     public Workbook build() {
         return htmlToExcelStreamFactory.build();
     }

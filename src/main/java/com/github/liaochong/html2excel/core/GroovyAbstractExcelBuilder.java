@@ -38,7 +38,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class GroovyExcelBuilder extends ExcelBuilder {
+public class GroovyAbstractExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 

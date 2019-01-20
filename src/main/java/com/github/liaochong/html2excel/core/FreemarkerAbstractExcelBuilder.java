@@ -17,12 +17,11 @@ package com.github.liaochong.html2excel.core;
 
 import com.github.liaochong.html2excel.core.io.TempFileOperator;
 import com.github.liaochong.html2excel.exception.ExcelBuildException;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.beetl.core.Configuration;
-import org.beetl.core.GroupTemplate;
-import org.beetl.core.Template;
-import org.beetl.core.resource.ClasspathResourceLoader;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -33,37 +32,48 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * beetl excel创建者
+ * freemarker的excel创建者
  *
  * @author liaochong
  * @version 1.0
  */
-public class BeetlExcelBuilder extends ExcelBuilder {
+public class FreemarkerAbstractExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
+    /**
+     * 设置模板信息
+     *
+     * @param path 模板路径，相对路径
+     */
     @Override
     public ExcelBuilder template(String path) {
         try {
+            Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            cfg.setDefaultEncoding(CharEncoding.UTF_8);
+
             String[] filePath = this.splitFilePath(path);
-            ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader(filePath[0]);
-            Configuration cfg = Configuration.defaultConfiguration();
-            cfg.setCharset(CharEncoding.UTF_8);
-            GroupTemplate gt = new GroupTemplate(resourceLoader, cfg);
-            template = gt.getTemplate(filePath[1]);
+            cfg.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), filePath[0]);
+            template = cfg.getTemplate(filePath[1]);
             return this;
         } catch (IOException e) {
-            throw ExcelBuildException.of("Failed to get beetl template", e);
+            throw ExcelBuildException.of("Failed to get freemarker template", e);
         }
     }
 
+    /**
+     * 构建
+     *
+     * @param data 模板参数
+     * @return Workbook
+     */
     @Override
-    public Workbook build(Map<String, Object> renderData) {
+    public Workbook build(Map<String, Object> data) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        Path htmlFile = tempFileOperator.createTempFile("beetl_temp_", TempFileOperator.HTML_SUFFIX);
+        Path htmlFile = tempFileOperator.createTempFile("freemarker_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
-            template.binding(renderData);
-            template.renderTo(out);
+            template.process(data, out);
             return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to build excel", e);
@@ -71,4 +81,5 @@ public class BeetlExcelBuilder extends ExcelBuilder {
             tempFileOperator.deleteTempFile();
         }
     }
+
 }
