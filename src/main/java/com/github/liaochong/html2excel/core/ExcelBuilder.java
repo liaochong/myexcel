@@ -54,7 +54,7 @@ public interface ExcelBuilder {
      * 选择固定区域
      *
      * @param freezePanes 固定区域
-     * @return AbstractExcelBuilder
+     * @return ExcelBuilder
      */
     ExcelBuilder freezePanes(FreezePane... freezePanes);
 
@@ -62,7 +62,7 @@ public interface ExcelBuilder {
      * 设置模板
      *
      * @param path 模板路径
-     * @return AbstractExcelBuilder
+     * @return ExcelBuilder
      */
     ExcelBuilder template(String path);
 
