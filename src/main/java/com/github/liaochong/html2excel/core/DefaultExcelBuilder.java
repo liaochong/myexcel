@@ -172,19 +172,22 @@ public class DefaultExcelBuilder {
     public Workbook build(List<?> data) {
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
-            return new HtmlToExcelFactory().build(Collections.emptyList());
+            List<Table> tableList = this.getTableWithHeader();
+            return new HtmlToExcelFactory().build(tableList);
         }
         Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
         if (!findResult.isPresent()) {
             log.info("No valid data exists");
-            return new HtmlToExcelFactory().build(Collections.emptyList());
+            List<Table> tableList = this.getTableWithHeader();
+            return new HtmlToExcelFactory().build(tableList);
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = getSortedFieldsAndSetting(classFieldContainer);
+        List<Field> sortedFields = getSortedFields(classFieldContainer);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
-            return new HtmlToExcelFactory().build(Collections.emptyList());
+            List<Table> tableList = this.getTableWithHeader();
+            return new HtmlToExcelFactory().build(tableList);
         }
         List<List<Object>> contents = getRenderContent(data, sortedFields);
 
@@ -192,10 +195,10 @@ public class DefaultExcelBuilder {
 
         Table table = this.createTable();
         Tr thead = this.createThead();
-        List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
         if (Objects.nonNull(thead)) {
             table.getTrList().add(thead);
         }
+        List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
         table.getTrList().addAll(tbody);
 
         List<Table> tableList = new ArrayList<>();
@@ -217,7 +220,7 @@ public class DefaultExcelBuilder {
     public Workbook build(List<?> data, Class<?> clazz) {
         Objects.requireNonNull(clazz);
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-        List<Field> sortedFields = getSortedFieldsAndSetting(classFieldContainer);
+        List<Field> sortedFields = getSortedFields(classFieldContainer);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
@@ -246,6 +249,22 @@ public class DefaultExcelBuilder {
     }
 
     /**
+     * 获取只有head的table
+     *
+     * @return table集合
+     */
+    private List<Table> getTableWithHeader() {
+        List<Table> tableList = new ArrayList<>();
+        Table table = this.createTable();
+        tableList.add(table);
+        Tr thead = this.createThead();
+        if (Objects.nonNull(thead)) {
+            table.getTrList().add(thead);
+        }
+        return tableList;
+    }
+
+    /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
      * @param clazz 列表数据类型
@@ -268,7 +287,7 @@ public class DefaultExcelBuilder {
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-        sortedFields = getSortedFieldsAndSetting(classFieldContainer);
+        sortedFields = getSortedFields(classFieldContainer);
 
         this.initStyleMap();
         Table table = this.createTable();
@@ -308,7 +327,7 @@ public class DefaultExcelBuilder {
      * @param classFieldContainer classFieldContainer
      * @return Field
      */
-    private List<Field> getSortedFieldsAndSetting(ClassFieldContainer classFieldContainer) {
+    private List<Field> getSortedFields(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
 
         boolean excludeParent = false;

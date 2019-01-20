@@ -108,7 +108,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @param tables tables
      * @return Workbook
      */
-    public Workbook build(List<Table> tables) {
+    Workbook build(List<Table> tables) {
         if (Objects.isNull(tables) || tables.isEmpty()) {
             log.warn("There is no any table exist");
             return emptyWorkbook();
