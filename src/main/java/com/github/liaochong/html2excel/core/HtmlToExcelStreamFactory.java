@@ -41,7 +41,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private static final int MAX_ROW_COUNT = 1048576;
 
-    protected static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
+    static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
     private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
 

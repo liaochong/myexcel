@@ -25,32 +25,7 @@ import java.util.List;
  * @author liaochong
  * @version 1.0
  */
-interface SimpleStreamExcelBuilder extends ExcelBuilder {
-
-    /**
-     * 设置sheet名称
-     *
-     * @param sheetName sheet名称
-     * @return DefaultExcelBuilder
-     */
-    SimpleExcelBuilder sheetName(String sheetName);
-
-    /**
-     * 标题设置
-     *
-     * @param titles 标题集合
-     * @return DefaultExcelBuilder
-     */
-    SimpleExcelBuilder titles(List<String> titles);
-
-    /**
-     * 设置字段的展示顺序
-     *
-     * @param fieldDisplayOrder 展示的字段集合
-     * @return DefaultExcelBuilder
-     */
-    SimpleExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder);
-
+interface SimpleStreamExcelBuilder {
     /**
      * 流式构建启动，包含一些初始化操作
      *
