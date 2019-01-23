@@ -18,6 +18,7 @@ package com.github.liaochong.html2excel.core;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * 简单的流式excel构建器
@@ -26,12 +27,21 @@ import java.util.List;
  * @version 1.0
  */
 interface SimpleStreamExcelBuilder {
+
+    /**
+     * 线程池设置
+     *
+     * @param executorService 线程池
+     * @return SimpleStreamExcelBuilder
+     */
+    SimpleStreamExcelBuilder threadPool(ExecutorService executorService);
+
     /**
      * 流式构建启动，包含一些初始化操作
      *
      * @param clazz         列表数据类型
      * @param waitQueueSize 等待队列容量
-     * @return StreamExcelBuilder
+     * @return SimpleStreamExcelBuilder
      */
     SimpleStreamExcelBuilder start(Class<?> clazz, int waitQueueSize);
 

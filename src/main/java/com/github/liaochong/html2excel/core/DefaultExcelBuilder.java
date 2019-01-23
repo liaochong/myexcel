@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -95,6 +96,10 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
      * 已排序字段
      */
     private List<Field> sortedFields;
+    /**
+     * 线程池
+     */
+    private ExecutorService executorService;
 
     private DefaultExcelBuilder() {
     }
@@ -234,6 +239,12 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
         return tableList;
     }
 
+    @Override
+    public DefaultExcelBuilder threadPool(ExecutorService executorService) {
+        this.executorService = executorService;
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
@@ -248,7 +259,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     @Override
     public DefaultExcelBuilder start(Class<?> clazz, int waitQueueSize) {
         Objects.requireNonNull(clazz);
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize);
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
         sortedFields = getSortedFields(classFieldContainer);

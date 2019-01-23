@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * HtmlToExcelStreamFactory 流工厂
@@ -68,8 +69,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private int sheetNum;
 
-    public HtmlToExcelStreamFactory(int waitSize) {
+    /**
+     * 线程池
+     */
+    private ExecutorService executorService;
+
+    public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService) {
         this.trWaitQueue = new ArrayBlockingQueue<>(waitSize);
+        this.executorService = executorService;
     }
 
     public void start(Table table) {
@@ -88,7 +95,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         this.sheet = this.workbook.createSheet(sheetName);
 
-        CompletableFuture.runAsync(this::receive);
+        if (Objects.isNull(executorService)) {
+            Thread thread = new Thread(this::receive);
+            thread.setName("Excel-builder-1");
+            thread.start();
+        } else {
+            CompletableFuture.runAsync(this::receive, executorService);
+        }
     }
 
     public void append(List<Tr> trList) {
