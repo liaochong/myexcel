@@ -19,7 +19,7 @@ import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.annotation.ExcelTable;
 import com.github.liaochong.html2excel.core.annotation.ExcludeColumn;
 import com.github.liaochong.html2excel.core.cache.Cache;
-import com.github.liaochong.html2excel.core.cache.DefaultCache;
+import com.github.liaochong.html2excel.core.cache.WeakCache;
 import com.github.liaochong.html2excel.core.parallel.ParallelContainer;
 import com.github.liaochong.html2excel.core.parser.Table;
 import com.github.liaochong.html2excel.core.parser.Td;
@@ -57,7 +57,7 @@ import java.util.stream.IntStream;
 @Slf4j
 public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExcelBuilder {
 
-    private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new DefaultCache<>();
+    private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 
     /**
      * 一般单元格样式

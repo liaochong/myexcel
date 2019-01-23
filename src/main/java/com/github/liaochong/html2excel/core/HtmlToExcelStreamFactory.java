@@ -18,6 +18,7 @@ package com.github.liaochong.html2excel.core;
 import com.github.liaochong.html2excel.core.parser.Table;
 import com.github.liaochong.html2excel.core.parser.Tr;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -39,11 +40,15 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
-    private static final int MAX_ROW_COUNT = 1048576;
+    private static final int XLSX_MAX_ROW_COUNT = 1048576;
+
+    private static final int XLS_MAX_ROW_COUNT = 65536;
 
     static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
     private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
+
+    private int maxRowCountOfSheet = XLSX_MAX_ROW_COUNT;
 
     private Sheet sheet;
 
@@ -73,6 +78,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
         if (Objects.isNull(this.workbook)) {
             workbookType(WorkbookType.SXLSX);
+        }
+        if (workbook instanceof HSSFWorkbook) {
+            maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
         }
         initDefaultCellStyleMap();
         if (Objects.nonNull(table)) {
@@ -110,7 +118,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             while (trList != STOP_FLAG_LIST) {
                 log.info("Received data size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
                 for (Tr tr : trList) {
-                    if (rowNum == MAX_ROW_COUNT) {
+                    if (rowNum == maxRowCountOfSheet) {
                         sheetNum++;
                         this.setColWidth(colWidthMap, sheet);
                         colWidthMap = null;

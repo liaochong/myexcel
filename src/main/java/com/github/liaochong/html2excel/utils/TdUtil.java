@@ -15,7 +15,8 @@
  */
 package com.github.liaochong.html2excel.utils;
 
-import com.github.liaochong.html2excel.core.cache.DefaultCache;
+import com.github.liaochong.html2excel.core.cache.Cache;
+import com.github.liaochong.html2excel.core.cache.WeakCache;
 
 import java.util.Objects;
 import java.util.function.IntSupplier;
@@ -30,7 +31,7 @@ public final class TdUtil {
 
     private static Pattern pattern = Pattern.compile("^\\d+$");
 
-    private static final DefaultCache<String, Integer> SPAN_CACHE = new DefaultCache<>();
+    private static final Cache<String, Integer> SPAN_CACHE = new WeakCache<>();
 
     public static int get(IntSupplier firstSupplier, IntSupplier secondSupplier) {
         int firstValue = firstSupplier.getAsInt();
