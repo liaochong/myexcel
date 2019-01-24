@@ -133,7 +133,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             row = sheet.createRow(tr.getIndex());
         }
         for (Td td : tr.getTdList()) {
-            this.createTd(td, sheet, row);
+            this.createCell(td, sheet, row);
         }
         // 设置行高，最小12
         if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
@@ -150,7 +150,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param td    td
      * @param sheet sheet
      */
-    protected void createTd(Td td, Sheet sheet, Row currentRow) {
+    protected void createCell(Td td, Sheet sheet, Row currentRow) {
         Cell cell = currentRow.getCell(td.getCol());
         if (Objects.isNull(cell)) {
             cell = currentRow.createCell(td.getCol());
