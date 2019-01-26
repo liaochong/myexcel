@@ -116,30 +116,37 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
 
     @Override
     public DefaultExcelBuilder titles(List<String> titles) {
+        Objects.requireNonNull(titles);
         this.titles = titles;
         return this;
     }
 
     @Override
     public DefaultExcelBuilder sheetName(String sheetName) {
-        this.sheetName = Objects.isNull(sheetName) ? "sheet" : sheetName;
+        Objects.requireNonNull(sheetName);
+        this.sheetName = sheetName;
         return this;
     }
 
     @Override
     public DefaultExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder) {
+        Objects.requireNonNull(fieldDisplayOrder);
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
     @Override
     public DefaultExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
+        if (rowAccessWindowSize <= 0) {
+            throw new IllegalArgumentException("RowAccessWindowSize must be greater than 0");
+        }
         this.rowAccessWindowSize = rowAccessWindowSize;
         return this;
     }
 
     @Override
     public DefaultExcelBuilder workbookType(WorkbookType workbookType) {
+        Objects.requireNonNull(workbookType);
         this.workbookType = workbookType;
         return this;
     }
@@ -242,6 +249,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
 
     @Override
     public DefaultExcelBuilder threadPool(ExecutorService executorService) {
+        Objects.requireNonNull(executorService);
         this.executorService = executorService;
         return this;
     }
