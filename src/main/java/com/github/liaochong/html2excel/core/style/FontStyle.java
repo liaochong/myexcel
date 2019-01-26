@@ -34,7 +34,7 @@ public final class FontStyle {
 
     public static final short DEFAULT_FONT_SIZE = 12;
 
-    public static final double FONT_SIZE_SHIFT = 0.3;
+    public static final double FONT_SIZE_SHIFT = 0.25;
 
     public static double getFontWidthShift(Map<String, String> tdStyle) {
         double fontWidthShift = 0;
