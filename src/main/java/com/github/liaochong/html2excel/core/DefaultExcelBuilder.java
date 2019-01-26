@@ -303,9 +303,10 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     private List<Field> getSortedFields(ClassFieldContainer classFieldContainer) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
 
+        boolean excelTableExist = Objects.nonNull(excelTable);
         boolean excludeParent = false;
         boolean includeAllField = false;
-        if (Objects.nonNull(excelTable)) {
+        if (excelTableExist) {
             setWorkbookWithExcelTableAnnotation(excelTable);
             excludeParent = excelTable.excludeParent();
             includeAllField = excelTable.includeAllField();
@@ -336,6 +337,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
             }
         }
 
+        boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         List<String> titles = new ArrayList<>();
         List<Field> sortedFields = preelectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
@@ -361,10 +363,18 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
                 })
                 .peek(field -> {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                    if (Objects.isNull(excelColumn)) {
-                        titles.add(null);
+                    if (Objects.nonNull(excelColumn)) {
+                        if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
+                            titles.add(field.getName());
+                        } else {
+                            titles.add(excelColumn.title());
+                        }
                     } else {
-                        titles.add(excelColumn.title());
+                        if (useFieldNameAsTitle) {
+                            titles.add(field.getName());
+                        } else {
+                            titles.add(null);
+                        }
                     }
                 })
                 .collect(Collectors.toList());
