@@ -58,7 +58,7 @@ public final class TdUtil {
         return pattern.matcher(span).find();
     }
 
-    public static int getStringWidth(String s) {
+    public static int getStringWidth(String s, double shift) {
         if (Objects.isNull(s)) {
             return 1;
         }
@@ -66,16 +66,18 @@ public final class TdUtil {
         double valueLength = 1;
         String chinese = "[\u4e00-\u9fa5]";
         // 获取字段值的长度，如果含中文字符，则每个中文字符长度为2，否则为1
+        double chineseShift = 1 + shift;
+        double otherShift = 0.5 + shift;
         for (int i = 0; i < s.length(); i++) {
             // 获取一个字符
             String temp = s.substring(i, i + 1);
             // 判断是否为中文字符
             if (temp.matches(chinese)) {
                 // 中文字符长度为1
-                valueLength += 1;
+                valueLength += chineseShift;
             } else {
                 // 其他字符长度为0.5
-                valueLength += 0.5;
+                valueLength += otherShift;
             }
         }
         // 进位取整

@@ -25,6 +25,7 @@ import com.github.liaochong.html2excel.core.parser.Table;
 import com.github.liaochong.html2excel.core.parser.Td;
 import com.github.liaochong.html2excel.core.parser.Tr;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.utils.ReflectUtil;
 import com.github.liaochong.html2excel.utils.StringUtil;
 import com.github.liaochong.html2excel.utils.TdUtil;
@@ -531,7 +532,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
             td.setColBound(index);
             td.setContent(titles.get(index));
             td.setStyle(thStyle);
-            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent()));
+            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), FontStyle.FONT_SIZE_SHIFT));
             return td;
         }).collect(Collectors.toList());
         tr.setTdList(ths);
@@ -561,7 +562,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
                 td.setColBound(i);
                 td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
                 td.setStyle(tdStyle);
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent(), 0));
                 return td;
             }).collect(Collectors.toList());
             tr.setTdList(tdList);
