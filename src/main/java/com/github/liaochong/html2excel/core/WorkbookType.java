@@ -29,7 +29,7 @@ public enum WorkbookType {
      */
     XLSX,
     /**
-     * .xlsx，not supported at this version
+     * .xlsx
      */
     SXLSX;
 
