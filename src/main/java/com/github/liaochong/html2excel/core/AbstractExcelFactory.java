@@ -24,6 +24,7 @@ import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.core.style.ThDefaultCellStyle;
+import com.github.liaochong.html2excel.utils.TdUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -262,6 +263,15 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param trList trList
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
+        if (useDefaultStyle) {
+            // 使用默认样式，需要重新修正加粗的标题自适应宽度
+            trList.parallelStream().forEach(tr -> {
+                tr.getTdList().stream().filter(Td::isTh).forEach(th -> {
+                    int tdWidth = TdUtil.getStringWidth(th.getContent(), 0.1);
+                    tr.getColWidthMap().put(th.getCol(), tdWidth);
+                });
+            });
+        }
         int mapMaxSize = trList.stream().mapToInt(tr -> tr.getColWidthMap().size()).max().orElse(16);
         Map<Integer, Integer> colMaxWidthMap = new HashMap<>(mapMaxSize);
         trList.forEach(tr -> {
