@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -147,7 +148,16 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     this.createRow(tr, sheet);
                 }
                 appendSize++;
-                colWidthMap = this.getColMaxWidthMap(trList);
+                Map<Integer, Integer> colWidthMap = this.getColMaxWidthMap(trList);
+                if (Objects.isNull(this.colWidthMap)) {
+                    this.colWidthMap = new HashMap<>(colWidthMap.size());
+                }
+                colWidthMap.forEach((k, v) -> {
+                    Integer val = this.colWidthMap.get(k);
+                    if (Objects.isNull(val) || v > val) {
+                        this.colWidthMap.put(k, v);
+                    }
+                });
                 trList = this.getTrListFromQueue();
             }
             log.info("End of reception,append size:{}", appendSize);
