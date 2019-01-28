@@ -216,6 +216,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
             if (Objects.nonNull(thead)) {
                 table.getTrList().add(thead);
             }
+            tableList.add(table);
 
             if (Objects.isNull(data) || data.isEmpty()) {
                 log.info("No valid data exists");
@@ -227,7 +228,6 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
             List<List<Object>> contents = getRenderContent(data, sortedFields);
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
             table.getTrList().addAll(tbody);
-            tableList.add(table);
         }
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
         return htmlToExcelFactory.build(tableList);
