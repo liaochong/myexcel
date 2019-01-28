@@ -37,15 +37,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -152,7 +144,14 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     }
 
     @Override
-    public Workbook build(List<?> data) {
+    public DefaultExcelBuilder threadPool(ExecutorService executorService) {
+        Objects.requireNonNull(executorService);
+        this.executorService = executorService;
+        return this;
+    }
+
+    @Override
+    public Workbook build(List<?> data, Class<?>... groups) {
         if (Objects.isNull(data) || data.isEmpty()) {
             log.info("No valid data exists");
             List<Table> tableList = this.getTableWithHeader();
@@ -165,7 +164,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
             return new HtmlToExcelFactory().build(tableList);
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = getSortedFields(classFieldContainer);
+        List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
@@ -196,14 +195,15 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     /**
      * 根据指定的数据集合构建，需指明数据集合数据的类类型，使用该方法，可以存在标题行而无数据
      *
-     * @param data  数据列表
-     * @param clazz 数据的类类型
+     * @param data   数据列表
+     * @param clazz  数据的类类型
+     * @param groups 分组
      * @return Workbook
      */
-    public Workbook build(List<?> data, Class<?> clazz) {
+    public Workbook build(List<?> data, Class<?> clazz, Class<?>... groups) {
         Objects.requireNonNull(clazz);
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-        List<Field> sortedFields = getSortedFields(classFieldContainer);
+        List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
 
         if (sortedFields.isEmpty()) {
             log.info("The specified field mapping does not exist");
@@ -247,31 +247,25 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
         return tableList;
     }
 
-    @Override
-    public DefaultExcelBuilder threadPool(ExecutorService executorService) {
-        Objects.requireNonNull(executorService);
-        this.executorService = executorService;
-        return this;
-    }
-
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
-     * @param clazz 列表数据类型
+     * @param clazz  列表数据类型
+     * @param groups 分组
      * @return DefaultExcelBuilder
      */
-    public DefaultExcelBuilder start(Class<?> clazz) {
-        this.start(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE);
+    public DefaultExcelBuilder start(Class<?> clazz, Class<?>... groups) {
+        this.start(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE, groups);
         return this;
     }
 
     @Override
-    public DefaultExcelBuilder start(Class<?> clazz, int waitQueueSize) {
+    public DefaultExcelBuilder start(Class<?> clazz, int waitQueueSize, Class<?>... groups) {
         Objects.requireNonNull(clazz);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-        sortedFields = getSortedFields(classFieldContainer);
+        sortedFields = getFilteredFields(classFieldContainer, groups);
 
         this.initStyleMap();
         Table table = this.createTable();
@@ -306,9 +300,10 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
      * 获取排序后字段并设置标题、workbookType等
      *
      * @param classFieldContainer classFieldContainer
+     * @param groups              分组
      * @return Field
      */
-    private List<Field> getSortedFields(ClassFieldContainer classFieldContainer) {
+    private List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
 
         boolean excelTableExist = Objects.nonNull(excelTable);
@@ -345,10 +340,20 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
             }
         }
 
+        List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         List<String> titles = new ArrayList<>();
         List<Field> sortedFields = preelectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
+                .filter(field -> {
+                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                    if (Objects.isNull(excelColumn)) {
+                        return true;
+                    }
+                    Class<?>[] groupArr = excelColumn.groups();
+                    List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
+                    return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
+                })
                 .sorted((field1, field2) -> {
                     ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
                     ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
