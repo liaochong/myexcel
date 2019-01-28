@@ -18,8 +18,8 @@ package com.github.liaochong.html2excel.core;
 import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.annotation.ExcelTable;
 import com.github.liaochong.html2excel.core.annotation.ExcludeColumn;
-import com.github.liaochong.html2excel.core.cache.Cache;
-import com.github.liaochong.html2excel.core.cache.WeakCache;
+import com.github.liaochong.html2excel.core.converter.ConverterContext;
+import com.github.liaochong.html2excel.core.converter.DateTimeConverter;
 import com.github.liaochong.html2excel.core.parallel.ParallelContainer;
 import com.github.liaochong.html2excel.core.parser.Table;
 import com.github.liaochong.html2excel.core.parser.Td;
@@ -33,11 +33,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -50,8 +54,6 @@ import java.util.stream.IntStream;
  */
 @Slf4j
 public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExcelBuilder {
-
-    private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 
     /**
      * 一般单元格样式
@@ -441,55 +443,6 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     }
 
     /**
-     * 获取并且转换字段值
-     *
-     * @param data  数据
-     * @param field 对应字段
-     * @return 结果
-     */
-    private Object getAndConvertFieldValue(Object data, Field field) {
-        Object result = ReflectUtil.getFieldValue(data, field);
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn) || Objects.isNull(result)) {
-            return result;
-        }
-        // 时间格式化
-        String dateFormatPattern = excelColumn.dateFormatPattern();
-        if (StringUtil.isNotBlank(dateFormatPattern)) {
-            Class<?> fieldType = field.getType();
-            if (fieldType == LocalDateTime.class) {
-                LocalDateTime localDateTime = (LocalDateTime) result;
-                DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-                return formatter.format(localDateTime);
-            } else if (fieldType == LocalDate.class) {
-                LocalDate localDate = (LocalDate) result;
-                DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-                return formatter.format(localDate);
-            } else if (fieldType == Date.class) {
-                Date date = (Date) result;
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-                return simpleDateFormat.format(date);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * 获取时间格式化
-     *
-     * @param dateFormat 时间格式化
-     * @return DateTimeFormatter
-     */
-    private DateTimeFormatter getDateTimeFormatter(String dateFormat) {
-        DateTimeFormatter formatter = DATETIME_FORMATTER_CONTAINER.get(dateFormat);
-        if (Objects.isNull(formatter)) {
-            formatter = DateTimeFormatter.ofPattern(dateFormat);
-            DATETIME_FORMATTER_CONTAINER.cache(dateFormat, formatter);
-        }
-        return formatter;
-    }
-
-    /**
      * 获取需要被渲染的内容
      *
      * @param data         数据集合
@@ -497,9 +450,11 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
      * @return 结果集
      */
     private List<List<Object>> getRenderContent(List<?> data, List<Field> sortedFields) {
+        ConverterContext converterContext = ConverterContext.newInstance().registering(new DateTimeConverter());
+
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
             List<Object> resolvedDataList = sortedFields.stream()
-                    .map(field -> this.getAndConvertFieldValue(data.get(index), field))
+                    .map(field -> converterContext.convert(field, data.get(index)))
                     .collect(Collectors.toList());
             data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);
