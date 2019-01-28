@@ -78,7 +78,7 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     /**
      * excel workbook
      */
-    private WorkbookType workbookType;
+    private WorkbookType workbookType = WorkbookType.XLSX;
     /**
      * 内存数据保有量
      */
@@ -95,6 +95,10 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
      * 线程池
      */
     private ExecutorService executorService;
+    /**
+     * 设置需要渲染的数据的类类型
+     */
+    private Class<?> dataType;
 
     private DefaultExcelBuilder() {
     }
@@ -106,6 +110,19 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
      */
     public static DefaultExcelBuilder getInstance() {
         return new DefaultExcelBuilder();
+    }
+
+    /**
+     * 获取实例，设定需要渲染的数据的类类型
+     *
+     * @param dataType 数据的类类型
+     * @return DefaultExcelBuilder
+     */
+    public static DefaultExcelBuilder of(Class<?> dataType) {
+        Objects.requireNonNull(dataType);
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
+        defaultExcelBuilder.dataType = dataType;
+        return defaultExcelBuilder;
     }
 
     @Override
@@ -154,83 +171,66 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
 
     @Override
     public Workbook build(List<?> data, Class<?>... groups) {
-        if (Objects.isNull(data) || data.isEmpty()) {
-            log.info("No valid data exists");
-            List<Table> tableList = this.getTableWithHeader();
-            return new HtmlToExcelFactory().build(tableList);
-        }
-        Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
-        if (!findResult.isPresent()) {
-            log.info("No valid data exists");
-            List<Table> tableList = this.getTableWithHeader();
-            return new HtmlToExcelFactory().build(tableList);
-        }
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-        List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
-
-        if (sortedFields.isEmpty()) {
-            log.info("The specified field mapping does not exist");
-            List<Table> tableList = this.getTableWithHeader();
-            return new HtmlToExcelFactory().build(tableList);
-        }
-        List<List<Object>> contents = getRenderContent(data, sortedFields);
-
-        this.initStyleMap();
-
-        Table table = this.createTable();
-        Tr thead = this.createThead();
-        if (Objects.nonNull(thead)) {
-            table.getTrList().add(thead);
-        }
-        List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
-        table.getTrList().addAll(tbody);
-
-        List<Table> tableList = new ArrayList<>();
-        tableList.add(table);
-
-        workbookType = Objects.nonNull(workbookType) ? workbookType : WorkbookType.XLSX;
         HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+        List<Table> tableList = new ArrayList<>();
+        if (Objects.isNull(dataType)) {
+            if (Objects.isNull(data) || data.isEmpty()) {
+                log.info("No valid data exists");
+                return htmlToExcelFactory.build(this.getTableWithHeader());
+            }
+            Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
+            if (!findResult.isPresent()) {
+                log.info("No valid data exists");
+                return htmlToExcelFactory.build(this.getTableWithHeader());
+            }
+            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
+            List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
+
+            if (sortedFields.isEmpty()) {
+                log.info("The specified field mapping does not exist");
+                return htmlToExcelFactory.build(this.getTableWithHeader());
+            }
+            List<List<Object>> contents = getRenderContent(data, sortedFields);
+
+            this.initStyleMap();
+
+            Table table = this.createTable();
+            Tr thead = this.createThead();
+            if (Objects.nonNull(thead)) {
+                table.getTrList().add(thead);
+            }
+            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
+            table.getTrList().addAll(tbody);
+            tableList.add(table);
+        } else {
+            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+            List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
+
+            if (sortedFields.isEmpty()) {
+                log.info("The specified field mapping does not exist");
+                return htmlToExcelFactory.build(Collections.emptyList());
+            }
+
+            Table table = this.createTable();
+            Tr thead = this.createThead();
+            if (Objects.nonNull(thead)) {
+                table.getTrList().add(thead);
+            }
+
+            if (Objects.isNull(data) || data.isEmpty()) {
+                log.info("No valid data exists");
+                return htmlToExcelFactory.build(tableList);
+            }
+
+            this.initStyleMap();
+
+            List<List<Object>> contents = getRenderContent(data, sortedFields);
+            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
+            table.getTrList().addAll(tbody);
+            tableList.add(table);
+        }
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
         return htmlToExcelFactory.build(tableList);
-    }
-
-    /**
-     * 根据指定的数据集合构建，需指明数据集合数据的类类型，使用该方法，可以存在标题行而无数据
-     *
-     * @param data   数据列表
-     * @param clazz  数据的类类型
-     * @param groups 分组
-     * @return Workbook
-     */
-    public Workbook build(List<?> data, Class<?> clazz, Class<?>... groups) {
-        Objects.requireNonNull(clazz);
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-        List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
-
-        if (sortedFields.isEmpty()) {
-            log.info("The specified field mapping does not exist");
-            return new HtmlToExcelFactory().build(Collections.emptyList());
-        }
-
-        Table table = this.createTable();
-        Tr thead = this.createThead();
-        if (Objects.nonNull(thead)) {
-            table.getTrList().add(thead);
-        }
-        List<Table> tableList = new ArrayList<>();
-        tableList.add(table);
-
-        if (Objects.isNull(data) || data.isEmpty()) {
-            log.info("No valid data exists");
-            return new HtmlToExcelFactory().build(tableList);
-        }
-
-        this.initStyleMap();
-
-        List<List<Object>> contents = getRenderContent(data, sortedFields);
-        List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
-        table.getTrList().addAll(tbody);
-        return new HtmlToExcelFactory().build(tableList);
     }
 
     /**
