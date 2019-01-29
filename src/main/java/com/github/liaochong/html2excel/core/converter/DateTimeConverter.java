@@ -3,7 +3,6 @@ package com.github.liaochong.html2excel.core.converter;
 import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
 import com.github.liaochong.html2excel.core.cache.Cache;
 import com.github.liaochong.html2excel.core.cache.WeakCache;
-import com.github.liaochong.html2excel.utils.ReflectUtil;
 import com.github.liaochong.html2excel.utils.StringUtil;
 
 import java.lang.reflect.Field;
@@ -24,25 +23,24 @@ public class DateTimeConverter implements Converter {
 
     @Override
     public Object convert(Field field, Object object) {
-        Object result = ReflectUtil.getFieldValue(object, field);
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn) || Objects.isNull(result)) {
-            return result;
+        if (Objects.isNull(excelColumn) || Objects.isNull(object)) {
+            return object;
         }
         // 时间格式化
         String dateFormatPattern = excelColumn.dateFormatPattern();
         if (StringUtil.isNotBlank(dateFormatPattern)) {
             Class<?> fieldType = field.getType();
             if (fieldType == LocalDateTime.class) {
-                LocalDateTime localDateTime = (LocalDateTime) result;
+                LocalDateTime localDateTime = (LocalDateTime) object;
                 DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
                 return formatter.format(localDateTime);
             } else if (fieldType == LocalDate.class) {
-                LocalDate localDate = (LocalDate) result;
+                LocalDate localDate = (LocalDate) object;
                 DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
                 return formatter.format(localDate);
             } else if (fieldType == Date.class) {
-                Date date = (Date) result;
+                Date date = (Date) object;
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
                 return simpleDateFormat.format(date);
             }

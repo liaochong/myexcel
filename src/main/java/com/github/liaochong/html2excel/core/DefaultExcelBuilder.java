@@ -348,11 +348,17 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
         List<Field> sortedFields = preelectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
                 .filter(field -> {
-                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                    if (Objects.isNull(excelColumn)) {
+                    if (selectedGroupList.isEmpty()) {
                         return true;
                     }
+                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                    if (Objects.isNull(excelColumn)) {
+                        return false;
+                    }
                     Class<?>[] groupArr = excelColumn.groups();
+                    if (groupArr.length == 0) {
+                        return false;
+                    }
                     List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
                     return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
                 })

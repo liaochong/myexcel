@@ -15,6 +15,8 @@
  */
 package com.github.liaochong.html2excel.core.converter;
 
+import com.github.liaochong.html2excel.utils.ReflectUtil;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,9 +42,9 @@ public class ConverterContext {
     }
 
     public Object convert(Field field, Object object) {
-        Object result = object;
+        Object result = ReflectUtil.getFieldValue(object, field);
         for (Converter converter : converterContainer) {
-            result = converter.convert(field, object);
+            result = converter.convert(field, result);
         }
         return result;
     }
