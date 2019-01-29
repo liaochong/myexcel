@@ -39,12 +39,11 @@ interface SimpleStreamExcelBuilder {
     /**
      * 流式构建启动，包含一些初始化操作
      *
-     * @param clazz         列表数据类型
      * @param waitQueueSize 等待队列容量
      * @param groups        分组
      * @return SimpleStreamExcelBuilder
      */
-    SimpleStreamExcelBuilder start(Class<?> clazz, int waitQueueSize, Class<?>... groups);
+    SimpleStreamExcelBuilder start(int waitQueueSize, Class<?>... groups);
 
     /**
      * 数据追加

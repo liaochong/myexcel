@@ -252,21 +252,20 @@ public class DefaultExcelBuilder implements SimpleExcelBuilder, SimpleStreamExce
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
-     * @param clazz  列表数据类型
      * @param groups 分组
      * @return DefaultExcelBuilder
      */
-    public DefaultExcelBuilder start(Class<?> clazz, Class<?>... groups) {
-        this.start(clazz, HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE, groups);
+    public DefaultExcelBuilder start(Class<?>... groups) {
+        this.start(HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE, groups);
         return this;
     }
 
     @Override
-    public DefaultExcelBuilder start(Class<?> clazz, int waitQueueSize, Class<?>... groups) {
-        Objects.requireNonNull(clazz);
+    public DefaultExcelBuilder start(int waitQueueSize, Class<?>... groups) {
+        Objects.requireNonNull(dataType);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService);
 
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
         sortedFields = getFilteredFields(classFieldContainer, groups);
 
         this.initStyleMap();
