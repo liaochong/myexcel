@@ -29,21 +29,22 @@ public class DateTimeConverter implements Converter {
         }
         // 时间格式化
         String dateFormatPattern = excelColumn.dateFormatPattern();
-        if (StringUtil.isNotBlank(dateFormatPattern)) {
-            Class<?> fieldType = field.getType();
-            if (fieldType == LocalDateTime.class) {
-                LocalDateTime localDateTime = (LocalDateTime) object;
-                DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-                return formatter.format(localDateTime);
-            } else if (fieldType == LocalDate.class) {
-                LocalDate localDate = (LocalDate) object;
-                DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-                return formatter.format(localDate);
-            } else if (fieldType == Date.class) {
-                Date date = (Date) object;
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-                return simpleDateFormat.format(date);
-            }
+        if (StringUtil.isBlank(dateFormatPattern)) {
+            return object;
+        }
+        Class<?> fieldType = field.getType();
+        if (fieldType == LocalDateTime.class) {
+            LocalDateTime localDateTime = (LocalDateTime) object;
+            DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
+            return formatter.format(localDateTime);
+        } else if (fieldType == LocalDate.class) {
+            LocalDate localDate = (LocalDate) object;
+            DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
+            return formatter.format(localDate);
+        } else if (fieldType == Date.class) {
+            Date date = (Date) object;
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
+            return simpleDateFormat.format(date);
         }
         return object;
     }
