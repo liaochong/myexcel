@@ -27,9 +27,9 @@ public interface Converter {
      * 转换
      *
      * @param field  字段
-     * @param object 字段对应的值
+     * @param fieldVal 字段对应的值
      * @return T
      */
-    Object convert(Field field, Object object);
+    Object convert(Field field, Object fieldVal);
 
 }
