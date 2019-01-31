@@ -5,7 +5,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Percentage of issues still open")
 
-> 2019-02-15将发布1.4.0版本，新增特性、Bug修复等请见[版本日志](https://github.com/liaochong/html2excel/wiki/Version-log)
+> 2019-02-15将发布1.4.0版本，新增特性、修复Bug等请见[版本日志](https://github.com/liaochong/html2excel/wiki/Version-log)
 
 简介 | Brief introduction
 ------------------------
