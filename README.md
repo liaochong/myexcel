@@ -5,6 +5,8 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Percentage of issues still open")
 
+> 2019-02-15将发布1.4.0版本，新版本修改点、新增特性请见[版本日志](https://github.com/liaochong/html2excel/wiki/Version-log)
+
 简介 | Brief introduction
 ------------------------
 Html2excel，是一个可直接使用Html文件，或者使用内置的Freemarker、Groovy、Beetl等模板引擎Excel构建器生成的Html文件，以Html文件中的Table作为Excel模板来生成任意复杂布局的Excel的工具包，支持.xls、.xlsx格式，支持对背景色、边框、字体等进行个性化设置，支持合并单元格。
