@@ -47,7 +47,7 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
         TemplateConfiguration config = new TemplateConfiguration();
         MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
         try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-             Reader reader = new InputStreamReader(is)) {
+             Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
             template = engine.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
