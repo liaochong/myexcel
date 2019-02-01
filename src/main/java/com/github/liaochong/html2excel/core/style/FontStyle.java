@@ -48,7 +48,7 @@ public final class FontStyle {
         }
         String fontWeight = tdStyle.get(FONT_WEIGHT);
         if (Objects.equals(fontWeight, "bold")) {
-            fontWidthShift += 0.1;
+            fontWidthShift += FONT_SIZE_SHIFT;
         }
         return fontWidthShift;
     }
