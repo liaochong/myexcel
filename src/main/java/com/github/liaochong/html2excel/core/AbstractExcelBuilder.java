@@ -67,15 +67,18 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
      * @return String[]
      */
     String[] splitFilePath(String path) {
-        if (Objects.isNull(path)) {
+        if (Objects.isNull(path) || path.isEmpty()) {
             throw new NullPointerException();
         }
         int lastPackageIndex = path.lastIndexOf("/");
-        if (lastPackageIndex == -1 || lastPackageIndex == path.length() - 1) {
+        if (lastPackageIndex == -1) {
+            return new String[]{"/", path};
+        }
+        if (lastPackageIndex == path.length() - 1) {
             throw new IllegalArgumentException();
         }
         String basePackagePath = path.substring(0, lastPackageIndex);
-        String templateName = path.substring(lastPackageIndex);
+        String templateName = path.substring(lastPackageIndex + 1);
         return new String[]{basePackagePath, templateName};
     }
 
