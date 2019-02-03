@@ -44,6 +44,10 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     public ExcelBuilder template(String path) {
+        Objects.requireNonNull(path);
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
         TemplateConfiguration config = new TemplateConfiguration();
         MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
         try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
