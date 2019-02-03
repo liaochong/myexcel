@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<
+%
+DIRECTIVE SAFE_OUTPUT_OPEN;
+%>
+<table style="border-bottom-style: thin;border-left-style: thin;border-right-style:thin;">
+    <
+    % if(data!=null){ %>
+    <tbody>
+    <
+    % for(c in data){ %>
+    <tr
+    <
+    % if(cLP.even){ %> style="background-color: #f6f8fa;"
+    <
+    % } %> >
+    <td>${c}</td>
+    </tr>
+    <
+    % } %>
+</tbody>
+<
+% } %>
+</table>
+<
+%
+//关闭安全输出。
+DIRECTIVE SAFE_OUTPUT_CLOSE;
+%>
+</body>
+        </html>
