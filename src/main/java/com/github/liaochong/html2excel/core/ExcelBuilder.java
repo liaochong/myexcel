@@ -72,5 +72,5 @@ public interface ExcelBuilder {
      * @param renderData 渲染数据
      * @return Workbook
      */
-    Workbook build(Map<String, Object> renderData);
+    <T> Workbook build(Map<String, T> renderData);
 }

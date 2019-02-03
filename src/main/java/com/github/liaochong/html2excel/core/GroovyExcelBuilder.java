@@ -56,7 +56,7 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
     }
 
     @Override
-    public Workbook build(Map<String, Object> renderData) {
+    public <T> Workbook build(Map<String, T> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         Path htmlFile = tempFileOperator.createTempFile("groovy_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {

@@ -77,7 +77,7 @@ interface SimpleExcelBuilder extends ExcelBuilder {
     }
 
     @Override
-    default Workbook build(Map<String, Object> renderData) {
+    default <T> Workbook build(Map<String, T> renderData) {
         throw new UnsupportedOperationException();
     }
 }
