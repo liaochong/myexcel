@@ -3,6 +3,7 @@ package com.github.liaochong.example.controller;
 import com.github.liaochong.example.pojo.Product;
 import com.github.liaochong.html2excel.core.BeetlExcelBuilder;
 import com.github.liaochong.html2excel.core.ExcelBuilder;
+import com.github.liaochong.html2excel.core.WorkbookType;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -54,6 +55,81 @@ public class BeetlExcelBuilderExampleController {
         Map<String, Object> dataMap = this.getDataMap();
 
         Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").useDefaultStyle().build(dataMap);
+
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("beetl_excel.xlsx".getBytes()));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * build .xls excel
+     *
+     * @param response response
+     */
+    @GetMapping("/beetl/xls/example")
+    public void buildWithXLS(HttpServletResponse response) {
+        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
+        Map<String, Object> dataMap = this.getDataMap();
+
+        Workbook workbook = excelBuilder
+                .template("/templates/beetlToExcelExample.btl")
+                .workbookType(WorkbookType.XLS)
+                .useDefaultStyle()
+                .build(dataMap);
+
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("beetl_excel.xlsx".getBytes()));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * build .xlsx excel
+     *
+     * @param response response
+     */
+    @GetMapping("/beetl/xlsx/example")
+    public void buildWithXLSX(HttpServletResponse response) {
+        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
+        Map<String, Object> dataMap = this.getDataMap();
+
+        Workbook workbook = excelBuilder
+                .template("/templates/beetlToExcelExample.btl")
+                .workbookType(WorkbookType.XLSX)
+                .useDefaultStyle()
+                .build(dataMap);
+
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("beetl_excel.xlsx".getBytes()));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * build .xlsx excel
+     *
+     * @param response response
+     */
+    @GetMapping("/beetl/sxlsx/example")
+    public void buildWithSXLSX(HttpServletResponse response) {
+        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
+        Map<String, Object> dataMap = this.getDataMap();
+
+        Workbook workbook = excelBuilder
+                .template("/templates/beetlToExcelExample.btl")
+                .workbookType(WorkbookType.SXLSX)
+                .useDefaultStyle()
+                .build(dataMap);
 
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + new String("beetl_excel.xlsx".getBytes()));
