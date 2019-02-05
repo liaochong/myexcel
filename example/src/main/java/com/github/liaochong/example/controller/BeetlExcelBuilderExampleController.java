@@ -66,7 +66,7 @@ public class BeetlExcelBuilderExampleController {
 
     private Map<String, Object> getDataMap() {
         Map<String, Object> dataMap = new HashMap<>();
-        dataMap.put("sheetName", "freemarker_excel_example");
+        dataMap.put("sheetName", "beetl_excel_example");
 
         List<String> titles = new ArrayList<>();
         titles.add("Category");
@@ -75,7 +75,7 @@ public class BeetlExcelBuilderExampleController {
         dataMap.put("titles", titles);
 
         List<Product> data = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             Product product = new Product();
             if (i % 2 == 0) {
                 product.setCategory("蔬菜");

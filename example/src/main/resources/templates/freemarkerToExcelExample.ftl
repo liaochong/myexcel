@@ -11,7 +11,7 @@
 <table>
     <caption>${sheetName}</caption>
     <thead>
-    <tr>
+    <tr style="background-color: #6495ED">
         <th colspan="3" style="text-align: center;vertical-align: middle;font-weight: bold;font-size: 14px;">产品介绍</th>
     </tr>
     <tr>
