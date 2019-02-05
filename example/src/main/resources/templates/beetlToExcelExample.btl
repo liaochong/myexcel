@@ -10,11 +10,23 @@
 <body>
 <% DIRECTIVE SAFE_OUTPUT_OPEN; %>
 <table>
-    <% if(data!=null){ %>
+    <thead>
+        <tr>
+            <th colspan="3" style="text-align: center;vertical-align: middle;font-weight: bold;font-size: 14px;">产品介绍</th>
+        </tr>
+        <tr>
+            <% for(title in titles){ %>
+            <th>${title}</th>
+            <% } %>
+        </tr>
+    </thead>
+<% if(data!=null){ %>
     <tbody>
-    <% for(c in data){ %>
+    <% for(item in data){ %>
     <tr>
-    <td>${c}</td>
+        <td>${item.category}</td>
+        <td>${item.name}</td>
+        <td>${item.count}</td>
     </tr>
     <% } %>
 </tbody>
