@@ -227,6 +227,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         commonTdStyle.put("border-bottom-style", "thin");
         commonTdStyle.put("border-left-style", "thin");
         commonTdStyle.put("border-right-style", "thin");
+        commonTdStyle.put("vertical-align", "middle");
 
         oddTdStyle = new HashMap<>(4);
         oddTdStyle.put("background-color", "#f6f8fa");
