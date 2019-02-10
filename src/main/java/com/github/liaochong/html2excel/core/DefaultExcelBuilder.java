@@ -42,10 +42,11 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
     }
 
     /**
-     * 获取实例
+     * 获取实例，已废弃，请使用of方法代替
      *
      * @return DefaultExcelBuilder
      */
+    @Deprecated
     public static DefaultExcelBuilder getInstance() {
         return new DefaultExcelBuilder();
     }
