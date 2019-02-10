@@ -201,7 +201,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             List<Object> dataList = contents.get(index);
             Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
             tr.setColWidthMap(colMaxWidthMap);
-            Map<String, String> tdStyle = tr.getIndex() % 2 == 0 ? commonTdStyle : oddTdStyle;
+            Map<String, String> tdStyle = index % 2 == 0 ? commonTdStyle : oddTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
