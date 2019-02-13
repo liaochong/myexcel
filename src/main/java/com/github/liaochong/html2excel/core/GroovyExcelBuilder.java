@@ -38,16 +38,20 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class GroovyExcelBuilder extends ExcelBuilder {
+public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
     @Override
     public ExcelBuilder template(String path) {
+        Objects.requireNonNull(path);
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
         TemplateConfiguration config = new TemplateConfiguration();
         MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
         try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-             Reader reader = new InputStreamReader(is)) {
+             Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
             template = engine.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
@@ -56,7 +60,7 @@ public class GroovyExcelBuilder extends ExcelBuilder {
     }
 
     @Override
-    public Workbook build(Map<String, Object> renderData) {
+    public <T> Workbook build(Map<String, T> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         Path htmlFile = tempFileOperator.createTempFile("groovy_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {

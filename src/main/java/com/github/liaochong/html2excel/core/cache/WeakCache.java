@@ -13,28 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.core;
+package com.github.liaochong.html2excel.core.cache;
+
+import java.util.WeakHashMap;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public enum WorkbookType {
-    /**
-     * .xls
-     */
-    XLS,
-    /**
-     * .xlsx
-     */
-    XLSX,
-    /**
-     * .xlsx
-     */
-    SXLSX;
+public class WeakCache<K, V> implements Cache<K, V> {
 
-    public static boolean isXls(WorkbookType workbookType) {
-        return XLS.equals(workbookType);
+    private WeakHashMap<K, V> cacheMap;
+
+    public WeakCache() {
+        cacheMap = new WeakHashMap<>();
     }
 
+    public WeakCache(int mapSize) {
+        cacheMap = new WeakHashMap<>(mapSize);
+    }
+
+    @Override
+    public synchronized void cache(K key, V value) {
+        cacheMap.put(key, value);
+    }
+
+    @Override
+    public V get(K key) {
+        return cacheMap.get(key);
+    }
+
+    @Override
+    public synchronized void clearAll() {
+        cacheMap.clear();
+    }
 }

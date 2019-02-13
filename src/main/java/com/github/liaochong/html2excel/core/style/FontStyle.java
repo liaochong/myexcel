@@ -28,7 +28,30 @@ import java.util.Objects;
  */
 public final class FontStyle {
 
+    private static final String FONT_SIZE = "font-size";
+
+    private static final String FONT_WEIGHT = "font-weight";
+
     public static final short DEFAULT_FONT_SIZE = 12;
+
+    public static final double FONT_SIZE_SHIFT = 0.25;
+
+    public static double getFontWidthShift(Map<String, String> tdStyle) {
+        double fontWidthShift = 0;
+        String fontSize = tdStyle.get(FONT_SIZE);
+        if (Objects.nonNull(fontSize)) {
+            short fontSizeVal = Short.parseShort(fontSize.replaceAll("\\D*", ""));
+            int intervalSize = fontSizeVal - FontStyle.DEFAULT_FONT_SIZE;
+            if (intervalSize > 0) {
+                fontWidthShift = intervalSize * FONT_SIZE_SHIFT;
+            }
+        }
+        String fontWeight = tdStyle.get(FONT_WEIGHT);
+        if (Objects.equals(fontWeight, "bold")) {
+            fontWidthShift += FONT_SIZE_SHIFT;
+        }
+        return fontWidthShift;
+    }
 
     public static void setFont(Workbook workbook, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap) {
         String cacheKey = getCacheKey(tdStyle);
@@ -37,7 +60,7 @@ public final class FontStyle {
             return;
         }
         Font font = null;
-        String fs = tdStyle.get("font-size");
+        String fs = tdStyle.get(FONT_SIZE);
         if (Objects.nonNull(fs)) {
             fs = fs.replaceAll("\\D*", "");
             short fontSize = Short.parseShort(fs);
@@ -59,7 +82,7 @@ public final class FontStyle {
             font = createFontIfNull(workbook, font);
             font.setStrikeout(true);
         }
-        String fontWeight = tdStyle.get("font-weight");
+        String fontWeight = tdStyle.get(FONT_WEIGHT);
         if (Objects.equals(fontWeight, "bold")) {
             font = createFontIfNull(workbook, font);
             font.setBold(true);

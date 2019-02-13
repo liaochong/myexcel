@@ -49,4 +49,11 @@ public @interface ExcelColumn {
      * @return 时间格式化
      */
     String dateFormatPattern() default "";
+
+    /**
+     * 分组
+     *
+     * @return 分组类类型集合
+     */
+    Class<?>[] groups() default {};
 }

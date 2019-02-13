@@ -1,0 +1,42 @@
+package com.github.liaochong.example.controller;
+
+import com.github.liaochong.html2excel.core.HtmlToExcelFactory;
+import org.apache.commons.codec.CharEncoding;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+/**
+ * @author liaochong
+ * @version 1.0
+ */
+@Controller
+public class HtmlToExcelFactoryExampleController {
+
+    @GetMapping("/htmlToExcel/example")
+    public void htmlToExcel(HttpServletResponse response) throws Exception {
+        // get html file
+        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/htmlToExcelExample.html");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        // read the html file and use default excel style to create excel
+        Workbook workbook = HtmlToExcelFactory.readHtml(path.toFile()).build();
+
+        // this is a example,you can write the workbook to any valid outputstream
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("转换示例.xlsx", "UTF-8"));
+        try {
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+}

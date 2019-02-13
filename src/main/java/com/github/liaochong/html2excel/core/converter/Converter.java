@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.html2excel.exception;
+package com.github.liaochong.html2excel.core.converter;
+
+import java.lang.reflect.Field;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class UnsupportedWorkbookTypeException extends RuntimeException {
+public interface Converter {
 
-    public UnsupportedWorkbookTypeException() {
-        super();
-    }
+    /**
+     * 转换
+     *
+     * @param field  字段
+     * @param fieldVal 字段对应的值
+     * @return T
+     */
+    Object convert(Field field, Object fieldVal);
 
-    public UnsupportedWorkbookTypeException(String message) {
-        super(message);
-    }
-
-    public UnsupportedWorkbookTypeException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

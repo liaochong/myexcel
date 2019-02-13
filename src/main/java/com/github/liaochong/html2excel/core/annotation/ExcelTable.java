@@ -66,4 +66,11 @@ public @interface ExcelTable {
      * @return 行数
      */
     int rowAccessWindowSize() default -1;
+
+    /**
+     * 是否使用字段名称作为标题
+     *
+     * @return true/false
+     */
+    boolean useFieldNameAsTitle() default false;
 }

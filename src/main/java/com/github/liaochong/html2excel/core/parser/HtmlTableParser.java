@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.html2excel.core.parser;
 
+import com.github.liaochong.html2excel.core.style.FontStyle;
 import com.github.liaochong.html2excel.utils.StyleUtil;
 import com.github.liaochong.html2excel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +109,10 @@ public class HtmlTableParser {
             return;
         }
         trList.subList(1, trList.size()).parallelStream().forEach(tr -> {
-            tr.getTdList().parallelStream().forEach(td -> this.adjustTdPosition(td, trList));
+            List<Td> tdList = tr.getTdList();
+            for (int i = tdList.size() - 1; i >= 0; i--) {
+                this.adjustTdPosition(tdList.get(i), trList);
+            }
         });
     }
 
@@ -186,7 +190,8 @@ public class HtmlTableParser {
             tr.getTdList().add(td);
 
             // 设置每列宽度
-            int width = TdUtil.getStringWidth(td.getContent());
+            double fontWidthShift = FontStyle.getFontWidthShift(td.getStyle());
+            int width = TdUtil.getStringWidth(td.getContent(), fontWidthShift);
             tr.getColWidthMap().put(td.getCol(), width);
         }
     }
@@ -207,6 +212,7 @@ public class HtmlTableParser {
         if (CollectionUtils.isEmpty(rowSpanTds)) {
             return;
         }
+        int originTdCol = td.getCol();
         rowSpanTds.forEach(t -> {
             int prevTdColSpan = t.getColSpan();
             int realCol = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
@@ -216,6 +222,12 @@ public class HtmlTableParser {
         // 重调
         int colBound = TdUtil.get(td::getColSpan, td::getCol);
         td.setColBound(colBound);
+
+        Map<Integer, Integer> colWidthMap = trList.get(td.getRow()).getColWidthMap();
+        if (!colWidthMap.isEmpty()) {
+            Integer val = colWidthMap.remove(originTdCol);
+            colWidthMap.put(td.getCol(), val);
+        }
     }
 
     public enum TableTag {

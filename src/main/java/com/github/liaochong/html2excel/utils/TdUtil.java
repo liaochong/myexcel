@@ -15,7 +15,8 @@
  */
 package com.github.liaochong.html2excel.utils;
 
-import com.github.liaochong.html2excel.core.cache.DefaultCache;
+import com.github.liaochong.html2excel.core.cache.Cache;
+import com.github.liaochong.html2excel.core.cache.WeakCache;
 
 import java.util.Objects;
 import java.util.function.IntSupplier;
@@ -28,9 +29,11 @@ import java.util.regex.Pattern;
  */
 public final class TdUtil {
 
-    private static Pattern pattern = Pattern.compile("^\\d+$");
+    private static Pattern chineseOrCapitalPattern = Pattern.compile("[\u4e00-\u9fa5|A-Z]");
 
-    private static final DefaultCache<String, Integer> SPAN_CACHE = new DefaultCache<>();
+    private static Pattern digitalPattern = Pattern.compile("^\\d+$");
+
+    private static final Cache<String, Integer> SPAN_CACHE = new WeakCache<>();
 
     public static int get(IntSupplier firstSupplier, IntSupplier secondSupplier) {
         int firstValue = firstSupplier.getAsInt();
@@ -54,31 +57,28 @@ public final class TdUtil {
     }
 
     public static boolean isSpanValid(String span) {
-        return pattern.matcher(span).find();
+        return digitalPattern.matcher(span).find();
     }
 
-    public static int getStringWidth(String s) {
+    public static int getStringWidth(String s, double shift) {
         if (Objects.isNull(s)) {
             return 1;
         }
         // 最小为1
         double valueLength = 1;
-        String chinese = "[\u4e00-\u9fa5]";
-        // 获取字段值的长度，如果含中文字符，则每个中文字符长度为2，否则为1
-        for (int i = 0; i < s.length(); i++) {
+        // 获取字段值的长度，如果含中文字符，则每个中文字符长度为1，否则为0.75
+        double chineseOrCapitalShift = 1 + shift;
+        double otherShift = 0.75 + shift;
+        for (int i = 0, size = s.length(); i < size; i++) {
             // 获取一个字符
             String temp = s.substring(i, i + 1);
-            // 判断是否为中文字符
-            if (temp.matches(chinese)) {
-                // 中文字符长度为1
-                valueLength += 1;
+            if (chineseOrCapitalPattern.matcher(temp).find()) {
+                valueLength += chineseOrCapitalShift;
             } else {
-                // 其他字符长度为0.5
-                valueLength += 0.5;
+                valueLength += otherShift;
             }
         }
         // 进位取整
         return (int) Math.ceil(valueLength);
     }
-
 }

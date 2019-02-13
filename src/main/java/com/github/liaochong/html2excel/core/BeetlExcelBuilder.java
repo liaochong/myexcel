@@ -38,7 +38,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class BeetlExcelBuilder extends ExcelBuilder {
+public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
@@ -58,7 +58,7 @@ public class BeetlExcelBuilder extends ExcelBuilder {
     }
 
     @Override
-    public Workbook build(Map<String, Object> renderData) {
+    public <T> Workbook build(Map<String, T> renderData) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         Path htmlFile = tempFileOperator.createTempFile("beetl_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
