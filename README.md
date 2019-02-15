@@ -5,7 +5,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Percentage of issues still open")
 
-> 使用示例请移步：[示例](https://github.com/liaochong/html2excel/tree/master/example/src/main/java/com/github/liaochong/example/controller)
+> 使用示例参考请移步：[示例](https://github.com/liaochong/html2excel/tree/master/example/src/main/java/com/github/liaochong/example/controller)
 
 简介 | Brief introduction
 ------------------------
