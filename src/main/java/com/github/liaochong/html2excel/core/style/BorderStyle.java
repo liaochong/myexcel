@@ -28,6 +28,15 @@ import java.util.stream.Collectors;
  */
 public final class BorderStyle {
 
+    public static final String BORDER_LEFT_STYLE = "border-left-style";
+
+    public static final String BORDER_RIGHT_STYLE = "border-right-style";
+
+    public static final String BORDER_TOP_STYLE = "border-top-style";
+
+    public static final String BORDER_BOTTOM_STYLE = "border-bottom-style";
+
+    public static final String THIN = "thin";
 
     private static Map<String, org.apache.poi.ss.usermodel.BorderStyle> borderStyleMap;
 
@@ -40,19 +49,19 @@ public final class BorderStyle {
         if (Objects.isNull(tdStyle)) {
             return;
         }
-        String borderLeftStyle = tdStyle.get("border-left-style");
+        String borderLeftStyle = tdStyle.get(BORDER_LEFT_STYLE);
         if (borderStyleMap.containsKey(borderLeftStyle)) {
             cellStyle.setBorderLeft(borderStyleMap.get(borderLeftStyle));
         }
-        String borderRightStyle = tdStyle.get("border-right-style");
+        String borderRightStyle = tdStyle.get(BORDER_RIGHT_STYLE);
         if (borderStyleMap.containsKey(borderRightStyle)) {
             cellStyle.setBorderRight(borderStyleMap.get(borderRightStyle));
         }
-        String borderTopStyle = tdStyle.get("border-top-style");
+        String borderTopStyle = tdStyle.get(BORDER_TOP_STYLE);
         if (borderStyleMap.containsKey(borderTopStyle)) {
             cellStyle.setBorderTop(borderStyleMap.get(borderTopStyle));
         }
-        String borderBottomStyle = tdStyle.get("border-bottom-style");
+        String borderBottomStyle = tdStyle.get(BORDER_BOTTOM_STYLE);
         if (borderStyleMap.containsKey(borderBottomStyle)) {
             cellStyle.setBorderBottom(borderStyleMap.get(borderBottomStyle));
         }

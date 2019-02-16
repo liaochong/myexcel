@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
  */
 public final class BackgroundStyle {
 
+    public static final String BACKGROUND_COLOR = "background-color";
+
     private static final String HASH = "#";
 
     private static final String RGB = "rgb";
@@ -55,7 +57,7 @@ public final class BackgroundStyle {
         if (Objects.isNull(tdStyle)) {
             return;
         }
-        String color = tdStyle.get("background-color");
+        String color = tdStyle.get(BACKGROUND_COLOR);
         if (Objects.isNull(color)) {
             return;
         }
@@ -75,7 +77,7 @@ public final class BackgroundStyle {
             return;
         }
         if (color.startsWith(RGB)) {
-            String rgbColor = color.replace("rgb", "").replace("(", "").replace(")", "");
+            String rgbColor = color.replace(RGB, "").replace("(", "").replace(")", "");
             String[] rgbColorArr = rgbColor.split(",");
             List<Integer> rgb = Arrays.stream(rgbColorArr)
                     .map(String::trim).map(Integer::parseInt)

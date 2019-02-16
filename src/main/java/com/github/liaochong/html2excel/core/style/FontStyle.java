@@ -28,9 +28,21 @@ import java.util.Objects;
  */
 public final class FontStyle {
 
-    private static final String FONT_SIZE = "font-size";
+    public static final String FONT_SIZE = "font-size";
 
-    private static final String FONT_WEIGHT = "font-weight";
+    public static final String FONT_WEIGHT = "font-weight";
+
+    public static final String FONT_FAMILY = "font-family";
+
+    public static final String FONT_STYLE = "font-style";
+
+    public static final String TEXT_DECORATION = "text-decoration";
+
+    public static final String ITALIC = "italic";
+
+    public static final String LINE_THROUGH = "line-through";
+
+    public static final String BOLD = "bold";
 
     public static final short DEFAULT_FONT_SIZE = 12;
 
@@ -47,7 +59,7 @@ public final class FontStyle {
             }
         }
         String fontWeight = tdStyle.get(FONT_WEIGHT);
-        if (Objects.equals(fontWeight, "bold")) {
+        if (Objects.equals(fontWeight, BOLD)) {
             fontWidthShift += FONT_SIZE_SHIFT;
         }
         return fontWidthShift;
@@ -67,23 +79,23 @@ public final class FontStyle {
             font = workbook.createFont();
             font.setFontHeightInPoints(fontSize);
         }
-        String fontFamily = tdStyle.get("font-family");
+        String fontFamily = tdStyle.get(FONT_FAMILY);
         if (Objects.nonNull(fontFamily)) {
             font = createFontIfNull(workbook, font);
             font.setFontName(fontFamily);
         }
-        String italic = tdStyle.get("font-style");
-        if (Objects.equals("italic", italic)) {
+        String italic = tdStyle.get(FONT_STYLE);
+        if (Objects.equals(ITALIC, italic)) {
             font = createFontIfNull(workbook, font);
             font.setItalic(true);
         }
-        String strikeout = tdStyle.get("text-decoration");
-        if (Objects.equals(strikeout, "line-through")) {
+        String strikeout = tdStyle.get(TEXT_DECORATION);
+        if (Objects.equals(strikeout, LINE_THROUGH)) {
             font = createFontIfNull(workbook, font);
             font.setStrikeout(true);
         }
         String fontWeight = tdStyle.get(FONT_WEIGHT);
-        if (Objects.equals(fontWeight, "bold")) {
+        if (Objects.equals(fontWeight, BOLD)) {
             font = createFontIfNull(workbook, font);
             font.setBold(true);
         }
@@ -102,11 +114,11 @@ public final class FontStyle {
 
     private static String getCacheKey(Map<String, String> tdStyle) {
         StringBuilder result = new StringBuilder();
-        appendKey(tdStyle, "font-size", result);
-        appendKey(tdStyle, "font-family", result);
-        appendKey(tdStyle, "font-style", result);
-        appendKey(tdStyle, "text-decoration", result);
-        appendKey(tdStyle, "font-weight", result);
+        appendKey(tdStyle, FONT_SIZE, result);
+        appendKey(tdStyle, FONT_FAMILY, result);
+        appendKey(tdStyle, FONT_STYLE, result);
+        appendKey(tdStyle, TEXT_DECORATION, result);
+        appendKey(tdStyle, FONT_WEIGHT, result);
         return result.toString();
     }
 

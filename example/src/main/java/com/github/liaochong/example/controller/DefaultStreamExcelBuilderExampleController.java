@@ -25,7 +25,9 @@ public class DefaultStreamExcelBuilderExampleController {
 
     @GetMapping("/default/excel/stream/example")
     public void streamBuild(HttpServletResponse response) throws Exception {
-        DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class).threadPool(Executors.newFixedThreadPool(10)).start();
+        DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
+                .threadPool(Executors.newFixedThreadPool(10))
+                .start();
 
         List<CompletableFuture> futures = new ArrayList<>();
         for (int i = 0; i < 100; i++) {

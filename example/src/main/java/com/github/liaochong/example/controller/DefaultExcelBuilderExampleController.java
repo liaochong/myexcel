@@ -25,8 +25,7 @@ public class DefaultExcelBuilderExampleController {
     @GetMapping("/default/excel/example")
     public void defaultBuild(HttpServletResponse response) throws Exception {
         List<ArtCrowd> dataList = this.getDataList();
-        Class<?>[] classes = new Class[]{String.class};
-        Workbook workbook = DefaultExcelBuilder.of(ArtCrowd.class).workbookType(WorkbookType.XLS).build(dataList, classes);
+        Workbook workbook = DefaultExcelBuilder.of(ArtCrowd.class).build(dataList);
 
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("艺术生信息.xls", "UTF-8"));
