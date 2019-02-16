@@ -82,7 +82,7 @@ public class BeetlExcelBuilderExampleController {
                 .build(dataMap);
 
         response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + new String("beetl_excel.xlsx".getBytes()));
+        response.addHeader("Content-Disposition", "attachment;filename=" + new String("beetl_excel.xls".getBytes()));
         try {
             workbook.write(response.getOutputStream());
         } catch (IOException e) {
