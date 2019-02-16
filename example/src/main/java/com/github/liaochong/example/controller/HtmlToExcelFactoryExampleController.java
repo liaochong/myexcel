@@ -31,7 +31,7 @@ public class HtmlToExcelFactoryExampleController {
         Workbook workbook = HtmlToExcelFactory.readHtml(path.toFile()).build();
 
         // this is a example,you can write the workbook to any valid outputstream
-        AttachmentExportUtil.export(workbook, "转换示例.xlsx", response);
+        AttachmentExportUtil.export(workbook, "转换示例", response);
     }
 
 }

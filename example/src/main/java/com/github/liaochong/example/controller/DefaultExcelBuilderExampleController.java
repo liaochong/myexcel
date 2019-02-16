@@ -28,7 +28,7 @@ public class DefaultExcelBuilderExampleController {
         List<ArtCrowd> dataList = this.getDataList();
         Workbook workbook = DefaultExcelBuilder.of(ArtCrowd.class).build(dataList);
 
-        AttachmentExportUtil.export(workbook, "艺术生信息.xlsx", response);
+        AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
 
     private List<ArtCrowd> getDataList() {

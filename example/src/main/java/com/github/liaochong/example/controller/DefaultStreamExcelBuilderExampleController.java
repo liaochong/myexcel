@@ -40,7 +40,7 @@ public class DefaultStreamExcelBuilderExampleController {
         }
         futures.forEach(CompletableFuture::join);
         Workbook workbook = defaultExcelBuilder.build();
-        AttachmentExportUtil.export(workbook, "艺术生信息.xlsx", response);
+        AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
 
     private List<ArtCrowd> getDataList() {

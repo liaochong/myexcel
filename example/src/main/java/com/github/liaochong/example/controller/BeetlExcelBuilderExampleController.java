@@ -36,7 +36,7 @@ public class BeetlExcelBuilderExampleController {
 
         Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "beetl_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "beetl_excel", response);
     }
 
     /**
@@ -51,7 +51,7 @@ public class BeetlExcelBuilderExampleController {
 
         Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").useDefaultStyle().build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "beetl_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "beetl_excel", response);
     }
 
     /**
@@ -70,7 +70,7 @@ public class BeetlExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "beetl_excel.xls", response);
+        AttachmentExportUtil.export(workbook, "beetl_excel", response);
     }
 
     /**
@@ -89,7 +89,7 @@ public class BeetlExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "beetl_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "beetl_excel", response);
     }
 
     /**
@@ -108,7 +108,7 @@ public class BeetlExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "beetl_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "beetl_excel", response);
     }
 
     private Map<String, Object> getDataMap() {

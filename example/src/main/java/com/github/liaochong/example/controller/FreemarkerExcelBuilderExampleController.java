@@ -37,7 +37,7 @@ public class FreemarkerExcelBuilderExampleController {
 
         Workbook workbook = excelBuilder.template("/templates/freemarkerToExcelExample.ftl").build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "freemarker_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -55,7 +55,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "freemarker_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -74,7 +74,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "freemarker_excel.xls", response);
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -93,7 +93,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "freemarker_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -112,7 +112,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        AttachmentExportUtil.export(workbook, "freemarker_excel.xlsx", response);
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
 
