@@ -2,6 +2,7 @@ package com.github.liaochong.example.controller;
 
 import com.github.liaochong.example.pojo.ArtCrowd;
 import com.github.liaochong.html2excel.core.DefaultStreamExcelBuilder;
+import com.github.liaochong.html2excel.utils.AttachmentExportUtil;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -39,14 +40,7 @@ public class DefaultStreamExcelBuilderExampleController {
         }
         futures.forEach(CompletableFuture::join);
         Workbook workbook = defaultExcelBuilder.build();
-
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("艺术生信息.xlsx", "UTF-8"));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "艺术生信息.xlsx", response);
     }
 
     private List<ArtCrowd> getDataList() {

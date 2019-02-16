@@ -32,6 +32,7 @@
         <beetl.version>2.9.7</beetl.version>
         <freemarker.version>2.3.23</freemarker.version>
         <groovy-templates.version>2.4.13</groovy-templates.version>
+        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     </properties>
 
     <dependencies>
@@ -72,6 +73,12 @@
             <artifactId>groovy-templates</artifactId>
             <version>${groovy-templates.version}</version>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet-api.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
