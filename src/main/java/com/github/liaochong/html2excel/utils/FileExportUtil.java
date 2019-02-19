@@ -15,41 +15,41 @@
  */
 package com.github.liaochong.html2excel.utils;
 
-import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
+import java.io.OutputStream;
 
 /**
- * 附件导出工具类
+ * 文件导出工具类
  *
  * @author liaochong
  * @version 1.0
  */
-public final class AttachmentExportUtil {
+public final class FileExportUtil {
 
     /**
      * 导出
      *
      * @param workbook workbook
-     * @param fileName file name,suffix is not required,and it is not recommended to carry a suffix
-     * @param response HttpServletResponse
+     * @param file     file
      * @throws IOException IOException
      */
-    public static void export(Workbook workbook, String fileName, HttpServletResponse response) throws IOException {
+    public static void export(Workbook workbook, File file) throws IOException {
         String suffix = ".xlsx";
         if (workbook instanceof HSSFWorkbook) {
             suffix = ".xls";
         }
-        if (!fileName.endsWith(suffix)) {
-            fileName += suffix;
+        if (!file.getName().endsWith(suffix)) {
+            file.renameTo(new File(file.getName() + suffix));
         }
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
-        workbook.write(response.getOutputStream());
-        workbook.close();
+        try (OutputStream os = new FileOutputStream(file)) {
+            workbook.write(os);
+        } finally {
+            workbook.close();
+        }
     }
 }
