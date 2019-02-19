@@ -42,6 +42,9 @@ public final class AttachmentExportUtil {
     public static void export(Workbook workbook, String fileName, HttpServletResponse response) throws IOException {
         String suffix = ".xlsx";
         if (workbook instanceof HSSFWorkbook) {
+            if (fileName.endsWith(suffix)) {
+                fileName = fileName.substring(0, fileName.length() - 1);
+            }
             suffix = ".xls";
         }
         if (!fileName.endsWith(suffix)) {

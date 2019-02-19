@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 
 /**
  * 文件导出工具类
@@ -41,10 +42,14 @@ public final class FileExportUtil {
     public static void export(Workbook workbook, File file) throws IOException {
         String suffix = ".xlsx";
         if (workbook instanceof HSSFWorkbook) {
+            if (file.getName().endsWith(suffix)) {
+                String absolutePath = file.getAbsolutePath();
+                file = Paths.get(absolutePath.substring(0, absolutePath.length() - 1)).toFile();
+            }
             suffix = ".xls";
         }
         if (!file.getName().endsWith(suffix)) {
-            file.renameTo(new File(file.getName() + suffix));
+            file = Paths.get(file.getAbsolutePath() + suffix).toFile();
         }
         try (OutputStream os = new FileOutputStream(file)) {
             workbook.write(os);
