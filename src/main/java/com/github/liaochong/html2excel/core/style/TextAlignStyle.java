@@ -36,7 +36,7 @@ public final class TextAlignStyle {
 
     public static final String MIDDLE = "middle";
 
-    public static final String CENTER = "CENTER";
+    public static final String CENTER = "center";
 
     private static Map<String, HorizontalAlignment> horizontalAlignmentMap;
 
