@@ -70,6 +70,7 @@ public interface ExcelBuilder {
      * 构建
      *
      * @param renderData 渲染数据
+     * @param <T>        值类型
      * @return Workbook
      */
     <T> Workbook build(Map<String, T> renderData);

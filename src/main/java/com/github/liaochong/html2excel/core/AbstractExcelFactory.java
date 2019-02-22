@@ -148,8 +148,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 创建单元格
      *
-     * @param td    td
-     * @param sheet sheet
+     * @param td         td
+     * @param sheet      sheet
+     * @param currentRow 当前行
      */
     protected void createCell(Td td, Sheet sheet, Row currentRow) {
         Cell cell = currentRow.getCell(td.getCol());
@@ -261,6 +262,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 获取每列最大宽度
      *
      * @param trList trList
+     * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
         if (useDefaultStyle) {
