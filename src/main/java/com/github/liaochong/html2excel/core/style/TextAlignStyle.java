@@ -30,6 +30,14 @@ import java.util.stream.Collectors;
  */
 public final class TextAlignStyle {
 
+    public static final String TEXT_ALIGN = "text-align";
+
+    public static final String VERTICAL_ALIGN = "vertical-align";
+
+    public static final String MIDDLE = "middle";
+
+    public static final String CENTER = "center";
+
     private static Map<String, HorizontalAlignment> horizontalAlignmentMap;
 
     private static Map<String, VerticalAlignment> verticalAlignmentMap;
@@ -37,18 +45,18 @@ public final class TextAlignStyle {
     static {
         horizontalAlignmentMap = Arrays.stream(HorizontalAlignment.values()).collect(Collectors.toMap(h -> h.name().toLowerCase(), h -> h));
         verticalAlignmentMap = Arrays.stream(VerticalAlignment.values()).collect(Collectors.toMap(v -> v.name().toLowerCase(), v -> v));
-        verticalAlignmentMap.put("middle", VerticalAlignment.CENTER);
+        verticalAlignmentMap.put(MIDDLE, VerticalAlignment.CENTER);
     }
 
     public static void setTextAlign(CellStyle cellStyle, Map<String, String> tdStyle) {
         if (Objects.isNull(tdStyle)) {
             return;
         }
-        String textAlign = tdStyle.get("text-align");
+        String textAlign = tdStyle.get(TEXT_ALIGN);
         if (horizontalAlignmentMap.containsKey(textAlign)) {
             cellStyle.setAlignment(horizontalAlignmentMap.get(textAlign));
         }
-        String verticalAlign = tdStyle.get("vertical-align");
+        String verticalAlign = tdStyle.get(VERTICAL_ALIGN);
         if (verticalAlignmentMap.containsKey(verticalAlign)) {
             cellStyle.setVerticalAlignment(verticalAlignmentMap.get(verticalAlign));
         }

@@ -1,6 +1,7 @@
 package com.github.liaochong.example.controller;
 
 import com.github.liaochong.html2excel.core.HtmlToExcelFactory;
+import com.github.liaochong.html2excel.utils.AttachmentExportUtil;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -30,13 +31,7 @@ public class HtmlToExcelFactoryExampleController {
         Workbook workbook = HtmlToExcelFactory.readHtml(path.toFile()).build();
 
         // this is a example,you can write the workbook to any valid outputstream
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("转换示例.xlsx", "UTF-8"));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "转换示例", response);
     }
 
 }

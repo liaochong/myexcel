@@ -4,6 +4,7 @@ import com.github.liaochong.example.pojo.Product;
 import com.github.liaochong.html2excel.core.ExcelBuilder;
 import com.github.liaochong.html2excel.core.FreemarkerExcelBuilder;
 import com.github.liaochong.html2excel.core.WorkbookType;
+import com.github.liaochong.html2excel.utils.AttachmentExportUtil;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,19 +31,13 @@ public class FreemarkerExcelBuilderExampleController {
      * @param response response
      */
     @GetMapping("/freemarker/example")
-    public void build(HttpServletResponse response) {
+    public void build(HttpServletResponse response) throws IOException {
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
         Map<String, Object> dataMap = this.getDataMap();
 
         Workbook workbook = excelBuilder.template("/templates/freemarkerToExcelExample.ftl").build(dataMap);
 
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -51,7 +46,7 @@ public class FreemarkerExcelBuilderExampleController {
      * @param response response
      */
     @GetMapping("/freemarker/defaultStyle/example")
-    public void buildWithDefaultStyle(HttpServletResponse response) {
+    public void buildWithDefaultStyle(HttpServletResponse response) throws IOException {
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
         Map<String, Object> dataMap = this.getDataMap();
 
@@ -60,13 +55,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -75,7 +64,7 @@ public class FreemarkerExcelBuilderExampleController {
      * @param response response
      */
     @GetMapping("/freemarker/xls/example")
-    public void buildWithXLS(HttpServletResponse response) {
+    public void buildWithXLS(HttpServletResponse response) throws IOException {
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
         Map<String, Object> dataMap = this.getDataMap();
 
@@ -85,13 +74,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xls".getBytes()));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -100,7 +83,7 @@ public class FreemarkerExcelBuilderExampleController {
      * @param response response
      */
     @GetMapping("/freemarker/xlsx/example")
-    public void buildWithXLSX(HttpServletResponse response) {
+    public void buildWithXLSX(HttpServletResponse response) throws IOException {
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
         Map<String, Object> dataMap = this.getDataMap();
 
@@ -110,13 +93,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
     /**
@@ -125,7 +102,7 @@ public class FreemarkerExcelBuilderExampleController {
      * @param response response
      */
     @GetMapping("/freemarker/sxlsx/example")
-    public void buildWithSXLSX(HttpServletResponse response) {
+    public void buildWithSXLSX(HttpServletResponse response) throws IOException {
         ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
         Map<String, Object> dataMap = this.getDataMap();
 
@@ -135,13 +112,7 @@ public class FreemarkerExcelBuilderExampleController {
                 .useDefaultStyle()
                 .build(dataMap);
 
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + new String("freemarker_excel.xlsx".getBytes()));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
 

@@ -3,6 +3,7 @@ package com.github.liaochong.example.controller;
 import com.github.liaochong.example.pojo.ArtCrowd;
 import com.github.liaochong.html2excel.core.DefaultExcelBuilder;
 import com.github.liaochong.html2excel.core.WorkbookType;
+import com.github.liaochong.html2excel.utils.AttachmentExportUtil;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -25,16 +26,9 @@ public class DefaultExcelBuilderExampleController {
     @GetMapping("/default/excel/example")
     public void defaultBuild(HttpServletResponse response) throws Exception {
         List<ArtCrowd> dataList = this.getDataList();
-        Class<?>[] classes = new Class[]{String.class};
-        Workbook workbook = DefaultExcelBuilder.of(ArtCrowd.class).workbookType(WorkbookType.XLS).build(dataList, classes);
+        Workbook workbook = DefaultExcelBuilder.of(ArtCrowd.class).build(dataList);
 
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("艺术生信息.xls", "UTF-8"));
-        try {
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
 
     private List<ArtCrowd> getDataList() {

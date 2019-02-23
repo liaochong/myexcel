@@ -25,7 +25,10 @@ import com.github.liaochong.html2excel.core.parser.Table;
 import com.github.liaochong.html2excel.core.parser.Td;
 import com.github.liaochong.html2excel.core.parser.Tr;
 import com.github.liaochong.html2excel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.html2excel.core.style.BackgroundStyle;
+import com.github.liaochong.html2excel.core.style.BorderStyle;
 import com.github.liaochong.html2excel.core.style.FontStyle;
+import com.github.liaochong.html2excel.core.style.TextAlignStyle;
 import com.github.liaochong.html2excel.utils.StringUtil;
 import com.github.liaochong.html2excel.utils.TdUtil;
 
@@ -51,9 +54,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      */
     private Map<String, String> commonTdStyle;
     /**
-     * 奇数行单元格样式
+     * 偶数行单元格样式
      */
-    private Map<String, String> oddTdStyle;
+    private Map<String, String> evenTdStyle;
     /**
      * 标题
      */
@@ -158,14 +161,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (!hasTitles) {
             return null;
         }
-        Map<String, String> thStyle = new HashMap<>();
-        thStyle.put("font-weight", "bold");
-        thStyle.put("font-size", "14");
-        thStyle.put("text-align", "center");
-        thStyle.put("vertical-align", "center");
-        thStyle.put("border-bottom-style", "thin");
-        thStyle.put("border-left-style", "thin");
-        thStyle.put("border-right-style", "thin");
+        Map<String, String> thStyle = new HashMap<>(7);
+        thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
+        thStyle.put(FontStyle.FONT_SIZE, "14");
+        thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
+        thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+        thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+        thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+        thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
 
         Tr tr = new Tr(0);
         Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
@@ -201,7 +204,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             List<Object> dataList = contents.get(index);
             Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
             tr.setColWidthMap(colMaxWidthMap);
-            Map<String, String> tdStyle = index % 2 == 0 ? commonTdStyle : oddTdStyle;
+            Map<String, String> tdStyle = index % 2 == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
@@ -224,14 +227,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      */
     protected void initStyleMap() {
         commonTdStyle = new HashMap<>(3);
-        commonTdStyle.put("border-bottom-style", "thin");
-        commonTdStyle.put("border-left-style", "thin");
-        commonTdStyle.put("border-right-style", "thin");
-        commonTdStyle.put("vertical-align", "middle");
+        commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+        commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+        commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+        commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
 
-        oddTdStyle = new HashMap<>(4);
-        oddTdStyle.put("background-color", "#f6f8fa");
-        oddTdStyle.putAll(commonTdStyle);
+        evenTdStyle = new HashMap<>(4);
+        evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
+        evenTdStyle.putAll(commonTdStyle);
     }
 
     /**

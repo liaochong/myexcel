@@ -10,7 +10,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>html2excel</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
 
     <name>html2excel</name>
@@ -28,6 +28,11 @@
         <poi.version>4.0.1</poi.version>
         <jsoup.version>1.11.3</jsoup.version>
         <lombok.version>1.18.4</lombok.version>
+        <slf4j-api.version>1.7.25</slf4j-api.version>
+        <beetl.version>2.9.7</beetl.version>
+        <freemarker.version>2.3.23</freemarker.version>
+        <groovy-templates.version>2.4.13</groovy-templates.version>
+        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     </properties>
 
     <dependencies>
@@ -50,30 +55,36 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
+            <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
             <groupId>com.ibeetl</groupId>
             <artifactId>beetl</artifactId>
-            <version>2.9.7</version>
+            <version>${beetl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>${freemarker.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-templates</artifactId>
+            <version>${groovy-templates.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet-api.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.23</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-templates</artifactId>
-            <version>2.4.13</version>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 
