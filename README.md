@@ -31,7 +31,7 @@ https://github.com/liaochong/html2excel/wiki
 
 联系以及问题反馈 | Contact me
 --------------------------
-* QQ： 1475958950
+* QQ群： 135520370
 * Email：liaochong8950@163.com
 * Issue：[issues](https://github.com/liaochong/html2excel/issues)
 
