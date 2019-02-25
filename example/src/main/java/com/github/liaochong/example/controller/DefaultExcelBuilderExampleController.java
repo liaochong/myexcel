@@ -27,7 +27,6 @@ public class DefaultExcelBuilderExampleController {
     public void defaultBuild(HttpServletResponse response) throws Exception {
         List<ArtCrowd> dataList = this.getDataList();
         Workbook workbook = DefaultExcelBuilder.of(ArtCrowd.class).build(dataList);
-
         AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
 

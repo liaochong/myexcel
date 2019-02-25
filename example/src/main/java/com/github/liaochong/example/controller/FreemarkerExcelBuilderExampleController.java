@@ -36,7 +36,6 @@ public class FreemarkerExcelBuilderExampleController {
         Map<String, Object> dataMap = this.getDataMap();
 
         Workbook workbook = excelBuilder.template("/templates/freemarkerToExcelExample.ftl").build(dataMap);
-
         AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
@@ -54,7 +53,6 @@ public class FreemarkerExcelBuilderExampleController {
                 .template("/templates/freemarkerToExcelExample.ftl")
                 .useDefaultStyle()
                 .build(dataMap);
-
         AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
@@ -73,7 +71,6 @@ public class FreemarkerExcelBuilderExampleController {
                 .workbookType(WorkbookType.XLS)
                 .useDefaultStyle()
                 .build(dataMap);
-
         AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
@@ -92,7 +89,6 @@ public class FreemarkerExcelBuilderExampleController {
                 .workbookType(WorkbookType.XLSX)
                 .useDefaultStyle()
                 .build(dataMap);
-
         AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
@@ -111,7 +107,6 @@ public class FreemarkerExcelBuilderExampleController {
                 .workbookType(WorkbookType.SXLSX)
                 .useDefaultStyle()
                 .build(dataMap);
-
         AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
