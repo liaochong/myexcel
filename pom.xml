@@ -9,17 +9,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.liaochong</groupId>
-    <artifactId>html2excel</artifactId>
-    <version>1.4.1</version>
+    <artifactId>myexcel</artifactId>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
-    <name>html2excel</name>
-    <description>Html2excel, is a toolkit that can directly use Html files, or use the built-in Freemarker, Groovy,
-        Beetl and other template engine Excel builder to generate Html files, and use the Table in the Html file as an
-        Excel template to generate Excel of any complex layout. Supports .xls and .xlsx formats, supports
-        personalization of background colors, borders, fonts, etc., and supports merging of cells.
-    </description>
-    <url>https://github.com/liaochong/html2excel</url>
+    <name>myexcel</name>
+    <description>MyExcel, a new way to operate Excel.</description>
+    <url>https://github.com/liaochong/myexcel</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -98,20 +94,20 @@
 
     <issueManagement>
         <system>Github Issue</system>
-        <url>https://github.com/liaochong/html2excel/issues</url>
+        <url>https://github.com/liaochong/myexcel/issues</url>
     </issueManagement>
 
     <scm>
-        <url>https://github.com/liaochong/html2excel</url>
-        <connection>https://github.com/liaochong/html2excel.git</connection>
-        <developerConnection>https://github.com/liaochong/html2excel.git</developerConnection>
+        <url>https://github.com/liaochong/myexcel</url>
+        <connection>https://github.com/liaochong/myexcel.git</connection>
+        <developerConnection>https://github.com/liaochong/myexcel.git</developerConnection>
     </scm>
 
     <developers>
         <developer>
             <name>liaochong</name>
             <email>1475958950@qq.com</email>
-            <url>https://github.com/liaochong/html2excel</url>
+            <url>https://github.com/liaochong/myexcel</url>
         </developer>
     </developers>
 
