@@ -1,6 +1,6 @@
 package com.github.liaochong.example.pojo;
 
-import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 
 /**
  * @author liaochong

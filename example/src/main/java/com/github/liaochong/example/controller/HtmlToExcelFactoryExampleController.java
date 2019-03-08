@@ -1,16 +1,13 @@
 package com.github.liaochong.example.controller;
 
-import com.github.liaochong.html2excel.core.HtmlToExcelFactory;
-import com.github.liaochong.html2excel.utils.AttachmentExportUtil;
-import org.apache.commons.codec.CharEncoding;
+import com.github.liaochong.myexcel.core.HtmlToExcelFactory;
+import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

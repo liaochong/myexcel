@@ -1,9 +1,9 @@
 package com.github.liaochong.example.pojo;
 
-import com.github.liaochong.html2excel.core.WorkbookType;
-import com.github.liaochong.html2excel.core.annotation.ExcelColumn;
-import com.github.liaochong.html2excel.core.annotation.ExcelTable;
-import com.github.liaochong.html2excel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.WorkbookType;
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.ExcelTable;
+import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 
 import java.time.LocalDateTime;
 

@@ -1,11 +1,10 @@
 package com.github.liaochong.example.controller;
 
 import com.github.liaochong.example.pojo.Product;
-import com.github.liaochong.html2excel.core.ExcelBuilder;
-import com.github.liaochong.html2excel.core.FreemarkerExcelBuilder;
-import com.github.liaochong.html2excel.core.WorkbookType;
-import com.github.liaochong.html2excel.utils.AttachmentExportUtil;
-import org.apache.commons.codec.CharEncoding;
+import com.github.liaochong.myexcel.core.ExcelBuilder;
+import com.github.liaochong.myexcel.core.FreemarkerExcelBuilder;
+import com.github.liaochong.myexcel.core.WorkbookType;
+import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
