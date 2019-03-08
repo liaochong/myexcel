@@ -1,9 +1,9 @@
 # Html2excel--Excel导出新方式
-[![Build Status](https://travis-ci.org/liaochong/html2excel.svg?branch=master)](https://travis-ci.org/liaochong/html2excel)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/html2excel/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/html2excel)
+[![Build Status](https://travis-ci.org/liaochong/myexcel.svg?branch=master)](https://travis-ci.org/liaochong/myexcel)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/myexcel/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/myexcel)
 [![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Average time to resolve an issue")
-[![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/html2excel.svg)](http://isitmaintained.com/project/liaochong/html2excel "Percentage of issues still open")
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/myexcel.svg)](http://isitmaintained.com/project/liaochong/myexcel "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/myexcel.svg)](http://isitmaintained.com/project/liaochong/myexcel "Percentage of issues still open")
 
 > 注意：为提供更好更全面的excel操作体验，将全面提供简便的excel读、写、加密等等功能，也为避免因本工具包名称让人误以为只是一个html转化为excel的工具包的情况，因此html2excel 1.4.1版本后将更名为myexcel，版本2.0.0，除包名中 html2excel 变更为 myexcel 外，其他继续提供兼容，即升级为2.0版本时只需全局替换包名为新包名即可，无需其他修改，如果因此给您带来不便，敬请谅解，感谢您的关注！
 
