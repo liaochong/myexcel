@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
@@ -25,6 +26,7 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.utils.TdUtil;
+import lombok.NonNull;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -34,9 +36,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -82,6 +86,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 内存数据保有量
      */
     private Integer rowAccessWindowSize = SXSSFWorkbook.DEFAULT_WINDOW_SIZE;
+    /**
+     * 自动宽度策略
+     */
+    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPONENT_AUTO_WIDTH;
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -119,6 +127,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             default:
                 workbook = new XSSFWorkbook();
         }
+        return this;
+    }
+
+    @Override
+    public ExcelFactory autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        this.autoWidthStrategy = autoWidthStrategy;
         return this;
     }
 
@@ -275,6 +289,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
+        if (AutoWidthStrategy.isNoAuto(autoWidthStrategy) || AutoWidthStrategy.isAutoWidth(autoWidthStrategy)) {
+            return Collections.emptyMap();
+        }
         if (useDefaultStyle) {
             // 使用默认样式，需要重新修正加粗的标题自适应宽度
             trList.parallelStream().forEach(tr -> {
@@ -305,6 +322,18 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param sheet          sheet
      */
     protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet) {
+        if (AutoWidthStrategy.isNoAuto(autoWidthStrategy)) {
+            return;
+        }
+        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy)) {
+            if (sheet instanceof SXSSFSheet) {
+                throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
+            }
+            for (int i = 0, size = sheet.getLastRowNum(); i < size; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            return;
+        }
         colMaxWidthMap.forEach((key, value) -> {
             int contentLength = value << 1;
             if (contentLength > 255) {

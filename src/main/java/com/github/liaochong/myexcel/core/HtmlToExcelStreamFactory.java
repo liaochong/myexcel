@@ -95,7 +95,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
         }
         this.sheet = this.workbook.createSheet(sheetName);
-
         if (Objects.isNull(executorService)) {
             Thread thread = new Thread(this::receive);
             thread.setName("Excel-builder-1");

@@ -16,6 +16,8 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.io.TempFileOperator;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -34,7 +36,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     protected TempFileOperator tempFileOperator = new TempFileOperator();
 
     @Override
-    public AbstractExcelBuilder workbookType(WorkbookType workbookType) {
+    public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         htmlToExcelFactory.workbookType(workbookType);
         return this;
     }
@@ -48,6 +50,12 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     @Override
     public AbstractExcelBuilder useDefaultStyle() {
         htmlToExcelFactory.useDefaultStyle();
+        return this;
+    }
+
+    @Override
+    public AbstractExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        htmlToExcelFactory.autoWidthStrategy(autoWidthStrategy);
         return this;
     }
 

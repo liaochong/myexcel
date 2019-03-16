@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -82,6 +83,12 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return this;
     }
 
+    @Override
+    public DefaultStreamExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        super.autoWidthStrategy(autoWidthStrategy);
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
@@ -97,7 +104,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
         Objects.requireNonNull(dataType);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService);
-        htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
+        htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
         filteredFields = getFilteredFields(classFieldContainer, groups);

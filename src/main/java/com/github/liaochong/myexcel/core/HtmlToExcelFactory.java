@@ -142,11 +142,11 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
     private void setTdOfTable(Table table, Sheet sheet) {
+        Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             this.createRow(table.getTrList().get(i), sheet);
             table.getTrList().set(i, null);
         }
-        Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
         this.setColWidth(colMaxWidthMap, sheet);
     }
 

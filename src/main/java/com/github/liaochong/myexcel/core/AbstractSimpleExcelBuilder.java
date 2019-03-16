@@ -25,6 +25,7 @@ import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
@@ -90,6 +91,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 无样式
      */
     protected boolean noStyle;
+    /**
+     * 自动宽度策略
+     */
+    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPONENT_AUTO_WIDTH;
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -127,6 +132,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     @Override
     public AbstractSimpleExcelBuilder noStyle() {
         this.noStyle = true;
+        return this;
+    }
+
+    @Override
+    public AbstractSimpleExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        this.autoWidthStrategy = autoWidthStrategy;
         return this;
     }
 
