@@ -160,8 +160,9 @@ public class HtmlTableParser {
             tr.setColWidthMap(Collections.emptyMap());
             return;
         }
-        tr.setTdList(new ArrayList<>(tdElements.size()));
-        tr.setColWidthMap(new HashMap<>(tdElements.size()));
+
+        final List<Td> tdList = new ArrayList<>(tdElements.size());
+        final Map<Integer, Integer> colWidthMap = new HashMap<>(tdElements.size());
         // 单元格偏移量
         int shift = 0;
         for (int i = 0, size = tdElements.size(); i < size; i++) {
@@ -189,14 +190,15 @@ public class HtmlTableParser {
             if (td.getColSpan() > 0) {
                 shift += td.getColSpan() - 1;
             }
-
-            tr.getTdList().add(td);
+            tdList.add(td);
 
             // 设置每列宽度
             double fontWidthShift = FontStyle.getFontWidthShift(td.getStyle());
             int width = TdUtil.getStringWidth(td.getContent(), fontWidthShift);
-            tr.getColWidthMap().put(td.getCol(), width);
+            colWidthMap.put(td.getCol(), width);
         }
+        tr.setTdList(tdList);
+        tr.setColWidthMap(colWidthMap);
     }
 
     /**
