@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.io.TempFileOperator;
+import com.github.liaochong.myexcel.core.strategy.CellStyleStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -48,6 +49,12 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     @Override
     public AbstractExcelBuilder useDefaultStyle() {
         htmlToExcelFactory.useDefaultStyle();
+        return this;
+    }
+
+    @Override
+    public ExcelBuilder cellStyleStrategy(CellStyleStrategy cellStyleStrategy) {
+        htmlToExcelFactory.cellStyleStrategy(cellStyleStrategy);
         return this;
     }
 

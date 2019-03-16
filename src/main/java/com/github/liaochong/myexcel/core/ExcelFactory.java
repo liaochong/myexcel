@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.strategy.CellStyleStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
@@ -28,7 +29,16 @@ public interface ExcelFactory {
      *
      * @return ExcelFactory
      */
+    @Deprecated
     ExcelFactory useDefaultStyle();
+
+    /**
+     * 样式策略
+     *
+     * @param cellStyleStrategy 策略
+     * @return ExcelFactory
+     */
+    ExcelFactory cellStyleStrategy(CellStyleStrategy cellStyleStrategy);
 
     /**
      * 窗口冻结
