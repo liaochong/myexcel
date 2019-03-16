@@ -18,9 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
-import com.github.liaochong.myexcel.core.strategy.CellStyleStrategy;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
-import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.ArrayList;
@@ -53,7 +51,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
      */
-    public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType) {
+    public static DefaultStreamExcelBuilder of(Class<?> dataType) {
         Objects.requireNonNull(dataType);
         DefaultStreamExcelBuilder defaultExcelBuilder = new DefaultStreamExcelBuilder();
         defaultExcelBuilder.dataType = dataType;
@@ -67,19 +65,13 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
-    public DefaultStreamExcelBuilder cellStyleStrategy(@NonNull CellStyleStrategy cellStyleStrategy) {
-        super.cellStyleStrategy(cellStyleStrategy);
-        return this;
-    }
-
-    @Override
-    public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
+    public DefaultStreamExcelBuilder workbookType(WorkbookType workbookType) {
         super.workbookType(workbookType);
         return this;
     }
 
     @Override
-    public DefaultStreamExcelBuilder threadPool(@NonNull ExecutorService executorService) {
+    public DefaultStreamExcelBuilder threadPool(ExecutorService executorService) {
         Objects.requireNonNull(executorService);
         this.executorService = executorService;
         return this;

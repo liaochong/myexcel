@@ -125,7 +125,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
             table.getTrList().addAll(tbody);
         }
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).cellStyleStrategy(cellStyleStrategy);
+        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
         return htmlToExcelFactory.build(tableList);
     }
 }

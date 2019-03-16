@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.CellStyleStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.Map;
@@ -49,16 +48,7 @@ public interface ExcelBuilder {
      *
      * @return ExcelBuilder
      */
-    @Deprecated
     ExcelBuilder useDefaultStyle();
-
-    /**
-     * 样式策略
-     *
-     * @param cellStyleStrategy 策略
-     * @return ExcelFactory
-     */
-    ExcelBuilder cellStyleStrategy(CellStyleStrategy cellStyleStrategy);
 
     /**
      * 选择固定区域

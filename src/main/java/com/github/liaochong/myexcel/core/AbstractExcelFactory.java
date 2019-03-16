@@ -18,7 +18,6 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
-import com.github.liaochong.myexcel.core.strategy.CellStyleStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
@@ -26,7 +25,6 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.utils.TdUtil;
-import lombok.NonNull;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -39,7 +37,6 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -56,15 +53,11 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 每行的单元格最大高度map
      */
-    private Map<Integer, Short> maxTdHeightMap;
+    private Map<Integer, Short> maxTdHeightMap = new HashMap<>();
     /**
      * 是否使用默认样式
      */
     private boolean useDefaultStyle;
-    /**
-     * 样式策略
-     */
-    private CellStyleStrategy cellStyleStrategy = CellStyleStrategy.CUSTOM_STYLE;
     /**
      * 自定义颜色
      */
@@ -72,7 +65,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 单元格样式映射
      */
-    private Map<Map<String, String>, CellStyle> cellStyleMap;
+    private Map<Map<String, String>, CellStyle> cellStyleMap = new HashMap<>();
     /**
      * 样式容器
      */
@@ -80,7 +73,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 字体map
      */
-    private Map<String, Font> fontMap;
+    private Map<String, Font> fontMap = new HashMap<>();
     /**
      * 冻结区域
      */
@@ -93,12 +86,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory useDefaultStyle() {
         this.useDefaultStyle = true;
-        return this;
-    }
-
-    @Override
-    public ExcelFactory cellStyleStrategy(@NonNull CellStyleStrategy cellStyleStrategy) {
-        this.cellStyleStrategy = cellStyleStrategy;
         return this;
     }
 
@@ -150,9 +137,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             this.createCell(td, sheet, row);
         }
         // 设置行高，最小12
-        if (CellStyleStrategy.isNoStyle(cellStyleStrategy)) {
-            return;
-        }
         if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
             row.setHeightInPoints(row.getHeightInPoints() + 5);
         } else {
@@ -201,13 +185,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param td   td单元格
      */
     private void setCellStyle(Row row, Cell cell, Td td) {
-        if (CellStyleStrategy.isDefaultStyle(cellStyleStrategy) || useDefaultStyle) {
+        if (useDefaultStyle) {
             if (td.isTh()) {
                 cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.th));
             } else {
                 cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
             }
-        } else if (CellStyleStrategy.isCustomStyle(cellStyleStrategy)) {
+        } else {
             String fs = td.getStyle().get("font-size");
             if (Objects.nonNull(fs)) {
                 fs = fs.replaceAll("\\D*", "");
@@ -251,20 +235,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 初始化默认单元格样式
      */
     protected void initCellStyle(Workbook workbook) {
-        if (CellStyleStrategy.isDefaultStyle(cellStyleStrategy) || useDefaultStyle) {
+        if (useDefaultStyle) {
             defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
             defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
             defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
-        } else if (CellStyleStrategy.isCustomStyle(cellStyleStrategy)) {
+        } else {
             if (workbook instanceof HSSFWorkbook) {
                 HSSFPalette palette = ((HSSFWorkbook) workbook).getCustomPalette();
                 customColor = new CustomColor(true, palette);
             } else {
                 customColor = new CustomColor();
             }
-            fontMap = new HashMap<>();
-            cellStyleMap = new HashMap<>();
-            maxTdHeightMap = new HashMap<>();
         }
     }
 
@@ -291,10 +272,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
-        if (CellStyleStrategy.isNoStyle(cellStyleStrategy)) {
-            return Collections.emptyMap();
-        }
-        if (CellStyleStrategy.isDefaultStyle(cellStyleStrategy) || useDefaultStyle) {
+        if (useDefaultStyle) {
             // 使用默认样式，需要重新修正加粗的标题自适应宽度
             trList.parallelStream().forEach(tr -> {
                 tr.getTdList().stream().filter(Td::isTh).forEach(th -> {
