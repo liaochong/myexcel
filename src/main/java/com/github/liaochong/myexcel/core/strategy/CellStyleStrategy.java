@@ -58,4 +58,12 @@ public enum CellStyleStrategy {
     public static boolean isCustomStyle(CellStyleStrategy cellStyleStrategy) {
         return Objects.equals(cellStyleStrategy, CUSTOM_STYLE);
     }
+
+    public static boolean isAutoWidthHeight(CellStyleStrategy cellStyleStrategy) {
+        return Objects.equals(cellStyleStrategy, AUTO_WIDTH_HEIGHT);
+    }
+
+    public static boolean isDefaultWidthHeight(CellStyleStrategy cellStyleStrategy) {
+        return Objects.equals(cellStyleStrategy, DEFAULT_WIDTH_HEIGHT);
+    }
 }
