@@ -53,32 +53,32 @@ public class ColorUtil {
     }
 
     public static Short getCustomColorIndex(@NonNull CustomColor customColor, @NonNull String color) {
-        byte[] rgb = getRGBByColor(color);
+        int[] rgb = getRGBByColor(color);
         if (Objects.isNull(rgb)) {
             return null;
         }
         return getCustomColorIndex(customColor, rgb);
     }
 
-    public static Short getCustomColorIndex(@NonNull CustomColor customColor, @NonNull byte[] rgb) {
+    public static Short getCustomColorIndex(@NonNull CustomColor customColor, @NonNull int[] rgb) {
         HSSFPalette palette = customColor.getPalette();
         short index = (short) customColor.getColorIndex().getAndIncrement();
-        palette.setColorAtIndex(index, rgb[0], rgb[1], rgb[2]);
+        palette.setColorAtIndex(index, (byte) rgb[0], (byte) rgb[1], (byte) rgb[2]);
         return index;
     }
 
-    public static byte[] getRGBByColor(@NonNull String color) {
-        byte[] result = null;
+    public static int[] getRGBByColor(@NonNull String color) {
+        int[] result = null;
         if (color.startsWith(HASH)) {
             // 转为16进制
             int r = Integer.parseInt((color.substring(1, 3)), 16);
             int g = Integer.parseInt((color.substring(3, 5)), 16);
             int b = Integer.parseInt((color.substring(5, 7)), 16);
 
-            result = new byte[3];
-            result[0] = (byte) r;
-            result[1] = (byte) g;
-            result[2] = (byte) b;
+            result = new int[3];
+            result[0] = r;
+            result[1] = g;
+            result[2] = b;
         } else if (color.startsWith(RGB)) {
             String rgbColor = color.replace(RGB, "").replace("(", "").replace(")", "");
             String[] rgbColorArr = rgbColor.split(",");
@@ -93,10 +93,10 @@ public class ColorUtil {
             int g = rgb.get(1);
             int b = rgb.get(2);
 
-            result = new byte[3];
-            result[0] = (byte) r;
-            result[1] = (byte) g;
-            result[2] = (byte) b;
+            result = new int[3];
+            result[0] = r;
+            result[1] = g;
+            result[2] = b;
         }
         return result;
     }

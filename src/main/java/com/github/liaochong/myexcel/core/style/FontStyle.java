@@ -23,6 +23,7 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 
+import java.awt.*;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -124,7 +125,7 @@ public final class FontStyle {
             font.setColor(colorPredefined);
             return font;
         }
-        byte[] rgb = ColorUtil.getRGBByColor(fontColor);
+        int[] rgb = ColorUtil.getRGBByColor(fontColor);
         if (Objects.isNull(rgb)) {
             return null;
         }
@@ -135,7 +136,7 @@ public final class FontStyle {
             font.setColor(index);
         } else {
             font = createFontIfNull(fontSupplier, font);
-            ((XSSFFont) font).setColor(new XSSFColor(rgb, customColor.getDefaultIndexedColorMap()));
+            ((XSSFFont) font).setColor(new XSSFColor(new Color(rgb[0], rgb[1], rgb[2]), customColor.getDefaultIndexedColorMap()));
         }
         return font;
     }

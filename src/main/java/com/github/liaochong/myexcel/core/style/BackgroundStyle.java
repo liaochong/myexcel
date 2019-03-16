@@ -49,11 +49,11 @@ public final class BackgroundStyle {
             style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             return;
         }
-        byte[] rgb = ColorUtil.getRGBByColor(color);
+        int[] rgb = ColorUtil.getRGBByColor(color);
         setCustomColor(style, rgb, customColor);
     }
 
-    private static void setCustomColor(CellStyle style, byte[] rgb, CustomColor customColor) {
+    private static void setCustomColor(CellStyle style, int[] rgb, CustomColor customColor) {
         if (Objects.isNull(rgb)) {
             return;
         }
