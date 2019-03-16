@@ -46,6 +46,11 @@ interface SimpleStreamExcelBuilder {
     SimpleStreamExcelBuilder start(int waitQueueSize, Class<?>... groups);
 
     /**
+     * 使用默认样式
+     */
+    SimpleStreamExcelBuilder hasStyle();
+
+    /**
      * 数据追加
      *
      * @param data 需要追加的数据

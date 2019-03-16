@@ -42,9 +42,10 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      */
     private HtmlToExcelStreamFactory htmlToExcelStreamFactory;
 
-    private WorkbookType workbookType = WorkbookType.SXLSX;
-
     private DefaultStreamExcelBuilder() {
+        noStyle = true;
+        autoWidthStrategy = AutoWidthStrategy.NO_AUTO;
+        workbookType = WorkbookType.SXLSX;
     }
 
     /**
@@ -78,8 +79,8 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
-    public DefaultStreamExcelBuilder noStyle() {
-        super.noStyle();
+    public DefaultStreamExcelBuilder hasStyle() {
+        this.noStyle = false;
         return this;
     }
 
