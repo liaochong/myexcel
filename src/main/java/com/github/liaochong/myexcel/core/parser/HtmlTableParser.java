@@ -28,6 +28,7 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -155,9 +156,11 @@ public class HtmlTableParser {
     private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle) {
         Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
+            tr.setTdList(Collections.emptyList());
             tr.setColWidthMap(Collections.emptyMap());
             return;
         }
+        tr.setTdList(new ArrayList<>(tdElements.size()));
         tr.setColWidthMap(new HashMap<>(tdElements.size()));
         // 单元格偏移量
         int shift = 0;
