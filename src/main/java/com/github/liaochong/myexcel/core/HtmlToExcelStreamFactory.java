@@ -90,7 +90,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (workbook instanceof HSSFWorkbook) {
             maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
         }
-        initDefaultCellStyleMap();
+        initCellStyle(workbook);
         if (Objects.nonNull(table)) {
             sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
         }

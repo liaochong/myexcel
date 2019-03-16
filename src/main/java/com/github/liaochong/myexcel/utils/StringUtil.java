@@ -15,12 +15,15 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Objects;
 
 /**
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class StringUtil {
 
     public static String toUpperCaseFirst(String content) {

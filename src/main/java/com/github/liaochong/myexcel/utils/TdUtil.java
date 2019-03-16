@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import lombok.experimental.UtilityClass;
 
 import java.util.Objects;
 import java.util.function.IntSupplier;
@@ -27,6 +28,7 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class TdUtil {
 
     private static Pattern chineseOrCapitalPattern = Pattern.compile("[\u4e00-\u9fa5|A-Z]");

@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import lombok.experimental.UtilityClass;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -30,6 +31,7 @@ import java.nio.file.Paths;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class FileExportUtil {
 
     /**

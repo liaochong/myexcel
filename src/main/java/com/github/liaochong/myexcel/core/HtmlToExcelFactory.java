@@ -119,7 +119,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         if (Objects.isNull(workbook)) {
             workbook = new XSSFWorkbook();
         }
-        this.initDefaultCellStyleMap();
+        this.initCellStyle(workbook);
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);

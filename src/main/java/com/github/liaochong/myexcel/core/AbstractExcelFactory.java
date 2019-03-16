@@ -25,6 +25,7 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.utils.TdUtil;
+import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -41,7 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author liaochong
@@ -59,9 +59,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private boolean useDefaultStyle;
     /**
-     * 自定义颜色索引
+     * 自定义颜色
      */
-    private AtomicInteger colorIndex = new AtomicInteger(56);
+    private CustomColor customColor;
     /**
      * 单元格样式映射
      */
@@ -206,13 +206,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             CellStyle cellStyle = workbook.createCellStyle();
             // background-color
-            BackgroundStyle.setBackgroundColor(workbook, cellStyle, td.getStyle(), colorIndex);
+            BackgroundStyle.setBackgroundColor(cellStyle, td.getStyle(), customColor);
             // text-align
             TextAlignStyle.setTextAlign(cellStyle, td.getStyle());
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
             // font
-            FontStyle.setFont(workbook, cellStyle, td.getStyle(), fontMap);
+            FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
@@ -234,11 +234,18 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 初始化默认单元格样式
      */
-    protected void initDefaultCellStyleMap() {
+    protected void initCellStyle(Workbook workbook) {
         if (useDefaultStyle) {
             defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
             defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
             defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
+        } else {
+            if (workbook instanceof HSSFWorkbook) {
+                HSSFPalette palette = ((HSSFWorkbook) workbook).getCustomPalette();
+                customColor = new CustomColor(true, palette);
+            } else {
+                customColor = new CustomColor();
+            }
         }
     }
 

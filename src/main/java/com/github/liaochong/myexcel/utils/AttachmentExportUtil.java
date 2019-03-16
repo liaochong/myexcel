@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import lombok.experimental.UtilityClass;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -29,6 +30,7 @@ import java.net.URLEncoder;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class AttachmentExportUtil {
 
     /**

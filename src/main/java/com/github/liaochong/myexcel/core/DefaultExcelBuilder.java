@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -57,7 +58,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
      */
-    public static DefaultExcelBuilder of(Class<?> dataType) {
+    public static DefaultExcelBuilder of(@NonNull Class<?> dataType) {
         Objects.requireNonNull(dataType);
         DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
         defaultExcelBuilder.dataType = dataType;
