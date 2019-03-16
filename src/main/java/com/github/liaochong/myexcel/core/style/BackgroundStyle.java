@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core.style;
 
-import com.github.liaochong.myexcel.core.CustomColor;
 import com.github.liaochong.myexcel.utils.ColorUtil;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;

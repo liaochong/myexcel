@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
-import com.github.liaochong.myexcel.core.CustomColor;
+import com.github.liaochong.myexcel.core.style.CustomColor;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
