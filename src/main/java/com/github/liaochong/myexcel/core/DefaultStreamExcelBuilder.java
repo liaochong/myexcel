@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.ArrayList;
@@ -51,8 +52,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
      */
-    public static DefaultStreamExcelBuilder of(Class<?> dataType) {
-        Objects.requireNonNull(dataType);
+    public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType) {
         DefaultStreamExcelBuilder defaultExcelBuilder = new DefaultStreamExcelBuilder();
         defaultExcelBuilder.dataType = dataType;
         return defaultExcelBuilder;
@@ -65,15 +65,20 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
-    public DefaultStreamExcelBuilder workbookType(WorkbookType workbookType) {
+    public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         super.workbookType(workbookType);
         return this;
     }
 
     @Override
-    public DefaultStreamExcelBuilder threadPool(ExecutorService executorService) {
-        Objects.requireNonNull(executorService);
+    public DefaultStreamExcelBuilder threadPool(@NonNull ExecutorService executorService) {
         this.executorService = executorService;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder noStyle() {
+        super.noStyle();
         return this;
     }
 

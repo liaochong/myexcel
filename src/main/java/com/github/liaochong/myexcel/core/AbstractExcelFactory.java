@@ -192,6 +192,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
             }
         } else {
+            if (td.getStyle().isEmpty()) {
+                return;
+            }
             String fs = td.getStyle().get("font-size");
             if (Objects.nonNull(fs)) {
                 fs = fs.replaceAll("\\D*", "");

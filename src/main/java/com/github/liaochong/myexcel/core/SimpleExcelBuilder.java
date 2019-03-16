@@ -53,6 +53,13 @@ interface SimpleExcelBuilder extends ExcelBuilder {
     SimpleExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder);
 
     /**
+     * 无样式
+     *
+     * @return SimpleExcelBuilder
+     */
+    SimpleExcelBuilder noStyle();
+
+    /**
      * 根据指定的数据集合构建，需指明数据集合数据的类类型，使用该方法，如设定了标题但无数据，则标题行也不展示
      *
      * @param data   数据列表

@@ -31,6 +31,7 @@ import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
+import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -85,24 +86,25 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 设置需要渲染的数据的类类型
      */
     protected Class<?> dataType;
+    /**
+     * 无样式
+     */
+    protected boolean noStyle;
 
     @Override
-    public AbstractSimpleExcelBuilder titles(List<String> titles) {
-        Objects.requireNonNull(titles);
+    public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
         this.titles = titles;
         return this;
     }
 
     @Override
-    public AbstractSimpleExcelBuilder sheetName(String sheetName) {
-        Objects.requireNonNull(sheetName);
+    public AbstractSimpleExcelBuilder sheetName(@NonNull String sheetName) {
         this.sheetName = sheetName;
         return this;
     }
 
     @Override
-    public AbstractSimpleExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder) {
-        Objects.requireNonNull(fieldDisplayOrder);
+    public AbstractSimpleExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
@@ -117,9 +119,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     }
 
     @Override
-    public AbstractSimpleExcelBuilder workbookType(WorkbookType workbookType) {
-        Objects.requireNonNull(workbookType);
+    public AbstractSimpleExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         this.workbookType = workbookType;
+        return this;
+    }
+
+    @Override
+    public AbstractSimpleExcelBuilder noStyle() {
+        this.noStyle = true;
         return this;
     }
 
@@ -161,14 +168,19 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (!hasTitles) {
             return null;
         }
-        Map<String, String> thStyle = new HashMap<>(7);
-        thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
-        thStyle.put(FontStyle.FONT_SIZE, "14");
-        thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
-        thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-        thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-        thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-        thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+        Map<String, String> thStyle;
+        if (noStyle) {
+            thStyle = Collections.emptyMap();
+        } else {
+            thStyle = new HashMap<>(7);
+            thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
+            thStyle.put(FontStyle.FONT_SIZE, "14");
+            thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
+            thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+            thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+            thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+            thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+        }
 
         Tr tr = new Tr(0);
         Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
@@ -226,15 +238,19 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 初始化单元格样式
      */
     protected void initStyleMap() {
-        commonTdStyle = new HashMap<>(3);
-        commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-        commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-        commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-        commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+        if (noStyle) {
+            commonTdStyle = evenTdStyle = Collections.emptyMap();
+        } else {
+            commonTdStyle = new HashMap<>(3);
+            commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+            commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+            commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+            commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
 
-        evenTdStyle = new HashMap<>(4);
-        evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
-        evenTdStyle.putAll(commonTdStyle);
+            evenTdStyle = new HashMap<>(4);
+            evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
+            evenTdStyle.putAll(commonTdStyle);
+        }
     }
 
     /**
