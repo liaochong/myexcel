@@ -73,4 +73,11 @@ public @interface ExcelTable {
      * @return true/false
      */
     boolean useFieldNameAsTitle() default false;
+
+    /**
+     * 为null时默认值
+     *
+     * @return 默认值
+     */
+    String defaultValue() default "";
 }

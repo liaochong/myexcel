@@ -56,4 +56,11 @@ public @interface ExcelColumn {
      * @return 分组类类型集合
      */
     Class<?>[] groups() default {};
+
+    /**
+     * 为null时默认值
+     *
+     * @return 默认值
+     */
+    String defaultValue() default "";
 }

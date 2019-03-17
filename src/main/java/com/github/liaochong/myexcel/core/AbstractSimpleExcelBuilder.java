@@ -95,6 +95,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 自动宽度策略
      */
     protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPONENT_AUTO_WIDTH;
+    /**
+     * 全局默认值
+     */
+    private String globalDefaultValue;
+    /**
+     * 默认值集合
+     */
+    private Map<Field, String> defaultValueMap;
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -281,6 +289,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             setWorkbookWithExcelTableAnnotation(excelTable);
             excludeParent = excelTable.excludeParent();
             includeAllField = excelTable.includeAllField();
+            if (!excelTable.defaultValue().isEmpty()) {
+                globalDefaultValue = excelTable.defaultValue();
+            }
         }
 
         List<Field> preelectionFields;
@@ -310,7 +321,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
 
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
-        List<String> titles = new ArrayList<>();
+        List<String> titles = new ArrayList<>(preelectionFields.size());
+        defaultValueMap = new HashMap<>(preelectionFields.size());
         List<Field> sortedFields = preelectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
                 .filter(field -> {
@@ -355,6 +367,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                             titles.add(field.getName());
                         } else {
                             titles.add(excelColumn.title());
+                        }
+                        if (!excelColumn.defaultValue().isEmpty()) {
+                            defaultValueMap.put(field, excelColumn.defaultValue());
                         }
                     } else {
                         if (useFieldNameAsTitle) {
@@ -426,7 +441,20 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
 
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
             List<Object> resolvedDataList = sortedFields.stream()
-                    .map(field -> converterContext.convert(field, data.get(index)))
+                    .map(field -> {
+                        Object value = converterContext.convert(field, data.get(index));
+                        if (Objects.nonNull(value)) {
+                            return value;
+                        }
+                        String defaultValue = defaultValueMap.get(field);
+                        if (Objects.nonNull(defaultValue)) {
+                            return defaultValue;
+                        }
+                        if (Objects.nonNull(globalDefaultValue)) {
+                            return globalDefaultValue;
+                        }
+                        return value;
+                    })
                     .collect(Collectors.toList());
             data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);
