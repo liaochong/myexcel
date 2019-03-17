@@ -46,6 +46,8 @@ public class DefaultExcelReader {
 
     private Class<?> dataType;
 
+    private int sheetIndex = 0;
+
     private DefaultExcelReader(Class<?> dataType) {
         this.dataType = dataType;
     }
@@ -54,12 +56,17 @@ public class DefaultExcelReader {
         return new DefaultExcelReader(clazz);
     }
 
+    public DefaultExcelReader sheet(int index) {
+        this.sheetIndex = index;
+        return this;
+    }
+
     public <T> List<T> read(@NonNull File file) throws Exception {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException();
         }
         List<Field> sortedFields = getSortedField();
-        Workbook wb = null;
+        Workbook wb;
         Sheet sheet;
         List<T> result = null;
         if (file.getName().endsWith(".xlsx")) {
@@ -67,7 +74,7 @@ public class DefaultExcelReader {
             try {
                 pkg = OPCPackage.open(file);
                 wb = new XSSFWorkbook(pkg);
-                sheet = wb.getSheetAt(0);
+                sheet = wb.getSheetAt(sheetIndex);
                 result = getDataFromFile(sheet, sortedFields);
             } catch (IOException | InvalidFormatException e) {
                 e.printStackTrace();
@@ -81,7 +88,7 @@ public class DefaultExcelReader {
             try {
                 fs = new POIFSFileSystem(file);
                 wb = new HSSFWorkbook(fs.getRoot(), true);
-                sheet = wb.getSheetAt(0);
+                sheet = wb.getSheetAt(sheetIndex);
                 result = getDataFromFile(sheet, sortedFields);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -154,7 +161,7 @@ public class DefaultExcelReader {
                     default:
                 }
                 Field field = sortedFields.get(j);
-                field.set(obj, field.getType().cast(content));
+                field.set(obj, content);
             }
         }
         return result;
