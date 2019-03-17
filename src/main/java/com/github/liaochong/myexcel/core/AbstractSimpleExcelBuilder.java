@@ -202,8 +202,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
 
         Tr tr = new Tr(0);
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
-        tr.setColWidthMap(colMaxWidthMap);
+        boolean isComponentAutoWidth = AutoWidthStrategy.isComponentAutoWidth(autoWidthStrategy);
+        tr.setColWidthMap(isComponentAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
 
         List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
             Td td = new Td();
@@ -214,7 +214,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setColBound(index);
             td.setContent(titles.get(index));
             td.setStyle(thStyle);
-            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), FontStyle.FONT_SIZE_SHIFT));
+            if (isComponentAutoWidth) {
+                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), FontStyle.FONT_SIZE_SHIFT));
+            }
             return td;
         }).collect(Collectors.toList());
         tr.setTdList(ths);
@@ -229,12 +231,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @return 内容行集合
      */
     protected List<Tr> createTbody(List<List<Object>> contents, int shift) {
+        boolean isComponentAutoWidth = AutoWidthStrategy.isComponentAutoWidth(autoWidthStrategy);
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Object> dataList = contents.get(index);
-            Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
-            tr.setColWidthMap(colMaxWidthMap);
+            tr.setColWidthMap(isComponentAutoWidth ? new HashMap<>(dataList.size()) : Collections.emptyMap());
             Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
@@ -244,7 +246,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 td.setColBound(i);
                 td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
                 td.setStyle(tdStyle);
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent(), 0));
+                if (isComponentAutoWidth) {
+                    tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent(), 0));
+                }
                 return td;
             }).collect(Collectors.toList());
             tr.setTdList(tdList);
