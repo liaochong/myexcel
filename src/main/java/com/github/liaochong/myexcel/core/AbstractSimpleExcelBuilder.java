@@ -324,42 +324,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         List<String> titles = new ArrayList<>(preelectionFields.size());
         defaultValueMap = new HashMap<>(preelectionFields.size());
         List<Field> sortedFields = preelectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
-                .filter(field -> {
-                    if (selectedGroupList.isEmpty()) {
-                        return true;
-                    }
-                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                    if (Objects.isNull(excelColumn)) {
-                        return false;
-                    }
-                    Class<?>[] groupArr = excelColumn.groups();
-                    if (groupArr.length == 0) {
-                        return false;
-                    }
-                    List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
-                    return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
-                })
-                .sorted((field1, field2) -> {
-                    ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
-                    ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-                    if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
-                        return 0;
-                    }
-                    int defaultOrder = 0;
-                    int order1 = defaultOrder;
-                    if (Objects.nonNull(excelColumn1)) {
-                        order1 = excelColumn1.order();
-                    }
-                    int order2 = defaultOrder;
-                    if (Objects.nonNull(excelColumn2)) {
-                        order2 = excelColumn2.order();
-                    }
-                    if (order1 == order2) {
-                        return 0;
-                    }
-                    return order1 > order2 ? 1 : -1;
-                })
+                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && filterFields(selectedGroupList, field))
+                .sorted(this::sortFields)
                 .peek(field -> {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
                     if (Objects.nonNull(excelColumn)) {
@@ -386,6 +352,43 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    private boolean filterFields(List<Class<?>> selectedGroupList, Field field) {
+        if (selectedGroupList.isEmpty()) {
+            return true;
+        }
+        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+        if (Objects.isNull(excelColumn)) {
+            return false;
+        }
+        Class<?>[] groupArr = excelColumn.groups();
+        if (groupArr.length == 0) {
+            return false;
+        }
+        List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
+        return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
+    }
+
+    private int sortFields(Field field1, Field field2) {
+        ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
+        ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
+        if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
+            return 0;
+        }
+        int defaultOrder = 0;
+        int order1 = defaultOrder;
+        if (Objects.nonNull(excelColumn1)) {
+            order1 = excelColumn1.order();
+        }
+        int order2 = defaultOrder;
+        if (Objects.nonNull(excelColumn2)) {
+            order2 = excelColumn2.order();
+        }
+        if (order1 == order2) {
+            return 0;
+        }
+        return order1 > order2 ? 1 : -1;
     }
 
     /**
