@@ -80,7 +80,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         this.executorService = executorService;
     }
 
-    public void start(Table table) {
+    public void start(Table table, Workbook workbook) {
+        this.workbook = workbook;
         log.info("Start streaming building excel");
         startTime = System.currentTimeMillis();
 

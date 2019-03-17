@@ -41,6 +41,10 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * 流工厂
      */
     private HtmlToExcelStreamFactory htmlToExcelStreamFactory;
+    /**
+     * workbook
+     */
+    private Workbook workbook;
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
@@ -55,9 +59,22 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * @return DefaultExcelBuilder
      */
     public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType) {
-        DefaultStreamExcelBuilder defaultExcelBuilder = new DefaultStreamExcelBuilder();
-        defaultExcelBuilder.dataType = dataType;
-        return defaultExcelBuilder;
+        DefaultStreamExcelBuilder defaultStreamExcelBuilder = new DefaultStreamExcelBuilder();
+        defaultStreamExcelBuilder.dataType = dataType;
+        return defaultStreamExcelBuilder;
+    }
+
+    /**
+     * 获取实例，设定需要渲染的数据的类类型
+     *
+     * @param dataType 数据的类类型
+     * @return DefaultExcelBuilder
+     */
+    public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
+        DefaultStreamExcelBuilder defaultStreamExcelBuilder = new DefaultStreamExcelBuilder();
+        defaultStreamExcelBuilder.dataType = dataType;
+        defaultStreamExcelBuilder.workbook = workbook;
+        return defaultStreamExcelBuilder;
     }
 
     @Override
@@ -75,6 +92,12 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @Override
     public DefaultStreamExcelBuilder threadPool(@NonNull ExecutorService executorService) {
         this.executorService = executorService;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder sheetName(@NonNull String sheetName) {
+        super.sheetName(sheetName);
         return this;
     }
 
@@ -112,7 +135,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
 
         this.initStyleMap();
         Table table = this.createTable();
-        htmlToExcelStreamFactory.start(table);
+        htmlToExcelStreamFactory.start(table, workbook);
 
         Tr head = this.createThead();
         if (Objects.isNull(head)) {

@@ -39,6 +39,8 @@ import java.util.Optional;
 @Slf4j
 public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
+    private Workbook workbook;
+
     private DefaultExcelBuilder() {
     }
 
@@ -59,9 +61,15 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
      * @return DefaultExcelBuilder
      */
     public static DefaultExcelBuilder of(@NonNull Class<?> dataType) {
-        Objects.requireNonNull(dataType);
         DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
         defaultExcelBuilder.dataType = dataType;
+        return defaultExcelBuilder;
+    }
+
+    public static DefaultExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
+        defaultExcelBuilder.dataType = dataType;
+        defaultExcelBuilder.workbook = workbook;
         return defaultExcelBuilder;
     }
 
@@ -126,6 +134,6 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             table.getTrList().addAll(tbody);
         }
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
-        return htmlToExcelFactory.build(tableList);
+        return htmlToExcelFactory.build(tableList, workbook);
     }
 }
