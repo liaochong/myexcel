@@ -153,7 +153,8 @@ public class DefaultExcelReader {
                         break;
                     default:
                 }
-                sortedFields.get(j).set(obj, content);
+                Field field = sortedFields.get(j);
+                field.set(obj, field.getType().cast(content));
             }
         }
         return result;
