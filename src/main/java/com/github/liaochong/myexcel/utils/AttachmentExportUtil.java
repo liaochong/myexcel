@@ -15,14 +15,24 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.poifs.crypt.EncryptionInfo;
+import org.apache.poi.poifs.crypt.EncryptionMode;
+import org.apache.poi.poifs.crypt.Encryptor;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * 附件导出工具类
@@ -56,5 +66,34 @@ public final class AttachmentExportUtil {
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
         workbook.write(response.getOutputStream());
         workbook.close();
+    }
+
+    public static void encryptExport(Workbook workbook, String fileName, HttpServletResponse response, String password) throws Exception {
+        if (workbook instanceof HSSFWorkbook) {
+            throw new IllegalArgumentException();
+        }
+        TempFileOperator tempFileOperator = new TempFileOperator();
+        Path path = tempFileOperator.createTempFile("encrypt_temp", ".xlsx");
+        workbook.write(Files.newOutputStream(path));
+
+        final POIFSFileSystem fs = new POIFSFileSystem();
+        final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
+        final Encryptor enc = info.getEncryptor();
+        enc.confirmPassword(password);
+
+        final OPCPackage opc = OPCPackage.open(path.toFile(), PackageAccess.READ_WRITE);
+        final OutputStream os = enc.getDataStream(fs);
+        opc.save(os);
+        opc.close();
+
+        String suffix = ".xlsx";
+        if (!fileName.endsWith(suffix)) {
+            fileName += suffix;
+        }
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+        fs.writeFilesystem(Files.newOutputStream(path));
+        workbook.close();
+        tempFileOperator.deleteTempFile();
     }
 }
