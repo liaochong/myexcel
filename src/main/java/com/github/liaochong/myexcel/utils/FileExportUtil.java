@@ -30,7 +30,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 /**
  * 文件导出工具类
@@ -85,6 +84,8 @@ public final class FileExportUtil {
         }
         try (FileOutputStream fos = new FileOutputStream(file)) {
             workbook.write(fos);
+            workbook.close();
+
             final POIFSFileSystem fs = new POIFSFileSystem();
             final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
             final Encryptor enc = info.getEncryptor();
@@ -94,12 +95,8 @@ public final class FileExportUtil {
                  OutputStream os = enc.getDataStream(fs)) {
                 opc.save(os);
             }
-            try (FileOutputStream fileOutputStream = new FileOutputStream(file);) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 fs.writeFilesystem(fileOutputStream);
-            }
-        } finally {
-            if (Objects.nonNull(workbook)) {
-                workbook.close();
             }
         }
     }

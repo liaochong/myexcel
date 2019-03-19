@@ -88,6 +88,7 @@ public final class AttachmentExportUtil {
             String suffix = ".xlsx";
             Path path = tempFileOperator.createTempFile("encrypt_temp", suffix);
             workbook.write(Files.newOutputStream(path));
+            workbook.close();
 
             final POIFSFileSystem fs = new POIFSFileSystem();
             final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
@@ -105,9 +106,6 @@ public final class AttachmentExportUtil {
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
             fs.writeFilesystem(response.getOutputStream());
         } finally {
-            if (Objects.nonNull(workbook)) {
-                workbook.close();
-            }
             if (Objects.nonNull(tempFileOperator)) {
                 tempFileOperator.deleteTempFile();
             }
