@@ -103,7 +103,7 @@ public final class AttachmentExportUtil {
             }
             response.setCharacterEncoding(CharEncoding.UTF_8);
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
-            fs.writeFilesystem(Files.newOutputStream(path));
+            fs.writeFilesystem(response.getOutputStream());
         } finally {
             if (Objects.nonNull(workbook)) {
                 workbook.close();
