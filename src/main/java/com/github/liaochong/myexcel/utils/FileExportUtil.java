@@ -95,7 +95,7 @@ public final class FileExportUtil {
                  OutputStream os = enc.getDataStream(fs)) {
                 opc.save(os);
             }
-            fs.writeFilesystem(new FileOutputStream(file));
+            fs.writeFilesystem(fos);
         } finally {
             if (Objects.nonNull(workbook)) {
                 workbook.close();
