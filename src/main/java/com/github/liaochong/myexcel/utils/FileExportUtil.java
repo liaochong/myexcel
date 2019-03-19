@@ -85,17 +85,16 @@ public final class FileExportUtil {
         }
         try (FileOutputStream fos = new FileOutputStream(file)) {
             workbook.write(fos);
-            workbook.close();
-
             final POIFSFileSystem fs = new POIFSFileSystem();
             final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
             final Encryptor enc = info.getEncryptor();
             enc.confirmPassword(password);
 
             try (OPCPackage opc = OPCPackage.open(file, PackageAccess.READ_WRITE);
-                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                  OutputStream os = enc.getDataStream(fs)) {
                 opc.save(os);
+            }
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file);) {
                 fs.writeFilesystem(fileOutputStream);
             }
         } finally {
