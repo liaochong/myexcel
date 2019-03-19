@@ -21,7 +21,7 @@ import java.lang.reflect.Field;
  * @author liaochong
  * @version 1.0
  */
-public interface Converter {
+public interface WriteConverter {
 
     /**
      * 转换

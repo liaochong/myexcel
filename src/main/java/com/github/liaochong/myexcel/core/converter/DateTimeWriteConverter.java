@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class DateTimeConverter implements Converter {
+public class DateTimeWriteConverter implements WriteConverter {
 
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 

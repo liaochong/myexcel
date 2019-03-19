@@ -23,7 +23,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -61,44 +61,27 @@ public class DefaultExcelReader {
         return this;
     }
 
-    public <T> List<T> read(@NonNull File file) throws Exception {
+    public <T> List<T> read(@NonNull File file) {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException();
         }
         List<Field> sortedFields = getSortedField();
-        Workbook wb;
-        Sheet sheet;
-        List<T> result = null;
         if (file.getName().endsWith(".xlsx")) {
-            OPCPackage pkg = null;
-            try {
-                pkg = OPCPackage.open(file);
-                wb = new XSSFWorkbook(pkg);
-                sheet = wb.getSheetAt(sheetIndex);
-                result = getDataFromFile(sheet, sortedFields);
-            } catch (IOException | InvalidFormatException e) {
-                e.printStackTrace();
-            } finally {
-                if (Objects.nonNull(pkg)) {
-                    pkg.close();
-                }
-            }
-        } else if (file.getName().endsWith(".xls")) {
-            POIFSFileSystem fs = null;
-            try {
-                fs = new POIFSFileSystem(file);
-                wb = new HSSFWorkbook(fs.getRoot(), true);
-                sheet = wb.getSheetAt(sheetIndex);
-                result = getDataFromFile(sheet, sortedFields);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (Objects.nonNull(fs)) {
-                    fs.close();
-                }
+            try (OPCPackage pkg = OPCPackage.open(file)) {
+                Workbook wb = new XSSFWorkbook(pkg);
+                Sheet sheet = wb.getSheetAt(sheetIndex);
+                return getDataFromFile(sheet, sortedFields);
+            } catch (IOException | InvalidFormatException | IllegalAccessException | InstantiationException e) {
+                throw new RuntimeException(e);
             }
         }
-        return result;
+        try (POIFSFileSystem fs = new POIFSFileSystem(file)) {
+            Workbook wb = new HSSFWorkbook(fs.getRoot(), true);
+            Sheet sheet = wb.getSheetAt(sheetIndex);
+            return getDataFromFile(sheet, sortedFields);
+        } catch (IOException | IllegalAccessException | InstantiationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private List<Field> getSortedField() {
@@ -121,6 +104,7 @@ public class DefaultExcelReader {
         if (lastRowNum < 0) {
             return Collections.emptyList();
         }
+        DataFormatter formatter = new DataFormatter();
         List<T> result = new ArrayList<>(lastRowNum);
         for (int i = firstRowNum; i < lastRowNum; i++) {
             Row row = sheet.getRow(i);
@@ -133,35 +117,20 @@ public class DefaultExcelReader {
             }
             T obj = (T) dataType.newInstance();
             result.add(obj);
+
             for (int j = 0; j < lastColNum; j++) {
                 Cell cell = row.getCell(j, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
                 if (Objects.isNull(cell)) {
                     continue;
                 }
-                Object content = null;
-                switch (cell.getCellType()) {
-                    case STRING:
-                        content = cell.getRichStringCellValue().getString();
-                        break;
-                    case NUMERIC:
-                        if (DateUtil.isCellDateFormatted(cell)) {
-                            content = cell.getDateCellValue();
-                        } else {
-                            content = cell.getNumericCellValue();
-                        }
-                        break;
-                    case BOOLEAN:
-                        content = cell.getBooleanCellValue();
-                        break;
-                    case FORMULA:
-                        content = cell.getCellFormula();
-                        break;
-                    case BLANK:
-                        break;
-                    default:
-                }
+                String content = formatter.formatCellValue(cell);
                 Field field = sortedFields.get(j);
-                field.set(obj, content);
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                if (type == String.class) {
+                    field.set(obj, content);
+                    continue;
+                }
             }
         }
         return result;
