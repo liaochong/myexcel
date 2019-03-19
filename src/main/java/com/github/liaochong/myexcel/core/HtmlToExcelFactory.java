@@ -110,7 +110,9 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @return Workbook
      */
     Workbook build(List<Table> tables, Workbook workbook) {
-        this.workbook = workbook;
+        if (Objects.nonNull(workbook)) {
+            this.workbook = workbook;
+        }
         return build(tables);
     }
 
