@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
@@ -43,6 +44,8 @@ import java.util.stream.Collectors;
  * @version 1.0
  */
 public class DefaultExcelReader {
+
+    private static final ReadConverterContext READ_CONVERTER_CONTEXT = ReadConverterContext.getInstance();
 
     private Class<?> dataType;
 
@@ -126,11 +129,7 @@ public class DefaultExcelReader {
                 String content = formatter.formatCellValue(cell);
                 Field field = sortedFields.get(j);
                 field.setAccessible(true);
-                Class<?> type = field.getType();
-                if (type == String.class) {
-                    field.set(obj, content);
-                    continue;
-                }
+                READ_CONVERTER_CONTEXT.convert(content, field, obj);
             }
         }
         return result;

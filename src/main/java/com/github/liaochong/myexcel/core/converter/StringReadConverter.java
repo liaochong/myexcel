@@ -14,34 +14,19 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
-import com.github.liaochong.myexcel.utils.StringUtil;
-
 import java.lang.reflect.Field;
-import java.util.Objects;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class BoolReadConverter implements ReadConverter {
+public class StringReadConverter implements ReadConverter {
 
     @Override
     public void convert(String content, Field field, Object obj) throws Exception {
-        if (StringUtil.isBlank(content)) {
+        if (field.getType() != String.class) {
             return;
         }
-        if (field.getType() != Boolean.class && field.getType() != boolean.class) {
-            return;
-        }
-        String trimContent = content.trim();
-        if (Objects.equals("1", trimContent) || Objects.equals("true", trimContent)) {
-            field.set(obj, true);
-            return;
-        }
-        if (Objects.equals("0", trimContent) || Objects.equals("false", trimContent)) {
-            field.set(obj, false);
-            return;
-        }
-        throw new IllegalArgumentException();
+        field.set(obj, content);
     }
 }

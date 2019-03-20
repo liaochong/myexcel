@@ -43,7 +43,6 @@ public class NumberReadConverter implements ReadConverter {
         String trimContent = content.trim();
         String realValue = new BigDecimal(trimContent).toPlainString();
 
-        field.setAccessible(true);
         if (type == Double.class || type == double.class) {
             field.set(obj, Double.parseDouble(realValue));
             return;

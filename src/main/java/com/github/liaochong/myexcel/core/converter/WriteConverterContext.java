@@ -29,21 +29,25 @@ import java.util.Objects;
  */
 public class WriteConverterContext {
 
-    public final List<WriteConverter> writeConverterContainer = new ArrayList<>();
+    private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
-    public static WriteConverterContext newInstance() {
+    static {
+        WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
+    }
+
+    public static WriteConverterContext getInstance() {
         return new WriteConverterContext();
     }
 
     public synchronized WriteConverterContext registering(WriteConverter... writeConverters) {
         Objects.requireNonNull(writeConverters);
-        Collections.addAll(writeConverterContainer, writeConverters);
+        Collections.addAll(WRITE_CONVERTER_CONTAINER, writeConverters);
         return this;
     }
 
     public Object convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
-        for (WriteConverter writeConverter : writeConverterContainer) {
+        for (WriteConverter writeConverter : WRITE_CONVERTER_CONTAINER) {
             result = writeConverter.convert(field, result);
         }
         return result;

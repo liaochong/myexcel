@@ -18,7 +18,6 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
-import com.github.liaochong.myexcel.core.converter.DateTimeWriteConverter;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
 import com.github.liaochong.myexcel.core.parallel.ParallelContainer;
 import com.github.liaochong.myexcel.core.parser.Table;
@@ -51,6 +50,8 @@ import java.util.stream.IntStream;
  * @version 1.0
  */
 public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
+
+    private static final WriteConverterContext WRITE_CONVERTER_CONTEXT = WriteConverterContext.getInstance();
     /**
      * 一般单元格样式
      */
@@ -444,12 +445,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @return 结果集
      */
     protected List<List<Object>> getRenderContent(List<?> data, List<Field> sortedFields) {
-        WriteConverterContext writeConverterContext = WriteConverterContext.newInstance().registering(new DateTimeWriteConverter());
-
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
             List<Object> resolvedDataList = sortedFields.stream()
                     .map(field -> {
-                        Object value = writeConverterContext.convert(field, data.get(index));
+                        Object value = WRITE_CONVERTER_CONTEXT.convert(field, data.get(index));
                         if (Objects.nonNull(value)) {
                             return value;
                         }

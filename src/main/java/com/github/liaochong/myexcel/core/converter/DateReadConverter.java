@@ -47,7 +47,6 @@ public class DateReadConverter implements ReadConverter {
         if (type != Date.class && type != LocalDate.class && type != LocalDateTime.class) {
             return;
         }
-        field.setAccessible(true);
         String trimContent = content.trim();
         boolean isNumber = NUMBER_PATTERN.matcher(trimContent).find();
         if (isNumber) {
