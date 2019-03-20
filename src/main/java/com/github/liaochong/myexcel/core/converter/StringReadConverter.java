@@ -23,10 +23,11 @@ import java.lang.reflect.Field;
 public class StringReadConverter implements ReadConverter {
 
     @Override
-    public void convert(String content, Field field, Object obj) throws Exception {
+    public boolean convert(String content, Field field, Object obj) throws Exception {
         if (field.getType() != String.class) {
-            return;
+            return false;
         }
         field.set(obj, content);
+        return true;
     }
 }

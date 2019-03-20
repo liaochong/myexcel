@@ -39,13 +39,13 @@ public class DateReadConverter implements ReadConverter {
     private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
 
     @Override
-    public void convert(String content, Field field, Object obj) throws Exception {
+    public boolean convert(String content, Field field, Object obj) throws Exception {
         if (StringUtil.isBlank(content)) {
-            return;
+            return false;
         }
         Class<?> type = field.getType();
         if (type != Date.class && type != LocalDate.class && type != LocalDateTime.class) {
-            return;
+            return false;
         }
         String trimContent = content.trim();
         boolean isNumber = NUMBER_PATTERN.matcher(trimContent).find();
@@ -53,13 +53,13 @@ public class DateReadConverter implements ReadConverter {
             final long time = Long.parseLong(trimContent);
             if (type == Date.class) {
                 field.set(obj, new Date(time));
-                return;
+                return true;
             }
             LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(time), TimeZone
                     .getDefault().toZoneId());
             if (type == LocalDateTime.class) {
                 field.set(obj, localDateTime);
-                return;
+                return true;
             }
             field.set(obj, localDateTime.toLocalDate());
         } else {
@@ -71,14 +71,15 @@ public class DateReadConverter implements ReadConverter {
             if (type == Date.class) {
                 SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
                 field.set(obj, sdf.parse(trimContent));
-                return;
+                return true;
             }
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateFormat);
             if (type == LocalDateTime.class) {
                 field.set(obj, LocalDateTime.parse(trimContent, dateTimeFormatter));
-                return;
+                return true;
             }
             field.set(obj, LocalDate.parse(trimContent, dateTimeFormatter));
         }
+        return true;
     }
 }

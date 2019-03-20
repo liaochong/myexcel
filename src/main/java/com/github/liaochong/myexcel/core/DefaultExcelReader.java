@@ -45,8 +45,6 @@ import java.util.stream.Collectors;
  */
 public class DefaultExcelReader {
 
-    private static final ReadConverterContext READ_CONVERTER_CONTEXT = ReadConverterContext.getInstance();
-
     private Class<?> dataType;
 
     private int sheetIndex = 0;
@@ -129,7 +127,7 @@ public class DefaultExcelReader {
                 String content = formatter.formatCellValue(cell);
                 Field field = sortedFields.get(j);
                 field.setAccessible(true);
-                READ_CONVERTER_CONTEXT.convert(content, field, obj);
+                ReadConverterContext.convert(content, field, obj);
             }
         }
         return result;

@@ -26,21 +26,21 @@ import java.util.Objects;
 public class BoolReadConverter implements ReadConverter {
 
     @Override
-    public void convert(String content, Field field, Object obj) throws Exception {
+    public boolean convert(String content, Field field, Object obj) throws Exception {
         if (StringUtil.isBlank(content)) {
-            return;
+            return false;
         }
         if (field.getType() != Boolean.class && field.getType() != boolean.class) {
-            return;
+            return false;
         }
         String trimContent = content.trim();
         if (Objects.equals("1", trimContent) || Objects.equals("true", trimContent)) {
             field.set(obj, true);
-            return;
+            return true;
         }
         if (Objects.equals("0", trimContent) || Objects.equals("false", trimContent)) {
             field.set(obj, false);
-            return;
+            return true;
         }
         throw new IllegalArgumentException();
     }

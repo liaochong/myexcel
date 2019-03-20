@@ -8,5 +8,5 @@ import java.lang.reflect.Field;
  */
 public interface ReadConverter {
 
-    void convert(String content, Field field, Object obj) throws Exception;
+    boolean convert(String content, Field field, Object obj) throws Exception;
 }

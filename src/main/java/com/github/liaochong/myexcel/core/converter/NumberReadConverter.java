@@ -26,9 +26,9 @@ import java.math.BigDecimal;
 public class NumberReadConverter implements ReadConverter {
 
     @Override
-    public void convert(String content, Field field, Object obj) throws Exception {
+    public boolean convert(String content, Field field, Object obj) throws Exception {
         if (StringUtil.isBlank(content)) {
-            return;
+            return false;
         }
         Class<?> type = field.getType();
         if (type != Double.class && type != double.class
@@ -38,35 +38,36 @@ public class NumberReadConverter implements ReadConverter {
                 && type != Short.class && type != short.class
                 && type != Byte.class && type != byte.class
                 && type != BigDecimal.class) {
-            return;
+            return false;
         }
         String trimContent = content.trim();
         String realValue = new BigDecimal(trimContent).toPlainString();
 
         if (type == Double.class || type == double.class) {
             field.set(obj, Double.parseDouble(realValue));
-            return;
+            return true;
         }
         if (type == Float.class || type == float.class) {
             field.set(obj, Float.parseFloat(realValue));
-            return;
+            return true;
         }
         if (type == Long.class || type == long.class) {
             field.set(obj, Long.parseLong(realValue));
-            return;
+            return true;
         }
         if (type == Integer.class || type == int.class) {
             field.set(obj, Integer.parseInt(realValue));
-            return;
+            return true;
         }
         if (type == Short.class || type == short.class) {
             field.set(obj, Short.parseShort(realValue));
-            return;
+            return true;
         }
         if (type == Byte.class || type == byte.class) {
             field.set(obj, Byte.parseByte(realValue));
-            return;
+            return true;
         }
         field.set(obj, new BigDecimal(realValue));
+        return true;
     }
 }

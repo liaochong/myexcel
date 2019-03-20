@@ -51,7 +51,6 @@ import java.util.stream.IntStream;
  */
 public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
 
-    private static final WriteConverterContext WRITE_CONVERTER_CONTEXT = WriteConverterContext.getInstance();
     /**
      * 一般单元格样式
      */
@@ -448,7 +447,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
             List<Object> resolvedDataList = sortedFields.stream()
                     .map(field -> {
-                        Object value = WRITE_CONVERTER_CONTEXT.convert(field, data.get(index));
+                        Object value = WriteConverterContext.convert(field, data.get(index));
                         if (Objects.nonNull(value)) {
                             return value;
                         }

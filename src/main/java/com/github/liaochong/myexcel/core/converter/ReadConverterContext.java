@@ -35,23 +35,22 @@ public class ReadConverterContext {
         readConverterList.add(new StringReadConverter());
     }
 
-    public static ReadConverterContext getInstance() {
-        return new ReadConverterContext();
-    }
-
     public synchronized ReadConverterContext registering(ReadConverter... readConverters) {
         Objects.requireNonNull(readConverters);
         Collections.addAll(readConverterList, readConverters);
         return this;
     }
 
-    public void convert(String content, Field field, Object obj) {
-        readConverterList.forEach(readConverter -> {
-            try {
-                readConverter.convert(content, field, obj);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+    public static void convert(String content, Field field, Object obj) {
+        try {
+            for (ReadConverter readConverter : readConverterList) {
+                boolean result = readConverter.convert(content, field, obj);
+                if (result) {
+                    return;
+                }
             }
-        });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
