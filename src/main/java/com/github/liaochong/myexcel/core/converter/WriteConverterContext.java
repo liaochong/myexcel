@@ -31,10 +31,13 @@ public class WriteConverterContext {
 
     private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
-    public synchronized WriteConverterContext registering(WriteConverter... writeConverters) {
+    static {
+        WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
+    }
+
+    public static synchronized void registering(WriteConverter... writeConverters) {
         Objects.requireNonNull(writeConverters);
         Collections.addAll(WRITE_CONVERTER_CONTAINER, writeConverters);
-        return this;
     }
 
     public static Object convert(Field field, Object object) {

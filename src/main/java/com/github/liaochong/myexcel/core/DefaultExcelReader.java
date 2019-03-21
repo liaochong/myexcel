@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -45,9 +46,13 @@ import java.util.stream.Collectors;
  */
 public class DefaultExcelReader {
 
+    private static final int DEFAULT_SHEET_INDEX = 0;
+
     private Class<?> dataType;
 
-    private int sheetIndex = 0;
+    private int sheetIndex = DEFAULT_SHEET_INDEX;
+
+    private Predicate<Row> rowFilter = row -> true;
 
     private DefaultExcelReader(Class<?> dataType) {
         this.dataType = dataType;
@@ -58,7 +63,16 @@ public class DefaultExcelReader {
     }
 
     public DefaultExcelReader sheet(int index) {
-        this.sheetIndex = index;
+        if (index >= 0) {
+            this.sheetIndex = index;
+        } else {
+            throw new IllegalArgumentException("Sheet index must be greater than or equal to 0");
+        }
+        return this;
+    }
+
+    public DefaultExcelReader rowFilter(@NonNull Predicate<Row> rowFilter) {
+        this.rowFilter = rowFilter;
         return this;
     }
 
@@ -110,6 +124,10 @@ public class DefaultExcelReader {
         for (int i = firstRowNum; i < lastRowNum; i++) {
             Row row = sheet.getRow(i);
             if (Objects.isNull(row)) {
+                continue;
+            }
+            boolean noMatchResult = rowFilter.negate().test(row);
+            if (noMatchResult) {
                 continue;
             }
             int lastColNum = row.getLastCellNum();
