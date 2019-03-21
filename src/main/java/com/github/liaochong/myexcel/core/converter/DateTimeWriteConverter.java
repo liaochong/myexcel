@@ -23,6 +23,10 @@ public class DateTimeWriteConverter implements WriteConverter {
 
     @Override
     public Object convert(Field field, Object fieldVal) {
+        Class<?> fieldType = field.getType();
+        if (fieldType != LocalDateTime.class && fieldType != LocalDate.class && fieldType != Date.class) {
+            return fieldVal;
+        }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         if (Objects.isNull(excelColumn) || Objects.isNull(fieldVal)) {
             return fieldVal;
@@ -32,7 +36,6 @@ public class DateTimeWriteConverter implements WriteConverter {
         if (StringUtil.isBlank(dateFormatPattern)) {
             return fieldVal;
         }
-        Class<?> fieldType = field.getType();
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
@@ -41,12 +44,10 @@ public class DateTimeWriteConverter implements WriteConverter {
             LocalDate localDate = (LocalDate) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
             return formatter.format(localDate);
-        } else if (fieldType == Date.class) {
-            Date date = (Date) fieldVal;
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-            return simpleDateFormat.format(date);
         }
-        return fieldVal;
+        Date date = (Date) fieldVal;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
+        return simpleDateFormat.format(date);
     }
 
     /**
