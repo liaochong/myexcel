@@ -30,7 +30,7 @@ public class ReadConverterContext {
 
     static {
         READ_CONVERTERS.add(new BoolReadConverter());
-        READ_CONVERTERS.add(new DateReadConverter());
+        READ_CONVERTERS.add(new DateTimeReadConverter());
         READ_CONVERTERS.add(new NumberReadConverter());
         READ_CONVERTERS.add(new StringReadConverter());
     }

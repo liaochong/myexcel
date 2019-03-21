@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
-public class DateReadConverter implements ReadConverter {
+public class DateTimeReadConverter implements ReadConverter {
 
     private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
