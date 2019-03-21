@@ -26,24 +26,25 @@ import java.util.Objects;
  */
 public class ReadConverterContext {
 
-    private static List<ReadConverter> readConverterList = new ArrayList<>();
+    private static final List<ReadConverter> READ_CONVERTERS = new ArrayList<>();
 
     static {
-        readConverterList.add(new NumberReadConverter());
-        readConverterList.add(new DateReadConverter());
-        readConverterList.add(new BoolReadConverter());
-        readConverterList.add(new StringReadConverter());
+        READ_CONVERTERS.add(new BoolReadConverter());
+        READ_CONVERTERS.add(new DateReadConverter());
+        READ_CONVERTERS.add(new NumberReadConverter());
+        READ_CONVERTERS.add(new StringReadConverter());
     }
 
     public synchronized ReadConverterContext registering(ReadConverter... readConverters) {
         Objects.requireNonNull(readConverters);
-        Collections.addAll(readConverterList, readConverters);
+        Collections.addAll(READ_CONVERTERS, readConverters);
         return this;
     }
 
     public static void convert(String content, Field field, Object obj) {
         try {
-            for (ReadConverter readConverter : readConverterList) {
+            for (int i = READ_CONVERTERS.size() - 1; i >= 0; i--) {
+                ReadConverter readConverter = READ_CONVERTERS.get(i);
                 boolean result = readConverter.convert(content, field, obj);
                 if (result) {
                     return;
