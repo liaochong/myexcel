@@ -19,19 +19,16 @@ import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,27 +73,21 @@ public class DefaultExcelReader {
         return this;
     }
 
-    public <T> List<T> read(@NonNull File file) {
+    public <T> List<T> read(@NonNull InputStream inputStream) throws IOException, IllegalAccessException, InstantiationException {
+        List<Field> sortedFields = getSortedField();
+        Workbook wb = WorkbookFactory.create(inputStream);
+        Sheet sheet = wb.getSheetAt(sheetIndex);
+        return getDataFromFile(sheet, sortedFields);
+    }
+
+    public <T> List<T> read(@NonNull File file) throws IOException, IllegalAccessException, InstantiationException {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException();
         }
         List<Field> sortedFields = getSortedField();
-        if (file.getName().endsWith(".xlsx")) {
-            try (OPCPackage pkg = OPCPackage.open(file)) {
-                Workbook wb = new XSSFWorkbook(pkg);
-                Sheet sheet = wb.getSheetAt(sheetIndex);
-                return getDataFromFile(sheet, sortedFields);
-            } catch (IOException | InvalidFormatException | IllegalAccessException | InstantiationException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        try (POIFSFileSystem fs = new POIFSFileSystem(file)) {
-            Workbook wb = new HSSFWorkbook(fs.getRoot(), true);
-            Sheet sheet = wb.getSheetAt(sheetIndex);
-            return getDataFromFile(sheet, sortedFields);
-        } catch (IOException | IllegalAccessException | InstantiationException e) {
-            throw new RuntimeException(e);
-        }
+        Workbook wb = WorkbookFactory.create(file);
+        Sheet sheet = wb.getSheetAt(sheetIndex);
+        return getDataFromFile(sheet, sortedFields);
     }
 
     private List<Field> getSortedField() {
