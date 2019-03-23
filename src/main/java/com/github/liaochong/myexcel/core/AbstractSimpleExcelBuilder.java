@@ -215,7 +215,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setContent(titles.get(index));
             td.setStyle(thStyle);
             if (isComponentAutoWidth) {
-                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), FontStyle.FONT_SIZE_SHIFT));
+                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), 0.25));
             }
             return td;
         }).collect(Collectors.toList());
@@ -247,7 +247,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
                 td.setStyle(tdStyle);
                 if (isComponentAutoWidth) {
-                    tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent(), 0));
+                    tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
                 }
                 return td;
             }).collect(Collectors.toList());

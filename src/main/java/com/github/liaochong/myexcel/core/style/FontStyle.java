@@ -53,25 +53,6 @@ public final class FontStyle {
 
     public static final short DEFAULT_FONT_SIZE = 12;
 
-    public static final double FONT_SIZE_SHIFT = 0.25;
-
-    public static double getFontWidthShift(Map<String, String> tdStyle) {
-        double fontWidthShift = 0;
-        String fontSize = tdStyle.get(FONT_SIZE);
-        if (Objects.nonNull(fontSize)) {
-            short fontSizeVal = Short.parseShort(fontSize.replaceAll("\\D*", ""));
-            int intervalSize = fontSizeVal - FontStyle.DEFAULT_FONT_SIZE;
-            if (intervalSize > 0) {
-                fontWidthShift = intervalSize * FONT_SIZE_SHIFT;
-            }
-        }
-        String fontWeight = tdStyle.get(FONT_WEIGHT);
-        if (Objects.equals(fontWeight, BOLD)) {
-            fontWidthShift += FONT_SIZE_SHIFT;
-        }
-        return fontWidthShift;
-    }
-
     public static void setFont(Supplier<Font> fontSupplier, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap, CustomColor customColor) {
         String cacheKey = getCacheKey(tdStyle);
         if (Objects.nonNull(fontMap.get(cacheKey))) {

@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
-import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -193,8 +192,7 @@ public class HtmlTableParser {
             tdList.add(td);
 
             // 设置每列宽度
-            double fontWidthShift = FontStyle.getFontWidthShift(td.getStyle());
-            int width = TdUtil.getStringWidth(td.getContent(), fontWidthShift);
+            int width = TdUtil.getStringWidth(td.getContent());
             colWidthMap.put(td.getCol(), width);
         }
         tr.setTdList(tdList);

@@ -297,7 +297,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             // 使用默认样式，需要重新修正加粗的标题自适应宽度
             trList.parallelStream().forEach(tr -> {
                 tr.getTdList().stream().filter(Td::isTh).forEach(th -> {
-                    int tdWidth = TdUtil.getStringWidth(th.getContent(), 0.1);
+                    int tdWidth = TdUtil.getStringWidth(th.getContent(), 0.25);
                     tr.getColWidthMap().put(th.getCol(), tdWidth);
                 });
             });
