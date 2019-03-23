@@ -91,6 +91,9 @@ public class DefaultExcelReader {
 
     public <T> List<T> read(@NonNull InputStream fileInputStream, String password) throws Exception {
         Map<Integer, Field> fieldMap = getFieldMap();
+        if (fieldMap.isEmpty()) {
+            return Collections.emptyList();
+        }
         Workbook wb;
         if (StringUtil.isBlank(password)) {
             wb = WorkbookFactory.create(fileInputStream);
@@ -110,6 +113,9 @@ public class DefaultExcelReader {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
         Map<Integer, Field> fieldMap = getFieldMap();
+        if (fieldMap.isEmpty()) {
+            return Collections.emptyList();
+        }
         Workbook wb;
         if (StringUtil.isBlank(password)) {
             wb = WorkbookFactory.create(file);
