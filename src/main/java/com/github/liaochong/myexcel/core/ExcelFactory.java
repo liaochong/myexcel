@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
@@ -53,6 +54,14 @@ public interface ExcelFactory {
      * @return ExcelFactory
      */
     ExcelFactory workbookType(WorkbookType workbookType);
+
+    /**
+     * 自动宽度策略
+     *
+     * @param autoWidthStrategy 策略
+     * @return ExcelFactory
+     */
+    ExcelFactory autoWidthStrategy(AutoWidthStrategy autoWidthStrategy);
 
     /**
      * 构建

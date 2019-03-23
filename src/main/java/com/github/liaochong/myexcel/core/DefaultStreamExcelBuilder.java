@@ -18,7 +18,9 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.ArrayList;
@@ -39,10 +41,15 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * 流工厂
      */
     private HtmlToExcelStreamFactory htmlToExcelStreamFactory;
-
-    private WorkbookType workbookType = WorkbookType.SXLSX;
+    /**
+     * workbook
+     */
+    private Workbook workbook;
 
     private DefaultStreamExcelBuilder() {
+        noStyle = true;
+        autoWidthStrategy = AutoWidthStrategy.NO_AUTO;
+        workbookType = WorkbookType.SXLSX;
     }
 
     /**
@@ -51,11 +58,24 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
      */
-    public static DefaultStreamExcelBuilder of(Class<?> dataType) {
-        Objects.requireNonNull(dataType);
-        DefaultStreamExcelBuilder defaultExcelBuilder = new DefaultStreamExcelBuilder();
-        defaultExcelBuilder.dataType = dataType;
-        return defaultExcelBuilder;
+    public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType) {
+        DefaultStreamExcelBuilder defaultStreamExcelBuilder = new DefaultStreamExcelBuilder();
+        defaultStreamExcelBuilder.dataType = dataType;
+        return defaultStreamExcelBuilder;
+    }
+
+    /**
+     * 获取实例，设定需要渲染的数据的类类型
+     *
+     * @param dataType 数据的类类型
+     * @param workbook workbook
+     * @return DefaultExcelBuilder
+     */
+    public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
+        DefaultStreamExcelBuilder defaultStreamExcelBuilder = new DefaultStreamExcelBuilder();
+        defaultStreamExcelBuilder.dataType = dataType;
+        defaultStreamExcelBuilder.workbook = workbook;
+        return defaultStreamExcelBuilder;
     }
 
     @Override
@@ -65,15 +85,32 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
-    public DefaultStreamExcelBuilder workbookType(WorkbookType workbookType) {
+    public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         super.workbookType(workbookType);
         return this;
     }
 
     @Override
-    public DefaultStreamExcelBuilder threadPool(ExecutorService executorService) {
-        Objects.requireNonNull(executorService);
+    public DefaultStreamExcelBuilder threadPool(@NonNull ExecutorService executorService) {
         this.executorService = executorService;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder sheetName(@NonNull String sheetName) {
+        super.sheetName(sheetName);
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder hasStyle() {
+        this.noStyle = false;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        super.autoWidthStrategy(autoWidthStrategy);
         return this;
     }
 
@@ -92,14 +129,14 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
         Objects.requireNonNull(dataType);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService);
-        htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
+        htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
         filteredFields = getFilteredFields(classFieldContainer, groups);
 
         this.initStyleMap();
         Table table = this.createTable();
-        htmlToExcelStreamFactory.start(table);
+        htmlToExcelStreamFactory.start(table, workbook);
 
         Tr head = this.createThead();
         if (Objects.isNull(head)) {

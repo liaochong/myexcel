@@ -13,37 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.parser;
+package com.github.liaochong.myexcel.core.converter;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class Tr {
+public interface WriteConverter {
 
     /**
-     * 索引
+     * 转换
+     *
+     * @param field  字段
+     * @param fieldVal 字段对应的值
+     * @return T
      */
-    int index;
-    /**
-     * 行单元格
-     */
-    List<Td> tdList;
-    /**
-     * 最大宽度
-     */
-    Map<Integer, Integer> colWidthMap;
+    Object convert(Field field, Object fieldVal);
 
-    public Tr(int index) {
-        this.index = index;
-    }
 }

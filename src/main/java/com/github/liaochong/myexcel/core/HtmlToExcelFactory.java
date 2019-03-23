@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -65,8 +66,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @param html html字符串
      * @return HtmlToExcelFactory
      */
-    public static HtmlToExcelFactory readHtml(String html) {
-        Objects.requireNonNull(html);
+    public static HtmlToExcelFactory readHtml(@NonNull String html) {
         HtmlToExcelFactory factory = new HtmlToExcelFactory();
         factory.htmlTableParser = HtmlTableParser.of(html);
         return factory;
@@ -105,6 +105,20 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     /**
      * 开始构建
      *
+     * @param tables   tables
+     * @param workbook workbook
+     * @return Workbook
+     */
+    Workbook build(List<Table> tables, Workbook workbook) {
+        if (Objects.nonNull(workbook)) {
+            this.workbook = workbook;
+        }
+        return build(tables);
+    }
+
+    /**
+     * 开始构建
+     *
      * @param tables tables
      * @return Workbook
      */
@@ -119,7 +133,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         if (Objects.isNull(workbook)) {
             workbook = new XSSFWorkbook();
         }
-        this.initDefaultCellStyleMap();
+        this.initCellStyle(workbook);
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);

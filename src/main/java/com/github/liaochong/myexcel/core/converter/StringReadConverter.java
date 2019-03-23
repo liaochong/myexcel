@@ -1,11 +1,10 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 liaochong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,15 +20,14 @@ import java.lang.reflect.Field;
  * @author liaochong
  * @version 1.0
  */
-public interface Converter {
+public class StringReadConverter implements ReadConverter {
 
-    /**
-     * 转换
-     *
-     * @param field  字段
-     * @param fieldVal 字段对应的值
-     * @return T
-     */
-    Object convert(Field field, Object fieldVal);
-
+    @Override
+    public boolean convert(String content, Field field, Object obj) throws Exception {
+        if (field.getType() != String.class) {
+            return false;
+        }
+        field.set(obj, content);
+        return true;
+    }
 }

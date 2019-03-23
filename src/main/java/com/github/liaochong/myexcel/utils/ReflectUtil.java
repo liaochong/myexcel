@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -24,6 +25,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class ReflectUtil {
 
     /**

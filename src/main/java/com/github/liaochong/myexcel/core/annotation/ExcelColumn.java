@@ -44,6 +44,13 @@ public @interface ExcelColumn {
     int order() default 0;
 
     /**
+     * 列索引，从零开始，不允许重复
+     *
+     * @return int
+     */
+    int index() default -1;
+
+    /**
      * 时间格式化，如yyyy-MM-dd HH:mm:ss
      *
      * @return 时间格式化
@@ -56,4 +63,11 @@ public @interface ExcelColumn {
      * @return 分组类类型集合
      */
     Class<?>[] groups() default {};
+
+    /**
+     * 为null时默认值
+     *
+     * @return 默认值
+     */
+    String defaultValue() default "";
 }

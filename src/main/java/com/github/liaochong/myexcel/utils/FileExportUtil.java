@@ -15,7 +15,14 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import lombok.experimental.UtilityClass;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.poifs.crypt.EncryptionInfo;
+import org.apache.poi.poifs.crypt.EncryptionMode;
+import org.apache.poi.poifs.crypt.Encryptor;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
@@ -30,6 +37,7 @@ import java.nio.file.Paths;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class FileExportUtil {
 
     /**
@@ -55,6 +63,41 @@ public final class FileExportUtil {
             workbook.write(os);
         } finally {
             workbook.close();
+        }
+    }
+
+    /**
+     * 加密导出
+     *
+     * @param workbook workbook
+     * @param file     file
+     * @param password password
+     * @throws Exception Exception
+     */
+    public static void encryptExport(final Workbook workbook, File file, final String password) throws Exception {
+        if (workbook instanceof HSSFWorkbook) {
+            throw new IllegalArgumentException("Document encryption for.xls is not supported");
+        }
+        String suffix = ".xlsx";
+        if (!file.getName().endsWith(suffix)) {
+            file = Paths.get(file.getAbsolutePath() + suffix).toFile();
+        }
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+            workbook.close();
+
+            final POIFSFileSystem fs = new POIFSFileSystem();
+            final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
+            final Encryptor enc = info.getEncryptor();
+            enc.confirmPassword(password);
+
+            try (OPCPackage opc = OPCPackage.open(file, PackageAccess.READ_WRITE);
+                 OutputStream os = enc.getDataStream(fs)) {
+                opc.save(os);
+            }
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                fs.writeFilesystem(fileOutputStream);
+            }
         }
     }
 }

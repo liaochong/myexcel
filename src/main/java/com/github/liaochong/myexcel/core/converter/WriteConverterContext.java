@@ -27,24 +27,23 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class ConverterContext {
+public class WriteConverterContext {
 
-    public final List<Converter> converterContainer = new ArrayList<>();
+    private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
-    public static ConverterContext newInstance() {
-        return new ConverterContext();
+    static {
+        WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
     }
 
-    public synchronized ConverterContext registering(Converter... converters) {
-        Objects.requireNonNull(converters);
-        Collections.addAll(converterContainer, converters);
-        return this;
+    public static synchronized void registering(WriteConverter... writeConverters) {
+        Objects.requireNonNull(writeConverters);
+        Collections.addAll(WRITE_CONVERTER_CONTAINER, writeConverters);
     }
 
-    public Object convert(Field field, Object object) {
+    public static Object convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
-        for (Converter converter : converterContainer) {
-            result = converter.convert(field, result);
+        for (WriteConverter writeConverter : WRITE_CONVERTER_CONTAINER) {
+            result = writeConverter.convert(field, result);
         }
         return result;
     }

@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
-import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +27,7 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -155,10 +155,13 @@ public class HtmlTableParser {
     private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle) {
         Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
+            tr.setTdList(Collections.emptyList());
             tr.setColWidthMap(Collections.emptyMap());
             return;
         }
-        tr.setColWidthMap(new HashMap<>(tdElements.size()));
+
+        final List<Td> tdList = new ArrayList<>(tdElements.size());
+        final Map<Integer, Integer> colWidthMap = new HashMap<>(tdElements.size());
         // 单元格偏移量
         int shift = 0;
         for (int i = 0, size = tdElements.size(); i < size; i++) {
@@ -186,14 +189,14 @@ public class HtmlTableParser {
             if (td.getColSpan() > 0) {
                 shift += td.getColSpan() - 1;
             }
-
-            tr.getTdList().add(td);
+            tdList.add(td);
 
             // 设置每列宽度
-            double fontWidthShift = FontStyle.getFontWidthShift(td.getStyle());
-            int width = TdUtil.getStringWidth(td.getContent(), fontWidthShift);
-            tr.getColWidthMap().put(td.getCol(), width);
+            int width = TdUtil.getStringWidth(td.getContent());
+            colWidthMap.put(td.getCol(), width);
         }
+        tr.setTdList(tdList);
+        tr.setColWidthMap(colWidthMap);
     }
 
     /**

@@ -17,12 +17,16 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class DateTimeConverter implements Converter {
+public class DateTimeWriteConverter implements WriteConverter {
 
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 
     @Override
     public Object convert(Field field, Object fieldVal) {
+        Class<?> fieldType = field.getType();
+        if (fieldType != LocalDateTime.class && fieldType != LocalDate.class && fieldType != Date.class) {
+            return fieldVal;
+        }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         if (Objects.isNull(excelColumn) || Objects.isNull(fieldVal)) {
             return fieldVal;
@@ -32,7 +36,6 @@ public class DateTimeConverter implements Converter {
         if (StringUtil.isBlank(dateFormatPattern)) {
             return fieldVal;
         }
-        Class<?> fieldType = field.getType();
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
@@ -41,12 +44,10 @@ public class DateTimeConverter implements Converter {
             LocalDate localDate = (LocalDate) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
             return formatter.format(localDate);
-        } else if (fieldType == Date.class) {
-            Date date = (Date) fieldVal;
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-            return simpleDateFormat.format(date);
         }
-        return fieldVal;
+        Date date = (Date) fieldVal;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
+        return simpleDateFormat.format(date);
     }
 
     /**

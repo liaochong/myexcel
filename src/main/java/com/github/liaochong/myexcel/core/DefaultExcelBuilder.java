@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -37,6 +38,8 @@ import java.util.Optional;
  */
 @Slf4j
 public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
+
+    private Workbook workbook;
 
     private DefaultExcelBuilder() {
     }
@@ -57,10 +60,16 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
      */
-    public static DefaultExcelBuilder of(Class<?> dataType) {
-        Objects.requireNonNull(dataType);
+    public static DefaultExcelBuilder of(@NonNull Class<?> dataType) {
         DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
         defaultExcelBuilder.dataType = dataType;
+        return defaultExcelBuilder;
+    }
+
+    public static DefaultExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
+        defaultExcelBuilder.dataType = dataType;
+        defaultExcelBuilder.workbook = workbook;
         return defaultExcelBuilder;
     }
 
@@ -124,7 +133,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
             table.getTrList().addAll(tbody);
         }
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType);
-        return htmlToExcelFactory.build(tableList);
+        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+        return htmlToExcelFactory.build(tableList, workbook);
     }
 }

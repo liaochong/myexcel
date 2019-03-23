@@ -18,19 +18,20 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
-import com.github.liaochong.myexcel.core.converter.ConverterContext;
-import com.github.liaochong.myexcel.core.converter.DateTimeConverter;
+import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
 import com.github.liaochong.myexcel.core.parallel.ParallelContainer;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
+import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import java.util.stream.IntStream;
  * @version 1.0
  */
 public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
+
     /**
      * 一般单元格样式
      */
@@ -85,24 +87,37 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 设置需要渲染的数据的类类型
      */
     protected Class<?> dataType;
+    /**
+     * 无样式
+     */
+    protected boolean noStyle;
+    /**
+     * 自动宽度策略
+     */
+    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPUTE_AUTO_WIDTH;
+    /**
+     * 全局默认值
+     */
+    private String globalDefaultValue;
+    /**
+     * 默认值集合
+     */
+    private Map<Field, String> defaultValueMap;
 
     @Override
-    public AbstractSimpleExcelBuilder titles(List<String> titles) {
-        Objects.requireNonNull(titles);
+    public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
         this.titles = titles;
         return this;
     }
 
     @Override
-    public AbstractSimpleExcelBuilder sheetName(String sheetName) {
-        Objects.requireNonNull(sheetName);
+    public AbstractSimpleExcelBuilder sheetName(@NonNull String sheetName) {
         this.sheetName = sheetName;
         return this;
     }
 
     @Override
-    public AbstractSimpleExcelBuilder fieldDisplayOrder(List<String> fieldDisplayOrder) {
-        Objects.requireNonNull(fieldDisplayOrder);
+    public AbstractSimpleExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
@@ -117,9 +132,20 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     }
 
     @Override
-    public AbstractSimpleExcelBuilder workbookType(WorkbookType workbookType) {
-        Objects.requireNonNull(workbookType);
+    public AbstractSimpleExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         this.workbookType = workbookType;
+        return this;
+    }
+
+    @Override
+    public AbstractSimpleExcelBuilder noStyle() {
+        this.noStyle = true;
+        return this;
+    }
+
+    @Override
+    public AbstractSimpleExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        this.autoWidthStrategy = autoWidthStrategy;
         return this;
     }
 
@@ -161,18 +187,23 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (!hasTitles) {
             return null;
         }
-        Map<String, String> thStyle = new HashMap<>(7);
-        thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
-        thStyle.put(FontStyle.FONT_SIZE, "14");
-        thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
-        thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-        thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-        thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-        thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+        Map<String, String> thStyle;
+        if (noStyle) {
+            thStyle = Collections.emptyMap();
+        } else {
+            thStyle = new HashMap<>(7);
+            thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
+            thStyle.put(FontStyle.FONT_SIZE, "14");
+            thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
+            thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+            thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+            thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+            thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+        }
 
         Tr tr = new Tr(0);
-        Map<Integer, Integer> colMaxWidthMap = new HashMap<>(titles.size());
-        tr.setColWidthMap(colMaxWidthMap);
+        boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
+        tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
 
         List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
             Td td = new Td();
@@ -183,7 +214,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setColBound(index);
             td.setContent(titles.get(index));
             td.setStyle(thStyle);
-            tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), FontStyle.FONT_SIZE_SHIFT));
+            if (isComputeAutoWidth) {
+                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), 0.25));
+            }
             return td;
         }).collect(Collectors.toList());
         tr.setTdList(ths);
@@ -198,13 +231,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @return 内容行集合
      */
     protected List<Tr> createTbody(List<List<Object>> contents, int shift) {
+        boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Object> dataList = contents.get(index);
-            Map<Integer, Integer> colMaxWidthMap = new HashMap<>(dataList.size());
-            tr.setColWidthMap(colMaxWidthMap);
-            Map<String, String> tdStyle = index % 2 == 0 ? commonTdStyle : evenTdStyle;
+            tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(dataList.size()) : Collections.emptyMap());
+            Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
@@ -213,7 +246,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 td.setColBound(i);
                 td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
                 td.setStyle(tdStyle);
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent(), 0));
+                if (isComputeAutoWidth) {
+                    tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+                }
                 return td;
             }).collect(Collectors.toList());
             tr.setTdList(tdList);
@@ -226,15 +261,19 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 初始化单元格样式
      */
     protected void initStyleMap() {
-        commonTdStyle = new HashMap<>(3);
-        commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-        commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-        commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-        commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+        if (noStyle) {
+            commonTdStyle = evenTdStyle = Collections.emptyMap();
+        } else {
+            commonTdStyle = new HashMap<>(3);
+            commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+            commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+            commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+            commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
 
-        evenTdStyle = new HashMap<>(4);
-        evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
-        evenTdStyle.putAll(commonTdStyle);
+            evenTdStyle = new HashMap<>(4);
+            evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
+            evenTdStyle.putAll(commonTdStyle);
+        }
     }
 
     /**
@@ -254,6 +293,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             setWorkbookWithExcelTableAnnotation(excelTable);
             excludeParent = excelTable.excludeParent();
             includeAllField = excelTable.includeAllField();
+            if (!excelTable.defaultValue().isEmpty()) {
+                globalDefaultValue = excelTable.defaultValue();
+            }
         }
 
         List<Field> preelectionFields;
@@ -283,44 +325,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
 
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
-        List<String> titles = new ArrayList<>();
+        List<String> titles = new ArrayList<>(preelectionFields.size());
+        defaultValueMap = new HashMap<>(preelectionFields.size());
         List<Field> sortedFields = preelectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class))
-                .filter(field -> {
-                    if (selectedGroupList.isEmpty()) {
-                        return true;
-                    }
-                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                    if (Objects.isNull(excelColumn)) {
-                        return false;
-                    }
-                    Class<?>[] groupArr = excelColumn.groups();
-                    if (groupArr.length == 0) {
-                        return false;
-                    }
-                    List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
-                    return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
-                })
-                .sorted((field1, field2) -> {
-                    ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
-                    ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-                    if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
-                        return 0;
-                    }
-                    int defaultOrder = 0;
-                    int order1 = defaultOrder;
-                    if (Objects.nonNull(excelColumn1)) {
-                        order1 = excelColumn1.order();
-                    }
-                    int order2 = defaultOrder;
-                    if (Objects.nonNull(excelColumn2)) {
-                        order2 = excelColumn2.order();
-                    }
-                    if (order1 == order2) {
-                        return 0;
-                    }
-                    return order1 > order2 ? 1 : -1;
-                })
+                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && filterFields(selectedGroupList, field))
+                .sorted(this::sortFields)
                 .peek(field -> {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
                     if (Objects.nonNull(excelColumn)) {
@@ -328,6 +337,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                             titles.add(field.getName());
                         } else {
                             titles.add(excelColumn.title());
+                        }
+                        if (!excelColumn.defaultValue().isEmpty()) {
+                            defaultValueMap.put(field, excelColumn.defaultValue());
                         }
                     } else {
                         if (useFieldNameAsTitle) {
@@ -344,6 +356,43 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    private boolean filterFields(List<Class<?>> selectedGroupList, Field field) {
+        if (selectedGroupList.isEmpty()) {
+            return true;
+        }
+        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+        if (Objects.isNull(excelColumn)) {
+            return false;
+        }
+        Class<?>[] groupArr = excelColumn.groups();
+        if (groupArr.length == 0) {
+            return false;
+        }
+        List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
+        return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
+    }
+
+    private int sortFields(Field field1, Field field2) {
+        ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
+        ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
+        if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
+            return 0;
+        }
+        int defaultOrder = 0;
+        int order1 = defaultOrder;
+        if (Objects.nonNull(excelColumn1)) {
+            order1 = excelColumn1.order();
+        }
+        int order2 = defaultOrder;
+        if (Objects.nonNull(excelColumn2)) {
+            order2 = excelColumn2.order();
+        }
+        if (order1 == order2) {
+            return 0;
+        }
+        return order1 > order2 ? 1 : -1;
     }
 
     /**
@@ -395,11 +444,22 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @return 结果集
      */
     protected List<List<Object>> getRenderContent(List<?> data, List<Field> sortedFields) {
-        ConverterContext converterContext = ConverterContext.newInstance().registering(new DateTimeConverter());
-
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
             List<Object> resolvedDataList = sortedFields.stream()
-                    .map(field -> converterContext.convert(field, data.get(index)))
+                    .map(field -> {
+                        Object value = WriteConverterContext.convert(field, data.get(index));
+                        if (Objects.nonNull(value)) {
+                            return value;
+                        }
+                        String defaultValue = defaultValueMap.get(field);
+                        if (Objects.nonNull(defaultValue)) {
+                            return defaultValue;
+                        }
+                        if (Objects.nonNull(globalDefaultValue)) {
+                            return globalDefaultValue;
+                        }
+                        return value;
+                    })
                     .collect(Collectors.toList());
             data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);

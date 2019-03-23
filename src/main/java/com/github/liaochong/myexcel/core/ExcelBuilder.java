@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.Map;
@@ -49,6 +50,14 @@ public interface ExcelBuilder {
      * @return ExcelBuilder
      */
     ExcelBuilder useDefaultStyle();
+
+    /**
+     * 自动宽度策略
+     *
+     * @param autoWidthStrategy 策略
+     * @return ExcelBuilder
+     */
+    ExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy);
 
     /**
      * 选择固定区域

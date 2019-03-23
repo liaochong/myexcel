@@ -40,6 +40,40 @@ public class DefaultStreamExcelBuilderExampleController {
         AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
 
+    @GetMapping("/default/excel/stream/continue/example")
+    public void streamBuildWithContinue(HttpServletResponse response) throws Exception {
+        DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
+                .threadPool(Executors.newFixedThreadPool(10))
+                .start();
+
+        List<CompletableFuture> futures = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            CompletableFuture future = CompletableFuture.runAsync(() -> {
+                List<ArtCrowd> dataList = this.getDataList();
+                defaultExcelBuilder.append(dataList);
+            });
+            futures.add(future);
+        }
+        futures.forEach(CompletableFuture::join);
+        Workbook workbook = defaultExcelBuilder.build();
+
+        DefaultStreamExcelBuilder defaultStreamExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class, workbook)
+                .threadPool(Executors.newFixedThreadPool(10))
+                .sheetName("sheet2")
+                .start();
+        futures = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            CompletableFuture future = CompletableFuture.runAsync(() -> {
+                List<ArtCrowd> dataList = this.getDataList();
+                defaultStreamExcelBuilder.append(dataList);
+            });
+            futures.add(future);
+        }
+        futures.forEach(CompletableFuture::join);
+        workbook = defaultStreamExcelBuilder.build();
+        AttachmentExportUtil.export(workbook, "艺术生信息", response);
+    }
+
     private List<ArtCrowd> getDataList() {
         List<ArtCrowd> dataList = new ArrayList<>(1000);
         for (int i = 0; i < 1000; i++) {

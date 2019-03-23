@@ -80,8 +80,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         this.executorService = executorService;
     }
 
-    public void start(Table table) {
+    public void start(Table table, Workbook workbook) {
         log.info("Start streaming building excel");
+        if (Objects.nonNull(workbook)) {
+            this.workbook = workbook;
+        }
         startTime = System.currentTimeMillis();
 
         if (Objects.isNull(this.workbook)) {
@@ -90,12 +93,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (workbook instanceof HSSFWorkbook) {
             maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
         }
-        initDefaultCellStyleMap();
+        initCellStyle(workbook);
         if (Objects.nonNull(table)) {
             sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
         }
         this.sheet = this.workbook.createSheet(sheetName);
-
         if (Objects.isNull(executorService)) {
             Thread thread = new Thread(this::receive);
             thread.setName("Excel-builder-1");

@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import lombok.experimental.UtilityClass;
 
 import java.util.Objects;
 import java.util.function.IntSupplier;
@@ -27,6 +28,7 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class TdUtil {
 
     private static Pattern chineseOrCapitalPattern = Pattern.compile("[\u4e00-\u9fa5|A-Z]");
@@ -60,15 +62,19 @@ public final class TdUtil {
         return digitalPattern.matcher(span).find();
     }
 
+    public static int getStringWidth(String s) {
+        return getStringWidth(s, 0);
+    }
+
     public static int getStringWidth(String s, double shift) {
         if (Objects.isNull(s)) {
             return 1;
         }
         // 最小为1
         double valueLength = 1;
-        // 获取字段值的长度，如果含中文字符，则每个中文字符长度为1，否则为0.75
+        // 获取字段值的长度，如果含中文字符，则每个中文字符长度为1，否则为0.5
         double chineseOrCapitalShift = 1 + shift;
-        double otherShift = 0.75 + shift;
+        double otherShift = 0.5 + shift;
         for (int i = 0, size = s.length(); i < size; i++) {
             // 获取一个字符
             String temp = s.substring(i, i + 1);

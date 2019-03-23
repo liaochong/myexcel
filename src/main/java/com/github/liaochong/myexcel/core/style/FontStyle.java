@@ -15,18 +15,25 @@
  */
 package com.github.liaochong.myexcel.core.style;
 
+import com.github.liaochong.myexcel.utils.ColorUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 
+import java.awt.*;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * @author liaochong
  * @version 1.0
  */
 public final class FontStyle {
+
+    public static final String FONT_COLOR = "color";
 
     public static final String FONT_SIZE = "font-size";
 
@@ -46,26 +53,7 @@ public final class FontStyle {
 
     public static final short DEFAULT_FONT_SIZE = 12;
 
-    public static final double FONT_SIZE_SHIFT = 0.25;
-
-    public static double getFontWidthShift(Map<String, String> tdStyle) {
-        double fontWidthShift = 0;
-        String fontSize = tdStyle.get(FONT_SIZE);
-        if (Objects.nonNull(fontSize)) {
-            short fontSizeVal = Short.parseShort(fontSize.replaceAll("\\D*", ""));
-            int intervalSize = fontSizeVal - FontStyle.DEFAULT_FONT_SIZE;
-            if (intervalSize > 0) {
-                fontWidthShift = intervalSize * FONT_SIZE_SHIFT;
-            }
-        }
-        String fontWeight = tdStyle.get(FONT_WEIGHT);
-        if (Objects.equals(fontWeight, BOLD)) {
-            fontWidthShift += FONT_SIZE_SHIFT;
-        }
-        return fontWidthShift;
-    }
-
-    public static void setFont(Workbook workbook, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap) {
+    public static void setFont(Supplier<Font> fontSupplier, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap, CustomColor customColor) {
         String cacheKey = getCacheKey(tdStyle);
         if (Objects.nonNull(fontMap.get(cacheKey))) {
             cellStyle.setFont(fontMap.get(cacheKey));
@@ -76,28 +64,32 @@ public final class FontStyle {
         if (Objects.nonNull(fs)) {
             fs = fs.replaceAll("\\D*", "");
             short fontSize = Short.parseShort(fs);
-            font = workbook.createFont();
+            font = fontSupplier.get();
             font.setFontHeightInPoints(fontSize);
         }
         String fontFamily = tdStyle.get(FONT_FAMILY);
         if (Objects.nonNull(fontFamily)) {
-            font = createFontIfNull(workbook, font);
+            font = createFontIfNull(fontSupplier, font);
             font.setFontName(fontFamily);
         }
         String italic = tdStyle.get(FONT_STYLE);
         if (Objects.equals(ITALIC, italic)) {
-            font = createFontIfNull(workbook, font);
+            font = createFontIfNull(fontSupplier, font);
             font.setItalic(true);
         }
         String strikeout = tdStyle.get(TEXT_DECORATION);
         if (Objects.equals(strikeout, LINE_THROUGH)) {
-            font = createFontIfNull(workbook, font);
+            font = createFontIfNull(fontSupplier, font);
             font.setStrikeout(true);
         }
         String fontWeight = tdStyle.get(FONT_WEIGHT);
         if (Objects.equals(fontWeight, BOLD)) {
-            font = createFontIfNull(workbook, font);
+            font = createFontIfNull(fontSupplier, font);
             font.setBold(true);
+        }
+        String fontColor = tdStyle.get(FONT_COLOR);
+        if (StringUtil.isNotBlank(fontColor)) {
+            font = setFontColor(fontSupplier, customColor, fontColor);
         }
         if (Objects.nonNull(font)) {
             cellStyle.setFont(font);
@@ -105,9 +97,33 @@ public final class FontStyle {
         }
     }
 
-    private static Font createFontIfNull(Workbook workbook, Font font) {
+    private static Font setFontColor(Supplier<Font> fontSupplier, CustomColor customColor, String fontColor) {
+        Short colorPredefined = ColorUtil.getPredefinedColorIndex(fontColor);
+        if (Objects.nonNull(colorPredefined)) {
+            Font font = fontSupplier.get();
+            font = createFontIfNull(fontSupplier, font);
+            font.setColor(colorPredefined);
+            return font;
+        }
+        int[] rgb = ColorUtil.getRGBByColor(fontColor);
+        if (Objects.isNull(rgb)) {
+            return null;
+        }
+        Font font = null;
+        if (customColor.isXls()) {
+            short index = ColorUtil.getCustomColorIndex(customColor, rgb);
+            font = createFontIfNull(fontSupplier, font);
+            font.setColor(index);
+        } else {
+            font = createFontIfNull(fontSupplier, font);
+            ((XSSFFont) font).setColor(new XSSFColor(new Color(rgb[0], rgb[1], rgb[2]), customColor.getDefaultIndexedColorMap()));
+        }
+        return font;
+    }
+
+    private static Font createFontIfNull(Supplier<Font> fontSupplier, Font font) {
         if (Objects.isNull(font)) {
-            font = workbook.createFont();
+            font = fontSupplier.get();
         }
         return font;
     }
@@ -119,6 +135,7 @@ public final class FontStyle {
         appendKey(tdStyle, FONT_STYLE, result);
         appendKey(tdStyle, TEXT_DECORATION, result);
         appendKey(tdStyle, FONT_WEIGHT, result);
+        appendKey(tdStyle, FONT_COLOR, result);
         return result.toString();
     }
 

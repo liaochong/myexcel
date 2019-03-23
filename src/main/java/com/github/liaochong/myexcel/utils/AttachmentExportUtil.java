@@ -15,13 +15,25 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import com.github.liaochong.myexcel.core.io.TempFileOperator;
+import lombok.experimental.UtilityClass;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.poifs.crypt.EncryptionInfo;
+import org.apache.poi.poifs.crypt.EncryptionMode;
+import org.apache.poi.poifs.crypt.Encryptor;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * 附件导出工具类
@@ -29,6 +41,7 @@ import java.net.URLEncoder;
  * @author liaochong
  * @version 1.0
  */
+@UtilityClass
 public final class AttachmentExportUtil {
 
     /**
@@ -54,5 +67,48 @@ public final class AttachmentExportUtil {
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
         workbook.write(response.getOutputStream());
         workbook.close();
+    }
+
+    /**
+     * 加密导出
+     *
+     * @param workbook workbook
+     * @param fileName fileName
+     * @param response response
+     * @param password password
+     * @throws Exception Exception
+     */
+    public static void encryptExport(final Workbook workbook, String fileName, HttpServletResponse response, final String password) throws Exception {
+        if (workbook instanceof HSSFWorkbook) {
+            throw new IllegalArgumentException("Document encryption for.xls is not supported");
+        }
+        TempFileOperator tempFileOperator = null;
+        try {
+            tempFileOperator = new TempFileOperator();
+            String suffix = ".xlsx";
+            Path path = tempFileOperator.createTempFile("encrypt_temp", suffix);
+            workbook.write(Files.newOutputStream(path));
+            workbook.close();
+
+            final POIFSFileSystem fs = new POIFSFileSystem();
+            final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
+            final Encryptor enc = info.getEncryptor();
+            enc.confirmPassword(password);
+
+            try (OPCPackage opc = OPCPackage.open(path.toFile(), PackageAccess.READ_WRITE);
+                 OutputStream os = enc.getDataStream(fs)) {
+                opc.save(os);
+            }
+            if (!fileName.endsWith(suffix)) {
+                fileName += suffix;
+            }
+            response.setCharacterEncoding(CharEncoding.UTF_8);
+            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            fs.writeFilesystem(response.getOutputStream());
+        } finally {
+            if (Objects.nonNull(tempFileOperator)) {
+                tempFileOperator.deleteTempFile();
+            }
+        }
     }
 }
