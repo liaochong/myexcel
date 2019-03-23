@@ -47,6 +47,8 @@ interface SimpleStreamExcelBuilder {
 
     /**
      * 使用默认样式
+     *
+     * @return SimpleStreamExcelBuilder
      */
     SimpleStreamExcelBuilder hasStyle();
 

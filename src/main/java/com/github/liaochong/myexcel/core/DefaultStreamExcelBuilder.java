@@ -68,6 +68,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * 获取实例，设定需要渲染的数据的类类型
      *
      * @param dataType 数据的类类型
+     * @param workbook workbook
      * @return DefaultExcelBuilder
      */
     public static DefaultStreamExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
