@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.core.parallel.ParallelContainer;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
@@ -27,15 +28,18 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author liaochong
@@ -50,6 +54,8 @@ public class DefaultExcelReader {
     private int sheetIndex = DEFAULT_SHEET_INDEX;
 
     private Predicate<Row> rowFilter = row -> true;
+
+    private boolean parallelRead;
 
     private DefaultExcelReader(Class<?> dataType) {
         this.dataType = dataType;
@@ -73,72 +79,125 @@ public class DefaultExcelReader {
         return this;
     }
 
-    public <T> List<T> read(@NonNull InputStream inputStream) throws IOException, IllegalAccessException, InstantiationException {
-        List<Field> sortedFields = getSortedField();
-        Workbook wb = WorkbookFactory.create(inputStream);
-        Sheet sheet = wb.getSheetAt(sheetIndex);
-        return getDataFromFile(sheet, sortedFields);
+    public DefaultExcelReader parallelRead() {
+        this.parallelRead = true;
+        return this;
     }
 
-    public <T> List<T> read(@NonNull File file) throws IOException, IllegalAccessException, InstantiationException {
+    public <T> List<T> read(@NonNull InputStream fileInputStream) throws Exception {
+        Map<Integer, Field> fieldMap = getFieldMap();
+        Workbook wb = WorkbookFactory.create(fileInputStream);
+        Sheet sheet = wb.getSheetAt(sheetIndex);
+        return getDataFromFile(sheet, fieldMap);
+    }
+
+    public <T> List<T> read(@NonNull File file) throws Exception {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
-        List<Field> sortedFields = getSortedField();
+        Map<Integer, Field> fieldMap = getFieldMap();
         Workbook wb = WorkbookFactory.create(file);
         Sheet sheet = wb.getSheetAt(sheetIndex);
-        return getDataFromFile(sheet, sortedFields);
+        return getDataFromFile(sheet, fieldMap);
     }
 
-    private List<Field> getSortedField() {
+    private Map<Integer, Field> getFieldMap() {
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        return classFieldContainer.getFieldsByAnnotation(ExcelColumn.class).stream().sorted((field1, field2) -> {
-            ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
-            ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-            int order1 = excelColumn1.order();
-            int order2 = excelColumn2.order();
-            if (Objects.equals(order1, order2)) {
-                return 0;
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        if (fields.isEmpty()) {
+            throw new IllegalStateException("There is no field with @ExcelColumn");
+        }
+        Map<Integer, Field> fieldMap = new HashMap<>(fields.size());
+        for (Field field : fields) {
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            int index = excelColumn.index();
+            if (index < 0) {
+                continue;
             }
-            return order1 > order2 ? 1 : -1;
-        }).collect(Collectors.toList());
+            Field f = fieldMap.get(index);
+            if (Objects.nonNull(f)) {
+                throw new IllegalStateException("Index cannot be repeated. Please check it.");
+            }
+            fieldMap.put(index, field);
+        }
+        return fieldMap;
     }
 
-    private <T> List<T> getDataFromFile(Sheet sheet, List<Field> sortedFields) throws InstantiationException, IllegalAccessException {
+    private <T> List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
         if (lastRowNum < 0) {
             return Collections.emptyList();
         }
         DataFormatter formatter = new DataFormatter();
-        List<T> result = new ArrayList<>(lastRowNum);
-        for (int i = firstRowNum; i < lastRowNum; i++) {
-            Row row = sheet.getRow(i);
-            if (Objects.isNull(row)) {
-                continue;
-            }
-            boolean noMatchResult = rowFilter.negate().test(row);
-            if (noMatchResult) {
-                continue;
-            }
-            int lastColNum = row.getLastCellNum();
-            if (lastColNum < 0) {
-                continue;
-            }
-            T obj = (T) dataType.newInstance();
-            result.add(obj);
+        if (parallelRead) {
+            List<ParallelContainer<T>> result = IntStream.rangeClosed(firstRowNum, lastRowNum).parallel().mapToObj(rowNum -> {
+                Row row = sheet.getRow(rowNum);
+                if (Objects.isNull(row)) {
+                    return null;
+                }
+                boolean noMatchResult = rowFilter.negate().test(row);
+                if (noMatchResult) {
+                    return null;
+                }
+                int lastColNum = row.getLastCellNum();
+                if (lastColNum < 0) {
+                    return null;
+                }
+                T obj;
+                try {
+                    obj = (T) dataType.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
 
-            for (int j = 0; j < lastColNum; j++) {
-                Cell cell = row.getCell(j, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                if (Objects.isNull(cell)) {
+                fieldMap.forEach((key, field) -> {
+                    Cell cell = row.getCell(key, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                    if (Objects.isNull(cell)) {
+                        return;
+                    }
+                    String content = formatter.formatCellValue(cell);
+                    field.setAccessible(true);
+                    ReadConverterContext.convert(content, field, obj);
+                });
+
+                return new ParallelContainer<>(rowNum, obj);
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+
+            return result.stream().sorted(Comparator.comparing(ParallelContainer::getIndex)).map(ParallelContainer::getData).collect(Collectors.toList());
+        } else {
+            List<T> result = new ArrayList<>(fieldMap.size());
+            for (int i = firstRowNum; i <= lastRowNum; i++) {
+                Row row = sheet.getRow(i);
+                if (Objects.isNull(row)) {
                     continue;
                 }
-                String content = formatter.formatCellValue(cell);
-                Field field = sortedFields.get(j);
-                field.setAccessible(true);
-                ReadConverterContext.convert(content, field, obj);
+                boolean noMatchResult = rowFilter.negate().test(row);
+                if (noMatchResult) {
+                    continue;
+                }
+                int lastColNum = row.getLastCellNum();
+                if (lastColNum < 0) {
+                    continue;
+                }
+                T obj;
+                try {
+                    obj = (T) dataType.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+                result.add(obj);
+                fieldMap.forEach((key, field) -> {
+                    Cell cell = row.getCell(key, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                    if (Objects.isNull(cell)) {
+                        return;
+                    }
+                    String content = formatter.formatCellValue(cell);
+                    field.setAccessible(true);
+                    ReadConverterContext.convert(content, field, obj);
+                });
             }
+            return result;
         }
-        return result;
     }
 }

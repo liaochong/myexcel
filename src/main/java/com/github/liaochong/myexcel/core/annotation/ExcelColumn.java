@@ -44,6 +44,13 @@ public @interface ExcelColumn {
     int order() default 0;
 
     /**
+     * 列索引，从零开始，不允许重复
+     *
+     * @return int
+     */
+    int index() default -1;
+
+    /**
      * 时间格式化，如yyyy-MM-dd HH:mm:ss
      *
      * @return 时间格式化
