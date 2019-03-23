@@ -90,7 +90,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 自动宽度策略
      */
-    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPONENT_AUTO_WIDTH;
+    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPUTE_AUTO_WIDTH;
 
     @Override
     public ExcelFactory useDefaultStyle() {

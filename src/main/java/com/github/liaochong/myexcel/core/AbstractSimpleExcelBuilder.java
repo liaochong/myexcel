@@ -94,7 +94,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     /**
      * 自动宽度策略
      */
-    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPONENT_AUTO_WIDTH;
+    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.COMPUTE_AUTO_WIDTH;
     /**
      * 全局默认值
      */
@@ -202,8 +202,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
 
         Tr tr = new Tr(0);
-        boolean isComponentAutoWidth = AutoWidthStrategy.isComponentAutoWidth(autoWidthStrategy);
-        tr.setColWidthMap(isComponentAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
+        boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
+        tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
 
         List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
             Td td = new Td();
@@ -214,7 +214,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setColBound(index);
             td.setContent(titles.get(index));
             td.setStyle(thStyle);
-            if (isComponentAutoWidth) {
+            if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), 0.25));
             }
             return td;
@@ -231,12 +231,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @return 内容行集合
      */
     protected List<Tr> createTbody(List<List<Object>> contents, int shift) {
-        boolean isComponentAutoWidth = AutoWidthStrategy.isComponentAutoWidth(autoWidthStrategy);
+        boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Object> dataList = contents.get(index);
-            tr.setColWidthMap(isComponentAutoWidth ? new HashMap<>(dataList.size()) : Collections.emptyMap());
+            tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(dataList.size()) : Collections.emptyMap());
             Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
@@ -246,7 +246,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 td.setColBound(i);
                 td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
                 td.setStyle(tdStyle);
-                if (isComponentAutoWidth) {
+                if (isComputeAutoWidth) {
                     tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
                 }
                 return td;
