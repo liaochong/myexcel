@@ -8,7 +8,7 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
  */
 public class People {
 
-    @ExcelColumn(order = 1, title = "姓名")
+    @ExcelColumn(order = 1, title = "姓名", index = 0)
     private String name;
 
     @ExcelColumn(order = 2, title = "年龄")

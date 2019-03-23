@@ -4,6 +4,7 @@ import com.github.liaochong.example.pojo.Product;
 import com.github.liaochong.myexcel.core.ExcelBuilder;
 import com.github.liaochong.myexcel.core.FreemarkerExcelBuilder;
 import com.github.liaochong.myexcel.core.WorkbookType;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -109,6 +110,41 @@ public class FreemarkerExcelBuilderExampleController {
         AttachmentExportUtil.export(workbook, "freemarker_excel", response);
     }
 
+    /**
+     * encrypt .xlsx excel
+     *
+     * @param response response
+     */
+    @GetMapping("/freemarker/encrypt/example")
+    public void buildWithEncrypt(HttpServletResponse response) throws Exception {
+        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
+        Map<String, Object> dataMap = this.getDataMap();
+
+        Workbook workbook = excelBuilder
+                .template("/templates/freemarkerToExcelExample.ftl")
+                .workbookType(WorkbookType.SXLSX)
+                .useDefaultStyle()
+                .build(dataMap);
+        AttachmentExportUtil.encryptExport(workbook, "freemarker_excel", response, "123456");
+    }
+
+    /**
+     * encrypt .xlsx excel
+     *
+     * @param response response
+     */
+    @GetMapping("/freemarker/autoWidth/example")
+    public void buildWithAutoWidth(HttpServletResponse response) throws Exception {
+        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
+        Map<String, Object> dataMap = this.getDataMap();
+
+        Workbook workbook = excelBuilder
+                .template("/templates/freemarkerToExcelExample.ftl")
+                .useDefaultStyle()
+                .autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH)
+                .build(dataMap);
+        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+    }
 
     private Map<String, Object> getDataMap() {
         Map<String, Object> dataMap = new HashMap<>();

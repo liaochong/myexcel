@@ -31,4 +31,17 @@ public class HtmlToExcelFactoryExampleController {
         AttachmentExportUtil.export(workbook, "转换示例", response);
     }
 
+    @GetMapping("/htmlToExcel/encrypt/example")
+    public void htmlToExcelOfEncrypt(HttpServletResponse response) throws Exception {
+        // get html file
+        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/htmlToExcelExample.html");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        // read the html file and use default excel style to create excel
+        Workbook workbook = HtmlToExcelFactory.readHtml(path.toFile()).build();
+
+        // this is a example,you can write the workbook to any valid outputstream
+        AttachmentExportUtil.encryptExport(workbook, "转换示例", response, "123456");
+    }
+
 }
