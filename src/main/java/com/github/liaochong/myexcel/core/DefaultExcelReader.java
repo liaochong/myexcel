@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.parallel.ParallelContainer;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -85,18 +86,36 @@ public class DefaultExcelReader {
     }
 
     public <T> List<T> read(@NonNull InputStream fileInputStream) throws Exception {
+        return this.read(fileInputStream, null);
+    }
+
+    public <T> List<T> read(@NonNull InputStream fileInputStream, String password) throws Exception {
         Map<Integer, Field> fieldMap = getFieldMap();
-        Workbook wb = WorkbookFactory.create(fileInputStream);
+        Workbook wb;
+        if (StringUtil.isBlank(password)) {
+            wb = WorkbookFactory.create(fileInputStream);
+        } else {
+            wb = WorkbookFactory.create(fileInputStream, password);
+        }
         Sheet sheet = wb.getSheetAt(sheetIndex);
         return getDataFromFile(sheet, fieldMap);
     }
 
     public <T> List<T> read(@NonNull File file) throws Exception {
+        return this.read(file, null);
+    }
+
+    public <T> List<T> read(@NonNull File file, String password) throws Exception {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
         Map<Integer, Field> fieldMap = getFieldMap();
-        Workbook wb = WorkbookFactory.create(file);
+        Workbook wb;
+        if (StringUtil.isBlank(password)) {
+            wb = WorkbookFactory.create(file);
+        } else {
+            wb = WorkbookFactory.create(file, password);
+        }
         Sheet sheet = wb.getSheetAt(sheetIndex);
         return getDataFromFile(sheet, fieldMap);
     }
@@ -123,6 +142,7 @@ public class DefaultExcelReader {
         return fieldMap;
     }
 
+    @SuppressWarnings("unchecked")
     private <T> List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
