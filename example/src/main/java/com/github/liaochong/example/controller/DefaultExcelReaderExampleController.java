@@ -16,8 +16,8 @@ package com.github.liaochong.example.controller;
 
 import com.github.liaochong.example.pojo.ArtCrowd;
 import com.github.liaochong.myexcel.core.DefaultExcelReader;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -28,15 +28,15 @@ import java.util.List;
  * @author liaochong
  * @version 1.0
  */
-@Controller
+@RestController
 public class DefaultExcelReaderExampleController {
 
     @GetMapping("/default/excel/read/example")
-    public void read() throws Exception {
+    public List<ArtCrowd> read() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<ArtCrowd> result = DefaultExcelReader.of(ArtCrowd.class).sheet(0).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
-        System.out.println(result.size());
+        return result;
     }
 }
