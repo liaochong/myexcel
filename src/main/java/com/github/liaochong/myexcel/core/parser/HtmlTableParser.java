@@ -19,7 +19,6 @@ import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,34 +96,11 @@ public class HtmlTableParser {
      * @param table table
      */
     private void parseTrOfTable(Table table, Element tableElement, Map<String, String> tableStyle) {
-        List<Tr> trList = this.getTrList(tableElement, tableStyle);
-        table.setTrList(trList);
-        if (trList.isEmpty()) {
-            return;
-        }
-
-        // 调整td位置,排除第一行，第一行不需要进行调整
-        if (trList.size() == 1) {
-            return;
-        }
-        trList.subList(1, trList.size()).parallelStream().forEach(tr -> {
-            List<Td> tdList = tr.getTdList();
-            for (int i = tdList.size() - 1; i >= 0; i--) {
-                this.adjustTdPosition(tdList.get(i), trList);
-            }
-        });
-    }
-
-    /**
-     * 获取Tr集合
-     *
-     * @return trList
-     */
-    private List<Tr> getTrList(Element tableElement, Map<String, String> tableStyle) {
         Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
 
         Elements trElements = tableElement.getElementsByTag(TableTag.tr.name());
-        List<Tr> trList = IntStream.range(0, trElements.size()).parallel().mapToObj(index -> {
+        final Map<Integer, List<Integer>> seizeMap = new HashMap<>();
+        List<Tr> trList = IntStream.range(0, trElements.size()).mapToObj(index -> {
             Element trElement = trElements.get(index);
             Element parent = trElement.parent();
             Map<String, String> upperStyle;
@@ -140,11 +115,10 @@ public class HtmlTableParser {
                 }
             }
             Tr tr = new Tr(index);
-            this.parseTdOfTr(tr, trElement, StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)));
+            this.parseTdOfTr(tr, trElement, StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)), seizeMap);
             return tr;
         }).collect(Collectors.toList());
-
-        return trList.stream().sorted(Comparator.comparing(Tr::getIndex)).collect(Collectors.toList());
+        table.setTrList(trList);
     }
 
     /**
@@ -152,7 +126,7 @@ public class HtmlTableParser {
      *
      * @param tr tr
      */
-    private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle) {
+    private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle, Map<Integer, List<Integer>> seizeMap) {
         Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
             tr.setTdList(Collections.emptyList());
@@ -162,6 +136,7 @@ public class HtmlTableParser {
 
         final List<Td> tdList = new ArrayList<>(tdElements.size());
         final Map<Integer, Integer> colWidthMap = new HashMap<>(tdElements.size());
+        List<Integer> seizeOfTr = seizeMap.getOrDefault(tr.getIndex(), Collections.emptyList());
         // 单元格偏移量
         int shift = 0;
         for (int i = 0, size = tdElements.size(); i < size; i++) {
@@ -174,11 +149,35 @@ public class HtmlTableParser {
             // 除每行第一个单元格外，修正含跨列的单元格位置
             td.setCol(i + shift);
 
+            if (!seizeOfTr.isEmpty()) {
+                List<Integer> checkedPositions = new ArrayList<>();
+                while (true) {
+                    List<Integer> seizePositions = seizeOfTr.stream().filter(s -> td.getCol() >= s).collect(Collectors.toList());
+                    if (!checkedPositions.isEmpty()) {
+                        seizePositions.removeAll(checkedPositions);
+                    }
+                    if (seizePositions.isEmpty()) {
+                        break;
+                    }
+                    td.setCol(td.getCol() + seizePositions.size());
+                    checkedPositions.addAll(seizePositions);
+                }
+            }
+
             String colSpan = tdElement.attr(TableTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));
 
             String rowSpan = tdElement.attr(TableTag.rowspan.name());
             td.setRowSpan(TdUtil.getSpan(rowSpan));
+
+            if (td.getRowSpan() > 1) {
+                seizeOfTr = seizeMap.get(tr.getIndex());
+                if (Objects.isNull(seizeOfTr)) {
+                    seizeOfTr = new ArrayList<>();
+                }
+                seizeOfTr.add(td.getCol());
+                seizeMap.put(tr.getIndex(), seizeOfTr);
+            }
 
             int rowBound = TdUtil.get(td::getRowSpan, td::getRow);
             td.setRowBound(rowBound);
@@ -197,40 +196,6 @@ public class HtmlTableParser {
         }
         tr.setTdList(tdList);
         tr.setColWidthMap(colWidthMap);
-    }
-
-    /**
-     * 调整表格单元格位置
-     *
-     * @param td     单元格
-     * @param trList 所有行
-     */
-    private void adjustTdPosition(Td td, List<Tr> trList) {
-        List<Td> rowSpanTds = trList.subList(0, td.getRow()).stream()
-                .flatMap(tr -> tr.getTdList().stream())
-                .filter(t -> t.getRowSpan() > 0 && t.getCol() <= td.getCol()
-                        && t.getRowBound() >= td.getRow())
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isEmpty(rowSpanTds)) {
-            return;
-        }
-        int originTdCol = td.getCol();
-        rowSpanTds.forEach(t -> {
-            int prevTdColSpan = t.getColSpan();
-            int realCol = prevTdColSpan > 0 ? td.getCol() + prevTdColSpan : td.getCol() + 1;
-            td.setCol(realCol);
-        });
-
-        // 重调
-        int colBound = TdUtil.get(td::getColSpan, td::getCol);
-        td.setColBound(colBound);
-
-        Map<Integer, Integer> colWidthMap = trList.get(td.getRow()).getColWidthMap();
-        if (!colWidthMap.isEmpty()) {
-            Integer val = colWidthMap.remove(originTdCol);
-            colWidthMap.put(td.getCol(), val);
-        }
     }
 
     public enum TableTag {
