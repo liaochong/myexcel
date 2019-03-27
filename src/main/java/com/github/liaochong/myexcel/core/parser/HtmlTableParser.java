@@ -149,6 +149,12 @@ public class HtmlTableParser {
             // 除每行第一个单元格外，修正含跨列的单元格位置
             td.setCol(i + shift);
 
+            String colSpan = tdElement.attr(TableTag.colspan.name());
+            td.setColSpan(TdUtil.getSpan(colSpan));
+
+            String rowSpan = tdElement.attr(TableTag.rowspan.name());
+            td.setRowSpan(TdUtil.getSpan(rowSpan));
+
             if (!seizeOfTr.isEmpty()) {
                 List<Integer> checkedPositions = new ArrayList<>();
                 while (true) {
@@ -164,19 +170,16 @@ public class HtmlTableParser {
                 }
             }
 
-            String colSpan = tdElement.attr(TableTag.colspan.name());
-            td.setColSpan(TdUtil.getSpan(colSpan));
-
-            String rowSpan = tdElement.attr(TableTag.rowspan.name());
-            td.setRowSpan(TdUtil.getSpan(rowSpan));
-
             if (td.getRowSpan() > 1) {
-                seizeOfTr = seizeMap.get(tr.getIndex());
-                if (Objects.isNull(seizeOfTr)) {
-                    seizeOfTr = new ArrayList<>();
+                for (int j = 1, length = td.getRowSpan(); j < length; j++) {
+                    int rowNum = tr.getIndex() + j;
+                    seizeOfTr = seizeMap.get(rowNum);
+                    if (Objects.isNull(seizeOfTr)) {
+                        seizeOfTr = new ArrayList<>();
+                        seizeMap.put(rowNum, seizeOfTr);
+                    }
+                    seizeOfTr.add(td.getCol());
                 }
-                seizeOfTr.add(td.getCol());
-                seizeMap.put(tr.getIndex(), seizeOfTr);
             }
 
             int rowBound = TdUtil.get(td::getRowSpan, td::getRow);
