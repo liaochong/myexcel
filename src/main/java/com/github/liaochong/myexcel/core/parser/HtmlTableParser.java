@@ -173,12 +173,12 @@ public class HtmlTableParser {
             if (td.getRowSpan() > 1) {
                 for (int j = 1, length = td.getRowSpan(); j < length; j++) {
                     int rowNum = tr.getIndex() + j;
-                    seizeOfTr = seizeMap.get(rowNum);
-                    if (Objects.isNull(seizeOfTr)) {
-                        seizeOfTr = new ArrayList<>();
-                        seizeMap.put(rowNum, seizeOfTr);
+                    List<Integer> seizePosOfTr = seizeMap.get(rowNum);
+                    if (Objects.isNull(seizePosOfTr)) {
+                        seizePosOfTr = new ArrayList<>();
+                        seizeMap.put(rowNum, seizePosOfTr);
                     }
-                    seizeOfTr.add(td.getCol());
+                    seizePosOfTr.add(td.getCol());
                 }
             }
 
