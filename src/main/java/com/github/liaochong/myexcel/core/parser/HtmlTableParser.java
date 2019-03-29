@@ -173,6 +173,12 @@ public class HtmlTableParser {
                 }
             }
 
+            int rowBound = TdUtil.get(td::getRowSpan, td::getRow);
+            td.setRowBound(rowBound);
+
+            int colBound = TdUtil.get(td::getColSpan, td::getCol);
+            td.setColBound(colBound);
+
             if (td.getRowSpan() > 1) {
                 for (int j = 1, length = td.getRowSpan(); j < length; j++) {
                     int rowNum = tr.getIndex() + j;
@@ -181,15 +187,9 @@ public class HtmlTableParser {
                         seizePosOfTr = new ArrayList<>();
                         seizeMap.put(rowNum, seizePosOfTr);
                     }
-                    seizePosOfTr.add(td.getCol());
+                    IntStream.rangeClosed(td.getCol(), td.getColBound()).forEach(seizePosOfTr::add);
                 }
             }
-
-            int rowBound = TdUtil.get(td::getRowSpan, td::getRow);
-            td.setRowBound(rowBound);
-
-            int colBound = TdUtil.get(td::getColSpan, td::getCol);
-            td.setColBound(colBound);
 
             if (td.getColSpan() > 0) {
                 shift += td.getColSpan() - 1;
