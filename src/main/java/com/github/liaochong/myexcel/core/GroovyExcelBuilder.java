@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.io.TempFileOperator;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import groovy.lang.Writable;
 import groovy.text.Template;
@@ -41,6 +42,10 @@ import java.util.Objects;
 public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
+
+    public GroovyExcelBuilder() {
+        autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH);
+    }
 
     @Override
     public ExcelBuilder template(String path) {
