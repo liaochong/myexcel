@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core.style;
 
 import com.github.liaochong.myexcel.utils.ColorUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -29,10 +30,10 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public final class BackgroundStyle {
 
     public static final String BACKGROUND_COLOR = "background-color";
-
 
     public static void setBackgroundColor(CellStyle style, Map<String, String> tdStyle, CustomColor customColor) {
         if (Objects.isNull(tdStyle)) {
@@ -48,6 +49,10 @@ public final class BackgroundStyle {
             style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             return;
         }
+        if (customColor.isXls()) {
+            log.warn(".xls does not support custom colors for the time being. Please use predefined colors.");
+            return;
+        }
         int[] rgb = ColorUtil.getRGBByColor(color);
         setCustomColor(style, rgb, customColor);
     }
@@ -56,14 +61,9 @@ public final class BackgroundStyle {
         if (Objects.isNull(rgb)) {
             return;
         }
-        if (customColor.isXls()) {
-            short index = ColorUtil.getCustomColorIndex(customColor, rgb);
-            style.setFillForegroundColor(index);
-        } else {
-            XSSFCellStyle xssfCellStyle = (XSSFCellStyle) style;
-            xssfCellStyle.setFillForegroundColor(new XSSFColor(new Color(rgb[0], rgb[1], rgb[2]), customColor.getDefaultIndexedColorMap()));
-            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        }
+        XSSFCellStyle xssfCellStyle = (XSSFCellStyle) style;
+        xssfCellStyle.setFillForegroundColor(new XSSFColor(new Color(rgb[0], rgb[1], rgb[2]), customColor.getDefaultIndexedColorMap()));
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     }
 
 }
