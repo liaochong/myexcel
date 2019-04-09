@@ -31,10 +31,10 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -192,7 +192,7 @@ public class DefaultExcelReader {
 
             return result.stream().sorted(Comparator.comparing(ParallelContainer::getIndex)).map(ParallelContainer::getData).collect(Collectors.toList());
         } else {
-            List<T> result = new ArrayList<>(fieldMap.size());
+            List<T> result = new LinkedList<>();
             for (int i = firstRowNum; i <= lastRowNum; i++) {
                 Row row = sheet.getRow(i);
                 if (Objects.isNull(row)) {
