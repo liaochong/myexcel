@@ -21,6 +21,7 @@ import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -46,6 +47,7 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class DefaultExcelReader {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
@@ -152,6 +154,7 @@ public class DefaultExcelReader {
     private <T> List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
+        log.info("FirstRowNum:{},LastRowNum:{}", firstRowNum, lastRowNum);
         if (lastRowNum < 0) {
             return Collections.emptyList();
         }
@@ -160,10 +163,12 @@ public class DefaultExcelReader {
             List<ParallelContainer<T>> result = IntStream.rangeClosed(firstRowNum, lastRowNum).parallel().mapToObj(rowNum -> {
                 Row row = sheet.getRow(rowNum);
                 if (Objects.isNull(row)) {
+                    log.info("Row of {} is null,it will be ignored.", rowNum);
                     return null;
                 }
                 boolean noMatchResult = rowFilter.negate().test(row);
                 if (noMatchResult) {
+                    log.info("Row of {} does not meet the filtering criteria, it will be ignored.", rowNum);
                     return null;
                 }
                 int lastColNum = row.getLastCellNum();
@@ -196,10 +201,12 @@ public class DefaultExcelReader {
             for (int i = firstRowNum; i <= lastRowNum; i++) {
                 Row row = sheet.getRow(i);
                 if (Objects.isNull(row)) {
+                    log.info("Row of {} is null,it will be ignored.", i);
                     continue;
                 }
                 boolean noMatchResult = rowFilter.negate().test(row);
                 if (noMatchResult) {
+                    log.info("Row of {} does not meet the filtering criteria, it will be ignored.", i);
                     continue;
                 }
                 int lastColNum = row.getLastCellNum();
