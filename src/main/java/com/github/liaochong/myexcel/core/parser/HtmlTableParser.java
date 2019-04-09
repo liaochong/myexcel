@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -137,7 +138,7 @@ public class HtmlTableParser {
             return;
         }
 
-        final List<Td> tdList = new ArrayList<>(tdElements.size());
+        final List<Td> tdList = new LinkedList<>();
         final Map<Integer, Integer> colWidthMap = new HashMap<>(tdElements.size());
         List<Integer> seizeOfTr = seizeMap.getOrDefault(tr.getIndex(), Collections.emptyList());
         // 单元格偏移量
