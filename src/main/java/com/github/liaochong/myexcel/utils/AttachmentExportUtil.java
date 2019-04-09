@@ -26,6 +26,7 @@ import org.apache.poi.poifs.crypt.EncryptionMode;
 import org.apache.poi.poifs.crypt.Encryptor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -66,6 +67,9 @@ public final class AttachmentExportUtil {
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
         workbook.write(response.getOutputStream());
+        if (workbook instanceof SXSSFWorkbook) {
+            ((SXSSFWorkbook) workbook).dispose();
+        }
         workbook.close();
     }
 
@@ -88,6 +92,9 @@ public final class AttachmentExportUtil {
             String suffix = ".xlsx";
             Path path = tempFileOperator.createTempFile("encrypt_temp", suffix);
             workbook.write(Files.newOutputStream(path));
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
             workbook.close();
 
             final POIFSFileSystem fs = new POIFSFileSystem();
