@@ -152,10 +152,12 @@ public class DefaultExcelReader {
 
     @SuppressWarnings("unchecked")
     private <T> List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
+        long startTime = System.currentTimeMillis();
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
         log.info("FirstRowNum:{},LastRowNum:{}", firstRowNum, lastRowNum);
         if (lastRowNum < 0) {
+            log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
             return Collections.emptyList();
         }
         DataFormatter formatter = new DataFormatter();
@@ -194,7 +196,7 @@ public class DefaultExcelReader {
 
                 return new ParallelContainer<>(rowNum, obj);
             }).filter(Objects::nonNull).collect(Collectors.toList());
-
+            log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
             return result.stream().sorted(Comparator.comparing(ParallelContainer::getIndex)).map(ParallelContainer::getData).collect(Collectors.toList());
         } else {
             List<T> result = new LinkedList<>();
@@ -230,6 +232,7 @@ public class DefaultExcelReader {
                     ReadConverterContext.convert(content, field, obj);
                 });
             }
+            log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
             return result;
         }
     }
