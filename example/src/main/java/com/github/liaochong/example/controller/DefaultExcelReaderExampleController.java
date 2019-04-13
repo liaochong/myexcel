@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,5 +39,19 @@ public class DefaultExcelReaderExampleController {
 
         List<ArtCrowd> result = DefaultExcelReader.of(ArtCrowd.class).sheet(0).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
         return result;
+    }
+
+    @GetMapping("/default/excel/readThen/example")
+    public List<ArtCrowd> readThen() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<ArtCrowd> container = new ArrayList<>();
+        DefaultExcelReader.of(ArtCrowd.class).sheet(0).rowFilter(row -> row.getRowNum() > 0)
+                .readThen(path.toFile(), d -> {
+                    container.add(d);
+                    System.out.println(d.getName());
+                });
+        return container;
     }
 }
