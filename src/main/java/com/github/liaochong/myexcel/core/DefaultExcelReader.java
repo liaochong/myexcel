@@ -50,11 +50,11 @@ import java.util.stream.IntStream;
  * @version 1.0
  */
 @Slf4j
-public class DefaultExcelReader {
+public class DefaultExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
 
-    private Class<?> dataType;
+    private Class<T> dataType;
 
     private int sheetIndex = DEFAULT_SHEET_INDEX;
 
@@ -62,15 +62,15 @@ public class DefaultExcelReader {
 
     private boolean parallelRead;
 
-    private DefaultExcelReader(Class<?> dataType) {
+    private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
     }
 
-    public static <T> DefaultExcelReader of(@NonNull Class<T> clazz) {
-        return new DefaultExcelReader(clazz);
+    public static <T> DefaultExcelReader<T> of(@NonNull Class<T> clazz) {
+        return new DefaultExcelReader<>(clazz);
     }
 
-    public DefaultExcelReader sheet(int index) {
+    public DefaultExcelReader<T> sheet(int index) {
         if (index >= 0) {
             this.sheetIndex = index;
         } else {
@@ -79,21 +79,21 @@ public class DefaultExcelReader {
         return this;
     }
 
-    public DefaultExcelReader rowFilter(@NonNull Predicate<Row> rowFilter) {
+    public DefaultExcelReader<T> rowFilter(@NonNull Predicate<Row> rowFilter) {
         this.rowFilter = rowFilter;
         return this;
     }
 
-    public DefaultExcelReader parallelRead() {
+    public DefaultExcelReader<T> parallelRead() {
         this.parallelRead = true;
         return this;
     }
 
-    public <T> List<T> read(@NonNull InputStream fileInputStream) throws Exception {
+    public List<T> read(@NonNull InputStream fileInputStream) throws Exception {
         return this.read(fileInputStream, null);
     }
 
-    public <T> List<T> read(@NonNull InputStream fileInputStream, String password) throws Exception {
+    public List<T> read(@NonNull InputStream fileInputStream, String password) throws Exception {
         Map<Integer, Field> fieldMap = getFieldMap();
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
@@ -102,11 +102,11 @@ public class DefaultExcelReader {
         return getDataFromFile(sheet, fieldMap);
     }
 
-    public <T> List<T> read(@NonNull File file) throws Exception {
+    public List<T> read(@NonNull File file) throws Exception {
         return this.read(file, null);
     }
 
-    public <T> List<T> read(@NonNull File file, String password) throws Exception {
+    public List<T> read(@NonNull File file, String password) throws Exception {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
@@ -118,11 +118,11 @@ public class DefaultExcelReader {
         return getDataFromFile(sheet, fieldMap);
     }
 
-    public <T> void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) throws Exception {
+    public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) throws Exception {
         readThen(fileInputStream, null, consumer);
     }
 
-    public <T> void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer) throws Exception {
+    public void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer) throws Exception {
         Map<Integer, Field> fieldMap = getFieldMap();
         if (fieldMap.isEmpty()) {
             return;
@@ -132,11 +132,11 @@ public class DefaultExcelReader {
     }
 
 
-    public <T> void readThen(@NonNull File file, Consumer<T> consumer) throws Exception {
+    public void readThen(@NonNull File file, Consumer<T> consumer) throws Exception {
         readThen(file, null, consumer);
     }
 
-    public <T> void readThen(@NonNull File file, String password, Consumer<T> consumer) throws Exception {
+    public void readThen(@NonNull File file, String password, Consumer<T> consumer) throws Exception {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
@@ -190,7 +190,7 @@ public class DefaultExcelReader {
         return fieldMap;
     }
 
-    private <T> List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
+    private List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
         long startTime = System.currentTimeMillis();
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
@@ -246,7 +246,7 @@ public class DefaultExcelReader {
         }
     }
 
-    private <T> void readThenConsume(Sheet sheet, Map<Integer, Field> fieldMap, Consumer<T> consumer) {
+    private void readThenConsume(Sheet sheet, Map<Integer, Field> fieldMap, Consumer<T> consumer) {
         long startTime = System.currentTimeMillis();
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
@@ -277,11 +277,10 @@ public class DefaultExcelReader {
         log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T instanceObj(Map<Integer, Field> fieldMap, DataFormatter formatter, Row row) {
+    private T instanceObj(Map<Integer, Field> fieldMap, DataFormatter formatter, Row row) {
         T obj;
         try {
-            obj = (T) dataType.newInstance();
+            obj = dataType.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
