@@ -38,6 +38,9 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     @Override
     public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         htmlToExcelFactory.workbookType(workbookType);
+        if (WorkbookType.isSxlsx(workbookType)) {
+            autoWidthStrategy(AutoWidthStrategy.NO_AUTO);
+        }
         return this;
     }
 

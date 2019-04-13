@@ -24,6 +24,7 @@ import org.apache.poi.poifs.crypt.EncryptionMode;
 import org.apache.poi.poifs.crypt.Encryptor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,6 +63,9 @@ public final class FileExportUtil {
         try (OutputStream os = new FileOutputStream(file)) {
             workbook.write(os);
         } finally {
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
             workbook.close();
         }
     }
@@ -84,6 +88,9 @@ public final class FileExportUtil {
         }
         try (FileOutputStream fos = new FileOutputStream(file)) {
             workbook.write(fos);
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
             workbook.close();
 
             final POIFSFileSystem fs = new POIFSFileSystem();

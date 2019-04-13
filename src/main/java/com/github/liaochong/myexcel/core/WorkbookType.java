@@ -37,4 +37,8 @@ public enum WorkbookType {
         return XLS.equals(workbookType);
     }
 
+    public static boolean isSxlsx(WorkbookType workbookType) {
+        return SXLSX.equals(workbookType);
+    }
+
 }
