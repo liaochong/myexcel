@@ -35,7 +35,11 @@ public enum AutoWidthStrategy {
     /**
      * 组件调整宽度
      */
-    COMPUTE_AUTO_WIDTH;
+    COMPUTE_AUTO_WIDTH,
+    /**
+     * 自定义宽度
+     */
+    CUSTOM_WIDTH;
 
     public static boolean isNoAuto(AutoWidthStrategy autoWidthStrategy) {
         return Objects.equals(autoWidthStrategy, NO_AUTO);
@@ -47,5 +51,9 @@ public enum AutoWidthStrategy {
 
     public static boolean isComputeAutoWidth(AutoWidthStrategy autoWidthStrategy) {
         return Objects.equals(autoWidthStrategy, COMPUTE_AUTO_WIDTH);
+    }
+
+    public static boolean isCustomWidth(AutoWidthStrategy autoWidthStrategy) {
+        return Objects.equals(autoWidthStrategy, CUSTOM_WIDTH);
     }
 }
