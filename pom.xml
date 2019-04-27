@@ -58,6 +58,7 @@
             <groupId>com.ibeetl</groupId>
             <artifactId>beetl</artifactId>
             <version>${beetl.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>
