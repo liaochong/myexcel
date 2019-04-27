@@ -41,7 +41,18 @@ import java.util.Objects;
 @Slf4j
 public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
 
+    private static final TemplateEngine TEMPLATE_ENGINE;
+
     private String filePath;
+
+    static {
+        TEMPLATE_ENGINE = new TemplateEngine();
+        FileTemplateResolver fileTemplateResolver = new FileTemplateResolver();
+        fileTemplateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        fileTemplateResolver.setTemplateMode("HTML5");
+        fileTemplateResolver.setCacheable(true);
+        TEMPLATE_ENGINE.setTemplateResolver(fileTemplateResolver);
+    }
 
     @Override
     public ExcelBuilder template(String path) {
@@ -72,10 +83,9 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
 
         Path htmlFile = tempFileOperator.createTempFile("thymeleaf_temp_", TempFileOperator.HTML_SUFFIX);
         try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
-            TemplateEngine templateEngine = Singleton.TEMPLATE_ENGINE;
             Context context = new Context();
             context.setVariables(renderData);
-            templateEngine.process(realPath, context, out);
+            TEMPLATE_ENGINE.process(realPath, context, out);
             return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to build excel", e);
@@ -84,15 +94,4 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
         }
     }
 
-    private static class Singleton {
-        private static final TemplateEngine TEMPLATE_ENGINE;
-
-        static {
-            TEMPLATE_ENGINE = new TemplateEngine();
-            FileTemplateResolver fileTemplateResolver = new FileTemplateResolver();
-            fileTemplateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            fileTemplateResolver.setTemplateMode("HTML5");
-            TEMPLATE_ENGINE.setTemplateResolver(fileTemplateResolver);
-        }
-    }
 }
