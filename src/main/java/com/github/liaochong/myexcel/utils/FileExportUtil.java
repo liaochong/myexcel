@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import lombok.experimental.UtilityClass;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -29,7 +30,10 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -105,6 +109,33 @@ public final class FileExportUtil {
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 fs.writeFilesystem(fileOutputStream);
             }
+        }
+    }
+
+    /**
+     * 获取workbook输入流
+     *
+     * @param workbook workbook
+     * @return InputStream
+     */
+    public static InputStream getInputStream(final Workbook workbook) {
+        TempFileOperator tempFileOperator = new TempFileOperator();
+        String suffix = ".xlsx";
+        if (workbook instanceof HSSFWorkbook) {
+            suffix = ".xls";
+        }
+        Path path = tempFileOperator.createTempFile("tem_outs", suffix);
+        try {
+            workbook.write(Files.newOutputStream(path));
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
+            workbook.close();
+            return Files.newInputStream(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            tempFileOperator.deleteTempFile();
         }
     }
 }

@@ -2,6 +2,7 @@ package com.github.liaochong.example.controller;
 
 import com.github.liaochong.example.pojo.ArtCrowd;
 import com.github.liaochong.myexcel.core.DefaultStreamExcelBuilder;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -24,6 +25,8 @@ public class DefaultStreamExcelBuilderExampleController {
     @GetMapping("/default/excel/stream/example")
     public void streamBuild(HttpServletResponse response) throws Exception {
         DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
+                .autoWidthStrategy(AutoWidthStrategy.CUSTOM_WIDTH)
+                .hasStyle()
                 .threadPool(Executors.newFixedThreadPool(10))
                 .start();
 

@@ -70,4 +70,11 @@ public @interface ExcelColumn {
      * @return 默认值
      */
     String defaultValue() default "";
+
+    /**
+     * 宽度
+     *
+     * @return 宽度
+     */
+    int width() default -1;
 }

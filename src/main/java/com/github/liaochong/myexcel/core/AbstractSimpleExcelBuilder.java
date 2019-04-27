@@ -103,6 +103,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 默认值集合
      */
     private Map<Field, String> defaultValueMap;
+    /**
+     * 自定义宽度
+     */
+    private Map<Integer, Integer> customWidthMap;
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -232,11 +236,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      */
     protected List<Tr> createTbody(List<List<Object>> contents, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
+        boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Object> dataList = contents.get(index);
-            tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(dataList.size()) : Collections.emptyMap());
+            tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(dataList.size()) : Collections.emptyMap());
             Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
@@ -251,6 +256,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 }
                 return td;
             }).collect(Collectors.toList());
+            if (isCustomWidth) {
+                customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
+            }
             tr.setTdList(tdList);
             contents.set(index, null);
             return tr;
@@ -326,30 +334,35 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         List<String> titles = new ArrayList<>(preelectionFields.size());
-        defaultValueMap = new HashMap<>(preelectionFields.size());
         List<Field> sortedFields = preelectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && filterFields(selectedGroupList, field))
                 .sorted(this::sortFields)
-                .peek(field -> {
-                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                    if (Objects.nonNull(excelColumn)) {
-                        if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
-                            titles.add(field.getName());
-                        } else {
-                            titles.add(excelColumn.title());
-                        }
-                        if (!excelColumn.defaultValue().isEmpty()) {
-                            defaultValueMap.put(field, excelColumn.defaultValue());
-                        }
-                    } else {
-                        if (useFieldNameAsTitle) {
-                            titles.add(field.getName());
-                        } else {
-                            titles.add(null);
-                        }
-                    }
-                })
                 .collect(Collectors.toList());
+        defaultValueMap = new HashMap<>(preelectionFields.size());
+        customWidthMap = new HashMap<>(sortedFields.size());
+        for (int i = 0, size = sortedFields.size(); i < size; i++) {
+            Field field = sortedFields.get(i);
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            if (Objects.nonNull(excelColumn)) {
+                if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
+                    titles.add(field.getName());
+                } else {
+                    titles.add(excelColumn.title());
+                }
+                if (!excelColumn.defaultValue().isEmpty()) {
+                    defaultValueMap.put(field, excelColumn.defaultValue());
+                }
+                if (excelColumn.width() > 0) {
+                    customWidthMap.put(i, excelColumn.width());
+                }
+            } else {
+                if (useFieldNameAsTitle) {
+                    titles.add(field.getName());
+                } else {
+                    titles.add(null);
+                }
+            }
+        }
 
         boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
         if (hasTitle) {

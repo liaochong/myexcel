@@ -12,13 +12,13 @@ import java.time.LocalDateTime;
 @ExcelTable(sheetName = "艺术生", rowAccessWindowSize = 100, useFieldNameAsTitle = true)
 public class ArtCrowd extends People {
 
-    @ExcelColumn(order = 4, index = 3)
+    @ExcelColumn(order = 5, index = 3, width = 20)
     private String paintingLevel;
 
-    @ExcelColumn(order = 5, title = "是否会跳舞", groups = {People.class, String.class}, index = 4)
+    @ExcelColumn(order = 4, title = "是否会跳舞", width = 9, groups = {People.class, String.class}, index = 4)
     private boolean dance;
 
-    @ExcelColumn(order = 6, title = "考核时间", dateFormatPattern = "yyyy-MM-dd HH:mm:ss", groups = {People.class, String.class})
+    @ExcelColumn(order = 6, title = "考核时间", width = 10, dateFormatPattern = "yyyy-MM-dd HH:mm:ss", groups = {People.class, String.class})
     private LocalDateTime assessmentTime;
 
     @ExcelColumn(order = 7, defaultValue = "---")

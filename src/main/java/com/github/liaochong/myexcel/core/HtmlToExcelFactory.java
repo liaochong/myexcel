@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
+import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import lombok.NonNull;
@@ -25,6 +26,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.Map;
@@ -98,8 +100,15 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      */
     @Override
     public Workbook build() {
-        List<Table> tables = htmlTableParser.getAllTable();
-        return this.build(tables);
+        try {
+            ParseConfig parseConfig = new ParseConfig();
+            parseConfig.setAutoWidthStrategy(autoWidthStrategy);
+
+            List<Table> tables = htmlTableParser.getAllTable(parseConfig);
+            return this.build(tables);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

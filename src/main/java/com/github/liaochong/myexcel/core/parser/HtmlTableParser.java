@@ -46,37 +46,47 @@ import java.util.stream.IntStream;
 @Slf4j
 public class HtmlTableParser {
 
-    /**
-     * html解析后文档
-     */
-    private Document document;
+    private ParseConfig parseConfig;
+
+    private File htmlFile;
+
+    private String html;
 
     private HtmlTableParser() {
 
     }
 
-    public static HtmlTableParser of(File htmlFile) throws IOException {
+    public static HtmlTableParser of(File htmlFile) {
         Objects.requireNonNull(htmlFile);
-        HtmlTableParser parser = new HtmlTableParser();
-        parser.document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
-        return parser;
+        HtmlTableParser htmlTableParser = new HtmlTableParser();
+        htmlTableParser.htmlFile = htmlFile;
+        return htmlTableParser;
     }
 
     public static HtmlTableParser of(String html) {
         Objects.requireNonNull(html);
-        HtmlTableParser parser = new HtmlTableParser();
-        parser.document = Jsoup.parse(html, CharEncoding.UTF_8);
-        return parser;
+        HtmlTableParser htmlTableParser = new HtmlTableParser();
+        htmlTableParser.html = html;
+        return htmlTableParser;
     }
 
     /**
      * 获取所有表格
      *
+     * @param parseConfig 解析配置
      * @return 所有表格
+     * @throws IOException IOException
      */
-    public List<Table> getAllTable() {
+    public List<Table> getAllTable(ParseConfig parseConfig) throws IOException {
         log.info("Start parsing html file");
         long startTime = System.currentTimeMillis();
+        Document document;
+        if (Objects.nonNull(htmlFile)) {
+            document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
+        } else {
+            document = Jsoup.parse(html, CharEncoding.UTF_8);
+        }
+        this.parseConfig = parseConfig;
         Elements tableElements = document.getElementsByTag(TableTag.table.name());
         List<Table> result = tableElements.stream().map(tableElement -> {
             Table table = new Table();
@@ -198,8 +208,18 @@ public class HtmlTableParser {
             tdList.add(td);
 
             // 设置每列宽度
-            int width = TdUtil.getStringWidth(td.getContent());
-            colWidthMap.put(td.getCol(), width);
+            if (parseConfig.isComputeAutoWidth()) {
+                int width = TdUtil.getStringWidth(td.getContent());
+                colWidthMap.put(td.getCol(), width);
+            } else if (parseConfig.isCustomWidth()) {
+                String widthStr = td.getStyle().get("width");
+                if (Objects.nonNull(widthStr)) {
+                    Integer width = Integer.valueOf(widthStr.replaceAll("\\D*", ""));
+                    if (width > 0) {
+                        colWidthMap.put(td.getCol(), width);
+                    }
+                }
+            }
         }
         tr.setTdList(tdList);
         tr.setColWidthMap(colWidthMap);
