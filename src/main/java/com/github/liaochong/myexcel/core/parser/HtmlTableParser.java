@@ -73,7 +73,9 @@ public class HtmlTableParser {
     /**
      * 获取所有表格
      *
+     * @param parseConfig 解析配置
      * @return 所有表格
+     * @throws IOException IOException
      */
     public List<Table> getAllTable(ParseConfig parseConfig) throws IOException {
         log.info("Start parsing html file");
