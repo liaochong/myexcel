@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.io.TempFileOperator;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -52,6 +53,10 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
         fileTemplateResolver.setTemplateMode("HTML5");
         fileTemplateResolver.setCacheable(true);
         TEMPLATE_ENGINE.setTemplateResolver(fileTemplateResolver);
+    }
+
+    public ThymeleafExcelBuilder() {
+        autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH);
     }
 
     @Override
