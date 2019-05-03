@@ -236,13 +236,13 @@ public class HtmlTableParser {
     private void setTdContent(Element tdElement, Td td) {
         String tdContent = tdElement.text();
         td.setContent(tdContent);
+        if (StringUtil.isBlank(tdContent)) {
+            return;
+        }
         // 公式设置
         boolean isFormula = tdElement.hasAttr("formula");
         if (isFormula) {
             td.setFormula(true);
-            return;
-        }
-        if (StringUtil.isBlank(tdContent)) {
             return;
         }
         if (tdElement.hasAttr("string")) {
