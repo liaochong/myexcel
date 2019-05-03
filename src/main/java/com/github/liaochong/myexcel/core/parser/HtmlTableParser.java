@@ -130,7 +130,10 @@ public class HtmlTableParser {
                 }
             }
             Tr tr = new Tr(index);
-            this.parseTdOfTr(tr, trElement, StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement)), seizeMap);
+            // 行可见性
+            Map<String, String> trStyleMap = StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement));
+            tr.setVisibility(!Objects.equals(trStyleMap.get("visibility"), "hidden"));
+            this.parseTdOfTr(tr, trElement, trStyleMap, seizeMap);
             return tr;
         }).collect(Collectors.toList());
         table.setTrList(trList);

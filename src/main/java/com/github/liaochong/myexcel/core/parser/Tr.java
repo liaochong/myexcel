@@ -42,6 +42,10 @@ public class Tr {
      * 最大宽度
      */
     Map<Integer, Integer> colWidthMap;
+    /**
+     * 是否可见
+     */
+    boolean visibility;
 
     public Tr(int index) {
         this.index = index;

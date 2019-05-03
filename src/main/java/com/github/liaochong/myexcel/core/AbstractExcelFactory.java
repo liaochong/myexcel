@@ -147,6 +147,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         Row row = sheet.getRow(tr.getIndex());
         if (Objects.isNull(row)) {
             row = sheet.createRow(tr.getIndex());
+            if (!tr.isVisibility()) {
+                row.setZeroHeight(true);
+            }
         }
         for (Td td : tr.getTdList()) {
             this.createCell(td, sheet, row);
