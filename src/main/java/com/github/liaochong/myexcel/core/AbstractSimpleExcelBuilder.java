@@ -490,7 +490,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                         if (Objects.nonNull(globalDefaultValue)) {
                             return new Pair<>(field.getType(), globalDefaultValue);
                         }
-                        return new Pair<>(field.getType(), null);
+                        return value;
                     })
                     .collect(Collectors.toList());
             data.set(index, null);
