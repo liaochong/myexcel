@@ -258,7 +258,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 Class fieldType = pair.getKey();
                 if (String.class == fieldType) {
                     // do nothing,user default impl
-                } else if (Boolean.class == fieldType) {
+                } else if (Boolean.class == fieldType || boolean.class == fieldType) {
                     td.setTdContentType(ContentTypeEnum.BOOLEAN);
                 } else if (fieldType == Double.class || fieldType == double.class
                         || fieldType == Float.class || fieldType == float.class
