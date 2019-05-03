@@ -45,7 +45,7 @@ public class Tr {
     /**
      * 是否可见
      */
-    boolean visibility;
+    boolean visibility = true;
 
     public Tr(int index) {
         this.index = index;
