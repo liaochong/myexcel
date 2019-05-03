@@ -239,13 +239,6 @@ public class HtmlTableParser {
         String tdContent = tdElement.text();
         td.setContent(tdContent);
         if (StringUtil.isBlank(tdContent)) {
-            if (tdElement.hasAttr("boolean")) {
-                td.setContent("false");
-                td.setTdContentType(ContentTypeEnum.BOOLEAN);
-            } else if (tdElement.hasAttr("double")) {
-                td.setContent("0");
-                td.setTdContentType(ContentTypeEnum.DOUBLE);
-            }
             return;
         }
         if (tdElement.hasAttr("string")) {
