@@ -17,6 +17,7 @@ MyExcel，是一个集导入、导出、加密Excel等多项功能的工具包�
 - **零学习成本**：使用html作为模板，学习成本几乎为零；
 - **支持常用背景色、边框、字体等样式设置**：具体参见文档-Style-support（样式支持）部分；
 - **支持.XLS、.XLSX**：支持生成.xls、.xlsx后缀的excel；
+- **支持公式导出**：支持Excel模板中设置公式，降低服务端的计算量；
 - **支持低内存SXSSF模式**：支持低内存的SXSSF模式，可利用极低的内存生成.xlsx；
 - **支持生产者消费者模式导出**：支持生产者消费者模式导出，无需一次性获取所有数据，分批获取数据配合SXSSF模式实现真正意义上海量数据导出；
 - **支持多种模板引擎**：已内置Freemarker、Groovy、Beetl等常用模板引擎Excel构建器（详情参见文档[Getting started](https://github.com/liaochong/MyExcel/wiki/Getting-started)），推荐使用Beetl模板引擎（[Beetl文档](http://ibeetl.com/guide/#beetl)）；
