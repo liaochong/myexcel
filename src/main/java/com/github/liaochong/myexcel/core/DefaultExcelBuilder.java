@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
@@ -94,7 +95,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
                 log.info("The specified field mapping does not exist");
                 return htmlToExcelFactory.build(this.getTableWithHeader());
             }
-            List<List<Object>> contents = getRenderContent(data, sortedFields);
+            List<List<Pair<Class, Object>>> contents = getRenderContent(data, sortedFields);
 
             this.initStyleMap();
 
@@ -129,7 +130,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
             this.initStyleMap();
 
-            List<List<Object>> contents = getRenderContent(data, sortedFields);
+            List<List<Pair<Class, Object>>> contents = getRenderContent(data, sortedFields);
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
             table.getTrList().addAll(tbody);
         }
