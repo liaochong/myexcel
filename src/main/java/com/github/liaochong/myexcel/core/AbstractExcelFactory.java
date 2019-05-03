@@ -172,7 +172,22 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (Objects.isNull(cell)) {
             cell = currentRow.createCell(td.getCol());
         }
-        cell.setCellValue(td.getContent());
+        if (td.isFormula()) {
+            cell.setCellFormula(td.getContent());
+        } else {
+            switch (td.getTdContentType()) {
+                case STRING:
+                    cell.setCellValue(td.getContent());
+                    break;
+                case DOUBLE:
+                    cell.setCellValue(Double.parseDouble(td.getContent()));
+                    break;
+                case BOOLEAN:
+                    cell.setCellValue(Boolean.parseBoolean(td.getContent()));
+                    break;
+                default:
+            }
+        }
 
         // 设置单元格样式
         for (int i = td.getRow(), rowBound = td.getRowBound(); i <= rowBound; i++) {
