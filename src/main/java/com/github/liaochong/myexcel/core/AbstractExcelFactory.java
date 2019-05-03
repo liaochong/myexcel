@@ -147,6 +147,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         Row row = sheet.getRow(tr.getIndex());
         if (Objects.isNull(row)) {
             row = sheet.createRow(tr.getIndex());
+            if (!tr.isVisibility()) {
+                row.setZeroHeight(true);
+            }
         }
         for (Td td : tr.getTdList()) {
             this.createCell(td, sheet, row);
@@ -172,7 +175,27 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (Objects.isNull(cell)) {
             cell = currentRow.createCell(td.getCol());
         }
-        cell.setCellValue(td.getContent());
+        if (td.isFormula()) {
+            cell.setCellFormula(td.getContent());
+        } else {
+            String content = td.getContent();
+            switch (td.getTdContentType()) {
+                case STRING:
+                    cell.setCellValue(content);
+                    break;
+                case DOUBLE:
+                    if (Objects.nonNull(content)) {
+                        cell.setCellValue(Double.parseDouble(content));
+                    }
+                    break;
+                case BOOLEAN:
+                    if (Objects.nonNull(content)) {
+                        cell.setCellValue(Boolean.parseBoolean(content));
+                    }
+                    break;
+                default:
+            }
+        }
 
         // 设置单元格样式
         for (int i = td.getRow(), rowBound = td.getRowBound(); i <= rowBound; i++) {

@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
@@ -153,7 +154,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         if (Objects.isNull(data) || data.isEmpty()) {
             return;
         }
-        List<List<Object>> contents = getRenderContent(data, filteredFields);
+        List<List<Pair<Class, Object>>> contents = getRenderContent(data, filteredFields);
         List<Tr> trList = this.createTbody(contents, 0);
         htmlToExcelStreamFactory.append(trList);
     }

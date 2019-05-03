@@ -49,6 +49,10 @@ public class Td {
      */
     String content;
     /**
+     * 内容类型
+     */
+    ContentTypeEnum tdContentType = ContentTypeEnum.STRING;
+    /**
      * 是否为th
      */
     boolean th;
@@ -64,5 +68,9 @@ public class Td {
      * 单元格样式
      */
     Map<String, String> style;
+    /**
+     * 公式
+     */
+    boolean formula;
 
 }

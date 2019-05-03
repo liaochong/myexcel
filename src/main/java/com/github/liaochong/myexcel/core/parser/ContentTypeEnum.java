@@ -1,11 +1,10 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 liaochong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,39 +14,32 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
-import java.util.List;
-import java.util.Map;
-
 /**
+ * 内容类型枚举
+ *
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class Tr {
+public enum ContentTypeEnum {
 
-    /**
-     * 索引
-     */
-    int index;
-    /**
-     * 行单元格
-     */
-    List<Td> tdList;
-    /**
-     * 最大宽度
-     */
-    Map<Integer, Integer> colWidthMap;
-    /**
-     * 是否可见
-     */
-    boolean visibility = true;
+    STRING,
 
-    public Tr(int index) {
-        this.index = index;
+    BOOLEAN,
+
+    DOUBLE,
+
+    DATE;
+
+    public static boolean isString(ContentTypeEnum contentTypeEnum) {
+        return STRING.equals(contentTypeEnum);
     }
+
+    public static boolean isBool(ContentTypeEnum contentTypeEnum) {
+        return BOOLEAN.equals(contentTypeEnum);
+    }
+
+    public static boolean isDouble(ContentTypeEnum contentTypeEnum) {
+        return DOUBLE.equals(contentTypeEnum);
+    }
+
 }

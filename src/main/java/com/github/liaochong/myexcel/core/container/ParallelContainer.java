@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.parallel;
+package com.github.liaochong.myexcel.core.container;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,6 +21,8 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 /**
+ * 并行容器
+ *
  * @author liaochong
  * @version 1.0
  */

@@ -3,6 +3,7 @@ package com.github.liaochong.myexcel.core.converter;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
@@ -22,32 +23,32 @@ public class DateTimeWriteConverter implements WriteConverter {
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 
     @Override
-    public Object convert(Field field, Object fieldVal) {
+    public Pair<Class, Object> convert(Field field, Object fieldVal) {
         Class<?> fieldType = field.getType();
         if (fieldType != LocalDateTime.class && fieldType != LocalDate.class && fieldType != Date.class) {
-            return fieldVal;
+            return new Pair<>(fieldType, fieldVal);
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         if (Objects.isNull(excelColumn) || Objects.isNull(fieldVal)) {
-            return fieldVal;
+            return new Pair<>(fieldType, fieldVal);
         }
         // 时间格式化
         String dateFormatPattern = excelColumn.dateFormatPattern();
         if (StringUtil.isBlank(dateFormatPattern)) {
-            return fieldVal;
+            return new Pair<>(fieldType, fieldVal);
         }
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return formatter.format(localDateTime);
+            return new Pair<>(String.class, formatter.format(localDateTime));
         } else if (fieldType == LocalDate.class) {
             LocalDate localDate = (LocalDate) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return formatter.format(localDate);
+            return new Pair<>(String.class, formatter.format(localDate));
         }
         Date date = (Date) fieldVal;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-        return simpleDateFormat.format(date);
+        return new Pair<>(String.class, simpleDateFormat.format(date));
     }
 
     /**

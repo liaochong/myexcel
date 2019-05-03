@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -40,11 +41,11 @@ public class WriteConverterContext {
         Collections.addAll(WRITE_CONVERTER_CONTAINER, writeConverters);
     }
 
-    public static Object convert(Field field, Object object) {
+    public static Pair<? extends Class, Object> convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
         for (WriteConverter writeConverter : WRITE_CONVERTER_CONTAINER) {
-            result = writeConverter.convert(field, result);
+            return writeConverter.convert(field, result);
         }
-        return result;
+        return null;
     }
 }

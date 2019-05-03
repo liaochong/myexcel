@@ -18,8 +18,10 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
-import com.github.liaochong.myexcel.core.parallel.ParallelContainer;
+import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
@@ -34,6 +36,7 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -234,13 +237,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param shift    行序号偏移量
      * @return 内容行集合
      */
-    protected List<Tr> createTbody(List<List<Object>> contents, int shift) {
+    protected List<Tr> createTbody(List<List<Pair<Class, Object>>> contents, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
-            List<Object> dataList = contents.get(index);
+            List<Pair<Class, Object>> dataList = contents.get(index);
             tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(dataList.size()) : Collections.emptyMap());
             Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
@@ -249,7 +252,23 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 td.setRowBound(trIndex);
                 td.setCol(i);
                 td.setColBound(i);
-                td.setContent(Objects.isNull(dataList.get(i)) ? null : String.valueOf(dataList.get(i)));
+
+                Pair<Class, Object> pair = dataList.get(i);
+                td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
+                Class fieldType = pair.getKey();
+                if (String.class == fieldType) {
+                    // do nothing,user default impl
+                } else if (Boolean.class == fieldType || boolean.class == fieldType) {
+                    td.setTdContentType(ContentTypeEnum.BOOLEAN);
+                } else if (fieldType == Double.class || fieldType == double.class
+                        || fieldType == Float.class || fieldType == float.class
+                        || fieldType == Long.class || fieldType == long.class
+                        || fieldType == Integer.class || fieldType == int.class
+                        || fieldType == Short.class || fieldType == short.class
+                        || fieldType == Byte.class || fieldType == byte.class
+                        || fieldType == BigDecimal.class) {
+                    td.setTdContentType(ContentTypeEnum.DOUBLE);
+                }
                 td.setStyle(tdStyle);
                 if (isComputeAutoWidth) {
                     tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
@@ -456,20 +475,20 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param sortedFields 排序字段
      * @return 结果集
      */
-    protected List<List<Object>> getRenderContent(List<?> data, List<Field> sortedFields) {
+    protected List<List<Pair<Class, Object>>> getRenderContent(List<?> data, List<Field> sortedFields) {
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            List<Object> resolvedDataList = sortedFields.stream()
+            List<Pair<? extends Class, ?>> resolvedDataList = sortedFields.stream()
                     .map(field -> {
-                        Object value = WriteConverterContext.convert(field, data.get(index));
-                        if (Objects.nonNull(value)) {
+                        Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data.get(index));
+                        if (Objects.nonNull(value.getValue())) {
                             return value;
                         }
                         String defaultValue = defaultValueMap.get(field);
                         if (Objects.nonNull(defaultValue)) {
-                            return defaultValue;
+                            return new Pair<>(field.getType(), defaultValue);
                         }
                         if (Objects.nonNull(globalDefaultValue)) {
-                            return globalDefaultValue;
+                            return new Pair<>(field.getType(), globalDefaultValue);
                         }
                         return value;
                     })
@@ -481,6 +500,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         // 重排序
         return resolvedDataContainers.stream()
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
-                .map(ParallelContainer<List<Object>>::getData).collect(Collectors.toList());
+                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toList());
     }
 }
