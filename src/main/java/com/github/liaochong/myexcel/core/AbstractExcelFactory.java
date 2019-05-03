@@ -178,15 +178,20 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.isFormula()) {
             cell.setCellFormula(td.getContent());
         } else {
+            String content = td.getContent();
             switch (td.getTdContentType()) {
                 case STRING:
-                    cell.setCellValue(td.getContent());
+                    cell.setCellValue(content);
                     break;
                 case DOUBLE:
-                    cell.setCellValue(Double.parseDouble(td.getContent()));
+                    if (Objects.nonNull(content)) {
+                        cell.setCellValue(Double.parseDouble(content));
+                    }
                     break;
                 case BOOLEAN:
-                    cell.setCellValue(Boolean.parseBoolean(td.getContent()));
+                    if (Objects.nonNull(content)) {
+                        cell.setCellValue(Boolean.parseBoolean(content));
+                    }
                     break;
                 default:
             }
