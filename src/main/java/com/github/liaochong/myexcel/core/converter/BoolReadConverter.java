@@ -34,11 +34,11 @@ public class BoolReadConverter implements ReadConverter {
             return false;
         }
         String trimContent = content.trim();
-        if (Objects.equals("1", trimContent) || Objects.equals("true", trimContent)) {
+        if (Objects.equals("1", trimContent) || trimContent.equalsIgnoreCase("true")) {
             field.set(obj, true);
             return true;
         }
-        if (Objects.equals("0", trimContent) || Objects.equals("false", trimContent)) {
+        if (Objects.equals("0", trimContent) || trimContent.equalsIgnoreCase("false")) {
             field.set(obj, false);
             return true;
         }
