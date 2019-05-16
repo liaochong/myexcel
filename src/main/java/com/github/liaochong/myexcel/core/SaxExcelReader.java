@@ -52,6 +52,8 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
 
     private OPCPackage xlsxPackage;
 
+    private Consumer<T> consumer;
+
     private List<T> result = Collections.emptyList();
 
     private SaxExcelReader(Class<T> dataType) {
@@ -70,18 +72,7 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
 
     @Override
     public List<T> read(@NonNull InputStream fileInputStream) {
-
-        return null;
-    }
-
-    @Override
-    public List<T> read(@NonNull InputStream fileInputStream, String password) {
-        return null;
-    }
-
-    @Override
-    public List<T> read(@NonNull File file) {
-        try (OPCPackage p = OPCPackage.open(file.getPath(), PackageAccess.READ)) {
+        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
             xlsxPackage = p;
             process();
             return result;
@@ -91,28 +82,36 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
     }
 
     @Override
-    public List<T> read(@NonNull File file, String password) {
-        return null;
+    public List<T> read(@NonNull File file) {
+        try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
+            xlsxPackage = p;
+            process();
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
-
-    }
-
-    @Override
-    public void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer) {
-
+        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
+            xlsxPackage = p;
+            this.consumer = consumer;
+            process();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void readThen(@NonNull File file, Consumer<T> consumer) {
-
-    }
-
-    @Override
-    public void readThen(@NonNull File file, String password, Consumer<T> consumer) {
-
+        try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
+            xlsxPackage = p;
+            this.consumer = consumer;
+            process();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -136,7 +135,7 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
             }
             if (sheetIndex == index) {
                 try (InputStream stream = iter.next()) {
-                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result), stream);
+                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result, consumer), stream);
                 }
             }
             ++index;

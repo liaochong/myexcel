@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * sax处理
@@ -40,10 +41,13 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private Class<T> dataType;
 
-    public SaxHandler(Class<T> dataType, Map<Integer, Field> fieldMap, List<T> result) {
+    private Consumer<T> consumer;
+
+    public SaxHandler(Class<T> dataType, Map<Integer, Field> fieldMap, List<T> result, Consumer<T> consumer) {
         this.fieldMap = fieldMap;
         this.result = result;
         this.dataType = dataType;
+        this.consumer = consumer;
     }
 
     @Override
@@ -57,7 +61,11 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     @Override
     public void endRow(int rowNum) {
-        result.add(obj);
+        if (Objects.isNull(consumer)) {
+            consumer.accept(obj);
+        } else {
+            result.add(obj);
+        }
     }
 
     @Override

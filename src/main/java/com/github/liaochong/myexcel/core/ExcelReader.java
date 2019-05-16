@@ -46,30 +46,12 @@ public interface ExcelReader<T> {
     List<T> read(@NonNull InputStream fileInputStream);
 
     /**
-     * 从文件流中读取
-     *
-     * @param fileInputStream 文件流
-     * @param password        文件密码
-     * @return 结果集
-     */
-    List<T> read(@NonNull InputStream fileInputStream, String password);
-
-    /**
      * 从文件读取
      *
      * @param file 文件
      * @return 结果集
      */
     List<T> read(@NonNull File file);
-
-    /**
-     * 从文件读取
-     *
-     * @param file     文件
-     * @param password 文件密码
-     * @return 结果集
-     */
-    List<T> read(@NonNull File file, String password);
 
     /**
      * 从文件流中读取
@@ -82,26 +64,8 @@ public interface ExcelReader<T> {
     /**
      * 从文件流中读取
      *
-     * @param fileInputStream 文件流
-     * @param password        密码
-     * @param consumer        消费者
-     */
-    void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer);
-
-    /**
-     * 从文件流中读取
-     *
      * @param file     文件
      * @param consumer 消费者
      */
     void readThen(@NonNull File file, Consumer<T> consumer);
-
-    /**
-     * 从文件流中读取
-     *
-     * @param file     文件
-     * @param password 密码
-     * @param consumer 消费者
-     */
-    void readThen(@NonNull File file, String password, Consumer<T> consumer);
 }
