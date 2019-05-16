@@ -61,7 +61,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     @Override
     public void endRow(int rowNum) {
-        if (Objects.isNull(consumer)) {
+        if (Objects.nonNull(consumer)) {
             consumer.accept(obj);
         } else {
             result.add(obj);
@@ -77,7 +77,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         int thisCol = (new CellReference(cellReference)).getCol();
         Field field = fieldMap.get(thisCol);
         if (Objects.isNull(field)) {
-            throw new RuntimeException();
+            return;
         }
         ReadConverterContext.convert(formattedValue, field, obj);
     }
