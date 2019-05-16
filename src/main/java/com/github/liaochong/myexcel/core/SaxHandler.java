@@ -14,12 +14,15 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * sax处理
@@ -27,22 +30,34 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-class SaxHandler implements XSSFSheetXMLHandler.SheetContentsHandler {
+class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private final Map<Integer, Field> fieldMap;
 
-    public SaxHandler(Map<Integer, Field> fieldMap) {
+    private List<T> result;
+
+    private T obj;
+
+    private Class<T> dataType;
+
+    public SaxHandler(Class<T> dataType, Map<Integer, Field> fieldMap, List<T> result) {
         this.fieldMap = fieldMap;
+        this.result = result;
+        this.dataType = dataType;
     }
 
     @Override
     public void startRow(int rowNum) {
-
+        try {
+            obj = dataType.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void endRow(int rowNum) {
-
+        result.add(obj);
     }
 
     @Override
@@ -52,5 +67,10 @@ class SaxHandler implements XSSFSheetXMLHandler.SheetContentsHandler {
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        Field field = fieldMap.get(thisCol);
+        if (Objects.isNull(field)) {
+            throw new RuntimeException();
+        }
+        ReadConverterContext.convert(formattedValue, field, obj);
     }
 }

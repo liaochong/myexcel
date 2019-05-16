@@ -36,6 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -49,6 +51,8 @@ import java.util.function.Consumer;
 public class SaxExcelReader<T> extends AbstractExcelReader<T> {
 
     private OPCPackage xlsxPackage;
+
+    private List<T> result = Collections.emptyList();
 
     private SaxExcelReader(Class<T> dataType) {
         this.dataType = dataType;
@@ -80,10 +84,10 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         try (OPCPackage p = OPCPackage.open(file.getPath(), PackageAccess.READ)) {
             xlsxPackage = p;
             process();
+            return result;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
     @Override
@@ -124,6 +128,7 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
 
         Map<Integer, Field> fieldMap = this.getFieldMap();
+        result = new LinkedList<>();
         int index = 0;
         while (iter.hasNext()) {
             if (sheetIndex > index) {
@@ -131,7 +136,7 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
             }
             if (sheetIndex == index) {
                 try (InputStream stream = iter.next()) {
-                    processSheet(styles, strings, new SaxHandler(fieldMap), stream);
+                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result), stream);
                 }
             }
             ++index;

@@ -290,7 +290,6 @@ public class DefaultExcelReader<T> {
                 return;
             }
             String content = formatter.formatCellValue(cell);
-            field.setAccessible(true);
             ReadConverterContext.convert(content, field, obj);
         });
         return obj;
