@@ -60,6 +60,8 @@ public class DefaultExcelReader<T> {
 
     private Predicate<Row> rowFilter = row -> true;
 
+    private Predicate<T> beanFilter = bean -> true;
+
     private boolean parallelRead;
 
     private DefaultExcelReader(Class<T> dataType) {
@@ -81,6 +83,11 @@ public class DefaultExcelReader<T> {
 
     public DefaultExcelReader<T> rowFilter(@NonNull Predicate<Row> rowFilter) {
         this.rowFilter = rowFilter;
+        return this;
+    }
+
+    public DefaultExcelReader<T> beanFilter(@NonNull Predicate<T> beanFilter) {
+        this.beanFilter = beanFilter;
         return this;
     }
 
@@ -218,6 +225,9 @@ public class DefaultExcelReader<T> {
                     return null;
                 }
                 T obj = instanceObj(fieldMap, formatter, row);
+                if (!beanFilter.test(obj)) {
+                    return null;
+                }
                 return new ParallelContainer<>(rowNum, obj);
             }).filter(Objects::nonNull).collect(Collectors.toList());
             log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
@@ -240,7 +250,9 @@ public class DefaultExcelReader<T> {
                     continue;
                 }
                 T obj = instanceObj(fieldMap, formatter, row);
-                result.add(obj);
+                if (beanFilter.test(obj)) {
+                    result.add(obj);
+                }
             }
             log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
             return result;
@@ -273,7 +285,9 @@ public class DefaultExcelReader<T> {
                 continue;
             }
             T obj = instanceObj(fieldMap, formatter, row);
-            consumer.accept(obj);
+            if (beanFilter.test(obj)) {
+                consumer.accept(obj);
+            }
         }
         log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
     }
