@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * sax处理
@@ -43,15 +44,29 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private Consumer<T> consumer;
 
-    public SaxHandler(Class<T> dataType, Map<Integer, Field> fieldMap, List<T> result, Consumer<T> consumer) {
+    private Predicate<Row> rowFilter;
+
+    private Predicate<T> beanFilter;
+
+    private Row currentRow;
+
+    public SaxHandler(Class<T> dataType,
+                      Map<Integer, Field> fieldMap,
+                      List<T> result,
+                      Consumer<T> consumer,
+                      Predicate<Row> rowFilter,
+                      Predicate<T> beanFilter) {
         this.fieldMap = fieldMap;
         this.result = result;
         this.dataType = dataType;
         this.consumer = consumer;
+        this.rowFilter = rowFilter;
+        this.beanFilter = beanFilter;
     }
 
     @Override
     public void startRow(int rowNum) {
+        currentRow = new Row(rowNum);
         try {
             obj = dataType.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -61,6 +76,12 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     @Override
     public void endRow(int rowNum) {
+        if (!rowFilter.test(currentRow)) {
+            return;
+        }
+        if (!beanFilter.test(obj)) {
+            return;
+        }
         if (Objects.nonNull(consumer)) {
             consumer.accept(obj);
         } else {
@@ -71,6 +92,9 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
+        if (!rowFilter.test(currentRow)) {
+            return;
+        }
         if (cellReference == null) {
             return;
         }

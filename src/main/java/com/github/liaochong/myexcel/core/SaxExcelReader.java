@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * sax模式读取excel
@@ -67,6 +68,10 @@ public class SaxExcelReader<T> {
 
     private List<T> result = Collections.emptyList();
 
+    private Predicate<Row> rowFilter = row -> true;
+
+    private Predicate<T> beanFilter = bean -> true;
+
     private SaxExcelReader(Class<T> dataType) {
         this.dataType = dataType;
     }
@@ -77,6 +82,16 @@ public class SaxExcelReader<T> {
 
     public SaxExcelReader<T> sheet(int index) {
         this.sheetIndex = index;
+        return this;
+    }
+
+    public SaxExcelReader<T> rowFilter(Predicate<Row> rowFilter) {
+        this.rowFilter = rowFilter;
+        return this;
+    }
+
+    public SaxExcelReader<T> beanFilter(Predicate<T> beanFilter) {
+        this.beanFilter = beanFilter;
         return this;
     }
 
@@ -141,7 +156,7 @@ public class SaxExcelReader<T> {
             }
             if (sheetIndex == index) {
                 try (InputStream stream = iter.next()) {
-                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result, consumer), stream);
+                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result, consumer, rowFilter, beanFilter), stream);
                 }
             }
             ++index;
