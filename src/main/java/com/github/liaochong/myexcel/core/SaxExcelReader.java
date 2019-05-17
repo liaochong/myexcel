@@ -14,6 +14,9 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
@@ -37,9 +40,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -48,7 +53,13 @@ import java.util.function.Consumer;
  * @author liaochong
  * @version 1.0
  */
-public class SaxExcelReader<T> extends AbstractExcelReader<T> {
+public class SaxExcelReader<T> {
+
+    private static final int DEFAULT_SHEET_INDEX = 0;
+
+    private Class<T> dataType;
+
+    private int sheetIndex = DEFAULT_SHEET_INDEX;
 
     private OPCPackage xlsxPackage;
 
@@ -64,13 +75,11 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         return new SaxExcelReader<>(clazz);
     }
 
-    @Override
-    public ExcelReader<T> sheet(int index) {
+    public SaxExcelReader<T> sheet(int index) {
         this.sheetIndex = index;
         return this;
     }
 
-    @Override
     public List<T> read(@NonNull InputStream fileInputStream) {
         try (OPCPackage p = OPCPackage.open(fileInputStream)) {
             xlsxPackage = p;
@@ -81,7 +90,6 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         }
     }
 
-    @Override
     public List<T> read(@NonNull File file) {
         try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
             xlsxPackage = p;
@@ -92,7 +100,6 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         }
     }
 
-    @Override
     public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
         try (OPCPackage p = OPCPackage.open(fileInputStream)) {
             xlsxPackage = p;
@@ -103,7 +110,6 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         }
     }
 
-    @Override
     public void readThen(@NonNull File file, Consumer<T> consumer) {
         try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
             xlsxPackage = p;
@@ -170,6 +176,29 @@ public class SaxExcelReader<T> extends AbstractExcelReader<T> {
         } catch (ParserConfigurationException e) {
             throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
         }
+    }
+
+    private Map<Integer, Field> getFieldMap() {
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        if (fields.isEmpty()) {
+            throw new IllegalStateException("There is no field with @ExcelColumn");
+        }
+        Map<Integer, Field> fieldMap = new HashMap<>(fields.size());
+        for (Field field : fields) {
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            int index = excelColumn.index();
+            if (index < 0) {
+                continue;
+            }
+            Field f = fieldMap.get(index);
+            if (Objects.nonNull(f)) {
+                throw new IllegalStateException("Index cannot be repeated. Please check it.");
+            }
+            field.setAccessible(true);
+            fieldMap.put(index, field);
+        }
+        return fieldMap;
     }
 
 }

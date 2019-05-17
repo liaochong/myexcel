@@ -185,6 +185,7 @@ public class DefaultExcelReader<T> {
             if (Objects.nonNull(f)) {
                 throw new IllegalStateException("Index cannot be repeated. Please check it.");
             }
+            field.setAccessible(true);
             fieldMap.put(index, field);
         }
         return fieldMap;
