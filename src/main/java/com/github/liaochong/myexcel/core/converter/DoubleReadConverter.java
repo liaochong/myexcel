@@ -34,6 +34,6 @@ public class DoubleReadConverter implements Converter<String, Double> {
         }
         String trimContent = obj.trim();
         String realValue = new BigDecimal(trimContent).toPlainString();
-        return Double.valueOf(realValue);
+        return Double.parseDouble(realValue);
     }
 }
