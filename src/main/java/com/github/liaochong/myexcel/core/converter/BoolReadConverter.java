@@ -39,6 +39,6 @@ public class BoolReadConverter implements Converter<String, Boolean> {
         if (Objects.equals("0", trimContent) || trimContent.equalsIgnoreCase("false")) {
             return Boolean.FALSE;
         }
-        throw new IllegalStateException("Cell content does not match the type of field to be injected");
+        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + obj + "\"");
     }
 }
