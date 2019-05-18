@@ -37,7 +37,7 @@ public class SaxExcelReaderExampleController {
 
     @GetMapping("/sax/excel/read/example")
     public List<ArtCrowd> read() throws Exception {
-        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read.xlsx");
+        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<ArtCrowd> result = SaxExcelReader.of(ArtCrowd.class).beanFilter(bean -> bean.isDance()).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
@@ -46,7 +46,7 @@ public class SaxExcelReaderExampleController {
 
     @GetMapping("/sax/excel/readThen/example")
     public List<ArtCrowd> readThen() throws Exception {
-        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read.xlsx");
+        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<ArtCrowd> container = new ArrayList<>();
