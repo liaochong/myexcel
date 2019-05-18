@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.exception.SaxReadException;
+
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -87,7 +89,7 @@ public class ReadConverterContext {
         try {
             field.set(obj, value);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new SaxReadException("Failed to set the " + field.getName() + " field value to " + content, e);
         }
     }
 }
