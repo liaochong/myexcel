@@ -20,28 +20,25 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 /**
+ * 布尔转换器
+ *
  * @author liaochong
  * @version 1.0
  */
-public class BoolReadConverter implements ReadConverter {
+public class BoolReadConverter implements Converter<String, Boolean> {
 
     @Override
-    public boolean convert(String content, Field field, Object obj) throws Exception {
-        if (StringUtil.isBlank(content)) {
-            return false;
+    public Boolean convert(String obj, Field field) {
+        if (StringUtil.isBlank(obj)) {
+            return null;
         }
-        if (field.getType() != Boolean.class && field.getType() != boolean.class) {
-            return false;
-        }
-        String trimContent = content.trim();
+        String trimContent = obj.trim();
         if (Objects.equals("1", trimContent) || trimContent.equalsIgnoreCase("true")) {
-            field.set(obj, true);
-            return true;
+            return Boolean.TRUE;
         }
         if (Objects.equals("0", trimContent) || trimContent.equalsIgnoreCase("false")) {
-            field.set(obj, false);
-            return true;
+            return Boolean.FALSE;
         }
-        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + content + "\"");
+        throw new IllegalStateException("Cell content does not match the type of field to be injected");
     }
 }

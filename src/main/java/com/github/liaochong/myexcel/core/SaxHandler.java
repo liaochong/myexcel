@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
@@ -32,6 +33,7 @@ import java.util.function.Predicate;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private final Map<Integer, Field> fieldMap;
@@ -49,6 +51,8 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
     private Predicate<T> beanFilter;
 
     private Row currentRow;
+
+    private int count;
 
     public SaxHandler(Class<T> dataType,
                       Map<Integer, Field> fieldMap,
@@ -82,6 +86,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         if (!beanFilter.test(obj)) {
             return;
         }
+        count++;
         if (Objects.nonNull(consumer)) {
             consumer.accept(obj);
         } else {
@@ -104,5 +109,10 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
             return;
         }
         ReadConverterContext.convert(formattedValue, field, obj);
+    }
+
+    @Override
+    public void endSheet() {
+        log.info("Import completed, total number of rows {}", count);
     }
 }

@@ -14,18 +14,26 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.utils.StringUtil;
+
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 
 /**
- * String读取转换器
+ * Integer读取转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements Converter<String, String> {
+public class IntegerReadConverter implements Converter<String, Integer> {
 
     @Override
-    public String convert(String obj, Field field) {
-        return obj;
+    public Integer convert(String obj, Field field) {
+        if (StringUtil.isBlank(obj)) {
+            return null;
+        }
+        String trimContent = obj.trim();
+        String realValue = new BigDecimal(trimContent).toPlainString();
+        return Integer.parseInt(realValue);
     }
 }
