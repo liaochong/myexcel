@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -50,6 +51,7 @@ import java.util.function.Predicate;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class SaxExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
@@ -138,6 +140,7 @@ public class SaxExcelReader<T> {
      * @throws SAXException if parsing the XML data fails.
      */
     private void process() throws IOException, OpenXML4JException, SAXException {
+        long startTime = System.currentTimeMillis();
         ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
         XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
         StylesTable styles = xssfReader.getStylesTable();
@@ -157,6 +160,7 @@ public class SaxExcelReader<T> {
             }
             ++index;
         }
+        log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
     /**
