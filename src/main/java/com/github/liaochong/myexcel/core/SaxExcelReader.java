@@ -14,8 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import org.apache.poi.ooxml.util.SAXHelper;
@@ -40,11 +38,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -147,7 +143,7 @@ public class SaxExcelReader<T> {
         StylesTable styles = xssfReader.getStylesTable();
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
 
-        Map<Integer, Field> fieldMap = this.getFieldMap();
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         result = new LinkedList<>();
         int index = 0;
         while (iter.hasNext()) {
@@ -192,28 +188,4 @@ public class SaxExcelReader<T> {
             throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
         }
     }
-
-    private Map<Integer, Field> getFieldMap() {
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-        if (fields.isEmpty()) {
-            throw new IllegalStateException("There is no field with @ExcelColumn");
-        }
-        Map<Integer, Field> fieldMap = new HashMap<>(fields.size());
-        for (Field field : fields) {
-            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            int index = excelColumn.index();
-            if (index < 0) {
-                continue;
-            }
-            Field f = fieldMap.get(index);
-            if (Objects.nonNull(f)) {
-                throw new IllegalStateException("Index cannot be repeated. Please check it.");
-            }
-            field.setAccessible(true);
-            fieldMap.put(index, field);
-        }
-        return fieldMap;
-    }
-
 }

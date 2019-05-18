@@ -14,10 +14,8 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
-import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
@@ -35,7 +33,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +98,7 @@ public class DefaultExcelReader<T> {
     }
 
     public List<T> read(@NonNull InputStream fileInputStream, String password) throws Exception {
-        Map<Integer, Field> fieldMap = getFieldMap();
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
         }
@@ -117,7 +114,7 @@ public class DefaultExcelReader<T> {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
-        Map<Integer, Field> fieldMap = getFieldMap();
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
         }
@@ -130,7 +127,7 @@ public class DefaultExcelReader<T> {
     }
 
     public void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer) throws Exception {
-        Map<Integer, Field> fieldMap = getFieldMap();
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
         }
@@ -147,7 +144,7 @@ public class DefaultExcelReader<T> {
         if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
-        Map<Integer, Field> fieldMap = getFieldMap();
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
         }
@@ -173,29 +170,6 @@ public class DefaultExcelReader<T> {
             wb = WorkbookFactory.create(file, password);
         }
         return wb.getSheetAt(sheetIndex);
-    }
-
-    private Map<Integer, Field> getFieldMap() {
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-        if (fields.isEmpty()) {
-            throw new IllegalStateException("There is no field with @ExcelColumn");
-        }
-        Map<Integer, Field> fieldMap = new HashMap<>(fields.size());
-        for (Field field : fields) {
-            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            int index = excelColumn.index();
-            if (index < 0) {
-                continue;
-            }
-            Field f = fieldMap.get(index);
-            if (Objects.nonNull(f)) {
-                throw new IllegalStateException("Index cannot be repeated. Please check it.");
-            }
-            field.setAccessible(true);
-            fieldMap.put(index, field);
-        }
-        return fieldMap;
     }
 
     private List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {

@@ -15,10 +15,15 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -27,6 +32,8 @@ import java.util.Objects;
  */
 @UtilityClass
 public final class ReflectUtil {
+
+    private static final WeakCache<Class<?>, Map<Integer, Field>> FIELD_CACHE = new WeakCache<>();
 
     /**
      * 获取指定类的所有字段，包含父类字段，其中
@@ -38,6 +45,34 @@ public final class ReflectUtil {
         ClassFieldContainer container = new ClassFieldContainer();
         getAllFieldsOfClass(clazz, container);
         return container;
+    }
+
+    public static Map<Integer, Field> getFieldMapOfExcelColumn(Class<?> dataType) {
+        Map<Integer, Field> fieldMap = FIELD_CACHE.get(dataType);
+        if (Objects.nonNull(fieldMap)) {
+            return fieldMap;
+        }
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        if (fields.isEmpty()) {
+            throw new IllegalStateException("There is no field with @ExcelColumn");
+        }
+        fieldMap = new HashMap<>(fields.size());
+        for (Field field : fields) {
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            int index = excelColumn.index();
+            if (index < 0) {
+                continue;
+            }
+            Field f = fieldMap.get(index);
+            if (Objects.nonNull(f)) {
+                throw new IllegalStateException("Index cannot be repeated. Please check it.");
+            }
+            field.setAccessible(true);
+            fieldMap.put(index, field);
+        }
+        FIELD_CACHE.cache(dataType, fieldMap);
+        return fieldMap;
     }
 
     /**

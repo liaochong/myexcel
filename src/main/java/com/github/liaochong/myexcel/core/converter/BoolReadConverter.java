@@ -42,6 +42,6 @@ public class BoolReadConverter implements ReadConverter {
             field.set(obj, false);
             return true;
         }
-        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName());
+        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + content + "\"");
     }
 }
