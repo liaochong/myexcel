@@ -12,20 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
+package com.github.liaochong.myexcel.core;
 
-import java.lang.reflect.Field;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 /**
- * String读取转换器
+ * 行
  *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements Converter<String, String> {
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Row {
 
-    @Override
-    public String convert(String obj, Field field) {
-        return obj;
+    int rowNum;
+
+    public Row(int rowNum) {
+        this.rowNum = rowNum;
     }
 }

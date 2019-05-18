@@ -17,28 +17,23 @@ package com.github.liaochong.myexcel.core.converter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
-import java.util.Objects;
+import java.math.BigDecimal;
 
 /**
- * 布尔转换器
+ * Short读取转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class BoolReadConverter implements Converter<String, Boolean> {
+public class ShortReadConverter implements Converter<String, Short> {
 
     @Override
-    public Boolean convert(String obj, Field field) {
+    public Short convert(String obj, Field field) {
         if (StringUtil.isBlank(obj)) {
             return null;
         }
         String trimContent = obj.trim();
-        if (Objects.equals("1", trimContent) || trimContent.equalsIgnoreCase("true")) {
-            return Boolean.TRUE;
-        }
-        if (Objects.equals("0", trimContent) || trimContent.equalsIgnoreCase("false")) {
-            return Boolean.FALSE;
-        }
-        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + obj + "\"");
+        String realValue = new BigDecimal(trimContent).toPlainString();
+        return Short.parseShort(realValue);
     }
 }

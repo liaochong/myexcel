@@ -12,20 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
-
-import java.lang.reflect.Field;
+package com.github.liaochong.myexcel.exception;
 
 /**
- * String读取转换器
+ * sax读取异常
  *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements Converter<String, String> {
+public class SaxReadException extends RuntimeException {
 
-    @Override
-    public String convert(String obj, Field field) {
-        return obj;
+    public SaxReadException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
