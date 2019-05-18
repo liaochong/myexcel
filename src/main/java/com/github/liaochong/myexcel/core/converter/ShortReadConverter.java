@@ -34,6 +34,6 @@ public class ShortReadConverter implements Converter<String, Short> {
         }
         String trimContent = obj.trim();
         String realValue = new BigDecimal(trimContent).toPlainString();
-        return Short.valueOf(realValue);
+        return Short.parseShort(realValue);
     }
 }
