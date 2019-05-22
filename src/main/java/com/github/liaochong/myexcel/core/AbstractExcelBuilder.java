@@ -70,27 +70,4 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         htmlToExcelFactory.freezePanes(freezePanes);
         return this;
     }
-
-    /**
-     * 分离文件路径
-     *
-     * @param path 文件路径
-     * @return String[]
-     */
-    String[] splitFilePath(String path) {
-        if (Objects.isNull(path) || path.isEmpty()) {
-            throw new NullPointerException();
-        }
-        int lastPackageIndex = path.lastIndexOf("/");
-        if (lastPackageIndex == -1) {
-            return new String[]{"/", path};
-        }
-        if (lastPackageIndex == path.length() - 1) {
-            throw new IllegalArgumentException();
-        }
-        String basePackagePath = path.substring(0, lastPackageIndex);
-        String templateName = path.substring(lastPackageIndex + 1);
-        return new String[]{basePackagePath, templateName};
-    }
-
 }

@@ -41,6 +41,20 @@ import java.util.Objects;
  */
 public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
+    private static final GroupTemplate GROUP_TEMPLATE;
+
+    static {
+        ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader();
+        Configuration cfg;
+        try {
+            cfg = Configuration.defaultConfiguration();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        cfg.setCharset(CharEncoding.UTF_8);
+        GROUP_TEMPLATE = new GroupTemplate(resourceLoader, cfg);
+    }
+
     private Template template;
 
     public BeetlExcelBuilder() {
@@ -49,17 +63,8 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     public ExcelBuilder template(String path) {
-        try {
-            String[] filePath = this.splitFilePath(path);
-            ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader(filePath[0]);
-            Configuration cfg = Configuration.defaultConfiguration();
-            cfg.setCharset(CharEncoding.UTF_8);
-            GroupTemplate gt = new GroupTemplate(resourceLoader, cfg);
-            template = gt.getTemplate(filePath[1]);
-            return this;
-        } catch (IOException e) {
-            throw ExcelBuildException.of("Failed to get beetl template", e);
-        }
+        template = GROUP_TEMPLATE.getTemplate(path);
+        return this;
     }
 
     @Override
