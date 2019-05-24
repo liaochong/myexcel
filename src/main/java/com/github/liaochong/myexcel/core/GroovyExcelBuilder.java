@@ -33,6 +33,13 @@ import java.util.Objects;
  */
 public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
+    private static final MarkupTemplateEngine ENGINE;
+
+    static {
+        TemplateConfiguration config = new TemplateConfiguration();
+        ENGINE = new MarkupTemplateEngine(config);
+    }
+
     private Template template;
 
     public GroovyExcelBuilder() {
@@ -45,11 +52,9 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        TemplateConfiguration config = new TemplateConfiguration();
-        MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
         try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
              Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-            template = engine.createTemplate(reader);
+            template = ENGINE.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
             throw ExcelBuildException.of("Failed to get groovy template", e);

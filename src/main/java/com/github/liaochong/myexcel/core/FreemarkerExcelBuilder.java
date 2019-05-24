@@ -35,6 +35,15 @@ import java.util.Objects;
  */
 public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
 
+    private static final Configuration CFG;
+
+    static {
+        CFG = new Configuration(Configuration.VERSION_2_3_23);
+        CFG.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        CFG.setDefaultEncoding(CharEncoding.UTF_8);
+        CFG.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), "/");
+    }
+
     private Template template;
 
     public FreemarkerExcelBuilder() {
@@ -49,13 +58,7 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
     @Override
     public ExcelBuilder template(String path) {
         try {
-            Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
-            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-            cfg.setDefaultEncoding(CharEncoding.UTF_8);
-
-            String[] filePath = this.splitFilePath(path);
-            cfg.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), filePath[0]);
-            template = cfg.getTemplate(filePath[1]);
+            template = CFG.getTemplate(path);
             return this;
         } catch (IOException e) {
             throw ExcelBuildException.of("Failed to get freemarker template", e);
