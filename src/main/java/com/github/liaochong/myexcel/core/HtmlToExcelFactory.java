@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -96,14 +97,14 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     /**
      * 读取html
      *
-     * @param html           html内容
+     * @param html               html内容
      * @param htmlToExcelFactory 实例对象
      * @return HtmlToExcelFactory
      * @throws Exception 解析异常
      */
     public static HtmlToExcelFactory readHtml(String html, HtmlToExcelFactory htmlToExcelFactory) throws Exception {
-        if (Objects.isNull(html) || html.trim().isEmpty()) {
-            throw new NoSuchFileException("Html content is empty");
+        if (StringUtil.isBlank(html)) {
+            throw new IllegalArgumentException("Html content is empty");
         }
         if (Objects.isNull(htmlToExcelFactory)) {
             throw new NullPointerException("HtmlToExcelFactory can not be null");
