@@ -94,6 +94,25 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     }
 
     /**
+     * 读取html
+     *
+     * @param html           html内容
+     * @param htmlToExcelFactory 实例对象
+     * @return HtmlToExcelFactory
+     * @throws Exception 解析异常
+     */
+    public static HtmlToExcelFactory readHtml(String html, HtmlToExcelFactory htmlToExcelFactory) throws Exception {
+        if (Objects.isNull(html) || html.trim().isEmpty()) {
+            throw new NoSuchFileException("Html content is empty");
+        }
+        if (Objects.isNull(htmlToExcelFactory)) {
+            throw new NullPointerException("HtmlToExcelFactory can not be null");
+        }
+        htmlToExcelFactory.htmlTableParser = HtmlTableParser.of(html);
+        return htmlToExcelFactory;
+    }
+
+    /**
      * 开始构建
      *
      * @return Workbook

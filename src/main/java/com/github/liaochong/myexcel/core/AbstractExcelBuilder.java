@@ -15,11 +15,15 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -32,8 +36,6 @@ import java.util.Objects;
 public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
-
-    protected TempFileOperator tempFileOperator = new TempFileOperator();
 
     @Override
     public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
@@ -92,5 +94,31 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         String templateName = path.substring(lastPackageIndex + 1);
         return new String[]{basePackagePath, templateName};
     }
+
+    /**
+     * 构建
+     *
+     * @param data 模板参数
+     * @return Workbook
+     */
+    @Override
+    public <T> Workbook build(Map<String, T> data) {
+        try (Writer out = new StringWriter()) {
+            render(data, out);
+            return HtmlToExcelFactory.readHtml(out.toString(), htmlToExcelFactory).build();
+        } catch (Exception e) {
+            throw ExcelBuildException.of("Failed to build excel", e);
+        }
+    }
+
+    /**
+     * 模板引擎渲染
+     * @param renderData 渲染数据
+     * @param out 输出流，who create who close;
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
+    protected abstract <T> void render(Map<String, T> renderData, Writer out) throws Exception;
 
 }

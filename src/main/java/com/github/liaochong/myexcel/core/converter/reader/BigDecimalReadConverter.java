@@ -12,28 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
-
-import com.github.liaochong.myexcel.utils.StringUtil;
+package com.github.liaochong.myexcel.core.converter.reader;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
 /**
- * Byte读取转换器
+ * BigDecimal读取转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class ByteReadConverter implements Converter<String, Byte> {
+public class BigDecimalReadConverter extends AbstractReadConverter<BigDecimal> {
 
     @Override
-    public Byte convert(String obj, Field field) {
-        if (StringUtil.isBlank(obj)) {
-            return null;
-        }
-        String trimContent = obj.trim();
-        String realValue = new BigDecimal(trimContent).toPlainString();
-        return Byte.parseByte(realValue);
+    public BigDecimal doConvert(String v, Field field) {
+        return new BigDecimal(v);
     }
 }
