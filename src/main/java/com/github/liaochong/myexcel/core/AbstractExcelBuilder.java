@@ -91,11 +91,11 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     /**
      * 模板引擎渲染
+     *
      * @param renderData 渲染数据
-     * @param out 输出流，who create who close;
-     * @param <T>
-     * @return
-     * @throws Exception
+     * @param out        输出流，who create who close;
+     * @param <T>        被渲染数据类型
+     * @throws Exception 异常
      */
     protected abstract <T> void render(Map<String, T> renderData, Writer out) throws Exception;
 

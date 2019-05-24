@@ -16,7 +16,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
-import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import org.apache.commons.codec.CharEncoding;
 import org.beetl.core.Configuration;
 import org.beetl.core.GroupTemplate;
@@ -63,9 +62,8 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
     }
 
 
-
     @Override
-    protected <T> void render(Map<String, T> data, Writer out) throws Exception {
+    protected <T> void render(Map<String, T> data, Writer out) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
         template.binding(data);
         template.renderTo(out);
