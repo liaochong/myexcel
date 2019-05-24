@@ -15,25 +15,30 @@
 package com.github.liaochong.myexcel.core.container;
 
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 /**
- * 键值对容器对象
+ * 键值对容器对象. immutable。
  *
- * @author liaochong
+ * @author liaochong、 chd.y
  * @version 1.0
  */
-@Data
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Pair<K, V> {
 
-    K key;
+    final K key;
 
-    V value;
+    final V value;
 
-    public Pair(K key, V value) {
+    private Pair(K key, V value) {
         this.key = key;
         this.value = value;
+    }
+
+
+    public static <K, V> Pair<K, V> of(K key, V value) {
+        return new Pair<>(key, value);
     }
 }

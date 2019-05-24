@@ -12,17 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
-
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.utils.StringUtil;
+package com.github.liaochong.myexcel.core.converter.reader;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -32,32 +28,23 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
-public class LocalDateReadConverter implements Converter<String, LocalDate> {
+public class LocalDateReadConverter extends AbstractReadConverter<LocalDate> {
 
     private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
 
     @Override
-    public LocalDate convert(String obj, Field field) {
-        if (StringUtil.isBlank(obj)) {
-            return null;
-        }
-        String trimContent = obj.trim();
-        boolean isNumber = NUMBER_PATTERN.matcher(trimContent).find();
+    public LocalDate doConvert(String v, Field field) {
+        boolean isNumber = NUMBER_PATTERN.matcher(v).find();
         if (isNumber) {
-            final long time = Long.parseLong(trimContent);
+            final long time = Long.parseLong(v);
 
             LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(time), TimeZone
                     .getDefault().toZoneId());
             return localDateTime.toLocalDate();
         }
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        String dateFormat = DEFAULT_DATE_FORMAT;
-        if (Objects.nonNull(excelColumn) && StringUtil.isNotBlank(excelColumn.dateFormatPattern())) {
-            dateFormat = excelColumn.dateFormatPattern();
-        }
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(dateFormat);
-        return LocalDate.parse(trimContent, dateTimeFormatter);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(getDateFormatPattern(field, DEFAULT_DATE_FORMAT));
+        return LocalDate.parse(v, dateTimeFormatter);
     }
 }

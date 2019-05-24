@@ -18,7 +18,6 @@ import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
@@ -27,8 +26,6 @@ import java.io.Writer;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +42,8 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
     private static final TemplateEngine TEMPLATE_ENGINE;
 
     private String filePath;
+
+    private String realPath;
 
     static {
         TEMPLATE_ENGINE = new TemplateEngine();
@@ -69,12 +68,7 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
             path = path.substring(1);
         }
         this.filePath = path;
-        return this;
-    }
 
-    @Override
-    public <T> Workbook build(Map<String, T> renderData) {
-        String realPath;
         try {
             URL url = Thread.currentThread().getContextClassLoader().getResource(filePath);
             if (Objects.isNull(url)) {
@@ -83,20 +77,17 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
             realPath = Paths.get(url.toURI()).toAbsolutePath().toString();
             log.info("Template file:" + realPath);
         } catch (IllegalAccessException | URISyntaxException e) {
-            throw ExcelBuildException.of("Failed to build excel", e);
+            throw ExcelBuildException.of("Failed to build ExcelBuilder", e);
         }
 
-        Path htmlFile = tempFileOperator.createTempFile("thymeleaf_temp_", TempFileOperator.HTML_SUFFIX);
-        try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
-            Context context = new Context();
-            context.setVariables(renderData);
-            TEMPLATE_ENGINE.process(realPath, context, out);
-            return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
-        } catch (Exception e) {
-            throw ExcelBuildException.of("Failed to build excel", e);
-        } finally {
-            tempFileOperator.deleteTempFile();
-        }
+        return this;
+    }
+
+    @Override
+    protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
+        Context context = new Context();
+        context.setVariables(renderData);
+        TEMPLATE_ENGINE.process(realPath, context, out);
     }
 
 }

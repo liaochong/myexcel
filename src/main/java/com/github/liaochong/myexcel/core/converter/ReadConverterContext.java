@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.converter.reader.*;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 
 import java.lang.reflect.Field;
@@ -44,27 +45,27 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(LocalDate.class, new LocalDateReadConverter());
         READ_CONVERTERS.put(LocalDateTime.class, new LocalDateTimeReadConverter());
 
-        DoubleReadConverter doubleReadConverter = new DoubleReadConverter();
+        NumberReadConverter<Double> doubleReadConverter = NumberReadConverter.of(Double::valueOf);
         READ_CONVERTERS.put(Double.class, doubleReadConverter);
         READ_CONVERTERS.put(double.class, doubleReadConverter);
 
-        FloatReadConverter floatReadConverter = new FloatReadConverter();
+        NumberReadConverter<Float> floatReadConverter = NumberReadConverter.of(Float::valueOf);
         READ_CONVERTERS.put(Float.class, floatReadConverter);
         READ_CONVERTERS.put(float.class, floatReadConverter);
 
-        LongReadConverter longReadConverter = new LongReadConverter();
+        NumberReadConverter<Long> longReadConverter = NumberReadConverter.of(Long::valueOf);;
         READ_CONVERTERS.put(Long.class, longReadConverter);
         READ_CONVERTERS.put(long.class, longReadConverter);
 
-        IntegerReadConverter integerReadConverter = new IntegerReadConverter();
+        NumberReadConverter<Integer> integerReadConverter = NumberReadConverter.of(Integer::valueOf);
         READ_CONVERTERS.put(Integer.class, integerReadConverter);
         READ_CONVERTERS.put(int.class, integerReadConverter);
 
-        ShortReadConverter shortReadConverter = new ShortReadConverter();
+        NumberReadConverter<Short> shortReadConverter = NumberReadConverter.of(Short::valueOf);
         READ_CONVERTERS.put(Short.class, shortReadConverter);
         READ_CONVERTERS.put(short.class, shortReadConverter);
 
-        ByteReadConverter byteReadConverter = new ByteReadConverter();
+        NumberReadConverter<Byte> byteReadConverter = NumberReadConverter.of(Byte::valueOf);
         READ_CONVERTERS.put(Byte.class, byteReadConverter);
         READ_CONVERTERS.put(byte.class, byteReadConverter);
 

@@ -12,16 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
-
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.utils.StringUtil;
+package com.github.liaochong.myexcel.core.converter.reader;
 
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -30,31 +26,22 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
-public class DateReadConverter implements Converter<String, Date> {
+public class DateReadConverter extends AbstractReadConverter<Date> {
 
     private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
 
     @Override
-    public Date convert(String obj, Field field) {
-        if (StringUtil.isBlank(obj)) {
-            return null;
-        }
-        String trimContent = obj.trim();
-        boolean isNumber = NUMBER_PATTERN.matcher(trimContent).find();
+    public Date doConvert(String v, Field field) {
+        boolean isNumber = NUMBER_PATTERN.matcher(v).find();
         if (isNumber) {
-            final long time = Long.parseLong(trimContent);
+            final long time = Long.parseLong(v);
             return new Date(time);
         }
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        String dateFormat = DEFAULT_DATE_FORMAT;
-        if (Objects.nonNull(excelColumn) && StringUtil.isNotBlank(excelColumn.dateFormatPattern())) {
-            dateFormat = excelColumn.dateFormatPattern();
-        }
-        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+        SimpleDateFormat sdf = new SimpleDateFormat(getDateFormatPattern(field, DEFAULT_DATE_FORMAT));
         try {
-            return sdf.parse(trimContent);
+            return sdf.parse(v);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
