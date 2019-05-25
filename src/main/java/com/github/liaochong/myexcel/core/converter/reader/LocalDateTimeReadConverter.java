@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
-import java.util.regex.Pattern;
 
 /**
  * LocalDateTime读取转换器
@@ -29,20 +28,14 @@ import java.util.regex.Pattern;
  */
 public class LocalDateTimeReadConverter extends AbstractReadConverter<LocalDateTime> {
 
-    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
-
     @Override
     public LocalDateTime doConvert(String v, Field field) {
-        boolean isNumber = NUMBER_PATTERN.matcher(v).find();
-        if (isNumber) {
+        if (isNumber(v)) {
             final long time = Long.parseLong(v);
             return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), TimeZone
                     .getDefault().toZoneId());
         }
-
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(getDateFormatPattern(field, DEFAULT_DATE_FORMAT));
+        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(field);
         return LocalDateTime.parse(v, dateTimeFormatter);
     }
 }

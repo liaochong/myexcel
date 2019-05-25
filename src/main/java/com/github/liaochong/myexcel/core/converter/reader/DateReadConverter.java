@@ -18,7 +18,6 @@ import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 /**
  * Date读取转换器
@@ -28,18 +27,13 @@ import java.util.regex.Pattern;
  */
 public class DateReadConverter extends AbstractReadConverter<Date> {
 
-    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
-
     @Override
     public Date doConvert(String v, Field field) {
-        boolean isNumber = NUMBER_PATTERN.matcher(v).find();
-        if (isNumber) {
+        if (isNumber(v)) {
             final long time = Long.parseLong(v);
             return new Date(time);
         }
-        SimpleDateFormat sdf = new SimpleDateFormat(getDateFormatPattern(field, DEFAULT_DATE_FORMAT));
+        SimpleDateFormat sdf = new SimpleDateFormat(getDateFormatPattern(field));
         try {
             return sdf.parse(v);
         } catch (ParseException e) {
