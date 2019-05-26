@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
-
-import com.github.liaochong.myexcel.utils.StringUtil;
+package com.github.liaochong.myexcel.core.converter.reader;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -25,20 +23,16 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-public class BoolReadConverter implements Converter<String, Boolean> {
+public class BoolReadConverter extends AbstractReadConverter<Boolean> {
 
     @Override
-    public Boolean convert(String obj, Field field) {
-        if (StringUtil.isBlank(obj)) {
-            return null;
-        }
-        String trimContent = obj.trim();
-        if (Objects.equals("1", trimContent) || trimContent.equalsIgnoreCase("true")) {
+    public Boolean doConvert(String v, Field field) {
+        if (Objects.equals("1", v) || v.equalsIgnoreCase("true")) {
             return Boolean.TRUE;
         }
-        if (Objects.equals("0", trimContent) || trimContent.equalsIgnoreCase("false")) {
+        if (Objects.equals("0", v) || v.equalsIgnoreCase("false")) {
             return Boolean.FALSE;
         }
-        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + obj + "\"");
+        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + v + "\"");
     }
 }

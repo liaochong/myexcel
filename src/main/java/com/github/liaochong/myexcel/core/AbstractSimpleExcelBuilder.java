@@ -37,14 +37,7 @@ import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -485,10 +478,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                         }
                         String defaultValue = defaultValueMap.get(field);
                         if (Objects.nonNull(defaultValue)) {
-                            return new Pair<>(field.getType(), defaultValue);
+                            return Pair.of(field.getType(), defaultValue);
                         }
                         if (Objects.nonNull(globalDefaultValue)) {
-                            return new Pair<>(field.getType(), globalDefaultValue);
+                            return Pair.of(field.getType(), globalDefaultValue);
                         }
                         return value;
                     })

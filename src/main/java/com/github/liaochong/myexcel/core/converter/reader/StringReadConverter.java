@@ -12,28 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
+package com.github.liaochong.myexcel.core.converter.reader;
 
-import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.core.converter.Converter;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 
 /**
- * Short读取转换器
+ * String读取转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class ShortReadConverter implements Converter<String, Short> {
+public class StringReadConverter implements Converter<String, String> {
 
     @Override
-    public Short convert(String obj, Field field) {
-        if (StringUtil.isBlank(obj)) {
-            return null;
-        }
-        String trimContent = obj.trim();
-        String realValue = new BigDecimal(trimContent).toPlainString();
-        return Short.parseShort(realValue);
+    public String convert(String obj, Field field) {
+        return obj;
     }
 }

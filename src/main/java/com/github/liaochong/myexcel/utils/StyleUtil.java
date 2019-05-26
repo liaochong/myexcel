@@ -78,14 +78,13 @@ public final class StyleUtil {
         if (Objects.isNull(targetStyle) && Objects.isNull(originStyle)) {
             return Collections.emptyMap();
         }
-        Map<String, String> result = new HashMap<>();
         if (Objects.isNull(targetStyle)) {
-            originStyle.forEach(result::put);
-            return result;
+            return new HashMap<>(originStyle);
         } else if (Objects.isNull(originStyle)) {
-            targetStyle.forEach(result::put);
-            return result;
+            return new HashMap<>(targetStyle);
         }
+        // 相加的两倍，防止扩容。
+        Map<String, String> result = new HashMap<>((targetStyle.size() + originStyle.size()) * 2);
         targetStyle.forEach(result::put);
         originStyle.forEach(result::putIfAbsent);
         return result;

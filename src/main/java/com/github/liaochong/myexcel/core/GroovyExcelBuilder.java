@@ -15,23 +15,15 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
-import org.apache.poi.ss.usermodel.Workbook;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
@@ -40,6 +32,13 @@ import java.util.Objects;
  * @version 1.0
  */
 public class GroovyExcelBuilder extends AbstractExcelBuilder {
+
+    private static final MarkupTemplateEngine ENGINE;
+
+    static {
+        TemplateConfiguration config = new TemplateConfiguration();
+        ENGINE = new MarkupTemplateEngine(config);
+    }
 
     private Template template;
 
@@ -53,29 +52,20 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        TemplateConfiguration config = new TemplateConfiguration();
-        MarkupTemplateEngine engine = new MarkupTemplateEngine(config);
         try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
              Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-            template = engine.createTemplate(reader);
+            template = ENGINE.createTemplate(reader);
             return this;
         } catch (ClassNotFoundException | IOException e) {
             throw ExcelBuildException.of("Failed to get groovy template", e);
         }
     }
 
+
     @Override
-    public <T> Workbook build(Map<String, T> renderData) {
+    protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        Path htmlFile = tempFileOperator.createTempFile("groovy_temp_", TempFileOperator.HTML_SUFFIX);
-        try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
-            Writable output = template.make(renderData);
-            output.writeTo(out);
-            return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
-        } catch (Exception e) {
-            throw ExcelBuildException.of("Failed to build excel", e);
-        } finally {
-            tempFileOperator.deleteTempFile();
-        }
+        Writable output = template.make(renderData);
+        output.writeTo(out);
     }
 }

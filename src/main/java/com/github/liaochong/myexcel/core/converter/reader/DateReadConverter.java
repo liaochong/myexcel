@@ -12,28 +12,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter;
-
-import com.github.liaochong.myexcel.utils.StringUtil;
+package com.github.liaochong.myexcel.core.converter.reader;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
- * Long读取转换器
+ * Date读取转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class LongReadConverter implements Converter<String, Long> {
+public class DateReadConverter extends AbstractReadConverter<Date> {
 
     @Override
-    public Long convert(String obj, Field field) {
-        if (StringUtil.isBlank(obj)) {
-            return null;
+    public Date doConvert(String v, Field field) {
+        if (isNumber(v)) {
+            final long time = Long.parseLong(v);
+            return new Date(time);
         }
-        String trimContent = obj.trim();
-        String realValue = new BigDecimal(trimContent).toPlainString();
-        return Long.parseLong(realValue);
+        SimpleDateFormat sdf = new SimpleDateFormat(getDateFormatPattern(field));
+        try {
+            return sdf.parse(v);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

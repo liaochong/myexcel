@@ -15,20 +15,15 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 import org.apache.commons.codec.CharEncoding;
-import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
@@ -39,6 +34,15 @@ import java.util.Objects;
  * @version 1.0
  */
 public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
+
+    private static final Configuration CFG;
+
+    static {
+        CFG = new Configuration(Configuration.VERSION_2_3_23);
+        CFG.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        CFG.setDefaultEncoding(CharEncoding.UTF_8);
+        CFG.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), "/");
+    }
 
     private Template template;
 
@@ -54,37 +58,17 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
     @Override
     public ExcelBuilder template(String path) {
         try {
-            Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
-            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-            cfg.setDefaultEncoding(CharEncoding.UTF_8);
-
-            String[] filePath = this.splitFilePath(path);
-            cfg.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), filePath[0]);
-            template = cfg.getTemplate(filePath[1]);
+            template = CFG.getTemplate(path);
             return this;
         } catch (IOException e) {
             throw ExcelBuildException.of("Failed to get freemarker template", e);
         }
     }
 
-    /**
-     * 构建
-     *
-     * @param data 模板参数
-     * @return Workbook
-     */
     @Override
-    public <T> Workbook build(Map<String, T> data) {
+    protected <T> void render(Map<String, T> data, Writer out) throws Exception {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
-        Path htmlFile = tempFileOperator.createTempFile("freemarker_temp_", TempFileOperator.HTML_SUFFIX);
-        try (Writer out = Files.newBufferedWriter(htmlFile, StandardCharsets.UTF_8)) {
-            template.process(data, out);
-            return HtmlToExcelFactory.readHtml(htmlFile.toFile(), htmlToExcelFactory).build();
-        } catch (Exception e) {
-            throw ExcelBuildException.of("Failed to build excel", e);
-        } finally {
-            tempFileOperator.deleteTempFile();
-        }
+        template.process(data, out);
     }
 
 }

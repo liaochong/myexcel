@@ -1,9 +1,24 @@
-package com.github.liaochong.myexcel.core.converter;
+/*
+ * Copyright 2019 liaochong
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.converter.WriteConverter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
@@ -26,29 +41,29 @@ public class DateTimeWriteConverter implements WriteConverter {
     public Pair<Class, Object> convert(Field field, Object fieldVal) {
         Class<?> fieldType = field.getType();
         if (fieldType != LocalDateTime.class && fieldType != LocalDate.class && fieldType != Date.class) {
-            return new Pair<>(fieldType, fieldVal);
+            return Pair.of(fieldType, fieldVal);
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         if (Objects.isNull(excelColumn) || Objects.isNull(fieldVal)) {
-            return new Pair<>(fieldType, fieldVal);
+            return Pair.of(fieldType, fieldVal);
         }
         // 时间格式化
         String dateFormatPattern = excelColumn.dateFormatPattern();
         if (StringUtil.isBlank(dateFormatPattern)) {
-            return new Pair<>(fieldType, fieldVal);
+            return Pair.of(fieldType, fieldVal);
         }
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return new Pair<>(String.class, formatter.format(localDateTime));
+            return Pair.of(String.class, formatter.format(localDateTime));
         } else if (fieldType == LocalDate.class) {
             LocalDate localDate = (LocalDate) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return new Pair<>(String.class, formatter.format(localDate));
+            return Pair.of(String.class, formatter.format(localDate));
         }
         Date date = (Date) fieldVal;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-        return new Pair<>(String.class, simpleDateFormat.format(date));
+        return Pair.of(String.class, simpleDateFormat.format(date));
     }
 
     /**
