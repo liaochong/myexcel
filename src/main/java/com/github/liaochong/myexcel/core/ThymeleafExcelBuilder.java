@@ -41,8 +41,6 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
 
     private static final TemplateEngine TEMPLATE_ENGINE;
 
-    private String filePath;
-
     private String realPath;
 
     static {
@@ -67,8 +65,7 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        this.filePath = path;
-
+        String filePath = path;
         try {
             URL url = Thread.currentThread().getContextClassLoader().getResource(filePath);
             if (Objects.isNull(url)) {
