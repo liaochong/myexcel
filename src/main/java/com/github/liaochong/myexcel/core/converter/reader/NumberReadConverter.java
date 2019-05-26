@@ -19,8 +19,10 @@ import java.math.BigDecimal;
 import java.util.function.Function;
 
 /**
- * @param <R>
+ * 数值读取转换
+ *
  * @author chd.y
+ * @since 2.3.1
  */
 public class NumberReadConverter<R extends Number> extends AbstractReadConverter<R> {
 
