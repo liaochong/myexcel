@@ -65,6 +65,7 @@ public final class AttachmentExportUtil {
             fileName += suffix;
         }
         response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.setContentType("multipart/form-data");
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
         workbook.write(response.getOutputStream());
         if (workbook instanceof SXSSFWorkbook) {
@@ -110,6 +111,7 @@ public final class AttachmentExportUtil {
                 fileName += suffix;
             }
             response.setCharacterEncoding(CharEncoding.UTF_8);
+            response.setContentType("multipart/form-data");
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
             fs.writeFilesystem(response.getOutputStream());
         } finally {
