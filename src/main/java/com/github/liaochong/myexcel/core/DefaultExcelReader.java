@@ -107,11 +107,10 @@ public class DefaultExcelReader<T> {
         try {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             return getDataFromFile(sheet, fieldMap);
-        } catch (IOException e) {
+        } finally {
             if (Objects.nonNull(wb)) {
                 wb.close();
             }
-            throw new RuntimeException(e);
         }
     }
 
@@ -130,11 +129,10 @@ public class DefaultExcelReader<T> {
         try {
             Sheet sheet = getSheetOfFile(file, password);
             return getDataFromFile(sheet, fieldMap);
-        } catch (IOException e) {
+        } finally {
             if (Objects.nonNull(wb)) {
                 wb.close();
             }
-            throw new RuntimeException(e);
         }
     }
 
@@ -150,11 +148,10 @@ public class DefaultExcelReader<T> {
         try {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             readThenConsume(sheet, fieldMap, consumer);
-        } catch (IOException e) {
+        } finally {
             if (Objects.nonNull(wb)) {
                 wb.close();
             }
-            throw new RuntimeException(e);
         }
     }
 
@@ -174,11 +171,10 @@ public class DefaultExcelReader<T> {
         try {
             Sheet sheet = getSheetOfFile(file, password);
             readThenConsume(sheet, fieldMap, consumer);
-        } catch (IOException e) {
+        } finally {
             if (Objects.nonNull(wb)) {
                 wb.close();
             }
-            throw new RuntimeException(e);
         }
     }
 
