@@ -61,6 +61,8 @@ public class DefaultExcelReader<T> {
 
     private boolean parallelRead;
 
+    private Workbook wb;
+
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
     }
@@ -102,8 +104,14 @@ public class DefaultExcelReader<T> {
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
         }
-        Sheet sheet = getSheetOfInputStream(fileInputStream, password);
-        return getDataFromFile(sheet, fieldMap);
+        try {
+            Sheet sheet = getSheetOfInputStream(fileInputStream, password);
+            return getDataFromFile(sheet, fieldMap);
+        } finally {
+            if (Objects.nonNull(wb)) {
+                wb.close();
+            }
+        }
     }
 
     public List<T> read(@NonNull File file) throws Exception {
@@ -118,8 +126,14 @@ public class DefaultExcelReader<T> {
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
         }
-        Sheet sheet = getSheetOfFile(file, password);
-        return getDataFromFile(sheet, fieldMap);
+        try {
+            Sheet sheet = getSheetOfFile(file, password);
+            return getDataFromFile(sheet, fieldMap);
+        } finally {
+            if (Objects.nonNull(wb)) {
+                wb.close();
+            }
+        }
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) throws Exception {
@@ -131,8 +145,14 @@ public class DefaultExcelReader<T> {
         if (fieldMap.isEmpty()) {
             return;
         }
-        Sheet sheet = getSheetOfInputStream(fileInputStream, password);
-        readThenConsume(sheet, fieldMap, consumer);
+        try {
+            Sheet sheet = getSheetOfInputStream(fileInputStream, password);
+            readThenConsume(sheet, fieldMap, consumer);
+        } finally {
+            if (Objects.nonNull(wb)) {
+                wb.close();
+            }
+        }
     }
 
 
@@ -148,12 +168,17 @@ public class DefaultExcelReader<T> {
         if (fieldMap.isEmpty()) {
             return;
         }
-        Sheet sheet = getSheetOfFile(file, password);
-        readThenConsume(sheet, fieldMap, consumer);
+        try {
+            Sheet sheet = getSheetOfFile(file, password);
+            readThenConsume(sheet, fieldMap, consumer);
+        } finally {
+            if (Objects.nonNull(wb)) {
+                wb.close();
+            }
+        }
     }
 
     private Sheet getSheetOfInputStream(@NonNull InputStream fileInputStream, String password) throws IOException {
-        Workbook wb;
         if (StringUtil.isBlank(password)) {
             wb = WorkbookFactory.create(fileInputStream);
         } else {
@@ -163,7 +188,6 @@ public class DefaultExcelReader<T> {
     }
 
     private Sheet getSheetOfFile(@NonNull File file, String password) throws IOException {
-        Workbook wb;
         if (StringUtil.isBlank(password)) {
             wb = WorkbookFactory.create(file);
         } else {
