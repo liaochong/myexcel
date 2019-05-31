@@ -99,17 +99,33 @@ public class SaxExcelReader<T> {
             process();
             return result;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            try {
+                result = new LinkedList<>();
+                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+                return result;
+            } catch (IOException e1) {
+                throw new RuntimeException(e1);
+            }
         }
     }
 
     public List<T> read(@NonNull File file) {
-        try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-            xlsxPackage = p;
-            process();
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (file.getName().endsWith(".xls")) {
+            result = new LinkedList<>();
+            try {
+                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+                return result;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
+                xlsxPackage = p;
+                process();
+                return result;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -119,17 +135,29 @@ public class SaxExcelReader<T> {
             this.consumer = consumer;
             process();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            try {
+                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+            } catch (IOException e1) {
+                throw new RuntimeException(e1);
+            }
         }
     }
 
     public void readThen(@NonNull File file, Consumer<T> consumer) {
-        try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-            xlsxPackage = p;
-            this.consumer = consumer;
-            process();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (file.getName().endsWith(".xls")) {
+            try {
+                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
+                xlsxPackage = p;
+                this.consumer = consumer;
+                process();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
