@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
+
 import java.lang.reflect.Field;
 import java.util.Objects;
 
@@ -27,10 +29,10 @@ public class BoolReadConverter extends AbstractReadConverter<Boolean> {
 
     @Override
     public Boolean doConvert(String v, Field field) {
-        if (Objects.equals("1", v) || v.equalsIgnoreCase("true")) {
+        if (Objects.equals(Constants.ONE, v) || v.equalsIgnoreCase(Constants.TRUE)) {
             return Boolean.TRUE;
         }
-        if (Objects.equals("0", v) || v.equalsIgnoreCase("false")) {
+        if (Objects.equals(Constants.ZERO, v) || v.equalsIgnoreCase(Constants.FALSE)) {
             return Boolean.FALSE;
         }
         throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + v + "\"");
