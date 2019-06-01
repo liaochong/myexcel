@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.codec.CharEncoding;
@@ -54,12 +55,12 @@ public final class AttachmentExportUtil {
      * @throws IOException IOException
      */
     public static void export(Workbook workbook, String fileName, HttpServletResponse response) throws IOException {
-        String suffix = ".xlsx";
+        String suffix = Constants.XLSX;
         if (workbook instanceof HSSFWorkbook) {
             if (fileName.endsWith(suffix)) {
                 fileName = fileName.substring(0, fileName.length() - 1);
             }
-            suffix = ".xls";
+            suffix = Constants.XLS;
         }
         if (!fileName.endsWith(suffix)) {
             fileName += suffix;
@@ -90,7 +91,7 @@ public final class AttachmentExportUtil {
         TempFileOperator tempFileOperator = null;
         try {
             tempFileOperator = new TempFileOperator();
-            String suffix = ".xlsx";
+            String suffix = Constants.XLSX;
             Path path = tempFileOperator.createTempFile("encrypt_temp", suffix);
             workbook.write(Files.newOutputStream(path));
             if (workbook instanceof SXSSFWorkbook) {
