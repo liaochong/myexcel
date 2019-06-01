@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
+import org.apache.poi.openxml4j.exceptions.OLE2NotOfficeXmlFileException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
@@ -99,7 +100,7 @@ public class SaxExcelReader<T> {
             xlsxPackage = p;
             process();
             return result;
-        } catch (Exception e) {
+        } catch (OLE2NotOfficeXmlFileException e) {
             try {
                 result = new LinkedList<>();
                 new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
@@ -107,6 +108,8 @@ public class SaxExcelReader<T> {
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -135,12 +138,14 @@ public class SaxExcelReader<T> {
             xlsxPackage = p;
             this.consumer = consumer;
             process();
-        } catch (Exception e) {
+        } catch (OLE2NotOfficeXmlFileException e) {
             try {
                 new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

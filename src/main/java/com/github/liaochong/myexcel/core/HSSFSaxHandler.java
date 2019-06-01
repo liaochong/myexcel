@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
@@ -47,6 +48,7 @@ import java.util.function.Predicate;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 class HSSFSaxHandler<T> implements HSSFListener {
 
     private final Map<Integer, Field> fieldMap;
@@ -133,6 +135,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
     }
 
     public void process() throws IOException {
+        long startTime = System.currentTimeMillis();
         MissingRecordAwareHSSFListener listener = new MissingRecordAwareHSSFListener(this);
         formatListener = new FormatTrackingHSSFListener(listener);
 
@@ -147,6 +150,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
         }
 
         factory.processWorkbookEvents(request, fs);
+        log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
     @Override
