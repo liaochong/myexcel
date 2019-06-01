@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
@@ -33,15 +32,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * @author liaochong
@@ -59,8 +55,6 @@ public class DefaultExcelReader<T> {
     private Predicate<Row> rowFilter = row -> true;
 
     private Predicate<T> beanFilter = bean -> true;
-
-    private boolean parallelRead;
 
     private Workbook wb;
 
@@ -88,11 +82,6 @@ public class DefaultExcelReader<T> {
 
     public DefaultExcelReader<T> beanFilter(@NonNull Predicate<T> beanFilter) {
         this.beanFilter = beanFilter;
-        return this;
-    }
-
-    public DefaultExcelReader<T> parallelRead() {
-        this.parallelRead = true;
         return this;
     }
 
@@ -207,55 +196,29 @@ public class DefaultExcelReader<T> {
             return Collections.emptyList();
         }
         DataFormatter formatter = new DataFormatter();
-        if (parallelRead) {
-            List<ParallelContainer<T>> result = IntStream.rangeClosed(firstRowNum, lastRowNum).parallel().mapToObj(rowNum -> {
-                Row row = sheet.getRow(rowNum);
-                if (Objects.isNull(row)) {
-                    log.info("Row of {} is null,it will be ignored.", rowNum);
-                    return null;
-                }
-                boolean noMatchResult = rowFilter.negate().test(row);
-                if (noMatchResult) {
-                    log.info("Row of {} does not meet the filtering criteria, it will be ignored.", rowNum);
-                    return null;
-                }
-                int lastColNum = row.getLastCellNum();
-                if (lastColNum < 0) {
-                    return null;
-                }
-                T obj = instanceObj(fieldMap, formatter, row);
-                if (!beanFilter.test(obj)) {
-                    return null;
-                }
-                return new ParallelContainer<>(rowNum, obj);
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-            log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
-            return result.stream().sorted(Comparator.comparing(ParallelContainer::getIndex)).map(ParallelContainer::getData).collect(Collectors.toList());
-        } else {
-            List<T> result = new LinkedList<>();
-            for (int i = firstRowNum; i <= lastRowNum; i++) {
-                Row row = sheet.getRow(i);
-                if (Objects.isNull(row)) {
-                    log.info("Row of {} is null,it will be ignored.", i);
-                    continue;
-                }
-                boolean noMatchResult = rowFilter.negate().test(row);
-                if (noMatchResult) {
-                    log.info("Row of {} does not meet the filtering criteria, it will be ignored.", i);
-                    continue;
-                }
-                int lastColNum = row.getLastCellNum();
-                if (lastColNum < 0) {
-                    continue;
-                }
-                T obj = instanceObj(fieldMap, formatter, row);
-                if (beanFilter.test(obj)) {
-                    result.add(obj);
-                }
+        List<T> result = new LinkedList<>();
+        for (int i = firstRowNum; i <= lastRowNum; i++) {
+            Row row = sheet.getRow(i);
+            if (Objects.isNull(row)) {
+                log.info("Row of {} is null,it will be ignored.", i);
+                continue;
             }
-            log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
-            return result;
+            boolean noMatchResult = rowFilter.negate().test(row);
+            if (noMatchResult) {
+                log.info("Row of {} does not meet the filtering criteria, it will be ignored.", i);
+                continue;
+            }
+            int lastColNum = row.getLastCellNum();
+            if (lastColNum < 0) {
+                continue;
+            }
+            T obj = instanceObj(fieldMap, formatter, row);
+            if (beanFilter.test(obj)) {
+                result.add(obj);
+            }
         }
+        log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
+        return result;
     }
 
     private void readThenConsume(Sheet sheet, Map<Integer, Field> fieldMap, Consumer<T> consumer) {

@@ -14,10 +14,13 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.cache.WeakCache;
+
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Date读取转换器
@@ -27,13 +30,20 @@ import java.util.Date;
  */
 public class DateReadConverter extends AbstractReadConverter<Date> {
 
+    private WeakCache<String, SimpleDateFormat> simpleDateFormatWeakCache = new WeakCache<>();
+
     @Override
     public Date doConvert(String v, Field field) {
         if (isNumber(v)) {
             final long time = Long.parseLong(v);
             return new Date(time);
         }
-        SimpleDateFormat sdf = new SimpleDateFormat(getDateFormatPattern(field));
+        String dateFormatPattern = getDateFormatPattern(field);
+        SimpleDateFormat sdf = simpleDateFormatWeakCache.get(dateFormatPattern);
+        if (Objects.isNull(sdf)) {
+            sdf = new SimpleDateFormat(dateFormatPattern);
+            simpleDateFormatWeakCache.cache(dateFormatPattern, sdf);
+        }
         try {
             return sdf.parse(v);
         } catch (ParseException e) {
