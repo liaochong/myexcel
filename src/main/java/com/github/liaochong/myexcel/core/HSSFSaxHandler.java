@@ -69,7 +69,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
     private POIFSFileSystem fs;
 
-    private int lastRowNumber;
+    private int lastRowNumber = -1;
 
     /**
      * Should we output the formula, or the value it has?
@@ -266,8 +266,17 @@ class HSSFSaxHandler<T> implements HSSFListener {
                 break;
         }
 
+        // Handle missing column
+        if (record instanceof MissingCellDummyRecord) {
+            MissingCellDummyRecord mc = (MissingCellDummyRecord) record;
+            thisRow = mc.getRow();
+            thisColumn = mc.getColumn();
+            thisStr = null;
+        }
+
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
+            lastRowNumber = thisRow;
             currentRow = new Row(thisRow);
             if (!rowFilter.test(currentRow)) {
                 return;
@@ -279,20 +288,8 @@ class HSSFSaxHandler<T> implements HSSFListener {
             }
         }
 
-        if (thisRow > -1) {
-            lastRowNumber = thisRow;
-        }
-
         if (Objects.isNull(obj)) {
             return;
-        }
-
-        // Handle missing column
-        if (record instanceof MissingCellDummyRecord) {
-            MissingCellDummyRecord mc = (MissingCellDummyRecord) record;
-            thisRow = mc.getRow();
-            thisColumn = mc.getColumn();
-            thisStr = null;
         }
 
         if (thisStr != null) {
