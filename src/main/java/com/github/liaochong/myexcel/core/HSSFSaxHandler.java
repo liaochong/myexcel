@@ -65,8 +65,6 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
     private Row currentRow;
 
-    private int count;
-
     private int sheet;
 
     private POIFSFileSystem fs;
@@ -316,7 +314,6 @@ class HSSFSaxHandler<T> implements HSSFListener {
             if (!beanFilter.test(obj)) {
                 return;
             }
-            count++;
             if (Objects.nonNull(consumer)) {
                 consumer.accept(obj);
             } else {

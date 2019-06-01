@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -119,7 +120,7 @@ public class DefaultExcelReader<T> {
     }
 
     public List<T> read(@NonNull File file, String password) throws Exception {
-        if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
+        if (!file.getName().endsWith(Constants.XLSX) && !file.getName().endsWith(Constants.XLS)) {
             throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);

@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -110,7 +111,7 @@ public class SaxExcelReader<T> {
     }
 
     public List<T> read(@NonNull File file) {
-        if (file.getName().endsWith(".xls")) {
+        if (file.getName().endsWith(Constants.XLS)) {
             result = new LinkedList<>();
             try {
                 new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
@@ -144,7 +145,7 @@ public class SaxExcelReader<T> {
     }
 
     public void readThen(@NonNull File file, Consumer<T> consumer) {
-        if (file.getName().endsWith(".xls")) {
+        if (file.getName().endsWith(Constants.XLS)) {
             try {
                 new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
             } catch (IOException e) {
