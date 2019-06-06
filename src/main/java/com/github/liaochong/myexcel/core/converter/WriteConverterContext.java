@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -35,6 +36,7 @@ public class WriteConverterContext {
 
     static {
         WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
+        WRITE_CONVERTER_CONTAINER.add(new StringWriteConverter());
     }
 
     public static synchronized void registering(WriteConverter... writeConverters) {
@@ -43,10 +45,15 @@ public class WriteConverterContext {
     }
 
     public static Pair<? extends Class, Object> convert(Field field, Object object) {
+        Pair<? extends Class, Object> pair = null;
         Object result = ReflectUtil.getFieldValue(object, field);
         for (WriteConverter writeConverter : WRITE_CONVERTER_CONTAINER) {
-            return writeConverter.convert(field, result);
+            if (null == pair) {
+                pair = writeConverter.convert(field, result);
+            } else {
+                pair = writeConverter.convert(field, pair.getValue());
+            }
         }
-        return null;
+        return pair;
     }
 }
