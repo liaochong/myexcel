@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author liaochong
@@ -45,15 +46,10 @@ public class WriteConverterContext {
     }
 
     public static Pair<? extends Class, Object> convert(Field field, Object object) {
-        Pair<? extends Class, Object> pair = null;
         Object result = ReflectUtil.getFieldValue(object, field);
-        for (WriteConverter writeConverter : WRITE_CONVERTER_CONTAINER) {
-            if (null == pair) {
-                pair = writeConverter.convert(field, result);
-            } else {
-                pair = writeConverter.convert(field, pair.getValue());
-            }
-        }
-        return pair;
+        Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
+                .filter(writeConverter -> writeConverter.support(field, result))
+                .findFirst();
+        return writeConverterOptional.isPresent() ? writeConverterOptional.get().convert(field, result) : Pair.of(field.getType(), result);
     }
 }
