@@ -80,7 +80,15 @@ public @interface ExcelColumn {
 
     /**
      * 是否强制转换成字符串
+     *
      * @return 是否强制转换成字符串
      */
     boolean convertToString() default false;
+
+    /**
+     * 自动换行
+     *
+     * @return 是否自动换行
+     */
+    boolean wrapText() default false;
 }
