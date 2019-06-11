@@ -17,14 +17,11 @@ public class StringWriteConverter implements WriteConverter {
     @Override
     public boolean support(Field field, Object fieldVal) {
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal);
+        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal) && excelColumn.convertToString();
     }
 
     @Override
     public Pair<Class, Object> convert(Field field, Object fieldVal) {
-        Class<?> fieldType = field.getType();
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        boolean convertToString = excelColumn.convertToString();
-        return convertToString ? Pair.of(String.class, fieldVal.toString()) : Pair.of(fieldType, fieldVal);
+        return Pair.of(String.class, fieldVal.toString());
     }
 }
