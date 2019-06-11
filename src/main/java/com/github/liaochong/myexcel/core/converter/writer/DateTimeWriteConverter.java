@@ -45,7 +45,7 @@ public class DateTimeWriteConverter implements WriteConverter {
             return false;
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal);
+        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal) && StringUtil.isNotBlank(excelColumn.dateFormatPattern());
     }
 
     @Override
@@ -54,9 +54,6 @@ public class DateTimeWriteConverter implements WriteConverter {
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         // 时间格式化
         String dateFormatPattern = excelColumn.dateFormatPattern();
-        if (StringUtil.isBlank(dateFormatPattern)) {
-            return Pair.of(fieldType, fieldVal);
-        }
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
