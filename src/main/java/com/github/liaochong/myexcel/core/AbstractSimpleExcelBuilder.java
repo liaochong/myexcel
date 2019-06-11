@@ -66,7 +66,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     /**
      * 标题
      */
-    private List<String> titles;
+    protected List<String> titles;
     /**
      * sheetName
      */
@@ -95,6 +95,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 无样式
      */
     protected boolean noStyle;
+    /**
+     * 是否固定标题
+     */
+    protected boolean fixedTitles;
     /**
      * 自动宽度策略
      */
@@ -158,6 +162,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     @Override
     public AbstractSimpleExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
         this.autoWidthStrategy = autoWidthStrategy;
+        return this;
+    }
+
+    @Override
+    public AbstractSimpleExcelBuilder fixedTitles() {
+        this.fixedTitles = true;
         return this;
     }
 

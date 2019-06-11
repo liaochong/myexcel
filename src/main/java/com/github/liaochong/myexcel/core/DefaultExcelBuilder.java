@@ -135,6 +135,10 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             table.getTrList().addAll(tbody);
         }
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+        if (fixedTitles && Objects.nonNull(titles) && !titles.isEmpty()) {
+            FreezePane freezePane = new FreezePane(1, titles.size());
+            htmlToExcelFactory.freezePanes(freezePane);
+        }
         return htmlToExcelFactory.build(tableList, workbook);
     }
 }
