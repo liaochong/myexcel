@@ -31,7 +31,6 @@ import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
-import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
@@ -115,10 +114,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 自定义宽度
      */
     private Map<Integer, Integer> customWidthMap;
-    /**
-     * 自动换行字段集合
-     */
-    private List<Integer> wordBreakFields;
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -209,54 +204,38 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (!hasTitles) {
             return null;
         }
-        Map<String, String> thStyle = Collections.emptyMap();
-        Map<String, String> wordBreakThStyle = Collections.emptyMap();
-        if (!noStyle) {
-            // 包含自动换行样式
-            if (Objects.nonNull(wordBreakFields) && wordBreakFields.size() > 0) {
-                wordBreakThStyle = new HashMap<>(8);
-                wordBreakThStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
-                wordBreakThStyle.put(FontStyle.FONT_SIZE, "14");
-                wordBreakThStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
-                wordBreakThStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-                wordBreakThStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-                wordBreakThStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-                wordBreakThStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-                wordBreakThStyle.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
-            } else {
-                thStyle = new HashMap<>(7);
-                thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
-                thStyle.put(FontStyle.FONT_SIZE, "14");
-                thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
-                thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-                thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-                thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-                thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-            }
+        Map<String, String> thStyle;
+        if (noStyle) {
+            thStyle = Collections.emptyMap();
+        } else {
+            thStyle = new HashMap<>(7);
+            thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
+            thStyle.put(FontStyle.FONT_SIZE, "14");
+            thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
+            thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+            thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
+            thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
+            thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
         }
+
         Tr tr = new Tr(0);
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
 
-        List<Td> ths = new ArrayList<>(titles.size());
-        for (int i = 0, size = titles.size(); i < size; i++) {
+        List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
             Td td = new Td();
             td.setTh(true);
             td.setRow(0);
             td.setRowBound(0);
-            td.setCol(i);
-            td.setColBound(i);
-            td.setContent(titles.get(i));
-            if (i < wordBreakFields.size() && Objects.nonNull(wordBreakFields.get(i))) {
-                td.setStyle(wordBreakThStyle);
-            } else {
-                td.setStyle(thStyle);
-            }
+            td.setCol(index);
+            td.setColBound(index);
+            td.setContent(titles.get(index));
+            td.setStyle(thStyle);
             if (isComputeAutoWidth) {
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent(), 0.25));
+                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), 0.25));
             }
-            ths.add(td);
-        }
+            return td;
+        }).collect(Collectors.toList());
         tr.setTdList(ths);
         return tr;
     }
@@ -271,19 +250,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     protected List<Tr> createTbody(List<List<Pair<Class, Object>>> contents, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
-
-        // 换行样式
-        Map<String, String> wordBreakTdStyleOfCommon = new HashMap<>(commonTdStyle);
-        wordBreakTdStyleOfCommon.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
-        Map<String, String> wordBreakTdStyleOfEven = new HashMap<>(evenTdStyle);
-        wordBreakTdStyleOfCommon.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
-        boolean useWordBreakStyle = Objects.nonNull(wordBreakFields) && wordBreakFields.size() > 0;
         return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Pair<Class, Object>> dataList = contents.get(index);
             tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(dataList.size()) : Collections.emptyMap());
-            Map<String, String> tdStyle = (index & 1) == 0 ? (useWordBreakStyle ? wordBreakTdStyleOfCommon : commonTdStyle) : (useWordBreakStyle ? wordBreakTdStyleOfEven : evenTdStyle);
+            Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
@@ -397,7 +369,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 .collect(Collectors.toList());
         defaultValueMap = new HashMap<>(preelectionFields.size());
         customWidthMap = new HashMap<>(sortedFields.size());
-        wordBreakFields = new ArrayList<>(sortedFields.size());
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
@@ -412,9 +383,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 }
                 if (excelColumn.width() > 0) {
                     customWidthMap.put(i, excelColumn.width());
-                }
-                if (excelColumn.wrapText()) {
-                    wordBreakFields.add(i);
                 }
             } else {
                 if (useFieldNameAsTitle) {
