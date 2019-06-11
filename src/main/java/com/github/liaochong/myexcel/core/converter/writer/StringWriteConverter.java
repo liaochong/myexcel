@@ -9,8 +9,7 @@ import java.util.Objects;
 
 /**
  * @author simon
- * @version 1.0
- * @date 2019-06-06 15:52
+ * @version 2.5.0
  */
 public class StringWriteConverter implements WriteConverter {
 
