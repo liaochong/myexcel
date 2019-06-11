@@ -77,4 +77,10 @@ public @interface ExcelColumn {
      * @return 宽度
      */
     int width() default -1;
+
+    /**
+     * 是否强制转换成字符串
+     * @return 是否强制转换成字符串
+     */
+    boolean convertToString() default false;
 }

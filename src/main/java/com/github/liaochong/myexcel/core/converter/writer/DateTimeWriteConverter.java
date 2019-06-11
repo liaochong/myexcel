@@ -38,20 +38,22 @@ public class DateTimeWriteConverter implements WriteConverter {
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
+    public boolean support(Field field, Object fieldVal) {
         Class<?> fieldType = field.getType();
-        if (fieldType != LocalDateTime.class && fieldType != LocalDate.class && fieldType != Date.class) {
-            return Pair.of(fieldType, fieldVal);
+        boolean validType = fieldType == LocalDateTime.class || fieldType == LocalDate.class || fieldType == Date.class;
+        if (!validType) {
+            return false;
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn) || Objects.isNull(fieldVal)) {
-            return Pair.of(fieldType, fieldVal);
-        }
+        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal) && StringUtil.isNotBlank(excelColumn.dateFormatPattern());
+    }
+
+    @Override
+    public Pair<Class, Object> convert(Field field, Object fieldVal) {
+        Class<?> fieldType = field.getType();
+        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         // 时间格式化
         String dateFormatPattern = excelColumn.dateFormatPattern();
-        if (StringUtil.isBlank(dateFormatPattern)) {
-            return Pair.of(fieldType, fieldVal);
-        }
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);

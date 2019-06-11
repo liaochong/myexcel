@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author liaochong
@@ -35,6 +37,7 @@ public class WriteConverterContext {
 
     static {
         WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
+        WRITE_CONVERTER_CONTAINER.add(new StringWriteConverter());
     }
 
     public static synchronized void registering(WriteConverter... writeConverters) {
@@ -44,9 +47,9 @@ public class WriteConverterContext {
 
     public static Pair<? extends Class, Object> convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
-        for (WriteConverter writeConverter : WRITE_CONVERTER_CONTAINER) {
-            return writeConverter.convert(field, result);
-        }
-        return null;
+        Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
+                .filter(writeConverter -> writeConverter.support(field, result))
+                .findFirst();
+        return writeConverterOptional.isPresent() ? writeConverterOptional.get().convert(field, result) : Pair.of(field.getType(), result);
     }
 }

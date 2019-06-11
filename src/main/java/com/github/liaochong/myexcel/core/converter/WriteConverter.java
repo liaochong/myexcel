@@ -34,4 +34,13 @@ public interface WriteConverter {
      */
     Pair<Class, Object> convert(Field field, Object fieldVal);
 
+    /**
+     * 是否支持转换
+     *
+     * @param field    字段
+     * @param fieldVal 字段值
+     * @return true/false
+     */
+    boolean support(Field field, Object fieldVal);
+
 }

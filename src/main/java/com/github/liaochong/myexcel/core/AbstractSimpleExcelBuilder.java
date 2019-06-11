@@ -37,7 +37,14 @@ import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -58,7 +65,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     /**
      * 标题
      */
-    private List<String> titles;
+    protected List<String> titles;
     /**
      * sheetName
      */
@@ -87,6 +94,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 无样式
      */
     protected boolean noStyle;
+    /**
+     * 是否固定标题
+     */
+    protected boolean fixedTitles;
     /**
      * 自动宽度策略
      */
@@ -146,6 +157,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     @Override
     public AbstractSimpleExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
         this.autoWidthStrategy = autoWidthStrategy;
+        return this;
+    }
+
+    @Override
+    public AbstractSimpleExcelBuilder fixedTitles() {
+        this.fixedTitles = true;
         return this;
     }
 

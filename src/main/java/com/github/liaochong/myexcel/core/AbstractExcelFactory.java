@@ -26,6 +26,7 @@ import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
+import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
@@ -254,6 +255,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             BorderStyle.setBorder(cellStyle, td.getStyle());
             // font
             FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
+            // word-break
+            WordBreakStyle.setWordBreak(cellStyle, td.getStyle());
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }

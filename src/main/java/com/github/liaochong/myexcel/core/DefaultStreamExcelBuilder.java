@@ -161,6 +161,10 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
 
     @Override
     public Workbook build() {
+        if (fixedTitles && Objects.nonNull(titles) && !titles.isEmpty()) {
+            FreezePane freezePane = new FreezePane(1, titles.size());
+            htmlToExcelStreamFactory.freezePanes(freezePane);
+        }
         return htmlToExcelStreamFactory.build();
     }
 
