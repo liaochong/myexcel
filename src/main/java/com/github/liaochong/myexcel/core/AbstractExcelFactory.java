@@ -116,6 +116,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     @Override
     public ExcelFactory workbookType(WorkbookType workbookType) {
+        if (Objects.nonNull(workbook)) {
+            return this;
+        }
         switch (workbookType) {
             case XLS:
                 workbook = new HSSFWorkbook();

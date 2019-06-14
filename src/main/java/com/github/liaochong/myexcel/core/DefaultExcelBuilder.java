@@ -26,7 +26,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -77,16 +76,17 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
     @Override
     public Workbook build(List<?> data, Class<?>... groups) {
         HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
         List<Table> tableList = new ArrayList<>();
         if (Objects.isNull(dataType)) {
             if (Objects.isNull(data) || data.isEmpty()) {
                 log.info("No valid data exists");
-                return htmlToExcelFactory.build(this.getTableWithHeader());
+                return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
             }
             Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
             if (!findResult.isPresent()) {
                 log.info("No valid data exists");
-                return htmlToExcelFactory.build(this.getTableWithHeader());
+                return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
             }
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
             List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
@@ -111,11 +111,6 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
 
-            if (sortedFields.isEmpty()) {
-                log.info("The specified field mapping does not exist");
-                return htmlToExcelFactory.build(Collections.emptyList());
-            }
-
             Table table = this.createTable();
             Tr thead = this.createThead();
             if (Objects.nonNull(thead)) {
@@ -123,9 +118,14 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             }
             tableList.add(table);
 
+            if (sortedFields.isEmpty()) {
+                log.info("The specified field mapping does not exist");
+                return htmlToExcelFactory.build(tableList, workbook);
+            }
+
             if (Objects.isNull(data) || data.isEmpty()) {
                 log.info("No valid data exists");
-                return htmlToExcelFactory.build(tableList);
+                return htmlToExcelFactory.build(tableList, workbook);
             }
 
             this.initStyleMap();
@@ -134,7 +134,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
             table.getTrList().addAll(tbody);
         }
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+
         if (fixedTitles && Objects.nonNull(titles) && !titles.isEmpty()) {
             FreezePane freezePane = new FreezePane(1, titles.size());
             htmlToExcelFactory.freezePanes(freezePane);
