@@ -361,7 +361,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (sheet instanceof SXSSFSheet) {
                 throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
             }
-            for (int i = 0, size = sheet.getLastRowNum(); i < size; i++) {
+            for (int i = 0, size = sheet.getLastRowNum(); i <= size; i++) {
                 sheet.autoSizeColumn(i);
             }
             return;
