@@ -169,8 +169,14 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "Sheet" + (i + 1) : table.getCaption();
-            Sheet sheet = workbook.createSheet(sheetName);
-
+            Sheet sheet = workbook.getSheet(sheetName);
+            // 避免重名
+            int sort = 1;
+            while (Objects.nonNull(sheet)) {
+                sheetName = sheetName + " (" + sort + ")";
+                sheet = workbook.getSheet(sheetName);
+            }
+            sheet = workbook.createSheet(sheetName);
             boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
             if (!hasTd) {
                 continue;
