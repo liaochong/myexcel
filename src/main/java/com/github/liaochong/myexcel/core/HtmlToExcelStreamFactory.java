@@ -144,7 +144,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                         sheetNum++;
                         this.setColWidth(colWidthMap, sheet, maxColIndex);
                         colWidthMap = null;
-                        sheet = workbook.createSheet(sheetName + " " + sheetNum);
+                        sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
                         rowNum = 0;
                     }
                     tr.setIndex(rowNum);
