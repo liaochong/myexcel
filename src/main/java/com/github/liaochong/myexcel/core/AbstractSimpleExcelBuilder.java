@@ -31,17 +31,20 @@ import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
+import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -114,6 +117,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 自定义宽度
      */
     private Map<Integer, Integer> customWidthMap;
+    /**
+     * 是否自动换行
+     */
+    private boolean wrapText = true;
+
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -190,7 +198,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     protected Table createTable() {
         Table table = new Table();
         table.setCaption(sheetName);
-        table.setTrList(new ArrayList<>());
+        table.setTrList(new LinkedList<>());
         return table;
     }
 
@@ -250,7 +258,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     protected List<Tr> createTbody(List<List<Pair<Class, Object>>> contents, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
-        return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
+        List<Tr> result = IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Pair<Class, Object>> dataList = contents.get(index);
@@ -289,9 +297,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
             }
             tr.setTdList(tdList);
-            contents.set(index, null);
             return tr;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toCollection(LinkedList::new));
+        contents.clear();
+
+        return result;
     }
 
     /**
@@ -306,6 +316,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
             commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
             commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+            if (wrapText) {
+                commonTdStyle.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
+            }
 
             evenTdStyle = new HashMap<>(4);
             evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
@@ -326,6 +339,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         boolean excelTableExist = Objects.nonNull(excelTable);
         boolean excludeParent = false;
         boolean includeAllField = false;
+        boolean ignoreStaticFields = true;
         if (excelTableExist) {
             setWorkbookWithExcelTableAnnotation(excelTable);
             excludeParent = excelTable.excludeParent();
@@ -333,6 +347,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             if (!excelTable.defaultValue().isEmpty()) {
                 globalDefaultValue = excelTable.defaultValue();
             }
+            wrapText = excelTable.wrapText();
+            ignoreStaticFields = excelTable.ignoreStaticFields();
         }
 
         List<Field> preelectionFields;
@@ -359,7 +375,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                         .collect(Collectors.toList());
             }
         }
-
+        if (ignoreStaticFields) {
+            preelectionFields = preelectionFields.stream().filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList());
+        }
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         List<String> titles = new ArrayList<>(preelectionFields.size());
@@ -503,13 +521,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                         return value;
                     })
                     .collect(Collectors.toList());
-            data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toCollection(LinkedList::new));
+        data.clear();
 
         // 重排序
         return resolvedDataContainers.stream()
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
-                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toList());
+                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toCollection(LinkedList::new));
     }
 }

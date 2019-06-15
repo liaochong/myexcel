@@ -70,6 +70,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private int sheetNum;
 
+    private int maxColIndex;
+
     /**
      * 线程池
      */
@@ -129,6 +131,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private void receive() {
         List<Tr> trList = this.getTrListFromQueue();
+        if (maxColIndex == 0 && !trList.isEmpty()) {
+            int tdSize = trList.get(0).getTdList().size();
+            maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
+        }
         int appendSize = 0;
         try {
             while (trList != STOP_FLAG_LIST) {
@@ -136,9 +142,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 for (Tr tr : trList) {
                     if (rowNum == maxRowCountOfSheet) {
                         sheetNum++;
-                        this.setColWidth(colWidthMap, sheet);
+                        this.setColWidth(colWidthMap, sheet, maxColIndex);
                         colWidthMap = null;
-                        sheet = workbook.createSheet(sheetName + " " + sheetNum);
+                        sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
                         rowNum = 0;
                     }
                     tr.setIndex(rowNum);
@@ -201,7 +207,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
         }
-        this.setColWidth(colWidthMap, sheet);
+        this.setColWidth(colWidthMap, sheet, maxColIndex);
         this.freezePane(0, sheet);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;

@@ -18,7 +18,9 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
+import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -167,8 +169,17 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
             String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "Sheet" + (i + 1) : table.getCaption();
-            Sheet sheet = workbook.createSheet(sheetName);
-
+            Sheet sheet = workbook.getSheet(sheetName);
+            // 避免重名
+            int sort = 1;
+            String realSheetName = sheetName;
+            while (Objects.nonNull(sheet)) {
+                sheetName = realSheetName + " (" + sort + ")";
+                sheet = workbook.getSheet(sheetName);
+                sort++;
+            }
+            realSheetName = sheetName;
+            sheet = workbook.createSheet(realSheetName);
             boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
             if (!hasTd) {
                 continue;
@@ -185,12 +196,21 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
     private void setTdOfTable(Table table, Sheet sheet) {
+        int maxColIndex = 0;
+        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy) && !table.getTrList().isEmpty()) {
+            maxColIndex = table.getTrList().parallelStream()
+                    .mapToInt(tr -> tr.getTdList().stream().mapToInt(Td::getCol).max().orElse(0))
+                    .max()
+                    .orElse(0);
+        }
         Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
-            this.createRow(table.getTrList().get(i), sheet);
-            table.getTrList().set(i, null);
+            Tr tr = table.getTrList().get(i);
+            this.createRow(tr, sheet);
+            tr.setTdList(null);
         }
-        this.setColWidth(colMaxWidthMap, sheet);
+        table.setTrList(null);
+        this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
     }
 
 }

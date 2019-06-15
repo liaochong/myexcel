@@ -115,6 +115,12 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return this;
     }
 
+    @Override
+    public DefaultStreamExcelBuilder fixedTitles() {
+        this.fixedTitles = true;
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
