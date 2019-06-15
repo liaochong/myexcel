@@ -506,11 +506,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                     .collect(Collectors.toList());
             data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toCollection(LinkedList::new));
 
         // 重排序
         return resolvedDataContainers.stream()
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
-                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toList());
+                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toCollection(LinkedList::new));
     }
 }
