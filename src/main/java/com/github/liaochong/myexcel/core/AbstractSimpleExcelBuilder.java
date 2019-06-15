@@ -37,6 +37,7 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -338,6 +339,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         boolean excelTableExist = Objects.nonNull(excelTable);
         boolean excludeParent = false;
         boolean includeAllField = false;
+        boolean ignoreStaticFields = true;
         if (excelTableExist) {
             setWorkbookWithExcelTableAnnotation(excelTable);
             excludeParent = excelTable.excludeParent();
@@ -346,6 +348,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 globalDefaultValue = excelTable.defaultValue();
             }
             wrapText = excelTable.wrapText();
+            ignoreStaticFields = excelTable.ignoreStaticFields();
         }
 
         List<Field> preelectionFields;
@@ -372,7 +375,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                         .collect(Collectors.toList());
             }
         }
-
+        if (ignoreStaticFields) {
+            preelectionFields = preelectionFields.stream().filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList());
+        }
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         List<String> titles = new ArrayList<>(preelectionFields.size());

@@ -87,4 +87,11 @@ public @interface ExcelTable {
      * @return true/false
      */
     boolean wrapText() default true;
+
+    /**
+     * 是否过滤静态字段
+     *
+     * @return true/false
+     */
+    boolean ignoreStaticFields() default true;
 }
