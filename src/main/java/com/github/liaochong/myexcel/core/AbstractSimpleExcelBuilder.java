@@ -31,6 +31,7 @@ import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
+import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
@@ -115,6 +116,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 自定义宽度
      */
     private Map<Integer, Integer> customWidthMap;
+    /**
+     * 是否自动换行
+     */
+    private boolean wrapText = true;
+
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -309,6 +315,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
             commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
             commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
+            if (wrapText) {
+                commonTdStyle.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
+            }
 
             evenTdStyle = new HashMap<>(4);
             evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
@@ -336,6 +345,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             if (!excelTable.defaultValue().isEmpty()) {
                 globalDefaultValue = excelTable.defaultValue();
             }
+            wrapText = excelTable.wrapText();
         }
 
         List<Field> preelectionFields;

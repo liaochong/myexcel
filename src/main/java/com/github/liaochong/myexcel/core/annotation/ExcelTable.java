@@ -80,4 +80,11 @@ public @interface ExcelTable {
      * @return 默认值
      */
     String defaultValue() default "";
+
+    /**
+     * 是否自动换行
+     *
+     * @return true/false
+     */
+    boolean wrapText() default true;
 }
