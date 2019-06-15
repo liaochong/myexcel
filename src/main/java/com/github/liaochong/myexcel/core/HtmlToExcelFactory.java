@@ -18,7 +18,9 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
+import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -185,12 +187,21 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
     private void setTdOfTable(Table table, Sheet sheet) {
+        int maxColIndex = 0;
+        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy) && !table.getTrList().isEmpty()) {
+            maxColIndex = table.getTrList().parallelStream()
+                    .mapToInt(tr -> tr.getTdList().stream().mapToInt(Td::getCol).max().orElse(0))
+                    .max()
+                    .orElse(0);
+        }
         Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
-            this.createRow(table.getTrList().get(i), sheet);
-            table.getTrList().set(i, null);
+            Tr tr = table.getTrList().get(i);
+            this.createRow(tr, sheet);
+            tr.setTdList(null);
         }
-        this.setColWidth(colMaxWidthMap, sheet);
+        table.setTrList(null);
+        this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
     }
 
 }

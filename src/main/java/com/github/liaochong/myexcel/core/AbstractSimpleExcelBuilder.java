@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -190,7 +191,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     protected Table createTable() {
         Table table = new Table();
         table.setCaption(sheetName);
-        table.setTrList(new ArrayList<>());
+        table.setTrList(new LinkedList<>());
         return table;
     }
 

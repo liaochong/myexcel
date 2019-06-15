@@ -352,8 +352,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      *
      * @param colMaxWidthMap 列最大宽度Map
      * @param sheet          sheet
+     * @param maxColIndex    最大列索引
      */
-    protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet) {
+    protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet, int maxColIndex) {
         if (AutoWidthStrategy.isNoAuto(autoWidthStrategy)) {
             return;
         }
@@ -361,7 +362,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (sheet instanceof SXSSFSheet) {
                 throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
             }
-            for (int i = 0, size = sheet.getLastRowNum(); i <= size; i++) {
+            for (int i = 0; i <= maxColIndex; i++) {
                 sheet.autoSizeColumn(i);
             }
             return;
