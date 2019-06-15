@@ -101,11 +101,11 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
             Table table = this.createTable();
             Tr thead = this.createThead();
-            if (Objects.nonNull(thead)) {
-                table.getTrList().add(thead);
-            }
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
-            table.getTrList().addAll(tbody);
+            if (Objects.nonNull(thead)) {
+                tbody.add(0, thead);
+            }
+            table.setTrList(tbody);
             tableList.add(table);
         } else {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
@@ -113,17 +113,20 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
             Table table = this.createTable();
             Tr thead = this.createThead();
-            if (Objects.nonNull(thead)) {
-                table.getTrList().add(thead);
-            }
             tableList.add(table);
 
             if (sortedFields.isEmpty()) {
+                if (Objects.nonNull(thead)) {
+                    table.getTrList().add(thead);
+                }
                 log.info("The specified field mapping does not exist");
                 return htmlToExcelFactory.build(tableList, workbook);
             }
 
             if (Objects.isNull(data) || data.isEmpty()) {
+                if (Objects.nonNull(thead)) {
+                    table.getTrList().add(thead);
+                }
                 log.info("No valid data exists");
                 return htmlToExcelFactory.build(tableList, workbook);
             }
@@ -132,7 +135,10 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
             List<List<Pair<Class, Object>>> contents = getRenderContent(data, sortedFields);
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
-            table.getTrList().addAll(tbody);
+            if (Objects.nonNull(thead)) {
+                tbody.add(0, thead);
+            }
+            table.setTrList(tbody);
         }
 
         if (fixedTitles && Objects.nonNull(titles) && !titles.isEmpty()) {
