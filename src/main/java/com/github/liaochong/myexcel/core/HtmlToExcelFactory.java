@@ -175,6 +175,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             while (Objects.nonNull(sheet)) {
                 sheetName = sheetName + " (" + sort + ")";
                 sheet = workbook.getSheet(sheetName);
+                sort++;
             }
             sheet = workbook.createSheet(sheetName);
             boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
