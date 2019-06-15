@@ -292,7 +292,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             tr.setTdList(tdList);
             contents.set(index, null);
             return tr;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
