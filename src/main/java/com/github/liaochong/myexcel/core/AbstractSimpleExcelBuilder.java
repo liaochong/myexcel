@@ -251,7 +251,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     protected List<Tr> createTbody(List<List<Pair<Class, Object>>> contents, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
-        return IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
+        List<Tr> result = IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
             int trIndex = index + shift;
             Tr tr = new Tr(trIndex);
             List<Pair<Class, Object>> dataList = contents.get(index);
@@ -290,9 +290,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
             }
             tr.setTdList(tdList);
-            contents.set(index, null);
             return tr;
         }).collect(Collectors.toCollection(LinkedList::new));
+        contents.clear();
+
+        return result;
     }
 
     /**
@@ -504,9 +506,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                         return value;
                     })
                     .collect(Collectors.toList());
-            data.set(index, null);
             return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toCollection(LinkedList::new));
+        data.clear();
 
         // 重排序
         return resolvedDataContainers.stream()
