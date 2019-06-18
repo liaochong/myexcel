@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.io;
+package com.github.liaochong.myexcel.utils;
 
 
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 临时文件操作类
@@ -34,15 +36,12 @@ import java.nio.file.Paths;
 @Slf4j
 public class TempFileOperator {
 
-    public static final String HTML_SUFFIX = ".html";
-
     private static final int MAX_CREATE_NO = 9_999;
 
     private static int createNo;
 
     private static Path templateDir;
 
-    private Path templateFile;
 
     static {
         try {
@@ -59,10 +58,9 @@ public class TempFileOperator {
      * @param suffix 临时文件后缀
      * @return Path
      */
-    public Path createTempFile(String prefix, String suffix) {
+    public static Path createTempFile(String prefix, String suffix) {
         try {
-            templateFile = Files.createTempFile(templateDir, this.getTempFileName(prefix), suffix);
-            return templateFile;
+            return Files.createTempFile(templateDir, getTempFileName(prefix), suffix);
         } catch (IOException e) {
             throw ExcelBuildException.of("Failed to create temp file", e);
         }
@@ -74,9 +72,9 @@ public class TempFileOperator {
      * @param prefix 文件前缀
      * @return 文件名称
      */
-    private String getTempFileName(String prefix) {
+    private static String getTempFileName(String prefix) {
         long currentTimeMillis = System.currentTimeMillis();
-        synchronized (this) {
+        synchronized (TempFileOperator.class) {
             if (createNo > MAX_CREATE_NO) {
                 createNo = 0;
             }
@@ -87,10 +85,29 @@ public class TempFileOperator {
 
     /**
      * 删除临时文件
+     *
+     * @param paths paths
      */
-    public void deleteTempFile() {
+    public static void deleteTempFiles(List<Path> paths) {
+        if (Objects.isNull(paths)) {
+            return;
+        }
+        for (Path path : paths) {
+            deleteTempFile(path);
+        }
+    }
+
+    /**
+     * 删除临时文件
+     *
+     * @param path path
+     */
+    public static void deleteTempFile(Path path) {
+        if (Objects.isNull(path)) {
+            return;
+        }
         try {
-            Files.deleteIfExists(templateFile);
+            Files.deleteIfExists(path);
         } catch (IOException e) {
             log.warn("Delete temp file failure");
         }

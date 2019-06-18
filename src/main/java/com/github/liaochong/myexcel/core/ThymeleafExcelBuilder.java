@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.io.TempFileOperator;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.TemplateEngine;
@@ -54,7 +54,7 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
     @Override
     public ExcelBuilder template(String path) {
         Objects.requireNonNull(path);
-        if (!path.endsWith(TempFileOperator.HTML_SUFFIX)) {
+        if (!path.endsWith(Constants.HTML_SUFFIX)) {
             throw new IllegalArgumentException("ThymeleafExcelBuilder only supports files suffixed with .html");
         }
         if (path.startsWith("/")) {
