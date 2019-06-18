@@ -17,8 +17,10 @@ package com.github.liaochong.myexcel.core;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 /**
  * 简单的流式excel构建器
@@ -53,6 +55,22 @@ interface SimpleStreamExcelBuilder {
     SimpleStreamExcelBuilder hasStyle();
 
     /**
+     * excel容量
+     *
+     * @param capacity 容量
+     * @return SimpleStreamExcelBuilder
+     */
+    SimpleStreamExcelBuilder capacity(int capacity);
+
+    /**
+     * path消费
+     *
+     * @param pathConsumer pathConsumer
+     * @return SimpleStreamExcelBuilder
+     */
+    SimpleStreamExcelBuilder pathConsumer(Consumer<Path> pathConsumer);
+
+    /**
      * 数据追加
      *
      * @param data 需要追加的数据
@@ -65,4 +83,11 @@ interface SimpleStreamExcelBuilder {
      * @return Workbook
      */
     Workbook build();
+
+    /**
+     * 停止追加数据，path方式构建
+     *
+     * @return path集合
+     */
+    List<Path> buildAsPaths();
 }
