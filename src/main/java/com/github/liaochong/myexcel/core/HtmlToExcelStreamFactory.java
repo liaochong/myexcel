@@ -300,6 +300,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         rowNum = 0;
         count = 0;
         colWidthMap = null;
+        clearStyleCache();
         initCellStyle(workbook);
         sheet = workbook.createSheet(sheetName);
         // 标题构建
