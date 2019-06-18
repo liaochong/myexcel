@@ -379,8 +379,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 清除样式缓存
      */
-    protected void clearStyleCache() {
+    protected void clearCache() {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
+        maxTdHeightMap = new HashMap<>();
     }
 }
