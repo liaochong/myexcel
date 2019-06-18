@@ -375,4 +375,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             sheet.setColumnWidth(key, contentLength << 8);
         });
     }
+
+    /**
+     * 清除样式缓存
+     */
+    protected void clearCache() {
+        cellStyleMap = new HashMap<>();
+        fontMap = new HashMap<>();
+        maxTdHeightMap = new HashMap<>();
+    }
 }

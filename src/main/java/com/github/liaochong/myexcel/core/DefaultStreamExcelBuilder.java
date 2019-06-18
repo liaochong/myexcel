@@ -24,10 +24,12 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 /**
  * @author liaochong
@@ -46,6 +48,14 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * workbook
      */
     private Workbook workbook;
+    /**
+     * 文件分割,excel容量
+     */
+    private int capacity;
+    /**
+     * path消费者
+     */
+    private Consumer<Path> pathConsumer;
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
@@ -121,6 +131,21 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return this;
     }
 
+    @Override
+    public DefaultStreamExcelBuilder capacity(int capacity) {
+        if (capacity < 1) {
+            throw new IllegalArgumentException("Capacity must be greater than 0");
+        }
+        this.capacity = capacity;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder pathConsumer(Consumer<Path> pathConsumer) {
+        this.pathConsumer = pathConsumer;
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
@@ -135,7 +160,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @Override
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
         Objects.requireNonNull(dataType);
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService);
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity);
         htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
 
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
@@ -151,7 +176,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         }
         List<Tr> headList = new ArrayList<>();
         headList.add(head);
-        htmlToExcelStreamFactory.append(headList);
+        htmlToExcelStreamFactory.appendTitles(headList);
         return this;
     }
 
@@ -172,6 +197,11 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
             htmlToExcelStreamFactory.freezePanes(freezePane);
         }
         return htmlToExcelStreamFactory.build();
+    }
+
+    @Override
+    public List<Path> buildAsPaths() {
+        return htmlToExcelStreamFactory.buildAsPaths();
     }
 
     @Override

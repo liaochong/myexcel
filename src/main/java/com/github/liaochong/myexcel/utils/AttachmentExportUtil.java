@@ -16,7 +16,6 @@
 package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.io.TempFileOperator;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -35,7 +34,6 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 
 /**
  * 附件导出工具类
@@ -55,24 +53,27 @@ public final class AttachmentExportUtil {
      * @throws IOException IOException
      */
     public static void export(Workbook workbook, String fileName, HttpServletResponse response) throws IOException {
-        String suffix = Constants.XLSX;
-        if (workbook instanceof HSSFWorkbook) {
-            if (fileName.endsWith(suffix)) {
-                fileName = fileName.substring(0, fileName.length() - 1);
+        try {
+            String suffix = Constants.XLSX;
+            if (workbook instanceof HSSFWorkbook) {
+                if (fileName.endsWith(suffix)) {
+                    fileName = fileName.substring(0, fileName.length() - 1);
+                }
+                suffix = Constants.XLS;
             }
-            suffix = Constants.XLS;
+            if (!fileName.endsWith(suffix)) {
+                fileName += suffix;
+            }
+            response.setCharacterEncoding(CharEncoding.UTF_8);
+            response.setContentType("multipart/form-data");
+            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            workbook.write(response.getOutputStream());
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
+        } finally {
+            workbook.close();
         }
-        if (!fileName.endsWith(suffix)) {
-            fileName += suffix;
-        }
-        response.setCharacterEncoding(CharEncoding.UTF_8);
-        response.setContentType("multipart/form-data");
-        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
-        workbook.write(response.getOutputStream());
-        if (workbook instanceof SXSSFWorkbook) {
-            ((SXSSFWorkbook) workbook).dispose();
-        }
-        workbook.close();
     }
 
     /**
@@ -88,16 +89,14 @@ public final class AttachmentExportUtil {
         if (workbook instanceof HSSFWorkbook) {
             throw new IllegalArgumentException("Document encryption for.xls is not supported");
         }
-        TempFileOperator tempFileOperator = null;
+        Path path = null;
         try {
-            tempFileOperator = new TempFileOperator();
             String suffix = Constants.XLSX;
-            Path path = tempFileOperator.createTempFile("encrypt_temp", suffix);
+            path = TempFileOperator.createTempFile("encrypt_temp", suffix);
             workbook.write(Files.newOutputStream(path));
             if (workbook instanceof SXSSFWorkbook) {
                 ((SXSSFWorkbook) workbook).dispose();
             }
-            workbook.close();
 
             final POIFSFileSystem fs = new POIFSFileSystem();
             final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
@@ -116,9 +115,8 @@ public final class AttachmentExportUtil {
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
             fs.writeFilesystem(response.getOutputStream());
         } finally {
-            if (Objects.nonNull(tempFileOperator)) {
-                tempFileOperator.deleteTempFile();
-            }
+            workbook.close();
+            TempFileOperator.deleteTempFile(path);
         }
     }
 }
