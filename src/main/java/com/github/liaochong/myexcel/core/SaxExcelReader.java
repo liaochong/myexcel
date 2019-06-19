@@ -184,15 +184,15 @@ public class SaxExcelReader<T> {
         result = new LinkedList<>();
         int index = 0;
         while (iter.hasNext()) {
-            if (sheetIndex > index) {
-                break;
-            }
-            if (sheetIndex == index) {
-                try (InputStream stream = iter.next()) {
+            try (InputStream stream = iter.next()) {
+                if (index > sheetIndex) {
+                    break;
+                }
+                if (index == sheetIndex) {
                     processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result, consumer, rowFilter, beanFilter), stream);
                 }
+                ++index;
             }
-            ++index;
         }
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }

@@ -218,6 +218,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             }
             trWaitQueue.clear();
             trWaitQueue = null;
+            TempFileOperator.deleteTempFiles(paths);
         }
     }
 
@@ -288,6 +289,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 paths.add(path);
             }
         } catch (IOException e) {
+            TempFileOperator.deleteTempFiles(paths);
             throw new RuntimeException(e);
         }
     }
