@@ -288,6 +288,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 paths.add(path);
             }
         } catch (IOException e) {
+            TempFileOperator.deleteTempFiles(paths);
             throw new RuntimeException(e);
         }
     }
