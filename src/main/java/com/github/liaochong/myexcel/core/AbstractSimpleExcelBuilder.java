@@ -365,7 +365,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         defaultValueMap = new HashMap<>(preElectionFields.size());
         customWidthMap = new HashMap<>(sortedFields.size());
 
-        boolean needToAddTitle = this.titles.isEmpty();
+        boolean needToAddTitle = Objects.isNull(this.titles);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
