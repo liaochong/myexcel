@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -65,6 +67,8 @@ public class SaxExcelReader<T> {
     private OPCPackage xlsxPackage;
 
     private Consumer<T> consumer;
+
+    private Function<T, Boolean> function;
 
     private List<T> result = Collections.emptyList();
 
@@ -103,7 +107,7 @@ public class SaxExcelReader<T> {
         } catch (OLE2NotOfficeXmlFileException e) {
             try {
                 result = new LinkedList<>();
-                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, function, rowFilter, beanFilter).process();
                 return result;
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
@@ -117,7 +121,7 @@ public class SaxExcelReader<T> {
         if (file.getName().endsWith(Constants.XLS)) {
             result = new LinkedList<>();
             try {
-                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, function, rowFilter, beanFilter).process();
                 return result;
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -140,7 +144,7 @@ public class SaxExcelReader<T> {
             process();
         } catch (OLE2NotOfficeXmlFileException e) {
             try {
-                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, function, rowFilter, beanFilter).process();
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
@@ -152,7 +156,7 @@ public class SaxExcelReader<T> {
     public void readThen(@NonNull File file, Consumer<T> consumer) {
         if (file.getName().endsWith(Constants.XLS)) {
             try {
-                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, rowFilter, beanFilter).process();
+                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, function, rowFilter, beanFilter).process();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -161,6 +165,48 @@ public class SaxExcelReader<T> {
                 xlsxPackage = p;
                 this.consumer = consumer;
                 process();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
+        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
+            xlsxPackage = p;
+            this.function = function;
+            process();
+        } catch (StopReadException e) {
+            // do nothing
+        } catch (OLE2NotOfficeXmlFileException e) {
+            try {
+                new HSSFSaxHandler<>(fileInputStream, sheetIndex, dataType, result, consumer, function, rowFilter, beanFilter).process();
+            } catch (StopReadException e1) {
+                // do nothing
+            } catch (IOException e1) {
+                throw new RuntimeException(e1);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void readThen(@NonNull File file, Function<T, Boolean> function) {
+        if (file.getName().endsWith(Constants.XLS)) {
+            try {
+                new HSSFSaxHandler<>(file, sheetIndex, dataType, result, consumer, function, rowFilter, beanFilter).process();
+            } catch (StopReadException e) {
+                // do nothing
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
+                xlsxPackage = p;
+                this.function = function;
+                process();
+            } catch (StopReadException e) {
+                // do nothing
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -189,7 +235,7 @@ public class SaxExcelReader<T> {
                     break;
                 }
                 if (index == sheetIndex) {
-                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result, consumer, rowFilter, beanFilter), stream);
+                    processSheet(styles, strings, new SaxHandler<>(dataType, fieldMap, result, consumer, function, rowFilter, beanFilter), stream);
                 }
                 ++index;
             }

@@ -335,7 +335,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-
         boolean excelTableExist = Objects.nonNull(excelTable);
         boolean excludeParent = false;
         boolean includeAllField = false;
@@ -350,51 +349,33 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             wrapText = excelTable.wrapText();
             ignoreStaticFields = excelTable.ignoreStaticFields();
         }
-
-        List<Field> preelectionFields;
-        if (includeAllField) {
-            if (excludeParent) {
-                preelectionFields = classFieldContainer.getDeclaredFields();
-            } else {
-                preelectionFields = classFieldContainer.getFields();
-            }
-        } else {
-            if (excludeParent) {
-                preelectionFields = classFieldContainer.getDeclaredFields().stream()
-                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
-            } else {
-                preelectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-            }
-            if (preelectionFields.isEmpty()) {
-                if (Objects.isNull(fieldDisplayOrder) || fieldDisplayOrder.isEmpty()) {
-                    throw new IllegalArgumentException("FieldDisplayOrder is necessary");
-                }
-                this.selfAdaption();
-                return fieldDisplayOrder.stream()
-                        .map(classFieldContainer::getFieldByName)
-                        .collect(Collectors.toList());
-            }
-        }
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);
         if (ignoreStaticFields) {
-            preelectionFields = preelectionFields.stream().filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList());
+            preElectionFields = preElectionFields.stream()
+                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                    .collect(Collectors.toList());
         }
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
-        List<String> titles = new ArrayList<>(preelectionFields.size());
-        List<Field> sortedFields = preelectionFields.stream()
+        List<String> titles = new ArrayList<>(preElectionFields.size());
+        List<Field> sortedFields = preElectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && filterFields(selectedGroupList, field))
                 .sorted(this::sortFields)
                 .collect(Collectors.toList());
-        defaultValueMap = new HashMap<>(preelectionFields.size());
+        defaultValueMap = new HashMap<>(preElectionFields.size());
         customWidthMap = new HashMap<>(sortedFields.size());
+
+        boolean needToAddTitle = Objects.isNull(this.titles);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
             if (Objects.nonNull(excelColumn)) {
-                if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
-                    titles.add(field.getName());
-                } else {
-                    titles.add(excelColumn.title());
+                if (needToAddTitle) {
+                    if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
+                        titles.add(field.getName());
+                    } else {
+                        titles.add(excelColumn.title());
+                    }
                 }
                 if (!excelColumn.defaultValue().isEmpty()) {
                     defaultValueMap.put(field, excelColumn.defaultValue());
@@ -403,10 +384,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                     customWidthMap.put(i, excelColumn.width());
                 }
             } else {
-                if (useFieldNameAsTitle) {
-                    titles.add(field.getName());
-                } else {
-                    titles.add(null);
+                if (needToAddTitle) {
+                    if (useFieldNameAsTitle) {
+                        titles.add(field.getName());
+                    } else {
+                        titles.add(null);
+                    }
                 }
             }
         }
@@ -416,6 +399,31 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {
+        if (Objects.nonNull(fieldDisplayOrder) && !fieldDisplayOrder.isEmpty()) {
+            this.selfAdaption();
+            return fieldDisplayOrder.stream()
+                    .map(classFieldContainer::getFieldByName)
+                    .collect(Collectors.toList());
+        }
+        List<Field> preElectionFields;
+        if (includeAllField) {
+            if (excludeParent) {
+                preElectionFields = classFieldContainer.getDeclaredFields();
+            } else {
+                preElectionFields = classFieldContainer.getFields();
+            }
+            return preElectionFields;
+        }
+        if (excludeParent) {
+            preElectionFields = classFieldContainer.getDeclaredFields().stream()
+                    .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
+        } else {
+            preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        }
+        return preElectionFields;
     }
 
     private boolean filterFields(List<Class<?>> selectedGroupList, Field field) {
@@ -485,11 +493,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (Objects.isNull(titles) || titles.isEmpty()) {
             return;
         }
-        if (fieldDisplayOrder.size() < titles.size()) {
-            for (int i = 0, size = titles.size() - fieldDisplayOrder.size(); i < size; i++) {
-                fieldDisplayOrder.add(null);
-            }
-        } else {
+        if (fieldDisplayOrder.size() > titles.size()) {
             for (int i = 0, size = fieldDisplayOrder.size() - titles.size(); i < size; i++) {
                 titles.add(null);
             }
