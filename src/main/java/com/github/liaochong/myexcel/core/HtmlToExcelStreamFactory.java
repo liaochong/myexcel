@@ -286,6 +286,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         boolean isXls = workbook instanceof HSSFWorkbook;
         String suffix = isXls ? Constants.XLS : Constants.XLSX;
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
+        paths.add(path);
         try {
             this.setColWidth(colWidthMap, sheet, maxColIndex);
             this.freezePane(0, sheet);
@@ -293,9 +294,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 FileExportUtil.export(workbook, path.toFile());
                 if (Objects.nonNull(pathConsumer)) {
                     pathConsumer.accept(path);
-                }
-                if (path.toFile().exists()) {
-                    paths.add(path);
                 }
             } else {
                 CompletableFuture future = CompletableFuture.runAsync(() -> {
@@ -306,11 +304,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     }
                     if (Objects.nonNull(pathConsumer)) {
                         pathConsumer.accept(path);
-                    }
-                    if (path.toFile().exists()) {
-                        synchronized (this) {
-                            paths.add(path);
-                        }
                     }
                 }, executorService);
                 futures.add(future);
