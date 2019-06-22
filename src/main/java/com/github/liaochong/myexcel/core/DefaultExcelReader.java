@@ -292,7 +292,7 @@ public class DefaultExcelReader<T> {
                 if (Objects.nonNull(consumer)) {
                     consumer.accept(obj);
                 } else if (Objects.nonNull(function)) {
-                    boolean noStop = function.apply(obj);
+                    Boolean noStop = function.apply(obj);
                     if (!noStop) {
                         break;
                     }
