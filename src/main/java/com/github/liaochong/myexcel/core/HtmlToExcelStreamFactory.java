@@ -98,8 +98,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
      */
     private ExecutorService executorService;
 
-    private List<CompletableFuture> futures;
-
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
                                     Consumer<Path> pathConsumer, int capacity) {
         this.trWaitQueue = new ArrayBlockingQueue<>(waitSize);
@@ -128,9 +126,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         this.sheet = this.workbook.createSheet(sheetName);
         if (capacity > 0) {
             paths = new ArrayList<>();
-            if (Objects.nonNull(executorService)) {
-                futures = new ArrayList<>();
-            }
         }
         if (Objects.isNull(executorService)) {
             Thread thread = new Thread(this::receive);
@@ -275,9 +270,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             // wait all tr received
         }
         this.storeToTempFile();
-        if (Objects.nonNull(futures)) {
-            futures.forEach(CompletableFuture::join);
-        }
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return paths;
     }
