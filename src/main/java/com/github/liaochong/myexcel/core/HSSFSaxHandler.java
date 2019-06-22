@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -60,6 +62,8 @@ class HSSFSaxHandler<T> implements HSSFListener {
     private Class<T> dataType;
 
     private Consumer<T> consumer;
+
+    private Function<T, Boolean> function;
 
     private Predicate<Row> rowFilter;
 
@@ -105,6 +109,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
                           Class<T> dataType,
                           List<T> result,
                           Consumer<T> consumer,
+                          Function<T, Boolean> function,
                           Predicate<Row> rowFilter,
                           Predicate<T> beanFilter) throws IOException {
         this.fs = new POIFSFileSystem(new FileInputStream(file));
@@ -113,6 +118,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
         this.result = result;
         this.dataType = dataType;
         this.consumer = consumer;
+        this.function = function;
         this.rowFilter = rowFilter;
         this.beanFilter = beanFilter;
     }
@@ -122,6 +128,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
                           Class<T> dataType,
                           List<T> result,
                           Consumer<T> consumer,
+                          Function<T, Boolean> function,
                           Predicate<Row> rowFilter,
                           Predicate<T> beanFilter) throws IOException {
         this.fs = new POIFSFileSystem(inputStream);
@@ -130,6 +137,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
         this.result = result;
         this.dataType = dataType;
         this.consumer = consumer;
+        this.function = function;
         this.rowFilter = rowFilter;
         this.beanFilter = beanFilter;
     }
@@ -317,6 +325,11 @@ class HSSFSaxHandler<T> implements HSSFListener {
             }
             if (Objects.nonNull(consumer)) {
                 consumer.accept(obj);
+            } else if (Objects.nonNull(function)) {
+                Boolean noStop = function.apply(obj);
+                if (!noStop) {
+                    throw new StopReadException();
+                }
             } else {
                 result.add(obj);
             }

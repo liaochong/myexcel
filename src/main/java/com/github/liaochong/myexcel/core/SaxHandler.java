@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -46,6 +48,8 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private Consumer<T> consumer;
 
+    private Function<T, Boolean> function;
+
     private Predicate<Row> rowFilter;
 
     private Predicate<T> beanFilter;
@@ -58,12 +62,14 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
                       Map<Integer, Field> fieldMap,
                       List<T> result,
                       Consumer<T> consumer,
+                      Function<T, Boolean> function,
                       Predicate<Row> rowFilter,
                       Predicate<T> beanFilter) {
         this.fieldMap = fieldMap;
         this.result = result;
         this.dataType = dataType;
         this.consumer = consumer;
+        this.function = function;
         this.rowFilter = rowFilter;
         this.beanFilter = beanFilter;
     }
@@ -89,6 +95,11 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         count++;
         if (Objects.nonNull(consumer)) {
             consumer.accept(obj);
+        } else if (Objects.nonNull(function)) {
+            Boolean noStop = function.apply(obj);
+            if (!noStop) {
+                throw new StopReadException();
+            }
         } else {
             result.add(obj);
         }

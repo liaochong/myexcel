@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -137,14 +138,13 @@ public class DefaultExcelReader<T> {
         }
         try {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
-            readThenConsume(sheet, fieldMap, consumer);
+            readThenConsume(sheet, fieldMap, consumer, null);
         } finally {
             if (Objects.nonNull(wb)) {
                 wb.close();
             }
         }
     }
-
 
     public void readThen(@NonNull File file, Consumer<T> consumer) throws Exception {
         readThen(file, null, consumer);
@@ -160,7 +160,48 @@ public class DefaultExcelReader<T> {
         }
         try {
             Sheet sheet = getSheetOfFile(file, password);
-            readThenConsume(sheet, fieldMap, consumer);
+            readThenConsume(sheet, fieldMap, consumer, null);
+        } finally {
+            if (Objects.nonNull(wb)) {
+                wb.close();
+            }
+        }
+    }
+
+    public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) throws Exception {
+        readThen(fileInputStream, null, function);
+    }
+
+    public void readThen(@NonNull InputStream fileInputStream, String password, Function<T, Boolean> function) throws Exception {
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        if (fieldMap.isEmpty()) {
+            return;
+        }
+        try {
+            Sheet sheet = getSheetOfInputStream(fileInputStream, password);
+            readThenConsume(sheet, fieldMap, null, function);
+        } finally {
+            if (Objects.nonNull(wb)) {
+                wb.close();
+            }
+        }
+    }
+
+    public void readThen(@NonNull File file, Function<T, Boolean> function) throws Exception {
+        readThen(file, null, function);
+    }
+
+    public void readThen(@NonNull File file, String password, Function<T, Boolean> function) throws Exception {
+        if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
+            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
+        }
+        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        if (fieldMap.isEmpty()) {
+            return;
+        }
+        try {
+            Sheet sheet = getSheetOfFile(file, password);
+            readThenConsume(sheet, fieldMap, null, function);
         } finally {
             if (Objects.nonNull(wb)) {
                 wb.close();
@@ -221,7 +262,7 @@ public class DefaultExcelReader<T> {
         return result;
     }
 
-    private void readThenConsume(Sheet sheet, Map<Integer, Field> fieldMap, Consumer<T> consumer) {
+    private void readThenConsume(Sheet sheet, Map<Integer, Field> fieldMap, Consumer<T> consumer, Function<T, Boolean> function) {
         long startTime = System.currentTimeMillis();
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
@@ -248,7 +289,14 @@ public class DefaultExcelReader<T> {
             }
             T obj = instanceObj(fieldMap, formatter, row);
             if (beanFilter.test(obj)) {
-                consumer.accept(obj);
+                if (Objects.nonNull(consumer)) {
+                    consumer.accept(obj);
+                } else if (Objects.nonNull(function)) {
+                    boolean noStop = function.apply(obj);
+                    if (!noStop) {
+                        break;
+                    }
+                }
             }
         }
         log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
