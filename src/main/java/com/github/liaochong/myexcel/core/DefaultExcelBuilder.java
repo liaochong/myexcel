@@ -100,10 +100,10 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             this.initStyleMap();
 
             Table table = this.createTable();
-            Tr thead = this.createThead();
-            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
+            List<Tr> thead = this.createThead();
+            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
             if (Objects.nonNull(thead)) {
-                tbody.add(0, thead);
+                tbody.addAll(0, thead);
             }
             table.setTrList(tbody);
             tableList.add(table);
@@ -112,12 +112,12 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
 
             Table table = this.createTable();
-            Tr thead = this.createThead();
+            List<Tr> thead = this.createThead();
             tableList.add(table);
 
             if (sortedFields.isEmpty()) {
                 if (Objects.nonNull(thead)) {
-                    table.getTrList().add(thead);
+                    table.getTrList().addAll(thead);
                 }
                 log.info("The specified field mapping does not exist");
                 return htmlToExcelFactory.build(tableList, workbook);
@@ -125,7 +125,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
             if (Objects.isNull(data) || data.isEmpty()) {
                 if (Objects.nonNull(thead)) {
-                    table.getTrList().add(thead);
+                    table.getTrList().addAll(thead);
                 }
                 log.info("No valid data exists");
                 return htmlToExcelFactory.build(tableList, workbook);
@@ -134,9 +134,9 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             this.initStyleMap();
 
             List<List<Pair<Class, Object>>> contents = getRenderContent(data, sortedFields);
-            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : 1);
+            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
             if (Objects.nonNull(thead)) {
-                tbody.add(0, thead);
+                tbody.addAll(0, thead);
             }
             table.setTrList(tbody);
         }

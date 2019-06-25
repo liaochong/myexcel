@@ -188,7 +188,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     tr.setIndex(rowNum);
                     tr.getTdList().forEach(td -> {
                         td.setRow(rowNum);
-                        td.setRowBound(rowNum);
                     });
                     rowNum++;
                     count++;
@@ -313,7 +312,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             titleTr.setIndex(rowNum);
             titleTr.getTdList().forEach(td -> {
                 td.setRow(rowNum);
-                td.setRowBound(rowNum);
             });
             rowNum++;
             count++;

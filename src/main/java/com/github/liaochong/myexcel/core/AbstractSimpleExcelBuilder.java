@@ -183,9 +183,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         List<Table> tableList = new ArrayList<>();
         Table table = this.createTable();
         tableList.add(table);
-        Tr thead = this.createThead();
+        List<Tr> thead = this.createThead();
         if (Objects.nonNull(thead)) {
-            table.getTrList().add(thead);
+            table.getTrList().addAll(thead);
         }
         return tableList;
     }
@@ -207,11 +207,70 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      *
      * @return 标题行
      */
-    protected Tr createThead() {
-        boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
-        if (!hasTitles) {
-            return null;
+    protected List<Tr> createThead() {
+        if (Objects.isNull(titles) || titles.isEmpty()) {
+            return Collections.emptyList();
         }
+        List<List<Td>> tdLists = new ArrayList<>();
+        int maxLevel = 0;
+        // 初始化位置信息
+        for (int i = 0; i < titles.size(); i++) {
+            String title = titles.get(i);
+            if (Objects.isNull(title)) {
+                continue;
+            }
+            List<Td> tds = new ArrayList<>();
+            String[] multiTitles = title.split("->");
+            if (multiTitles.length - 1 > maxLevel) {
+                maxLevel = multiTitles.length - 1;
+            }
+            for (int j = 0; j < multiTitles.length; j++) {
+                Td td = new Td();
+                td.setTh(true);
+                td.setCol(i);
+                td.setColBound(i);
+                td.setRow(j);
+                td.setRowBound(j);
+                td.setContent(multiTitles[j]);
+                tds.add(td);
+            }
+            tdLists.add(tds);
+        }
+
+        // 调整rowSpan
+        for (List<Td> tdList : tdLists) {
+            Td last = tdList.get(tdList.size() - 1);
+            last.setRowBound(maxLevel);
+            int rowSpan = last.getRowBound() - last.getRow();
+            last.setRowSpan(rowSpan > 0 ? rowSpan + 1 : 0);
+        }
+
+        // 调整colSpan
+        for (int i = 0; i < maxLevel; i++) {
+            int level = i;
+            Map<String, List<List<Td>>> groups = tdLists.stream()
+                    .filter(list -> list.size() > level + 1)
+                    .collect(Collectors.groupingBy(list -> list.get(level).getContent()));
+
+            groups.forEach((k, v) -> {
+                if (v.size() == 1) {
+                    return;
+                }
+                List<Td> tds = groups.values().stream().flatMap(List::stream)
+                        .map(list -> list.get(level))
+                        .sorted(Comparator.comparing(Td::getCol))
+                        .collect(Collectors.toList());
+                Td t = tds.get(0);
+                t.setColBound(t.getCol() + v.size() - 1);
+                int colSpan = t.getColBound() - t.getCol();
+                t.setColSpan(colSpan > 0 ? colSpan + 1 : 0);
+                for (int j = 1; j < tds.size(); j++) {
+                    tds.get(j).setRow(-1);
+                }
+            });
+
+        }
+
         Map<String, String> thStyle;
         if (noStyle) {
             thStyle = Collections.emptyMap();
@@ -226,26 +285,24 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
         }
 
-        Tr tr = new Tr(0);
+        Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
+        List<Tr> trs = new ArrayList<>();
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
-        tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
-
-        List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
-            Td td = new Td();
-            td.setTh(true);
-            td.setRow(0);
-            td.setRowBound(0);
-            td.setCol(index);
-            td.setColBound(index);
-            td.setContent(titles.get(index));
-            td.setStyle(thStyle);
-            if (isComputeAutoWidth) {
-                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), 0.25));
-            }
-            return td;
-        }).collect(Collectors.toList());
-        tr.setTdList(ths);
-        return tr;
+        rowTds.forEach((k, v) -> {
+            Tr tr = new Tr(k);
+            tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
+            List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
+                    .peek(td -> {
+                        td.setStyle(thStyle);
+                        if (isComputeAutoWidth) {
+                            tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
+                        }
+                    })
+                    .collect(Collectors.toList());
+            tr.setTdList(tds);
+            trs.add(tr);
+        });
+        return trs;
     }
 
     /**
