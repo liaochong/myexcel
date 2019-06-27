@@ -121,6 +121,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 是否自动换行
      */
     private boolean wrapText = true;
+    /**
+     * 标题层级
+     */
+    protected int titleLevel = 0;
 
 
     @Override
@@ -212,7 +216,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             return Collections.emptyList();
         }
         List<List<Td>> tdLists = new ArrayList<>();
-        int maxLevel = 0;
         // 初始化位置信息
         for (int i = 0; i < titles.size(); i++) {
             String title = titles.get(i);
@@ -221,8 +224,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             }
             List<Td> tds = new ArrayList<>();
             String[] multiTitles = title.split("->");
-            if (multiTitles.length > maxLevel) {
-                maxLevel = multiTitles.length;
+            if (multiTitles.length > titleLevel) {
+                titleLevel = multiTitles.length;
             }
             for (int j = 0; j < multiTitles.length; j++) {
                 Td td = new Td();
@@ -238,11 +241,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         // 调整rowSpan
         for (List<Td> tdList : tdLists) {
             Td last = tdList.get(tdList.size() - 1);
-            last.setRowSpan(maxLevel - last.getRow());
+            last.setRowSpan(titleLevel - last.getRow());
         }
 
         // 调整colSpan
-        for (int i = 1; i < maxLevel; i++) {
+        for (int i = 1; i < titleLevel; i++) {
             int level = i;
             Map<String, List<List<Td>>> groups = tdLists.stream()
                     .filter(list -> list.size() > level)

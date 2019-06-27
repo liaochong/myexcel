@@ -141,8 +141,8 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             table.setTrList(tbody);
         }
 
-        if (fixedTitles && Objects.nonNull(titles) && !titles.isEmpty()) {
-            FreezePane freezePane = new FreezePane(1, titles.size());
+        if (fixedTitles && titleLevel > 0) {
+            FreezePane freezePane = new FreezePane(titleLevel, titles.size());
             htmlToExcelFactory.freezePanes(freezePane);
         }
         return htmlToExcelFactory.build(tableList, workbook);
