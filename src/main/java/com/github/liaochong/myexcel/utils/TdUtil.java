@@ -52,8 +52,7 @@ public final class TdUtil {
             SPAN_CACHE.cache(span, 0);
             return 0;
         }
-        int spanVal = Integer.parseInt(span);
-        int result = spanVal > 1 ? spanVal : 0;
+        int result = Integer.parseInt(span);
         SPAN_CACHE.cache(span, result);
         return result;
     }

@@ -192,12 +192,6 @@ public class HtmlTableParser {
                 }
             }
 
-            int rowBound = TdUtil.get(td::getRowSpan, td::getRow);
-            td.setRowBound(rowBound);
-
-            int colBound = TdUtil.get(td::getColSpan, td::getCol);
-            td.setColBound(colBound);
-
             if (td.getRowSpan() > 1) {
                 for (int j = 1, length = td.getRowSpan(); j < length; j++) {
                     int rowNum = tr.getIndex() + j;

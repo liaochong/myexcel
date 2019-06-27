@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
+import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -73,4 +74,25 @@ public class Td {
      */
     boolean formula;
 
+    public void setRowSpan(int rowSpan) {
+        if (rowSpan < 2) {
+            return;
+        }
+        this.rowSpan = rowSpan;
+    }
+
+    public void setColSpan(int colSpan) {
+        if (colSpan < 2) {
+            return;
+        }
+        this.colSpan = colSpan;
+    }
+
+    public int getRowBound() {
+        return TdUtil.get(this::getRowSpan, this::getRow);
+    }
+
+    public int getColBound() {
+        return TdUtil.get(this::getColSpan, this::getCol);
+    }
 }

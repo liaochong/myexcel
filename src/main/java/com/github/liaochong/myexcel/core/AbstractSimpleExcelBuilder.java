@@ -221,16 +221,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             }
             List<Td> tds = new ArrayList<>();
             String[] multiTitles = title.split("->");
-            if (multiTitles.length - 1 > maxLevel) {
-                maxLevel = multiTitles.length - 1;
+            if (multiTitles.length > maxLevel) {
+                maxLevel = multiTitles.length;
             }
             for (int j = 0; j < multiTitles.length; j++) {
                 Td td = new Td();
                 td.setTh(true);
                 td.setCol(i);
-                td.setColBound(i);
                 td.setRow(j);
-                td.setRowBound(j);
                 td.setContent(multiTitles[j]);
                 tds.add(td);
             }
@@ -240,30 +238,26 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         // 调整rowSpan
         for (List<Td> tdList : tdLists) {
             Td last = tdList.get(tdList.size() - 1);
-            last.setRowBound(maxLevel);
-            int rowSpan = last.getRowBound() - last.getRow();
-            last.setRowSpan(rowSpan > 0 ? rowSpan + 1 : 0);
+            last.setRowSpan(maxLevel - last.getRow());
         }
 
         // 调整colSpan
-        for (int i = 0; i < maxLevel; i++) {
+        for (int i = 1; i < maxLevel; i++) {
             int level = i;
             Map<String, List<List<Td>>> groups = tdLists.stream()
-                    .filter(list -> list.size() > level + 1)
-                    .collect(Collectors.groupingBy(list -> list.get(level).getContent()));
+                    .filter(list -> list.size() > level)
+                    .collect(Collectors.groupingBy(list -> list.get(level - 1).getContent()));
 
             groups.forEach((k, v) -> {
                 if (v.size() == 1) {
                     return;
                 }
                 List<Td> tds = groups.values().stream().flatMap(List::stream)
-                        .map(list -> list.get(level))
+                        .map(list -> list.get(level - 1))
                         .sorted(Comparator.comparing(Td::getCol))
                         .collect(Collectors.toList());
                 Td t = tds.get(0);
-                t.setColBound(t.getCol() + v.size() - 1);
-                int colSpan = t.getColBound() - t.getCol();
-                t.setColSpan(colSpan > 0 ? colSpan + 1 : 0);
+                t.setColSpan(v.size());
                 for (int j = 1; j < tds.size(); j++) {
                     tds.get(j).setRow(-1);
                 }
