@@ -318,9 +318,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
                 Td td = new Td();
                 td.setRow(trIndex);
-                td.setRowBound(trIndex);
                 td.setCol(i);
-                td.setColBound(i);
 
                 Pair<Class, Object> pair = dataList.get(i);
                 td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
