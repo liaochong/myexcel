@@ -125,6 +125,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 标题层级
      */
     protected int titleLevel = 0;
+    /**
+     * 标题分离器
+     */
+    private String titleSeparator = "->";
 
 
     @Override
@@ -223,7 +227,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 continue;
             }
             List<Td> tds = new ArrayList<>();
-            String[] multiTitles = title.split("->");
+            String[] multiTitles = title.split(titleSeparator);
             if (multiTitles.length > titleLevel) {
                 titleLevel = multiTitles.length;
             }
@@ -399,6 +403,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 globalDefaultValue = excelTable.defaultValue();
             }
             wrapText = excelTable.wrapText();
+            titleSeparator = excelTable.titleSeparator();
             ignoreStaticFields = excelTable.ignoreStaticFields();
         }
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);

@@ -94,4 +94,11 @@ public @interface ExcelTable {
      * @return true/false
      */
     boolean ignoreStaticFields() default true;
+
+    /**
+     * 标题分离器
+     *
+     * @return 分离器
+     */
+    String titleSeparator() default "->";
 }
