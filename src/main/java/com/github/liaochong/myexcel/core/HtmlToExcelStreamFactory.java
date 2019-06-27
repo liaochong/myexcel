@@ -37,6 +37,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * HtmlToExcelStreamFactory 流工厂
@@ -91,6 +92,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private List<Path> paths;
 
+    private List<CompletableFuture> futures;
+
     private Consumer<Path> pathConsumer;
 
     /**
@@ -124,14 +127,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
         }
         this.sheet = this.workbook.createSheet(sheetName);
-        if (capacity > 0) {
-            paths = new ArrayList<>();
-        }
+        paths = new ArrayList<>();
         if (Objects.isNull(executorService)) {
             Thread thread = new Thread(this::receive);
             thread.setName("Excel-builder-1");
             thread.start();
         } else {
+            futures = new ArrayList<>();
             CompletableFuture.runAsync(this::receive, executorService);
         }
     }
@@ -269,23 +271,43 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             // wait all tr received
         }
         this.storeToTempFile();
+        if (Objects.nonNull(futures)) {
+            futures.forEach(CompletableFuture::join);
+        }
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
-        return paths;
+        return paths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
     }
 
     private void storeToTempFile() {
         boolean isXls = workbook instanceof HSSFWorkbook;
         String suffix = isXls ? Constants.XLS : Constants.XLSX;
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
+        paths.add(path);
         try {
-            this.setColWidth(colWidthMap, sheet, maxColIndex);
-            this.freezePane(0, sheet);
-            FileExportUtil.export(workbook, path.toFile());
-            if (Objects.nonNull(pathConsumer)) {
-                pathConsumer.accept(path);
-            }
-            if (path.toFile().exists()) {
-                paths.add(path);
+            if (Objects.nonNull(executorService)) {
+                Workbook tempWorkbook = workbook;
+                Sheet tempSheet = sheet;
+                Map<Integer, Integer> tempColWidthMap = colWidthMap;
+                CompletableFuture future = CompletableFuture.runAsync(() -> {
+                    this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
+                    this.freezePane(0, tempSheet);
+                    try {
+                        FileExportUtil.export(tempWorkbook, path.toFile());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (Objects.nonNull(pathConsumer)) {
+                        pathConsumer.accept(path);
+                    }
+                }, executorService);
+                futures.add(future);
+            } else {
+                this.setColWidth(colWidthMap, sheet, maxColIndex);
+                this.freezePane(0, sheet);
+                FileExportUtil.export(workbook, path.toFile());
+                if (Objects.nonNull(pathConsumer)) {
+                    pathConsumer.accept(path);
+                }
             }
         } catch (IOException e) {
             TempFileOperator.deleteTempFiles(paths);
