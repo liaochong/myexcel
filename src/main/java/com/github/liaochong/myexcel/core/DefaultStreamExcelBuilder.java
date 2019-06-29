@@ -182,9 +182,11 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         if (Objects.isNull(data) || data.isEmpty()) {
             return;
         }
-        List<List<Pair<Class, Object>>> contents = getRenderContent(data, filteredFields);
-        List<Tr> trList = this.createTbody(contents, 0);
-        htmlToExcelStreamFactory.append(trList);
+        for (Object datum : data) {
+            List<Pair<? extends Class, ?>> contents = getRenderContent(datum, filteredFields);
+            Tr tr = this.createTr(contents, 0, 0);
+            htmlToExcelStreamFactory.append(tr);
+        }
     }
 
     @Override

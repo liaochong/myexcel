@@ -51,7 +51,7 @@ public @interface ExcelTable {
      *
      * @return WorkbookType
      */
-    WorkbookType workbookType() default WorkbookType.XLSX;
+    WorkbookType workbookType() default WorkbookType.SXLSX;
 
     /**
      * sheeName

@@ -313,51 +313,62 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param shift    行序号偏移量
      * @return 内容行集合
      */
-    protected List<Tr> createTbody(List<List<Pair<Class, Object>>> contents, int shift) {
+    protected List<Tr> createTbody(List<List<Pair<? extends Class, ?>>> contents, int shift) {
+        List<Tr> result = IntStream.range(0, contents.size()).parallel().mapToObj(index ->
+                this.createTr(contents.get(index), index, shift)
+        ).collect(Collectors.toCollection(LinkedList::new));
+        contents.clear();
+        return result;
+    }
+
+    /**
+     * 创建内容行
+     *
+     * @param contents 内容集合
+     * @param index    索引
+     * @param shift    行序号偏移量
+     * @return 内容行
+     */
+    protected Tr createTr(List<Pair<? extends Class, ?>> contents, int index, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
-        List<Tr> result = IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
-            int trIndex = index + shift;
-            Tr tr = new Tr(trIndex);
-            List<Pair<Class, Object>> dataList = contents.get(index);
-            tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(dataList.size()) : Collections.emptyMap());
-            Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
-            List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
-                Td td = new Td();
-                td.setRow(trIndex);
-                td.setCol(i);
+        int trIndex = index + shift;
+        Tr tr = new Tr(trIndex);
+        tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
+        Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
+        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
+            Td td = new Td();
+            td.setRow(trIndex);
+            td.setCol(i);
 
-                Pair<Class, Object> pair = dataList.get(i);
-                td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
-                Class fieldType = pair.getKey();
-                if (String.class == fieldType) {
-                    // do nothing,user default impl
-                } else if (Boolean.class == fieldType || boolean.class == fieldType) {
-                    td.setTdContentType(ContentTypeEnum.BOOLEAN);
-                } else if (fieldType == Double.class || fieldType == double.class
-                        || fieldType == Float.class || fieldType == float.class
-                        || fieldType == Long.class || fieldType == long.class
-                        || fieldType == Integer.class || fieldType == int.class
-                        || fieldType == Short.class || fieldType == short.class
-                        || fieldType == Byte.class || fieldType == byte.class
-                        || fieldType == BigDecimal.class) {
-                    td.setTdContentType(ContentTypeEnum.DOUBLE);
-                }
-                td.setStyle(tdStyle);
-                if (isComputeAutoWidth) {
-                    tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
-                }
-                return td;
-            }).collect(Collectors.toList());
-            if (isCustomWidth) {
-                customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
+            Pair<? extends Class, ?> pair = contents.get(i);
+            td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
+            Class fieldType = pair.getKey();
+            if (String.class == fieldType) {
+                // do nothing,user default impl
+            } else if (Boolean.class == fieldType || boolean.class == fieldType) {
+                td.setTdContentType(ContentTypeEnum.BOOLEAN);
+            } else if (fieldType == Double.class || fieldType == double.class
+                    || fieldType == Float.class || fieldType == float.class
+                    || fieldType == Long.class || fieldType == long.class
+                    || fieldType == Integer.class || fieldType == int.class
+                    || fieldType == Short.class || fieldType == short.class
+                    || fieldType == Byte.class || fieldType == byte.class
+                    || fieldType == BigDecimal.class) {
+                td.setTdContentType(ContentTypeEnum.DOUBLE);
             }
-            tr.setTdList(tdList);
-            return tr;
-        }).collect(Collectors.toCollection(LinkedList::new));
-        contents.clear();
+            td.setStyle(tdStyle);
+            if (isComputeAutoWidth) {
+                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+            }
+            return td;
+        }).collect(Collectors.toList());
+        if (isCustomWidth) {
+            customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
+        }
+        tr.setTdList(tdList);
+        return tr;
 
-        return result;
     }
 
     /**
@@ -564,24 +575,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param sortedFields 排序字段
      * @return 结果集
      */
-    protected List<List<Pair<Class, Object>>> getRenderContent(List<?> data, List<Field> sortedFields) {
+    protected List<List<Pair<? extends Class, ?>>> getRenderContent(List<?> data, List<Field> sortedFields) {
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            List<Pair<? extends Class, ?>> resolvedDataList = sortedFields.stream()
-                    .map(field -> {
-                        Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data.get(index));
-                        if (Objects.nonNull(value.getValue())) {
-                            return value;
-                        }
-                        String defaultValue = defaultValueMap.get(field);
-                        if (Objects.nonNull(defaultValue)) {
-                            return Pair.of(field.getType(), defaultValue);
-                        }
-                        if (Objects.nonNull(globalDefaultValue)) {
-                            return Pair.of(field.getType(), globalDefaultValue);
-                        }
-                        return value;
-                    })
-                    .collect(Collectors.toList());
+            List<Pair<? extends Class, ?>> resolvedDataList = this.getRenderContent(data.get(index), sortedFields);
             return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toCollection(LinkedList::new));
         data.clear();
@@ -589,6 +585,32 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         // 重排序
         return resolvedDataContainers.stream()
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
-                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toCollection(LinkedList::new));
+                .map(ParallelContainer<List<Pair<? extends Class, ?>>>::getData).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    /**
+     * 获取需要被渲染的内容
+     *
+     * @param data         数据集合
+     * @param sortedFields 排序字段
+     * @return 结果集
+     */
+    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
+        return sortedFields.stream()
+                .map(field -> {
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data);
+                    if (Objects.nonNull(value.getValue())) {
+                        return value;
+                    }
+                    String defaultValue = defaultValueMap.get(field);
+                    if (Objects.nonNull(defaultValue)) {
+                        return Pair.of(field.getType(), defaultValue);
+                    }
+                    if (Objects.nonNull(globalDefaultValue)) {
+                        return Pair.of(field.getType(), globalDefaultValue);
+                    }
+                    return value;
+                })
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 }

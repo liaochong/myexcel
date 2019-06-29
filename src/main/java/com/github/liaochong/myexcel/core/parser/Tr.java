@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class Tr {
     /**
      * 行单元格
      */
-    List<Td> tdList;
+    List<Td> tdList = Collections.emptyList();
     /**
      * 最大宽度
      */

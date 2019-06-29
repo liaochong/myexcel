@@ -54,13 +54,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
-    private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
+    private static final Tr STOP_FLAG = new Tr(-1);
 
     private int maxRowCountOfSheet = XLSX_MAX_ROW_COUNT;
 
     private Sheet sheet;
 
-    private BlockingQueue<List<Tr>> trWaitQueue;
+    private BlockingQueue<Tr> trWaitQueue;
 
     private boolean stop;
 
@@ -70,7 +70,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private String sheetName = "Sheet";
 
-    private Map<Integer, Integer> colWidthMap;
+    private Map<Integer, Integer> colWidthMap = new HashMap<>();
 
     private int rowNum;
 
@@ -140,10 +140,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     public void appendTitles(List<Tr> trList) {
         this.titles = trList;
-        this.append(trList);
+        trList.forEach(this::append);
     }
 
-    public void append(List<Tr> trList) {
+    public void append(Tr tr) {
         if (exception) {
             log.error("Received a termination command,an exception occurred while processing");
             throw new UnsupportedOperationException("Received a termination command");
@@ -152,61 +152,54 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.error("Received a termination command,the build method has been called");
             throw new UnsupportedOperationException("Received a termination command");
         }
-        if (Objects.isNull(trList) || trList.isEmpty()) {
-            log.warn("This list is empty and will be discarded");
+        if (Objects.isNull(tr)) {
+            log.warn("This tr is null and will be discarded");
             return;
         }
         try {
-            trWaitQueue.put(trList);
+            trWaitQueue.put(tr);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     private void receive() {
-        List<Tr> trList = this.getTrListFromQueue();
-        if (maxColIndex == 0 && !trList.isEmpty()) {
-            int tdSize = trList.get(0).getTdList().size();
+        Tr tr = this.getTrFromQueue();
+        if (maxColIndex == 0) {
+            int tdSize = tr.getTdList().size();
             maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
         }
         int appendSize = 0;
         try {
-            while (trList != STOP_FLAG_LIST) {
-                log.info("Received data size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
-                for (Tr tr : trList) {
-                    if (capacity > 0 && count == capacity) {
-                        // 上一份数据保存
-                        this.storeToTempFile();
-                        // 开启下一份数据
-                        this.initNewWorkbook();
-                    }
-                    if (rowNum == maxRowCountOfSheet) {
-                        sheetNum++;
-                        this.setColWidth(colWidthMap, sheet, maxColIndex);
-                        colWidthMap = null;
-                        sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
-                        rowNum = 0;
-                    }
-                    tr.setIndex(rowNum);
-                    tr.getTdList().forEach(td -> {
-                        td.setRow(rowNum);
-                    });
-                    rowNum++;
-                    count++;
-                    this.createRow(tr, sheet);
+            while (tr != STOP_FLAG) {
+                if (capacity > 0 && count == capacity) {
+                    // 上一份数据保存
+                    this.storeToTempFile();
+                    // 开启下一份数据
+                    this.initNewWorkbook();
                 }
+                if (rowNum == maxRowCountOfSheet) {
+                    sheetNum++;
+                    this.setColWidth(colWidthMap, sheet, maxColIndex);
+                    colWidthMap = null;
+                    sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
+                    rowNum = 0;
+                }
+                tr.setIndex(rowNum);
+                tr.getTdList().forEach(td -> {
+                    td.setRow(rowNum);
+                });
+                rowNum++;
+                count++;
+                this.createRow(tr, sheet);
                 appendSize++;
-                Map<Integer, Integer> colWidthMap = this.getColMaxWidthMap(trList);
-                if (Objects.isNull(this.colWidthMap)) {
-                    this.colWidthMap = new HashMap<>(colWidthMap.size());
-                }
-                colWidthMap.forEach((k, v) -> {
+                tr.getColWidthMap().forEach((k, v) -> {
                     Integer val = this.colWidthMap.get(k);
                     if (Objects.isNull(val) || v > val) {
                         this.colWidthMap.put(k, v);
                     }
                 });
-                trList = this.getTrListFromQueue();
+                tr = this.getTrFromQueue();
             }
             log.info("End of reception,append size:{}", appendSize);
         } catch (Exception e) {
@@ -223,7 +216,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private List<Tr> getTrListFromQueue() {
+    private Tr getTrFromQueue() {
         try {
             return trWaitQueue.take();
         } catch (InterruptedException e) {
@@ -241,7 +234,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             // wait all tr received
         }
         try {
-            trWaitQueue.put(STOP_FLAG_LIST);
+            trWaitQueue.put(STOP_FLAG);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -263,7 +256,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             // wait all tr received
         }
         try {
-            trWaitQueue.put(STOP_FLAG_LIST);
+            trWaitQueue.put(STOP_FLAG);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -322,7 +315,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         sheetNum = 0;
         rowNum = 0;
         count = 0;
-        colWidthMap = null;
+        colWidthMap = new HashMap<>();
         clearCache();
         initCellStyle(workbook);
         sheet = workbook.createSheet(sheetName);
