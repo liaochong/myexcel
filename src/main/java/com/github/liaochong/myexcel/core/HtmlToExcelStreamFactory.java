@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * HtmlToExcelStreamFactory 流工厂
@@ -226,21 +229,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     @Override
     public Workbook build() {
-        if (exception) {
-            throw new IllegalStateException("An exception occurred while processing");
-        }
-        this.stop = true;
-        while (!trWaitQueue.isEmpty()) {
-            // wait all tr received
-        }
-        try {
-            trWaitQueue.put(STOP_FLAG);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        while (!trWaitQueue.isEmpty()) {
-            // wait all tr received
-        }
+        waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
         this.freezePane(0, sheet);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
@@ -248,6 +237,16 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     public List<Path> buildAsPaths() {
+        waiting();
+        this.storeToTempFile();
+        if (Objects.nonNull(futures)) {
+            futures.forEach(CompletableFuture::join);
+        }
+        log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
+        return paths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
+    }
+
+    private void waiting() {
         if (exception) {
             throw new IllegalStateException("An exception occurred while processing");
         }
@@ -263,12 +262,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
         }
-        this.storeToTempFile();
-        if (Objects.nonNull(futures)) {
-            futures.forEach(CompletableFuture::join);
-        }
-        log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
-        return paths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
     }
 
     private void storeToTempFile() {
@@ -333,4 +326,29 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             this.createRow(titleTr, sheet);
         }
     }
+
+    public Path buildAsZip(String fileName) {
+        Objects.requireNonNull(fileName);
+        waiting();
+        boolean isXls = workbook instanceof HSSFWorkbook;
+        this.storeToTempFile();
+        if (Objects.nonNull(futures)) {
+            futures.forEach(CompletableFuture::join);
+        }
+        String suffix = isXls ? Constants.XLS : Constants.XLSX;
+        Path zipFile = TempFileOperator.createTempFile(fileName, ".zip");
+        try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipFile))) {
+            for (int i = 1, size = paths.size(); i <= size; i++) {
+                Path path = paths.get(i - 1);
+                ZipEntry zipEntry = new ZipEntry(fileName + " (" + i + ")" + suffix);
+                out.putNextEntry(zipEntry);
+                out.write(Files.readAllBytes(path));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        TempFileOperator.deleteTempFiles(paths);
+        return zipFile;
+    }
+
 }

@@ -204,6 +204,11 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
+    public Path buildAsZip(String fileName) {
+        return htmlToExcelStreamFactory.buildAsZip(fileName);
+    }
+
+    @Override
     public Workbook build(List<?> data, Class<?>... groups) {
         throw new UnsupportedOperationException();
     }
