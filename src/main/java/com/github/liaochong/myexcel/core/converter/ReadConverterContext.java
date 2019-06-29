@@ -14,11 +14,19 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
-import com.github.liaochong.myexcel.core.converter.reader.*;
+import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.LocalDateReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.LocalDateTimeReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.NumberReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.StringReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -53,7 +61,7 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(Float.class, floatReadConverter);
         READ_CONVERTERS.put(float.class, floatReadConverter);
 
-        NumberReadConverter<Long> longReadConverter = NumberReadConverter.of(Long::valueOf);;
+        NumberReadConverter<Long> longReadConverter = NumberReadConverter.of(Long::valueOf);
         READ_CONVERTERS.put(Long.class, longReadConverter);
         READ_CONVERTERS.put(long.class, longReadConverter);
 
@@ -71,6 +79,8 @@ public class ReadConverterContext {
 
         READ_CONVERTERS.put(BigDecimal.class, new BigDecimalReadConverter());
         READ_CONVERTERS.put(String.class, new StringReadConverter());
+
+        READ_CONVERTERS.put(Timestamp.class, new TimestampReadConverter());
     }
 
     public synchronized ReadConverterContext registering(Class<?> clazz, Converter<String, ?> converter) {
