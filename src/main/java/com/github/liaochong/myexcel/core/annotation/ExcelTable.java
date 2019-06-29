@@ -51,7 +51,7 @@ public @interface ExcelTable {
      *
      * @return WorkbookType
      */
-    WorkbookType workbookType() default WorkbookType.XLSX;
+    WorkbookType workbookType() default WorkbookType.SXLSX;
 
     /**
      * sheeName
@@ -94,4 +94,11 @@ public @interface ExcelTable {
      * @return true/false
      */
     boolean ignoreStaticFields() default true;
+
+    /**
+     * 标题分离器
+     *
+     * @return 分离器
+     */
+    String titleSeparator() default "->";
 }

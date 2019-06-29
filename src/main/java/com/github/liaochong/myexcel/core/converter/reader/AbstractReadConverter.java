@@ -20,6 +20,7 @@ import com.github.liaochong.myexcel.core.converter.Converter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -33,6 +34,8 @@ import java.util.regex.Pattern;
 public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     protected static WeakCache<String, DateTimeFormatter> dateTimeFormatterWeakCache = new WeakCache<>();
+
+    protected static WeakCache<String, SimpleDateFormat> simpleDateFormatWeakCache = new WeakCache<>();
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
 

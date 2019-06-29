@@ -45,6 +45,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,13 +86,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private FreezePane[] freezePanes;
     /**
-     * 内存数据保有量
+     * 内存数据保有量，默认为1，即不保留
      */
-    private Integer rowAccessWindowSize = SXSSFWorkbook.DEFAULT_WINDOW_SIZE;
+    private Integer rowAccessWindowSize = 1;
     /**
      * 自动宽度策略
      */
     protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.CUSTOM_WIDTH;
+    /**
+     * 暂存单元格，由后续行认领
+     */
+    private List<Td> stagingTds = new LinkedList<>();
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -155,9 +160,26 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 row.setZeroHeight(true);
             }
         }
-        for (Td td : tr.getTdList()) {
+        List<Td> tdList = tr.getTdList();
+        stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.getRow(), tr.getIndex())).forEach(tdList::add);
+        for (Td td : tdList) {
             this.createCell(td, sheet, row);
+            if (td.getRowSpan() == 0) {
+                continue;
+            }
+            for (int i = td.getRow() + 1, rowBound = td.getRowBound(); i <= rowBound; i++) {
+                for (int j = td.getCol(), colBound = td.getColBound(); j <= colBound; j++) {
+                    Td blankTd = new Td();
+                    blankTd.setRow(i);
+                    blankTd.setCol(j);
+                    blankTd.setTh(td.isTh());
+                    blankTd.setStyle(td.getStyle());
+                    stagingTds.add(blankTd);
+                }
+            }
         }
+        // 移除暂存区空白单元格
+        stagingTds.removeIf(td -> Objects.equals(td.getRow(), tr.getIndex()));
         // 设置行高，最小12
         if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
             row.setHeightInPoints(row.getHeightInPoints() + 5);
@@ -202,18 +224,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
 
         // 设置单元格样式
-        for (int i = td.getRow(), rowBound = td.getRowBound(); i <= rowBound; i++) {
-            Row row = sheet.getRow(i);
-            if (Objects.isNull(row)) {
-                row = sheet.createRow(i);
+        Row row = sheet.getRow(td.getRow());
+        for (int j = td.getCol(), colBound = td.getColBound(); j <= colBound; j++) {
+            cell = row.getCell(j);
+            if (Objects.isNull(cell)) {
+                cell = row.createCell(j);
             }
-            for (int j = td.getCol(), colBound = td.getColBound(); j <= colBound; j++) {
-                cell = row.getCell(j);
-                if (Objects.isNull(cell)) {
-                    cell = row.createCell(j);
-                }
-                this.setCellStyle(row, cell, td);
-            }
+            this.setCellStyle(row, cell, td);
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));

@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * HtmlToExcelStreamFactory 流工厂
@@ -53,13 +57,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
-    private static final List<Tr> STOP_FLAG_LIST = new ArrayList<>();
+    private static final Tr STOP_FLAG = new Tr(-1);
 
     private int maxRowCountOfSheet = XLSX_MAX_ROW_COUNT;
 
     private Sheet sheet;
 
-    private BlockingQueue<List<Tr>> trWaitQueue;
+    private BlockingQueue<Tr> trWaitQueue;
 
     private boolean stop;
 
@@ -69,7 +73,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private String sheetName = "Sheet";
 
-    private Map<Integer, Integer> colWidthMap;
+    private Map<Integer, Integer> colWidthMap = new HashMap<>();
 
     private int rowNum;
 
@@ -90,6 +94,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private List<Tr> titles;
 
     private List<Path> paths;
+
+    private List<CompletableFuture> futures;
 
     private Consumer<Path> pathConsumer;
 
@@ -124,24 +130,23 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
         }
         this.sheet = this.workbook.createSheet(sheetName);
-        if (capacity > 0) {
-            paths = new ArrayList<>();
-        }
+        paths = new ArrayList<>();
         if (Objects.isNull(executorService)) {
             Thread thread = new Thread(this::receive);
             thread.setName("Excel-builder-1");
             thread.start();
         } else {
+            futures = new ArrayList<>();
             CompletableFuture.runAsync(this::receive, executorService);
         }
     }
 
     public void appendTitles(List<Tr> trList) {
         this.titles = trList;
-        this.append(trList);
+        trList.forEach(this::append);
     }
 
-    public void append(List<Tr> trList) {
+    public void append(Tr tr) {
         if (exception) {
             log.error("Received a termination command,an exception occurred while processing");
             throw new UnsupportedOperationException("Received a termination command");
@@ -150,62 +155,54 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.error("Received a termination command,the build method has been called");
             throw new UnsupportedOperationException("Received a termination command");
         }
-        if (Objects.isNull(trList) || trList.isEmpty()) {
-            log.warn("This list is empty and will be discarded");
+        if (Objects.isNull(tr)) {
+            log.warn("This tr is null and will be discarded");
             return;
         }
         try {
-            trWaitQueue.put(trList);
+            trWaitQueue.put(tr);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     private void receive() {
-        List<Tr> trList = this.getTrListFromQueue();
-        if (maxColIndex == 0 && !trList.isEmpty()) {
-            int tdSize = trList.get(0).getTdList().size();
+        Tr tr = this.getTrFromQueue();
+        if (maxColIndex == 0) {
+            int tdSize = tr.getTdList().size();
             maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
         }
         int appendSize = 0;
         try {
-            while (trList != STOP_FLAG_LIST) {
-                log.info("Received data size:{},current waiting queue size:{}", trList.size(), trWaitQueue.size());
-                for (Tr tr : trList) {
-                    if (capacity > 0 && count == capacity) {
-                        // 上一份数据保存
-                        this.storeToTempFile();
-                        // 开启下一份数据
-                        this.initNewWorkbook();
-                    }
-                    if (rowNum == maxRowCountOfSheet) {
-                        sheetNum++;
-                        this.setColWidth(colWidthMap, sheet, maxColIndex);
-                        colWidthMap = null;
-                        sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
-                        rowNum = 0;
-                    }
-                    tr.setIndex(rowNum);
-                    tr.getTdList().forEach(td -> {
-                        td.setRow(rowNum);
-                        td.setRowBound(rowNum);
-                    });
-                    rowNum++;
-                    count++;
-                    this.createRow(tr, sheet);
+            while (tr != STOP_FLAG) {
+                if (capacity > 0 && count == capacity) {
+                    // 上一份数据保存
+                    this.storeToTempFile();
+                    // 开启下一份数据
+                    this.initNewWorkbook();
                 }
+                if (rowNum == maxRowCountOfSheet) {
+                    sheetNum++;
+                    this.setColWidth(colWidthMap, sheet, maxColIndex);
+                    colWidthMap = null;
+                    sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
+                    rowNum = 0;
+                }
+                tr.setIndex(rowNum);
+                tr.getTdList().forEach(td -> {
+                    td.setRow(rowNum);
+                });
+                rowNum++;
+                count++;
+                this.createRow(tr, sheet);
                 appendSize++;
-                Map<Integer, Integer> colWidthMap = this.getColMaxWidthMap(trList);
-                if (Objects.isNull(this.colWidthMap)) {
-                    this.colWidthMap = new HashMap<>(colWidthMap.size());
-                }
-                colWidthMap.forEach((k, v) -> {
+                tr.getColWidthMap().forEach((k, v) -> {
                     Integer val = this.colWidthMap.get(k);
                     if (Objects.isNull(val) || v > val) {
                         this.colWidthMap.put(k, v);
                     }
                 });
-                trList = this.getTrListFromQueue();
+                tr = this.getTrFromQueue();
             }
             log.info("End of reception,append size:{}", appendSize);
         } catch (Exception e) {
@@ -222,7 +219,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private List<Tr> getTrListFromQueue() {
+    private Tr getTrFromQueue() {
         try {
             return trWaitQueue.take();
         } catch (InterruptedException e) {
@@ -232,21 +229,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     @Override
     public Workbook build() {
-        if (exception) {
-            throw new IllegalStateException("An exception occurred while processing");
-        }
-        this.stop = true;
-        while (!trWaitQueue.isEmpty()) {
-            // wait all tr received
-        }
-        try {
-            trWaitQueue.put(STOP_FLAG_LIST);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        while (!trWaitQueue.isEmpty()) {
-            // wait all tr received
-        }
+        waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
         this.freezePane(0, sheet);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
@@ -254,6 +237,16 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     public List<Path> buildAsPaths() {
+        waiting();
+        this.storeToTempFile();
+        if (Objects.nonNull(futures)) {
+            futures.forEach(CompletableFuture::join);
+        }
+        log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
+        return paths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
+    }
+
+    private void waiting() {
         if (exception) {
             throw new IllegalStateException("An exception occurred while processing");
         }
@@ -262,31 +255,45 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             // wait all tr received
         }
         try {
-            trWaitQueue.put(STOP_FLAG_LIST);
+            trWaitQueue.put(STOP_FLAG);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
         }
-        this.storeToTempFile();
-        log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
-        return paths;
     }
 
     private void storeToTempFile() {
         boolean isXls = workbook instanceof HSSFWorkbook;
         String suffix = isXls ? Constants.XLS : Constants.XLSX;
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
+        paths.add(path);
         try {
-            this.setColWidth(colWidthMap, sheet, maxColIndex);
-            this.freezePane(0, sheet);
-            FileExportUtil.export(workbook, path.toFile());
-            if (Objects.nonNull(pathConsumer)) {
-                pathConsumer.accept(path);
-            }
-            if (path.toFile().exists()) {
-                paths.add(path);
+            if (Objects.nonNull(executorService)) {
+                Workbook tempWorkbook = workbook;
+                Sheet tempSheet = sheet;
+                Map<Integer, Integer> tempColWidthMap = colWidthMap;
+                CompletableFuture future = CompletableFuture.runAsync(() -> {
+                    this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
+                    this.freezePane(0, tempSheet);
+                    try {
+                        FileExportUtil.export(tempWorkbook, path.toFile());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (Objects.nonNull(pathConsumer)) {
+                        pathConsumer.accept(path);
+                    }
+                }, executorService);
+                futures.add(future);
+            } else {
+                this.setColWidth(colWidthMap, sheet, maxColIndex);
+                this.freezePane(0, sheet);
+                FileExportUtil.export(workbook, path.toFile());
+                if (Objects.nonNull(pathConsumer)) {
+                    pathConsumer.accept(path);
+                }
             }
         } catch (IOException e) {
             TempFileOperator.deleteTempFiles(paths);
@@ -301,7 +308,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         sheetNum = 0;
         rowNum = 0;
         count = 0;
-        colWidthMap = null;
+        colWidthMap = new HashMap<>();
         clearCache();
         initCellStyle(workbook);
         sheet = workbook.createSheet(sheetName);
@@ -313,11 +320,35 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             titleTr.setIndex(rowNum);
             titleTr.getTdList().forEach(td -> {
                 td.setRow(rowNum);
-                td.setRowBound(rowNum);
             });
             rowNum++;
             count++;
             this.createRow(titleTr, sheet);
         }
     }
+
+    public Path buildAsZip(String fileName) {
+        Objects.requireNonNull(fileName);
+        waiting();
+        boolean isXls = workbook instanceof HSSFWorkbook;
+        this.storeToTempFile();
+        if (Objects.nonNull(futures)) {
+            futures.forEach(CompletableFuture::join);
+        }
+        String suffix = isXls ? Constants.XLS : Constants.XLSX;
+        Path zipFile = TempFileOperator.createTempFile(fileName, ".zip");
+        try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipFile))) {
+            for (int i = 1, size = paths.size(); i <= size; i++) {
+                Path path = paths.get(i - 1);
+                ZipEntry zipEntry = new ZipEntry(fileName + " (" + i + ")" + suffix);
+                out.putNextEntry(zipEntry);
+                out.write(Files.readAllBytes(path));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        TempFileOperator.deleteTempFiles(paths);
+        return zipFile;
+    }
+
 }

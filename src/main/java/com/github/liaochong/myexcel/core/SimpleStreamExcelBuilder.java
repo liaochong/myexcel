@@ -90,4 +90,12 @@ interface SimpleStreamExcelBuilder {
      * @return path集合
      */
     List<Path> buildAsPaths();
+
+    /**
+     * 构建为zip压缩包
+     *
+     * @param fileName 文件名称
+     * @return zip文件
+     */
+    Path buildAsZip(String fileName);
 }

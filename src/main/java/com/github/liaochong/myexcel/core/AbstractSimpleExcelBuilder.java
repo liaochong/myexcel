@@ -121,6 +121,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 是否自动换行
      */
     private boolean wrapText = true;
+    /**
+     * 标题层级
+     */
+    protected int titleLevel = 0;
+    /**
+     * 标题分离器
+     */
+    private String titleSeparator = "->";
 
 
     @Override
@@ -183,9 +191,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         List<Table> tableList = new ArrayList<>();
         Table table = this.createTable();
         tableList.add(table);
-        Tr thead = this.createThead();
+        List<Tr> thead = this.createThead();
         if (Objects.nonNull(thead)) {
-            table.getTrList().add(thead);
+            table.getTrList().addAll(thead);
         }
         return tableList;
     }
@@ -207,11 +215,63 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      *
      * @return 标题行
      */
-    protected Tr createThead() {
-        boolean hasTitles = Objects.nonNull(titles) && !titles.isEmpty();
-        if (!hasTitles) {
-            return null;
+    protected List<Tr> createThead() {
+        if (Objects.isNull(titles) || titles.isEmpty()) {
+            return Collections.emptyList();
         }
+        List<List<Td>> tdLists = new ArrayList<>();
+        // 初始化位置信息
+        for (int i = 0; i < titles.size(); i++) {
+            String title = titles.get(i);
+            if (Objects.isNull(title)) {
+                continue;
+            }
+            List<Td> tds = new ArrayList<>();
+            String[] multiTitles = title.split(titleSeparator);
+            if (multiTitles.length > titleLevel) {
+                titleLevel = multiTitles.length;
+            }
+            for (int j = 0; j < multiTitles.length; j++) {
+                Td td = new Td();
+                td.setTh(true);
+                td.setCol(i);
+                td.setRow(j);
+                td.setContent(multiTitles[j]);
+                tds.add(td);
+            }
+            tdLists.add(tds);
+        }
+
+        // 调整rowSpan
+        for (List<Td> tdList : tdLists) {
+            Td last = tdList.get(tdList.size() - 1);
+            last.setRowSpan(titleLevel - last.getRow());
+        }
+
+        // 调整colSpan
+        for (int i = 1; i < titleLevel; i++) {
+            int level = i;
+            Map<String, List<List<Td>>> groups = tdLists.stream()
+                    .filter(list -> list.size() > level)
+                    .collect(Collectors.groupingBy(list -> list.get(level - 1).getContent()));
+
+            groups.forEach((k, v) -> {
+                if (v.size() == 1) {
+                    return;
+                }
+                List<Td> tds = groups.values().stream().flatMap(List::stream)
+                        .map(list -> list.get(level - 1))
+                        .sorted(Comparator.comparing(Td::getCol))
+                        .collect(Collectors.toList());
+                Td t = tds.get(0);
+                t.setColSpan(v.size());
+                for (int j = 1; j < tds.size(); j++) {
+                    tds.get(j).setRow(-1);
+                }
+            });
+
+        }
+
         Map<String, String> thStyle;
         if (noStyle) {
             thStyle = Collections.emptyMap();
@@ -226,26 +286,24 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
         }
 
-        Tr tr = new Tr(0);
+        Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
+        List<Tr> trs = new ArrayList<>();
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
-        tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
-
-        List<Td> ths = IntStream.range(0, titles.size()).mapToObj(index -> {
-            Td td = new Td();
-            td.setTh(true);
-            td.setRow(0);
-            td.setRowBound(0);
-            td.setCol(index);
-            td.setColBound(index);
-            td.setContent(titles.get(index));
-            td.setStyle(thStyle);
-            if (isComputeAutoWidth) {
-                tr.getColWidthMap().put(index, TdUtil.getStringWidth(td.getContent(), 0.25));
-            }
-            return td;
-        }).collect(Collectors.toList());
-        tr.setTdList(ths);
-        return tr;
+        rowTds.forEach((k, v) -> {
+            Tr tr = new Tr(k);
+            tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
+            List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
+                    .peek(td -> {
+                        td.setStyle(thStyle);
+                        if (isComputeAutoWidth) {
+                            tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
+                        }
+                    })
+                    .collect(Collectors.toList());
+            tr.setTdList(tds);
+            trs.add(tr);
+        });
+        return trs;
     }
 
     /**
@@ -255,53 +313,62 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param shift    行序号偏移量
      * @return 内容行集合
      */
-    protected List<Tr> createTbody(List<List<Pair<Class, Object>>> contents, int shift) {
+    protected List<Tr> createTbody(List<List<Pair<? extends Class, ?>>> contents, int shift) {
+        List<Tr> result = IntStream.range(0, contents.size()).parallel().mapToObj(index ->
+                this.createTr(contents.get(index), index, shift)
+        ).collect(Collectors.toCollection(LinkedList::new));
+        contents.clear();
+        return result;
+    }
+
+    /**
+     * 创建内容行
+     *
+     * @param contents 内容集合
+     * @param index    索引
+     * @param shift    行序号偏移量
+     * @return 内容行
+     */
+    protected Tr createTr(List<Pair<? extends Class, ?>> contents, int index, int shift) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
-        List<Tr> result = IntStream.range(0, contents.size()).parallel().mapToObj(index -> {
-            int trIndex = index + shift;
-            Tr tr = new Tr(trIndex);
-            List<Pair<Class, Object>> dataList = contents.get(index);
-            tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(dataList.size()) : Collections.emptyMap());
-            Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
-            List<Td> tdList = IntStream.range(0, dataList.size()).mapToObj(i -> {
-                Td td = new Td();
-                td.setRow(trIndex);
-                td.setRowBound(trIndex);
-                td.setCol(i);
-                td.setColBound(i);
+        int trIndex = index + shift;
+        Tr tr = new Tr(trIndex);
+        tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
+        Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
+        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
+            Td td = new Td();
+            td.setRow(trIndex);
+            td.setCol(i);
 
-                Pair<Class, Object> pair = dataList.get(i);
-                td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
-                Class fieldType = pair.getKey();
-                if (String.class == fieldType) {
-                    // do nothing,user default impl
-                } else if (Boolean.class == fieldType || boolean.class == fieldType) {
-                    td.setTdContentType(ContentTypeEnum.BOOLEAN);
-                } else if (fieldType == Double.class || fieldType == double.class
-                        || fieldType == Float.class || fieldType == float.class
-                        || fieldType == Long.class || fieldType == long.class
-                        || fieldType == Integer.class || fieldType == int.class
-                        || fieldType == Short.class || fieldType == short.class
-                        || fieldType == Byte.class || fieldType == byte.class
-                        || fieldType == BigDecimal.class) {
-                    td.setTdContentType(ContentTypeEnum.DOUBLE);
-                }
-                td.setStyle(tdStyle);
-                if (isComputeAutoWidth) {
-                    tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
-                }
-                return td;
-            }).collect(Collectors.toList());
-            if (isCustomWidth) {
-                customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
+            Pair<? extends Class, ?> pair = contents.get(i);
+            td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
+            Class fieldType = pair.getKey();
+            if (String.class == fieldType) {
+                // do nothing,user default impl
+            } else if (Boolean.class == fieldType || boolean.class == fieldType) {
+                td.setTdContentType(ContentTypeEnum.BOOLEAN);
+            } else if (fieldType == Double.class || fieldType == double.class
+                    || fieldType == Float.class || fieldType == float.class
+                    || fieldType == Long.class || fieldType == long.class
+                    || fieldType == Integer.class || fieldType == int.class
+                    || fieldType == Short.class || fieldType == short.class
+                    || fieldType == Byte.class || fieldType == byte.class
+                    || fieldType == BigDecimal.class) {
+                td.setTdContentType(ContentTypeEnum.DOUBLE);
             }
-            tr.setTdList(tdList);
-            return tr;
-        }).collect(Collectors.toCollection(LinkedList::new));
-        contents.clear();
+            td.setStyle(tdStyle);
+            if (isComputeAutoWidth) {
+                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+            }
+            return td;
+        }).collect(Collectors.toList());
+        if (isCustomWidth) {
+            customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
+        }
+        tr.setTdList(tdList);
+        return tr;
 
-        return result;
     }
 
     /**
@@ -347,6 +414,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 globalDefaultValue = excelTable.defaultValue();
             }
             wrapText = excelTable.wrapText();
+            titleSeparator = excelTable.titleSeparator();
             ignoreStaticFields = excelTable.ignoreStaticFields();
         }
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);
@@ -507,24 +575,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param sortedFields 排序字段
      * @return 结果集
      */
-    protected List<List<Pair<Class, Object>>> getRenderContent(List<?> data, List<Field> sortedFields) {
+    protected List<List<Pair<? extends Class, ?>>> getRenderContent(List<?> data, List<Field> sortedFields) {
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            List<Pair<? extends Class, ?>> resolvedDataList = sortedFields.stream()
-                    .map(field -> {
-                        Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data.get(index));
-                        if (Objects.nonNull(value.getValue())) {
-                            return value;
-                        }
-                        String defaultValue = defaultValueMap.get(field);
-                        if (Objects.nonNull(defaultValue)) {
-                            return Pair.of(field.getType(), defaultValue);
-                        }
-                        if (Objects.nonNull(globalDefaultValue)) {
-                            return Pair.of(field.getType(), globalDefaultValue);
-                        }
-                        return value;
-                    })
-                    .collect(Collectors.toList());
+            List<Pair<? extends Class, ?>> resolvedDataList = this.getRenderContent(data.get(index), sortedFields);
             return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toCollection(LinkedList::new));
         data.clear();
@@ -532,6 +585,32 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         // 重排序
         return resolvedDataContainers.stream()
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
-                .map(ParallelContainer<List<Pair<Class, Object>>>::getData).collect(Collectors.toCollection(LinkedList::new));
+                .map(ParallelContainer<List<Pair<? extends Class, ?>>>::getData).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    /**
+     * 获取需要被渲染的内容
+     *
+     * @param data         数据集合
+     * @param sortedFields 排序字段
+     * @return 结果集
+     */
+    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
+        return sortedFields.stream()
+                .map(field -> {
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data);
+                    if (Objects.nonNull(value.getValue())) {
+                        return value;
+                    }
+                    String defaultValue = defaultValueMap.get(field);
+                    if (Objects.nonNull(defaultValue)) {
+                        return Pair.of(field.getType(), defaultValue);
+                    }
+                    if (Objects.nonNull(globalDefaultValue)) {
+                        return Pair.of(field.getType(), globalDefaultValue);
+                    }
+                    return value;
+                })
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 }

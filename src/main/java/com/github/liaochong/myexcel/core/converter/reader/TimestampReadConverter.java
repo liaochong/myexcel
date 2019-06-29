@@ -15,24 +15,24 @@
 package com.github.liaochong.myexcel.core.converter.reader;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Objects;
 
 /**
- * Date读取转换器
+ * 时间戳读取转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class DateReadConverter extends AbstractReadConverter<Date> {
+public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
 
     @Override
-    public Date doConvert(String v, Field field) {
+    protected Timestamp doConvert(String v, Field field) {
         if (isNumber(v)) {
             final long time = Long.parseLong(v);
-            return new Date(time);
+            return new Timestamp(time);
         }
         String dateFormatPattern = getDateFormatPattern(field);
         SimpleDateFormat sdf = simpleDateFormatWeakCache.get(dateFormatPattern);
@@ -41,7 +41,7 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
             simpleDateFormatWeakCache.cache(dateFormatPattern, sdf);
         }
         try {
-            return sdf.parse(v);
+            return new Timestamp(sdf.parse(v).getTime());
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

@@ -25,7 +25,6 @@ import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -170,13 +169,11 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         Table table = this.createTable();
         htmlToExcelStreamFactory.start(table, workbook);
 
-        Tr head = this.createThead();
+        List<Tr> head = this.createThead();
         if (Objects.isNull(head)) {
             return this;
         }
-        List<Tr> headList = new ArrayList<>();
-        headList.add(head);
-        htmlToExcelStreamFactory.appendTitles(headList);
+        htmlToExcelStreamFactory.appendTitles(head);
         return this;
     }
 
@@ -185,15 +182,17 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         if (Objects.isNull(data) || data.isEmpty()) {
             return;
         }
-        List<List<Pair<Class, Object>>> contents = getRenderContent(data, filteredFields);
-        List<Tr> trList = this.createTbody(contents, 0);
-        htmlToExcelStreamFactory.append(trList);
+        for (Object datum : data) {
+            List<Pair<? extends Class, ?>> contents = getRenderContent(datum, filteredFields);
+            Tr tr = this.createTr(contents, 0, 0);
+            htmlToExcelStreamFactory.append(tr);
+        }
     }
 
     @Override
     public Workbook build() {
-        if (fixedTitles && Objects.nonNull(titles) && !titles.isEmpty()) {
-            FreezePane freezePane = new FreezePane(1, titles.size());
+        if (fixedTitles && titleLevel > 0) {
+            FreezePane freezePane = new FreezePane(titleLevel, titles.size());
             htmlToExcelStreamFactory.freezePanes(freezePane);
         }
         return htmlToExcelStreamFactory.build();
@@ -202,6 +201,11 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @Override
     public List<Path> buildAsPaths() {
         return htmlToExcelStreamFactory.buildAsPaths();
+    }
+
+    @Override
+    public Path buildAsZip(String fileName) {
+        return htmlToExcelStreamFactory.buildAsZip(fileName);
     }
 
     @Override
