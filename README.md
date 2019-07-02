@@ -23,6 +23,7 @@ MyExcel，是一个集导入、导出、加密Excel等多项功能的工具包�
 - **支持多种模板引擎**：已内置Freemarker、Groovy、Beetl、Thymeleaf等常用模板引擎Excel构建器（详情参见文档[Getting started](https://github.com/liaochong/MyExcel/wiki/Getting-started)），推荐使用Beetl模板引擎（[Beetl文档](http://ibeetl.com/guide/#beetl)）；
 - **提供默认Excel构建器，直接输出简单Excel**：无需编写任何html，已内置默认模板，可直接根据POJO数据列表输出；
 - **支持一次生成多sheet**：以table作为sheet单元，支持一份excel文档中多sheet导出；
+- **支持Excel容量设定**：支持设定Excel容量，到达容量后自动新建Excel，可构建成zip压缩包导出；
 
 文档 | Document
 --------------
