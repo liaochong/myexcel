@@ -42,6 +42,7 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -400,5 +401,22 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
         maxTdHeightMap = new HashMap<>();
+    }
+
+    /**
+     * 清理工作簿
+     */
+    protected void closeWorkbook() {
+        if (null == workbook) {
+            return;
+        }
+        try {
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
+            workbook.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
     }
 }

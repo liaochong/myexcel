@@ -208,11 +208,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         } catch (Exception e) {
             log.error("An exception occurred while processing", e);
             exception = true;
-            try {
-                workbook.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            closeWorkbook();
             trWaitQueue.clear();
             trWaitQueue = null;
             TempFileOperator.deleteTempFiles(paths);
@@ -223,6 +219,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         try {
             return trWaitQueue.take();
         } catch (InterruptedException e) {
+            closeWorkbook();
             throw new RuntimeException(e);
         }
     }
@@ -296,6 +293,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 }
             }
         } catch (IOException e) {
+            closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
             throw new RuntimeException(e);
         }
@@ -343,11 +341,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 ZipEntry zipEntry = new ZipEntry(fileName + " (" + i + ")" + suffix);
                 out.putNextEntry(zipEntry);
                 out.write(Files.readAllBytes(path));
+                out.closeEntry();
             }
         } catch (IOException e) {
+            closeWorkbook();
             throw new RuntimeException(e);
+        } finally {
+            TempFileOperator.deleteTempFiles(paths);
         }
-        TempFileOperator.deleteTempFiles(paths);
         return zipFile;
     }
 
