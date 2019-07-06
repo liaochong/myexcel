@@ -75,6 +75,14 @@ interface SimpleExcelBuilder extends ExcelBuilder {
      */
     Workbook build(List<?> data, Class<?>... groups);
 
+    /**
+     * Map形式构建
+     *
+     * @param data 数据
+     * @return Workbook
+     */
+    Workbook mapBuild(List<Map<String, Object>> data);
+
     @Override
     default ExcelBuilder useDefaultStyle() {
         throw new UnsupportedOperationException();

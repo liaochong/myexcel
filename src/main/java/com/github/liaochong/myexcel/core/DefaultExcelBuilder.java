@@ -26,7 +26,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -45,11 +47,10 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
     }
 
     /**
-     * 获取实例，已废弃，请使用of方法代替
+     * 获取实例，配合build(List<Map<String,Object> data)使用
      *
      * @return DefaultExcelBuilder
      */
-    @Deprecated
     public static DefaultExcelBuilder getInstance() {
         return new DefaultExcelBuilder();
     }
@@ -78,6 +79,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
         HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
         List<Table> tableList = new ArrayList<>();
+        this.initStyleMap();
         if (Objects.isNull(dataType)) {
             if (Objects.isNull(data) || data.isEmpty()) {
                 log.info("No valid data exists");
@@ -93,11 +95,9 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
             if (sortedFields.isEmpty()) {
                 log.info("The specified field mapping does not exist");
-                return htmlToExcelFactory.build(this.getTableWithHeader());
+                return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
             }
             List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
-
-            this.initStyleMap();
 
             Table table = this.createTable();
             List<Tr> thead = this.createThead();
@@ -131,8 +131,6 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
                 return htmlToExcelFactory.build(tableList, workbook);
             }
 
-            this.initStyleMap();
-
             List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
             List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
             if (Objects.nonNull(thead)) {
@@ -145,6 +143,43 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             FreezePane freezePane = new FreezePane(titleLevel, titles.size());
             htmlToExcelFactory.freezePanes(freezePane);
         }
+        return htmlToExcelFactory.build(tableList, workbook);
+    }
+
+    @Override
+    public Workbook mapBuild(List<Map<String, Object>> data) {
+        if (null == fieldDisplayOrder) {
+            throw new IllegalArgumentException();
+        }
+        this.initStyleMap();
+        HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+        if (data == null || data.isEmpty()) {
+            log.info("No valid data exists");
+            return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
+        }
+        List<Tr> thead = this.createThead();
+        List<Tr> tbody = new LinkedList<>();
+        for (int i = 0, size = data.size(); i < size; i++) {
+            Map<String, Object> d = data.get(i);
+            List<Pair<? extends Class, ?>> contents = new ArrayList<>(d.size());
+            for (String fieldName : fieldDisplayOrder) {
+                Object val = d.get(fieldName);
+                contents.add(Pair.of(Objects.isNull(val) ? String.class : val.getClass(), val));
+            }
+            Tr tr = this.createTr(contents, i, thead.size());
+            tbody.add(tr);
+        }
+        tbody.addAll(0, thead);
+        Table table = this.createTable();
+        table.setTrList(tbody);
+
+        if (fixedTitles && titleLevel > 0) {
+            FreezePane freezePane = new FreezePane(titleLevel, titles.size());
+            htmlToExcelFactory.freezePanes(freezePane);
+        }
+        List<Table> tableList = new ArrayList<>();
+        tableList.add(table);
         return htmlToExcelFactory.build(tableList, workbook);
     }
 }

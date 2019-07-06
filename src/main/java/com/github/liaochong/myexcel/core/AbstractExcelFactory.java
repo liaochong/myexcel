@@ -220,7 +220,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     }
                     break;
                 default:
-                    cell = currentRow.createCell(td.getCol());
+                    cell = currentRow.createCell(td.getCol(), CellType.STRING);
+                    cell.setCellValue(content);
                     break;
             }
         }
