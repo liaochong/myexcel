@@ -207,7 +207,6 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             Tr tr = table.getTrList().get(i);
             this.createRow(tr, sheet);
-            tr.setTdList(null);
         }
         table.setTrList(null);
         this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
