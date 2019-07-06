@@ -47,7 +47,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
     }
 
     /**
-     * 获取实例，配合build(List<Map<String,Object> data)使用
+     * 获取实例
      *
      * @return DefaultExcelBuilder
      */
