@@ -179,7 +179,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
 
     @Override
     public void append(List<?> data) {
-        if (Objects.isNull(data) || data.isEmpty()) {
+        if (data == null || data.isEmpty()) {
             return;
         }
         for (Object datum : data) {
@@ -187,6 +187,16 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
             Tr tr = this.createTr(contents, 0, 0);
             htmlToExcelStreamFactory.append(tr);
         }
+    }
+
+    @Override
+    public <T> void append(T data) {
+        if (data == null) {
+            return;
+        }
+        List<Pair<? extends Class, ?>> contents = getRenderContent(data, filteredFields);
+        Tr tr = this.createTr(contents, 0, 0);
+        htmlToExcelStreamFactory.append(tr);
     }
 
     @Override

@@ -177,7 +177,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 }
             }
         }
-        tr.setTdList(null);
         // 移除暂存区空白单元格
         stagingTds.removeIf(td -> Objects.equals(td.getRow(), tr.getIndex()));
         // 设置行高，最小12
