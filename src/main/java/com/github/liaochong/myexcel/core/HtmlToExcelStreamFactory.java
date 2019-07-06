@@ -114,24 +114,24 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     public void start(Table table, Workbook workbook) {
         log.info("Start streaming building excel");
-        if (Objects.nonNull(workbook)) {
+        if (workbook != null) {
             this.workbook = workbook;
         }
         startTime = System.currentTimeMillis();
 
-        if (Objects.isNull(this.workbook)) {
+        if (this.workbook == null) {
             workbookType(WorkbookType.SXLSX);
         }
         if (workbook instanceof HSSFWorkbook) {
             maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
         }
         initCellStyle(workbook);
-        if (Objects.nonNull(table)) {
+        if (table != null) {
             sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
         }
         this.sheet = this.workbook.createSheet(sheetName);
         paths = new ArrayList<>();
-        if (Objects.isNull(executorService)) {
+        if (executorService == null) {
             Thread thread = new Thread(this::receive);
             thread.setName("Excel-builder-1");
             thread.start();
@@ -155,7 +155,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.error("Received a termination command,the build method has been called");
             throw new UnsupportedOperationException("Received a termination command");
         }
-        if (Objects.isNull(tr)) {
+        if (tr == null) {
             log.warn("This tr is null and will be discarded");
             return;
         }
@@ -208,11 +208,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         } catch (Exception e) {
             log.error("An exception occurred while processing", e);
             exception = true;
-            try {
-                workbook.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            closeWorkbook();
             trWaitQueue.clear();
             trWaitQueue = null;
             TempFileOperator.deleteTempFiles(paths);
@@ -223,6 +219,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         try {
             return trWaitQueue.take();
         } catch (InterruptedException e) {
+            closeWorkbook();
             throw new RuntimeException(e);
         }
     }
@@ -239,7 +236,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     public List<Path> buildAsPaths() {
         waiting();
         this.storeToTempFile();
-        if (Objects.nonNull(futures)) {
+        if (futures != null) {
             futures.forEach(CompletableFuture::join);
         }
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
@@ -270,7 +267,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
         paths.add(path);
         try {
-            if (Objects.nonNull(executorService)) {
+            if (executorService != null) {
                 Workbook tempWorkbook = workbook;
                 Sheet tempSheet = sheet;
                 Map<Integer, Integer> tempColWidthMap = colWidthMap;
@@ -282,7 +279,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                    if (Objects.nonNull(pathConsumer)) {
+                    if (pathConsumer != null) {
                         pathConsumer.accept(path);
                     }
                 }, executorService);
@@ -296,6 +293,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 }
             }
         } catch (IOException e) {
+            closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
             throw new RuntimeException(e);
         }
@@ -313,7 +311,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         initCellStyle(workbook);
         sheet = workbook.createSheet(sheetName);
         // 标题构建
-        if (Objects.isNull(titles)) {
+        if (titles == null) {
             return;
         }
         for (Tr titleTr : titles) {
@@ -343,11 +341,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 ZipEntry zipEntry = new ZipEntry(fileName + " (" + i + ")" + suffix);
                 out.putNextEntry(zipEntry);
                 out.write(Files.readAllBytes(path));
+                out.closeEntry();
             }
         } catch (IOException e) {
+            closeWorkbook();
             throw new RuntimeException(e);
+        } finally {
+            TempFileOperator.deleteTempFiles(paths);
         }
-        TempFileOperator.deleteTempFiles(paths);
         return zipFile;
     }
 

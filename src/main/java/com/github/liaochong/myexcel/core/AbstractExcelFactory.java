@@ -33,6 +33,7 @@ import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -42,6 +43,7 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -153,12 +155,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param sheet sheet
      */
     protected void createRow(Tr tr, Sheet sheet) {
-        Row row = sheet.getRow(tr.getIndex());
-        if (Objects.isNull(row)) {
-            row = sheet.createRow(tr.getIndex());
-            if (!tr.isVisibility()) {
-                row.setZeroHeight(true);
-            }
+        Row row = sheet.createRow(tr.getIndex());
+        if (!tr.isVisibility()) {
+            row.setZeroHeight(true);
         }
         List<Td> tdList = tr.getTdList();
         stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.getRow(), tr.getIndex())).forEach(tdList::add);
@@ -181,7 +180,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         // 移除暂存区空白单元格
         stagingTds.removeIf(td -> Objects.equals(td.getRow(), tr.getIndex()));
         // 设置行高，最小12
-        if (Objects.isNull(maxTdHeightMap.get(row.getRowNum()))) {
+        if (maxTdHeightMap.get(row.getRowNum()) == null) {
             row.setHeightInPoints(row.getHeightInPoints() + 5);
         } else {
             row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
@@ -197,40 +196,43 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param currentRow 当前行
      */
     protected void createCell(Td td, Sheet sheet, Row currentRow) {
-        Cell cell = currentRow.getCell(td.getCol());
-        if (Objects.isNull(cell)) {
-            cell = currentRow.createCell(td.getCol());
-        }
+        Cell cell;
         if (td.isFormula()) {
+            cell = currentRow.createCell(td.getCol(), CellType.FORMULA);
             cell.setCellFormula(td.getContent());
         } else {
             String content = td.getContent();
             switch (td.getTdContentType()) {
                 case STRING:
+                    cell = currentRow.createCell(td.getCol(), CellType.STRING);
                     cell.setCellValue(content);
                     break;
                 case DOUBLE:
-                    if (Objects.nonNull(content)) {
+                    cell = currentRow.createCell(td.getCol(), CellType.NUMERIC);
+                    if (null != content) {
                         cell.setCellValue(Double.parseDouble(content));
                     }
                     break;
                 case BOOLEAN:
-                    if (Objects.nonNull(content)) {
+                    cell = currentRow.createCell(td.getCol(), CellType.BOOLEAN);
+                    if (null != content) {
                         cell.setCellValue(Boolean.parseBoolean(content));
                     }
                     break;
                 default:
+                    cell = currentRow.createCell(td.getCol(), CellType.STRING);
+                    cell.setCellValue(content);
+                    break;
             }
         }
 
         // 设置单元格样式
-        Row row = sheet.getRow(td.getRow());
-        for (int j = td.getCol(), colBound = td.getColBound(); j <= colBound; j++) {
-            cell = row.getCell(j);
-            if (Objects.isNull(cell)) {
-                cell = row.createCell(j);
+        this.setCellStyle(currentRow, cell, td);
+        if (td.getCol() != td.getColBound()) {
+            for (int j = td.getCol() + 1, colBound = td.getColBound(); j <= colBound; j++) {
+                cell = currentRow.createCell(j);
+                this.setCellStyle(currentRow, cell, td);
             }
-            this.setCellStyle(row, cell, td);
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
@@ -255,7 +257,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 return;
             }
             String fs = td.getStyle().get("font-size");
-            if (Objects.nonNull(fs)) {
+            if (fs != null) {
                 fs = fs.replaceAll("\\D*", "");
                 short fontSize = Short.parseShort(fs);
                 if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
@@ -288,7 +290,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return Workbook
      */
     protected Workbook emptyWorkbook() {
-        if (Objects.isNull(workbook)) {
+        if (workbook == null) {
             workbook = new XSSFWorkbook();
         }
         workbook.createSheet();
@@ -322,9 +324,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param sheet      sheet
      */
     protected void freezePane(int tableIndex, Sheet sheet) {
-        if (Objects.nonNull(freezePanes) && freezePanes.length > tableIndex) {
+        if (freezePanes != null && freezePanes.length > tableIndex) {
             FreezePane freezePane = freezePanes[tableIndex];
-            if (Objects.isNull(freezePane)) {
+            if (freezePane == null) {
                 throw new IllegalStateException("FreezePane is null");
             }
             sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
@@ -400,5 +402,22 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
         maxTdHeightMap = new HashMap<>();
+    }
+
+    /**
+     * 关闭工作簿
+     */
+    protected void closeWorkbook() {
+        if (workbook == null) {
+            return;
+        }
+        try {
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
+            workbook.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
     }
 }

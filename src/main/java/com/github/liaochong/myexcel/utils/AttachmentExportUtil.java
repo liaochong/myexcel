@@ -147,6 +147,8 @@ public final class AttachmentExportUtil {
             response.getOutputStream().write(Files.readAllBytes(path));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            TempFileOperator.deleteTempFile(path);
         }
     }
 }

@@ -76,7 +76,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     /**
      * 字段展示顺序
      */
-    private List<String> fieldDisplayOrder;
+    protected List<String> fieldDisplayOrder;
     /**
      * excel workbook
      */
@@ -344,19 +344,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             Pair<? extends Class, ?> pair = contents.get(i);
             td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
             Class fieldType = pair.getKey();
-            if (String.class == fieldType) {
-                // do nothing,user default impl
-            } else if (Boolean.class == fieldType || boolean.class == fieldType) {
-                td.setTdContentType(ContentTypeEnum.BOOLEAN);
-            } else if (fieldType == Double.class || fieldType == double.class
-                    || fieldType == Float.class || fieldType == float.class
-                    || fieldType == Long.class || fieldType == long.class
-                    || fieldType == Integer.class || fieldType == int.class
-                    || fieldType == Short.class || fieldType == short.class
-                    || fieldType == Byte.class || fieldType == byte.class
-                    || fieldType == BigDecimal.class) {
-                td.setTdContentType(ContentTypeEnum.DOUBLE);
-            }
+            setTdContentType(td, fieldType);
             td.setStyle(tdStyle);
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
@@ -369,6 +357,25 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         tr.setTdList(tdList);
         return tr;
 
+    }
+
+    private void setTdContentType(Td td, Class fieldType) {
+        if (String.class == fieldType) {
+            return;
+        }
+        if (Boolean.class == fieldType || boolean.class == fieldType) {
+            td.setTdContentType(ContentTypeEnum.BOOLEAN);
+            return;
+        }
+        if (fieldType == Double.class || fieldType == double.class
+                || fieldType == Float.class || fieldType == float.class
+                || fieldType == Long.class || fieldType == long.class
+                || fieldType == Integer.class || fieldType == int.class
+                || fieldType == Short.class || fieldType == short.class
+                || fieldType == Byte.class || fieldType == byte.class
+                || fieldType == BigDecimal.class) {
+            td.setTdContentType(ContentTypeEnum.DOUBLE);
+        }
     }
 
     /**
@@ -593,6 +600,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      *
      * @param data         数据集合
      * @param sortedFields 排序字段
+     * @param <T>          泛型
      * @return 结果集
      */
     protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
