@@ -74,12 +74,19 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
         return defaultExcelBuilder;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Workbook build(List<?> data, Class<?>... groups) {
         HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
         htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
         List<Table> tableList = new ArrayList<>();
         this.initStyleMap();
+        if (data != null) {
+            boolean isMapBuild = data.stream().anyMatch(d -> d instanceof Map);
+            if (isMapBuild) {
+                return this.mapBuild((List<Map<String, Object>>) data, htmlToExcelFactory);
+            }
+        }
         if (Objects.isNull(dataType)) {
             if (Objects.isNull(data) || data.isEmpty()) {
                 log.info("No valid data exists");
@@ -146,14 +153,10 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
         return htmlToExcelFactory.build(tableList, workbook);
     }
 
-    @Override
-    public Workbook mapBuild(List<Map<String, Object>> data) {
+    private Workbook mapBuild(List<Map<String, Object>> data, HtmlToExcelFactory htmlToExcelFactory) {
         if (null == fieldDisplayOrder) {
             throw new IllegalArgumentException();
         }
-        this.initStyleMap();
-        HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
         if (data == null || data.isEmpty()) {
             log.info("No valid data exists");
             return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
@@ -162,6 +165,9 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
         List<Tr> tbody = new LinkedList<>();
         for (int i = 0, size = data.size(); i < size; i++) {
             Map<String, Object> d = data.get(i);
+            if (d == null) {
+                continue;
+            }
             List<Pair<? extends Class, ?>> contents = new ArrayList<>(d.size());
             for (String fieldName : fieldDisplayOrder) {
                 Object val = d.get(fieldName);
