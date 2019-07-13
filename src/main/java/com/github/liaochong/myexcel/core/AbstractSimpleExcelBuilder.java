@@ -249,27 +249,51 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
 
         // 调整colSpan
-        for (int i = 1; i < titleLevel; i++) {
+        for (int i = 0; i < titleLevel; i++) {
             int level = i;
             Map<String, List<List<Td>>> groups = tdLists.stream()
                     .filter(list -> list.size() > level)
-                    .collect(Collectors.groupingBy(list -> list.get(level - 1).getContent()));
-
+                    .collect(Collectors.groupingBy(list -> list.get(level).getContent()));
             groups.forEach((k, v) -> {
                 if (v.size() == 1) {
                     return;
                 }
-                List<Td> tds = groups.values().stream().flatMap(List::stream)
-                        .map(list -> list.get(level - 1))
+                List<Td> tds = v.stream().map(list -> list.get(level))
                         .sorted(Comparator.comparing(Td::getCol))
                         .collect(Collectors.toList());
-                Td t = tds.get(0);
-                t.setColSpan(v.size());
-                for (int j = 1; j < tds.size(); j++) {
-                    tds.get(j).setRow(-1);
-                }
-            });
 
+                List<List<Td>> subTds = new LinkedList<>();
+                // 不同跨行分别处理
+                Map<Integer, List<Td>> partitions = tds.stream().collect(Collectors.groupingBy(Td::getRowSpan));
+                partitions.forEach((col, subTdList) -> {
+                    // 区分开不连续列
+                    int splitIndex = 0;
+                    for (int j = 0, size = subTdList.size() - 1; j < size; j++) {
+                        Td current = subTdList.get(j);
+                        Td next = subTdList.get(j + 1);
+                        if (current.getCol() + 1 != next.getCol()) {
+                            List<Td> sub = subTdList.subList(splitIndex, j + 1);
+                            splitIndex = j + 1;
+                            if (sub.size() <= 1) {
+                                continue;
+                            }
+                            subTds.add(sub);
+                        }
+                    }
+                    subTds.add(subTdList.subList(splitIndex, subTdList.size()));
+                });
+
+                subTds.forEach(val -> {
+                    if (val.size() == 1) {
+                        return;
+                    }
+                    Td t = val.get(0);
+                    t.setColSpan(val.size());
+                    for (int j = 1; j < val.size(); j++) {
+                        val.get(j).setRow(-1);
+                    }
+                });
+            });
         }
 
         Map<String, String> thStyle;
