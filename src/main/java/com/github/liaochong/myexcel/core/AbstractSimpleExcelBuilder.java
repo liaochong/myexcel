@@ -192,7 +192,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         Table table = this.createTable();
         tableList.add(table);
         List<Tr> thead = this.createThead();
-        if (Objects.nonNull(thead)) {
+        if (thead != null) {
             table.getTrList().addAll(thead);
         }
         return tableList;
@@ -249,27 +249,51 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
 
         // 调整colSpan
-        for (int i = 1; i < titleLevel; i++) {
+        for (int i = 0; i < titleLevel; i++) {
             int level = i;
             Map<String, List<List<Td>>> groups = tdLists.stream()
                     .filter(list -> list.size() > level)
-                    .collect(Collectors.groupingBy(list -> list.get(level - 1).getContent()));
-
+                    .collect(Collectors.groupingBy(list -> list.get(level).getContent()));
             groups.forEach((k, v) -> {
                 if (v.size() == 1) {
                     return;
                 }
-                List<Td> tds = groups.values().stream().flatMap(List::stream)
-                        .map(list -> list.get(level - 1))
+                List<Td> tds = v.stream().map(list -> list.get(level))
                         .sorted(Comparator.comparing(Td::getCol))
                         .collect(Collectors.toList());
-                Td t = tds.get(0);
-                t.setColSpan(v.size());
-                for (int j = 1; j < tds.size(); j++) {
-                    tds.get(j).setRow(-1);
-                }
-            });
 
+                List<List<Td>> subTds = new LinkedList<>();
+                // 不同跨行分别处理
+                Map<Integer, List<Td>> partitions = tds.stream().collect(Collectors.groupingBy(Td::getRowSpan));
+                partitions.forEach((col, subTdList) -> {
+                    // 区分开不连续列
+                    int splitIndex = 0;
+                    for (int j = 0, size = subTdList.size() - 1; j < size; j++) {
+                        Td current = subTdList.get(j);
+                        Td next = subTdList.get(j + 1);
+                        if (current.getCol() + 1 != next.getCol()) {
+                            List<Td> sub = subTdList.subList(splitIndex, j + 1);
+                            splitIndex = j + 1;
+                            if (sub.size() <= 1) {
+                                continue;
+                            }
+                            subTds.add(sub);
+                        }
+                    }
+                    subTds.add(subTdList.subList(splitIndex, subTdList.size()));
+                });
+
+                subTds.forEach(val -> {
+                    if (val.size() == 1) {
+                        return;
+                    }
+                    Td t = val.get(0);
+                    t.setColSpan(val.size());
+                    for (int j = 1; j < val.size(); j++) {
+                        val.get(j).setRow(-1);
+                    }
+                });
+            });
         }
 
         Map<String, String> thStyle;
@@ -444,7 +468,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            if (Objects.nonNull(excelColumn)) {
+            if (excelColumn != null) {
                 if (needToAddTitle) {
                     if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
                         titles.add(field.getName());
@@ -506,7 +530,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             return true;
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn)) {
+        if (excelColumn == null) {
             return false;
         }
         Class<?>[] groupArr = excelColumn.groups();
@@ -520,16 +544,16 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     private int sortFields(Field field1, Field field2) {
         ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
         ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
+        if (excelColumn1 == null && excelColumn2 == null) {
             return 0;
         }
         int defaultOrder = 0;
         int order1 = defaultOrder;
-        if (Objects.nonNull(excelColumn1)) {
+        if (excelColumn1 != null) {
             order1 = excelColumn1.order();
         }
         int order2 = defaultOrder;
-        if (Objects.nonNull(excelColumn2)) {
+        if (excelColumn2 != null) {
             order2 = excelColumn2.order();
         }
         if (order1 == order2) {
@@ -544,7 +568,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param excelTable excelTable
      */
     private void setWorkbookWithExcelTableAnnotation(ExcelTable excelTable) {
-        if (Objects.isNull(workbookType)) {
+        if (workbookType == null) {
             this.workbookType = excelTable.workbookType();
         }
         if (this.rowAccessWindowSize <= 0) {
@@ -565,7 +589,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 展示字段order与标题title长度一致性自适应
      */
     private void selfAdaption() {
-        if (Objects.isNull(titles) || titles.isEmpty()) {
+        if (titles == null || titles.isEmpty()) {
             return;
         }
         if (fieldDisplayOrder.size() > titles.size()) {
@@ -607,14 +631,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data);
-                    if (Objects.nonNull(value.getValue())) {
+                    if (value.getValue() != null) {
                         return value;
                     }
                     String defaultValue = defaultValueMap.get(field);
-                    if (Objects.nonNull(defaultValue)) {
+                    if (defaultValue != null) {
                         return Pair.of(field.getType(), defaultValue);
                     }
-                    if (Objects.nonNull(globalDefaultValue)) {
+                    if (globalDefaultValue != null) {
                         return Pair.of(field.getType(), globalDefaultValue);
                     }
                     return value;

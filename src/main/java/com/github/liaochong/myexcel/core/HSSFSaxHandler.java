@@ -73,6 +73,10 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
     private int sheet;
 
+    private String sheetName;
+
+    private SaxExcelReader.ReadConfig<T> readConfig;
+
     private POIFSFileSystem fs;
 
     private int lastRowNumber = -1;
@@ -105,41 +109,33 @@ class HSSFSaxHandler<T> implements HSSFListener {
     private boolean outputNextStringRecord;
 
     public HSSFSaxHandler(File file,
-                          int sheet,
-                          Class<T> dataType,
                           List<T> result,
-                          Consumer<T> consumer,
-                          Function<T, Boolean> function,
-                          Predicate<Row> rowFilter,
-                          Predicate<T> beanFilter) throws IOException {
+                          SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.sheet = sheet;
+        this.sheet = readConfig.getSheetIndex();
+        this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.result = result;
-        this.dataType = dataType;
-        this.consumer = consumer;
-        this.function = function;
-        this.rowFilter = rowFilter;
-        this.beanFilter = beanFilter;
+        this.consumer = readConfig.getConsumer();
+        this.function = readConfig.getFunction();
+        this.rowFilter = readConfig.getRowFilter();
+        this.beanFilter = readConfig.getBeanFilter();
+        this.readConfig = readConfig;
     }
 
     public HSSFSaxHandler(InputStream inputStream,
-                          int sheet,
-                          Class<T> dataType,
                           List<T> result,
-                          Consumer<T> consumer,
-                          Function<T, Boolean> function,
-                          Predicate<Row> rowFilter,
-                          Predicate<T> beanFilter) throws IOException {
+                          SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(inputStream);
-        this.sheet = sheet;
+        this.sheet = readConfig.getSheetIndex();
+        this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.result = result;
-        this.dataType = dataType;
-        this.consumer = consumer;
-        this.function = function;
-        this.rowFilter = rowFilter;
-        this.beanFilter = beanFilter;
+        this.consumer = readConfig.getConsumer();
+        this.function = readConfig.getFunction();
+        this.rowFilter = readConfig.getRowFilter();
+        this.beanFilter = readConfig.getBeanFilter();
+        this.readConfig = readConfig;
     }
 
     public void process() throws IOException {
@@ -181,6 +177,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
                     if (orderedBSRs == null) {
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
+                    sheetName = orderedBSRs[sheetIndex].getSheetname();
                 }
                 break;
 
@@ -314,7 +311,11 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
-            if (sheetIndex != sheet) {
+            if (readConfig.getSheetName() != null) {
+                if (!readConfig.getSheetName().equals(sheetName)) {
+                    return;
+                }
+            } else if (sheetIndex != sheet) {
                 return;
             }
             if (!rowFilter.test(currentRow)) {
