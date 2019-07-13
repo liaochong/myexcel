@@ -37,7 +37,9 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     protected static WeakCache<String, SimpleDateFormat> simpleDateFormatWeakCache = new WeakCache<>();
 
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
+    private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
+
+    protected static final Pattern PATTERN_NON_NUMBER = Pattern.compile("[^\\.\\d\\-]");
 
     protected static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
@@ -82,7 +84,7 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      * @return true/false
      */
     protected boolean isNumber(String v) {
-        return NUMBER_PATTERN.matcher(v).matches();
+        return PATTERN_NUMBER.matcher(v).matches();
     }
 
     /**
