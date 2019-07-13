@@ -58,20 +58,17 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private int count;
 
-    public SaxHandler(Class<T> dataType,
-                      Map<Integer, Field> fieldMap,
-                      List<T> result,
-                      Consumer<T> consumer,
-                      Function<T, Boolean> function,
-                      Predicate<Row> rowFilter,
-                      Predicate<T> beanFilter) {
+    public SaxHandler(
+            Map<Integer, Field> fieldMap,
+            List<T> result,
+            SaxExcelReader.ReadConfig<T> readConfig) {
         this.fieldMap = fieldMap;
         this.result = result;
-        this.dataType = dataType;
-        this.consumer = consumer;
-        this.function = function;
-        this.rowFilter = rowFilter;
-        this.beanFilter = beanFilter;
+        this.dataType = readConfig.getDataType();
+        this.consumer = readConfig.getConsumer();
+        this.function = readConfig.getFunction();
+        this.rowFilter = readConfig.getRowFilter();
+        this.beanFilter = readConfig.getBeanFilter();
     }
 
     @Override
