@@ -192,7 +192,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         Table table = this.createTable();
         tableList.add(table);
         List<Tr> thead = this.createThead();
-        if (Objects.nonNull(thead)) {
+        if (thead != null) {
             table.getTrList().addAll(thead);
         }
         return tableList;
@@ -444,7 +444,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            if (Objects.nonNull(excelColumn)) {
+            if (excelColumn != null) {
                 if (needToAddTitle) {
                     if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
                         titles.add(field.getName());
@@ -506,7 +506,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             return true;
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn)) {
+        if (excelColumn == null) {
             return false;
         }
         Class<?>[] groupArr = excelColumn.groups();
@@ -520,16 +520,16 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
     private int sortFields(Field field1, Field field2) {
         ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
         ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-        if (Objects.isNull(excelColumn1) && Objects.isNull(excelColumn2)) {
+        if (excelColumn1 == null && excelColumn2 == null) {
             return 0;
         }
         int defaultOrder = 0;
         int order1 = defaultOrder;
-        if (Objects.nonNull(excelColumn1)) {
+        if (excelColumn1 != null) {
             order1 = excelColumn1.order();
         }
         int order2 = defaultOrder;
-        if (Objects.nonNull(excelColumn2)) {
+        if (excelColumn2 != null) {
             order2 = excelColumn2.order();
         }
         if (order1 == order2) {
@@ -544,7 +544,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @param excelTable excelTable
      */
     private void setWorkbookWithExcelTableAnnotation(ExcelTable excelTable) {
-        if (Objects.isNull(workbookType)) {
+        if (workbookType == null) {
             this.workbookType = excelTable.workbookType();
         }
         if (this.rowAccessWindowSize <= 0) {
@@ -565,7 +565,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 展示字段order与标题title长度一致性自适应
      */
     private void selfAdaption() {
-        if (Objects.isNull(titles) || titles.isEmpty()) {
+        if (titles == null || titles.isEmpty()) {
             return;
         }
         if (fieldDisplayOrder.size() > titles.size()) {
@@ -607,14 +607,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data);
-                    if (Objects.nonNull(value.getValue())) {
+                    if (value.getValue() != null) {
                         return value;
                     }
                     String defaultValue = defaultValueMap.get(field);
-                    if (Objects.nonNull(defaultValue)) {
+                    if (defaultValue != null) {
                         return Pair.of(field.getType(), defaultValue);
                     }
-                    if (Objects.nonNull(globalDefaultValue)) {
+                    if (globalDefaultValue != null) {
                         return Pair.of(field.getType(), globalDefaultValue);
                     }
                     return value;
