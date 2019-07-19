@@ -127,6 +127,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             parseConfig.setAutoWidthStrategy(autoWidthStrategy);
 
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
+            htmlTableParser = null;
             return this.build(tables);
         } catch (IOException e) {
             throw new RuntimeException(e);
