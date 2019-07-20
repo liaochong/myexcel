@@ -31,16 +31,13 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
@@ -218,6 +215,22 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     if (null != content) {
                         cell.setCellValue(Boolean.parseBoolean(content));
                     }
+                    break;
+                case DROP_DOWN_LIST:
+                    cell = currentRow.createCell(td.getCol());
+                    CellRangeAddressList addressList = new CellRangeAddressList(
+                            td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
+                    DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+                    DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(content.split(","));
+                    DataValidation validation = dvHelper.createValidation(
+                            dvConstraint, addressList);
+                    if (validation instanceof XSSFDataValidation) {
+                        validation.setSuppressDropDownArrow(true);
+                        validation.setShowErrorBox(true);
+                    } else {
+                        validation.setSuppressDropDownArrow(false);
+                    }
+                    sheet.addValidationData(validation);
                     break;
                 default:
                     cell = currentRow.createCell(td.getCol(), CellType.STRING);

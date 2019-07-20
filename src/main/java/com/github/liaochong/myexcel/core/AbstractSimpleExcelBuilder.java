@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.constant.DropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
@@ -399,6 +400,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 || fieldType == Byte.class || fieldType == byte.class
                 || fieldType == BigDecimal.class) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
+        if (fieldType == DropDownList.class) {
+            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
         }
     }
 
