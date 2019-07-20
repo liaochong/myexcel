@@ -48,9 +48,6 @@ public class BigDecimalWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Object fieldVal) {
-        if (fieldVal == null) {
-            return false;
-        }
         Class<?> fieldType = field.getType();
         if (fieldType != BigDecimal.class) {
             return false;

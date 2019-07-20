@@ -49,6 +49,9 @@ public class WriteConverterContext {
 
     public static Pair<? extends Class, Object> convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
+        if (result == null) {
+            return Pair.of(field.getType(), null);
+        }
         Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
                 .filter(writeConverter -> writeConverter.support(field, result))
                 .findFirst();
