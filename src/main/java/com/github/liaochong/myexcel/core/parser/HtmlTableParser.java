@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -242,12 +243,16 @@ public class HtmlTableParser {
         if (tdElement.hasAttr("string")) {
             return;
         }
-        if (Objects.equals(tdContent, "true") || Objects.equals(tdContent, "false")) {
+        if (Constants.TRUE.equals(tdContent) || Constants.FALSE.equals(tdContent)) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
         if (DOUBLE_PATTERN.matcher(tdContent).matches()) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
+        if (tdElement.hasAttr("dropDownList")) {
+            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
         }
     }
 
