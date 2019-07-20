@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.BigDecimalWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
@@ -34,6 +35,8 @@ import java.util.Optional;
  */
 public class WriteConverterContext {
 
+    private static final WeakCache<Class, Pair<? extends Class, Object>> CACHE = new WeakCache<>();
+
     private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
     static {
@@ -50,7 +53,12 @@ public class WriteConverterContext {
     public static Pair<? extends Class, Object> convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
         if (result == null) {
-            return Pair.of(field.getType(), null);
+            Pair<? extends Class, Object> pair = CACHE.get(field.getType());
+            if (pair == null) {
+                pair = Pair.of(field.getType(), null);
+                CACHE.cache(field.getType(), pair);
+            }
+            return pair;
         }
         Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
                 .filter(writeConverter -> writeConverter.support(field, result))
