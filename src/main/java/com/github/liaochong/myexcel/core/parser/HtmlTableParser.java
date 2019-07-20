@@ -135,7 +135,7 @@ public class HtmlTableParser {
             tr.setVisibility(!Objects.equals(trStyleMap.get("visibility"), "hidden"));
             this.parseTdOfTr(tr, trElement, trStyleMap, seizeMap);
             return tr;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toCollection(LinkedList::new));
         table.setTrList(trList);
     }
 
