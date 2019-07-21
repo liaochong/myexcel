@@ -14,13 +14,18 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
+import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
+import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,9 +41,29 @@ public class DropDownListWriteConverter implements WriteConverter {
     public Pair<Class, Object> convert(Field field, Object fieldVal) {
         String content;
         if (field.getType() == List.class) {
-            content = ((List<?>) fieldVal).stream().map(Object::toString).collect(Collectors.joining(","));
+            List<?> list = ((List<?>) fieldVal);
+            content = list.stream().map(Object::toString).collect(Collectors.joining(","));
+            // 确定数据类型
+            Optional<?> optional = list.stream().filter(Objects::nonNull).findFirst();
+            if (optional.isPresent()) {
+                Class clazz = optional.get().getClass();
+                if (ReflectUtil.isBool(clazz)) {
+                    return Pair.of(BooleanDropDownList.class, content);
+                }
+                if (ReflectUtil.isNumber(clazz)) {
+                    return Pair.of(NumberDropDownList.class, content);
+                }
+            }
         } else {
-            content = Stream.of(((Array) fieldVal)).map(Object::toString).collect(Collectors.joining(","));
+            Array array = (Array) fieldVal;
+            content = Stream.of(array).map(Object::toString).collect(Collectors.joining(","));
+            Class clazz = Array.get(array, 0).getClass();
+            if (ReflectUtil.isBool(clazz)) {
+                return Pair.of(BooleanDropDownList.class, content);
+            }
+            if (ReflectUtil.isNumber(clazz)) {
+                return Pair.of(NumberDropDownList.class, content);
+            }
         }
         return Pair.of(DropDownList.class, content);
     }

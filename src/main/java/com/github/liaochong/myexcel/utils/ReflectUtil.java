@@ -21,6 +21,7 @@ import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,5 +107,19 @@ public final class ReflectUtil {
             container.setParent(parentContainer);
             getAllFieldsOfClass(clazz.getSuperclass(), parentContainer);
         }
+    }
+
+    public static boolean isNumber(Class clazz) {
+        return clazz == Double.class || clazz == double.class
+                || clazz == Float.class || clazz == float.class
+                || clazz == Long.class || clazz == long.class
+                || clazz == Integer.class || clazz == int.class
+                || clazz == Short.class || clazz == short.class
+                || clazz == Byte.class || clazz == byte.class
+                || clazz == BigDecimal.class;
+    }
+
+    public static boolean isBool(Class clazz) {
+        return clazz == boolean.class || clazz == Boolean.class;
     }
 }

@@ -18,7 +18,9 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
+import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
@@ -33,13 +35,13 @@ import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -388,22 +390,24 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (String.class == fieldType) {
             return;
         }
-        if (Boolean.class == fieldType || boolean.class == fieldType) {
+        if (ReflectUtil.isBool(fieldType)) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
-        if (fieldType == Double.class || fieldType == double.class
-                || fieldType == Float.class || fieldType == float.class
-                || fieldType == Long.class || fieldType == long.class
-                || fieldType == Integer.class || fieldType == int.class
-                || fieldType == Short.class || fieldType == short.class
-                || fieldType == Byte.class || fieldType == byte.class
-                || fieldType == BigDecimal.class) {
+        if (ReflectUtil.isNumber(fieldType)) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
             return;
         }
         if (fieldType == DropDownList.class) {
             td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
+            return;
+        }
+        if (fieldType == NumberDropDownList.class) {
+            td.setTdContentType(ContentTypeEnum.NUMBER_DROP_DOWN_LIST);
+            return;
+        }
+        if (fieldType == BooleanDropDownList.class) {
+            td.setTdContentType(ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST);
         }
     }
 
