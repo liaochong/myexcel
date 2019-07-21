@@ -18,7 +18,6 @@ import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
 
 /**
  * 时间戳读取转换器
@@ -36,7 +35,7 @@ public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
         }
         String dateFormatPattern = getDateFormatPattern(field);
         SimpleDateFormat sdf = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
-        if (Objects.isNull(sdf)) {
+        if (sdf == null) {
             sdf = new SimpleDateFormat(dateFormatPattern);
             SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, sdf);
         }
