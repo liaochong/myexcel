@@ -33,9 +33,9 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
-    protected static WeakCache<String, DateTimeFormatter> dateTimeFormatterWeakCache = new WeakCache<>();
+    protected static final WeakCache<String, DateTimeFormatter> DATE_TIME_FORMATTER_WEAK_CACHE = new WeakCache<>();
 
-    protected static WeakCache<String, SimpleDateFormat> simpleDateFormatWeakCache = new WeakCache<>();
+    protected static final WeakCache<String, SimpleDateFormat> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
 
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
 
@@ -95,10 +95,10 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      */
     protected DateTimeFormatter getDateFormatFormatter(Field field) {
         String dateFormatPattern = getDateFormatPattern(field);
-        DateTimeFormatter dateTimeFormatter = dateTimeFormatterWeakCache.get(dateFormatPattern);
+        DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER_WEAK_CACHE.get(dateFormatPattern);
         if (Objects.isNull(dateTimeFormatter)) {
             dateTimeFormatter = DateTimeFormatter.ofPattern(dateFormatPattern);
-            dateTimeFormatterWeakCache.cache(dateFormatPattern, dateTimeFormatter);
+            DATE_TIME_FORMATTER_WEAK_CACHE.cache(dateFormatPattern, dateTimeFormatter);
         }
         return dateTimeFormatter;
     }

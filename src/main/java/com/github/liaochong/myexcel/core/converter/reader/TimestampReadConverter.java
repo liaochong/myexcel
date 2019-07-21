@@ -35,10 +35,10 @@ public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
             return new Timestamp(time);
         }
         String dateFormatPattern = getDateFormatPattern(field);
-        SimpleDateFormat sdf = simpleDateFormatWeakCache.get(dateFormatPattern);
+        SimpleDateFormat sdf = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
         if (Objects.isNull(sdf)) {
             sdf = new SimpleDateFormat(dateFormatPattern);
-            simpleDateFormatWeakCache.cache(dateFormatPattern, sdf);
+            SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, sdf);
         }
         try {
             return new Timestamp(sdf.parse(v).getTime());

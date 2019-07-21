@@ -34,9 +34,7 @@ public class BigDecimalWriteConverter implements WriteConverter {
 
     @Override
     public Pair<Class, Object> convert(Field field, Object fieldVal) {
-        Class<?> fieldType = field.getType();
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        String format = excelColumn.decimalFormat();
+        String format = field.getAnnotation(ExcelColumn.class).decimalFormat();
         String[] formatSplits = format.split("\\.");
         BigDecimal value = (BigDecimal) fieldVal;
         if (formatSplits.length == 2) {
