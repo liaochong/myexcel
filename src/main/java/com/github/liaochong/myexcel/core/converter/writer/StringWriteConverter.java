@@ -5,7 +5,6 @@ import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
 import java.lang.reflect.Field;
-import java.util.Objects;
 
 /**
  * @author simon
@@ -16,7 +15,7 @@ public class StringWriteConverter implements WriteConverter {
     @Override
     public boolean support(Field field, Object fieldVal) {
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal) && excelColumn.convertToString();
+        return excelColumn != null && excelColumn.convertToString();
     }
 
     @Override

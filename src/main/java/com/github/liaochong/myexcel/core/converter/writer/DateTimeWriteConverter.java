@@ -45,7 +45,7 @@ public class DateTimeWriteConverter implements WriteConverter {
             return false;
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return Objects.nonNull(excelColumn) && Objects.nonNull(fieldVal) && StringUtil.isNotBlank(excelColumn.dateFormatPattern());
+        return excelColumn != null && StringUtil.isNotBlank(excelColumn.dateFormatPattern());
     }
 
     @Override

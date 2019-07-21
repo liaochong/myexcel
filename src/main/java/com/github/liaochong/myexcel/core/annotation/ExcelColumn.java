@@ -80,7 +80,22 @@ public @interface ExcelColumn {
 
     /**
      * 是否强制转换成字符串
+     *
      * @return 是否强制转换成字符串
      */
     boolean convertToString() default false;
+
+    /**
+     * 小数格式化
+     *
+     * @return 格式化
+     */
+    String decimalFormat() default "";
+
+    /**
+     * 样式
+     *
+     * @return 样式集合
+     */
+    String[] style() default {};
 }

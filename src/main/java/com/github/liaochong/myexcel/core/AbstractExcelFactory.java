@@ -31,16 +31,13 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
@@ -159,9 +156,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (!tr.isVisibility()) {
             row.setZeroHeight(true);
         }
-        List<Td> tdList = tr.getTdList();
-        stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.getRow(), tr.getIndex())).forEach(tdList::add);
-        for (Td td : tdList) {
+        stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.getRow(), tr.getIndex())).forEach(td -> {
+            if (tr.getTdList() == Collections.EMPTY_LIST) {
+                tr.setTdList(new LinkedList<>());
+            }
+            tr.getTdList().add(td);
+        });
+        for (Td td : tr.getTdList()) {
             this.createCell(td, sheet, row);
             if (td.getRowSpan() == 0) {
                 continue;
@@ -219,6 +220,27 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                         cell.setCellValue(Boolean.parseBoolean(content));
                     }
                     break;
+                case NUMBER_DROP_DOWN_LIST:
+                    cell = currentRow.createCell(td.getCol(), CellType.NUMERIC);
+                    String firstEle = setDropDownList(td, sheet, cell, content);
+                    if (firstEle != null) {
+                        cell.setCellValue(Double.parseDouble(firstEle));
+                    }
+                    break;
+                case BOOLEAN_DROP_DOWN_LIST:
+                    cell = currentRow.createCell(td.getCol(), CellType.BOOLEAN);
+                    firstEle = setDropDownList(td, sheet, cell, content);
+                    if (firstEle != null) {
+                        cell.setCellValue(Boolean.parseBoolean(firstEle));
+                    }
+                    break;
+                case DROP_DOWN_LIST:
+                    cell = currentRow.createCell(td.getCol(), CellType.STRING);
+                    firstEle = setDropDownList(td, sheet, cell, content);
+                    if (firstEle != null) {
+                        cell.setCellValue(firstEle);
+                    }
+                    break;
                 default:
                     cell = currentRow.createCell(td.getCol(), CellType.STRING);
                     cell.setCellValue(content);
@@ -237,6 +259,27 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private String setDropDownList(Td td, Sheet sheet, Cell cell, String content) {
+        CellRangeAddressList addressList = new CellRangeAddressList(
+                td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
+        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+        String[] list = content.split(",");
+        DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
+        DataValidation validation = dvHelper.createValidation(
+                dvConstraint, addressList);
+        if (validation instanceof XSSFDataValidation) {
+            validation.setSuppressDropDownArrow(true);
+            validation.setShowErrorBox(true);
+        } else {
+            validation.setSuppressDropDownArrow(false);
+        }
+        sheet.addValidationData(validation);
+        if (list.length > 0) {
+            return list[0];
+        }
+        return null;
     }
 
     /**

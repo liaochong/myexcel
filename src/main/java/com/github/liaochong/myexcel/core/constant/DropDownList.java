@@ -12,40 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.parser;
+package com.github.liaochong.myexcel.core.constant;
 
 /**
- * 内容类型枚举
+ * 仅用作标明数据类型
  *
  * @author liaochong
  * @version 1.0
  */
-public enum ContentTypeEnum {
-
-    STRING,
-
-    BOOLEAN,
-
-    DOUBLE,
-
-    DATE,
-
-    DROP_DOWN_LIST,
-
-    NUMBER_DROP_DOWN_LIST,
-
-    BOOLEAN_DROP_DOWN_LIST;
-
-    public static boolean isString(ContentTypeEnum contentTypeEnum) {
-        return STRING.equals(contentTypeEnum);
-    }
-
-    public static boolean isBool(ContentTypeEnum contentTypeEnum) {
-        return BOOLEAN.equals(contentTypeEnum);
-    }
-
-    public static boolean isDouble(ContentTypeEnum contentTypeEnum) {
-        return DOUBLE.equals(contentTypeEnum);
-    }
-
+public interface DropDownList {
 }

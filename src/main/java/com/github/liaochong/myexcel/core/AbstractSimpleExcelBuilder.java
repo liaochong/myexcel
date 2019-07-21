@@ -18,6 +18,9 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
+import com.github.liaochong.myexcel.core.constant.DropDownList;
+import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
@@ -32,13 +35,14 @@ import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,6 +133,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 标题分离器
      */
     private String titleSeparator = "->";
+    /**
+     * 自定义样式
+     */
+    private Map<String, Map<String, String>> customStyle = new HashMap<>();
 
 
     @Override
@@ -318,7 +326,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
-                        td.setStyle(thStyle);
+                        // 自定义样式存在时采用自定义样式
+                        if (!noStyle && !customStyle.isEmpty()) {
+                            Map<String, String> style = customStyle.getOrDefault("title&" + td.getCol(), Collections.emptyMap());
+                            td.setStyle(style);
+                        } else {
+                            td.setStyle(thStyle);
+                        }
                         if (isComputeAutoWidth) {
                             tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
                         }
@@ -369,7 +383,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
             Class fieldType = pair.getKey();
             setTdContentType(td, fieldType);
-            td.setStyle(tdStyle);
+            if (!noStyle && !customStyle.isEmpty()) {
+                Map<String, String> style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
+                td.setStyle(style);
+            } else {
+                td.setStyle(tdStyle);
+            }
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
@@ -387,18 +406,24 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (String.class == fieldType) {
             return;
         }
-        if (Boolean.class == fieldType || boolean.class == fieldType) {
+        if (ReflectUtil.isBool(fieldType)) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
-        if (fieldType == Double.class || fieldType == double.class
-                || fieldType == Float.class || fieldType == float.class
-                || fieldType == Long.class || fieldType == long.class
-                || fieldType == Integer.class || fieldType == int.class
-                || fieldType == Short.class || fieldType == short.class
-                || fieldType == Byte.class || fieldType == byte.class
-                || fieldType == BigDecimal.class) {
+        if (ReflectUtil.isNumber(fieldType)) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
+        if (fieldType == DropDownList.class) {
+            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
+            return;
+        }
+        if (fieldType == NumberDropDownList.class) {
+            td.setTdContentType(ContentTypeEnum.NUMBER_DROP_DOWN_LIST);
+            return;
+        }
+        if (fieldType == BooleanDropDownList.class) {
+            td.setTdContentType(ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST);
         }
     }
 
@@ -482,6 +507,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 if (excelColumn.width() > 0) {
                     customWidthMap.put(i, excelColumn.width());
                 }
+                if (!noStyle && excelColumn.style().length > 0) {
+                    setCustomStyle(i, excelColumn);
+                }
             } else {
                 if (needToAddTitle) {
                     if (useFieldNameAsTitle) {
@@ -498,6 +526,23 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    private void setCustomStyle(int i, ExcelColumn excelColumn) {
+        String[] styles = excelColumn.style();
+        for (String style : styles) {
+            if (StringUtil.isBlank(style)) {
+                throw new IllegalArgumentException("Illegal style");
+            }
+            String[] splits = style.split("->");
+            if (splits.length == 1) {
+                // 发现未设置样式归属，则设置为全局样式，清除其他样式
+                customStyle.put("cell&" + i, StyleUtil.parseStyle(splits[0]));
+                break;
+            } else {
+                customStyle.put(splits[0] + "&" + i, StyleUtil.parseStyle(splits[1]));
+            }
+        }
     }
 
     private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {

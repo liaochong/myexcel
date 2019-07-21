@@ -127,6 +127,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             parseConfig.setAutoWidthStrategy(autoWidthStrategy);
 
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
+            htmlTableParser = null;
             return this.build(tables);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -187,6 +188,8 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             // 设置单元格样式
             this.setTdOfTable(table, sheet);
             this.freezePane(i, sheet);
+            // 移除table
+            tables.set(i, null);
         }
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;

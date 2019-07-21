@@ -113,7 +113,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     public void start(Table table, Workbook workbook) {
-        log.info("Start streaming building excel");
+        log.info("Start build excel");
         if (workbook != null) {
             this.workbook = workbook;
         }
@@ -172,7 +172,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             int tdSize = tr.getTdList().size();
             maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
         }
-        int appendSize = 0;
+        int totalSize = 0;
         try {
             while (tr != STOP_FLAG) {
                 if (capacity > 0 && count == capacity) {
@@ -195,7 +195,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 rowNum++;
                 count++;
                 this.createRow(tr, sheet);
-                appendSize++;
+                totalSize++;
                 tr.getColWidthMap().forEach((k, v) -> {
                     Integer val = this.colWidthMap.get(k);
                     if (Objects.isNull(val) || v > val) {
@@ -204,7 +204,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 });
                 tr = this.getTrFromQueue();
             }
-            log.info("End of reception,append size:{}", appendSize);
+            log.info("Total size:{}", totalSize);
         } catch (Exception e) {
             log.error("An exception occurred while processing", e);
             exception = true;

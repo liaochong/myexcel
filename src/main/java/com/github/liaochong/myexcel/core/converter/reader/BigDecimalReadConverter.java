@@ -27,6 +27,7 @@ public class BigDecimalReadConverter extends AbstractReadConverter<BigDecimal> {
 
     @Override
     public BigDecimal doConvert(String v, Field field) {
+        v = PATTERN_NON_NUMBER.matcher(v).replaceAll("");
         return new BigDecimal(v);
     }
 }

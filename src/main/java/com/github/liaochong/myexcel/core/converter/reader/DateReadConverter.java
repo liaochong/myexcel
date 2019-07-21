@@ -18,7 +18,6 @@ import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * Date读取转换器
@@ -35,10 +34,10 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
             return new Date(time);
         }
         String dateFormatPattern = getDateFormatPattern(field);
-        SimpleDateFormat sdf = simpleDateFormatWeakCache.get(dateFormatPattern);
-        if (Objects.isNull(sdf)) {
+        SimpleDateFormat sdf = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
+        if (sdf == null) {
             sdf = new SimpleDateFormat(dateFormatPattern);
-            simpleDateFormatWeakCache.cache(dateFormatPattern, sdf);
+            SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, sdf);
         }
         try {
             return sdf.parse(v);

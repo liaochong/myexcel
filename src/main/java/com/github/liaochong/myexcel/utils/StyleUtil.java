@@ -38,6 +38,11 @@ public final class StyleUtil {
 
     public static Map<String, String> parseStyle(Element element) {
         String style = element.attr("style");
+        return parseStyle(style);
+    }
+
+
+    public static Map<String, String> parseStyle(String style) {
         if (style.length() == 0) {
             return Collections.emptyMap();
         }
@@ -66,6 +71,7 @@ public final class StyleUtil {
         STYLE_CACHE.cache(style, result);
         return result;
     }
+
 
     /**
      * 样式融合

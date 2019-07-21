@@ -61,20 +61,22 @@ public final class AttachmentExportUtil {
                     fileName = fileName.substring(0, fileName.length() - 1);
                 }
                 suffix = Constants.XLS;
+                response.setContentType("application/vnd.ms-excel");
+            } else {
+                response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
             if (!fileName.endsWith(suffix)) {
                 fileName += suffix;
             }
             response.setCharacterEncoding(CharEncoding.UTF_8);
-            response.setContentType("multipart/form-data");
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
             workbook.write(response.getOutputStream());
-            if (workbook instanceof SXSSFWorkbook) {
-                ((SXSSFWorkbook) workbook).dispose();
-            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
             try {
                 workbook.close();
             } catch (IOException e) {
@@ -100,9 +102,6 @@ public final class AttachmentExportUtil {
             String suffix = Constants.XLSX;
             path = TempFileOperator.createTempFile("encrypt_temp", suffix);
             workbook.write(Files.newOutputStream(path));
-            if (workbook instanceof SXSSFWorkbook) {
-                ((SXSSFWorkbook) workbook).dispose();
-            }
 
             final POIFSFileSystem fs = new POIFSFileSystem();
             final EncryptionInfo info = new EncryptionInfo(EncryptionMode.standard);
@@ -117,12 +116,15 @@ public final class AttachmentExportUtil {
                 fileName += suffix;
             }
             response.setCharacterEncoding(CharEncoding.UTF_8);
-            response.setContentType("multipart/form-data");
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
             fs.writeFilesystem(response.getOutputStream());
         } catch (IOException | InvalidFormatException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         } finally {
+            if (workbook instanceof SXSSFWorkbook) {
+                ((SXSSFWorkbook) workbook).dispose();
+            }
             try {
                 workbook.close();
             } catch (IOException e) {
@@ -142,7 +144,7 @@ public final class AttachmentExportUtil {
     public static void export(Path path, String fileName, HttpServletResponse response) {
         try {
             response.setCharacterEncoding(CharEncoding.UTF_8);
-            response.setContentType("multipart/form-data");
+            response.setContentType("application/octet-stream");
             response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
             response.getOutputStream().write(Files.readAllBytes(path));
         } catch (IOException e) {

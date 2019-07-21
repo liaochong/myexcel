@@ -16,7 +16,9 @@
 package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.converter.writer.BigDecimalWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.DropDownListWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
@@ -33,11 +35,15 @@ import java.util.Optional;
  */
 public class WriteConverterContext {
 
+    private static final Pair<? extends Class, Object> NULL_PAIR = Pair.of(String.class, null);
+
     private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
     static {
         WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
         WRITE_CONVERTER_CONTAINER.add(new StringWriteConverter());
+        WRITE_CONVERTER_CONTAINER.add(new BigDecimalWriteConverter());
+        WRITE_CONVERTER_CONTAINER.add(new DropDownListWriteConverter());
     }
 
     public static synchronized void registering(WriteConverter... writeConverters) {
@@ -47,6 +53,9 @@ public class WriteConverterContext {
 
     public static Pair<? extends Class, Object> convert(Field field, Object object) {
         Object result = ReflectUtil.getFieldValue(object, field);
+        if (result == null) {
+            return NULL_PAIR;
+        }
         Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
                 .filter(writeConverter -> writeConverter.support(field, result))
                 .findFirst();
