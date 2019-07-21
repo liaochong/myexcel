@@ -37,6 +37,7 @@ import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 
@@ -132,6 +133,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 标题分离器
      */
     private String titleSeparator = "->";
+    /**
+     * 自定义样式
+     */
+    private Map<String, Map<String, String>> customStyle = new HashMap<>();
 
 
     @Override
@@ -321,7 +326,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
-                        td.setStyle(thStyle);
+                        // 自定义样式存在时采用自定义样式
+                        if (!noStyle && !customStyle.isEmpty()) {
+                            Map<String, String> style = customStyle.getOrDefault("title&" + td.getCol(), Collections.emptyMap());
+                            td.setStyle(style);
+                        } else {
+                            td.setStyle(thStyle);
+                        }
                         if (isComputeAutoWidth) {
                             tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
                         }
@@ -372,7 +383,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
             Class fieldType = pair.getKey();
             setTdContentType(td, fieldType);
-            td.setStyle(tdStyle);
+            if (!noStyle && !customStyle.isEmpty()) {
+                Map<String, String> style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
+                td.setStyle(style);
+            } else {
+                td.setStyle(tdStyle);
+            }
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
@@ -491,6 +507,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 if (excelColumn.width() > 0) {
                     customWidthMap.put(i, excelColumn.width());
                 }
+                if (!noStyle && excelColumn.style().length > 0) {
+                    setCustomStyle(i, excelColumn);
+                }
             } else {
                 if (needToAddTitle) {
                     if (useFieldNameAsTitle) {
@@ -507,6 +526,23 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    private void setCustomStyle(int i, ExcelColumn excelColumn) {
+        String[] styles = excelColumn.style();
+        for (String style : styles) {
+            if (StringUtil.isBlank(style)) {
+                throw new IllegalArgumentException("Illegal style");
+            }
+            String[] splits = style.split("->");
+            if (splits.length == 1) {
+                // 发现未设置样式归属，则设置为全局样式，清除其他样式
+                customStyle.put("cell&" + i, StyleUtil.parseStyle(splits[0]));
+                break;
+            } else {
+                customStyle.put(splits[0] + "&" + i, StyleUtil.parseStyle(splits[1]));
+            }
+        }
     }
 
     private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {

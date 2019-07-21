@@ -91,4 +91,11 @@ public @interface ExcelColumn {
      * @return 格式化
      */
     String decimalFormat() default "";
+
+    /**
+     * 样式
+     *
+     * @return 样式集合
+     */
+    String[] style() default {};
 }
