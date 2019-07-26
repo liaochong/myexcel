@@ -234,13 +234,29 @@ public class HtmlTableParser {
         if (StringUtil.isBlank(tdContent)) {
             return;
         }
+        if (tdElement.hasAttr("string")) {
+            return;
+        }
         // 公式设置
         boolean isFormula = tdElement.hasAttr("formula");
         if (isFormula) {
             td.setFormula(true);
             return;
         }
-        if (tdElement.hasAttr("string")) {
+        if (tdElement.hasAttr("url")) {
+            String link = tdElement.attr("url");
+            td.setTdContentType(ContentTypeEnum.LINK_URL);
+            td.setLink(link);
+            return;
+        }
+        if (tdElement.hasAttr("email")) {
+            String link = tdElement.attr("email");
+            td.setTdContentType(ContentTypeEnum.LINK_EMAIL);
+            td.setLink(link);
+            return;
+        }
+        if (tdElement.hasAttr("dropDownList")) {
+            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
             return;
         }
         if (Constants.TRUE.equals(tdContent) || Constants.FALSE.equals(tdContent)) {
@@ -250,9 +266,6 @@ public class HtmlTableParser {
         if (DOUBLE_PATTERN.matcher(tdContent).matches()) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
             return;
-        }
-        if (tdElement.hasAttr("dropDownList")) {
-            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
         }
     }
 

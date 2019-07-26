@@ -65,6 +65,10 @@ public class Td {
      * 公式
      */
     boolean formula;
+    /**
+     * 链接
+     */
+    String link;
 
     public void setRowSpan(int rowSpan) {
         if (rowSpan < 2) {

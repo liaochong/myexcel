@@ -27,8 +27,10 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
@@ -96,6 +98,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 暂存单元格，由后续行认领
      */
     private List<Td> stagingTds = new LinkedList<>();
+
+    private CreationHelper createHelper;
+    /**
+     * 链接样式
+     */
+    private CellStyle linkStyle;
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -241,6 +249,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                         cell.setCellValue(firstEle);
                     }
                     break;
+                case LINK_URL:
+                    cell = setLink(td, currentRow, HyperlinkType.URL);
+                    break;
+                case LINK_EMAIL:
+                    cell = setLink(td, currentRow, HyperlinkType.EMAIL);
+                    break;
                 default:
                     cell = currentRow.createCell(td.getCol(), CellType.STRING);
                     cell.setCellValue(content);
@@ -259,6 +273,27 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private Cell setLink(Td td, Row currentRow, HyperlinkType hyperlinkType) {
+        if (StringUtil.isBlank(td.getContent())) {
+            return currentRow.createCell(td.getCol());
+        }
+        if (createHelper == null) {
+            createHelper = workbook.getCreationHelper();
+            linkStyle = workbook.createCellStyle();
+            Font linkFont = workbook.createFont();
+            linkFont.setUnderline(Font.U_SINGLE);
+            linkFont.setColor(IndexedColors.BLUE.getIndex());
+            linkStyle.setFont(linkFont);
+        }
+        Cell cell = currentRow.createCell(td.getCol(), CellType.STRING);
+        cell.setCellValue(td.getContent());
+        Hyperlink link = createHelper.createHyperlink(hyperlinkType);
+        link.setAddress(td.getLink());
+        cell.setHyperlink(link);
+        cell.setCellStyle(linkStyle);
+        return cell;
     }
 
     private String setDropDownList(Td td, Sheet sheet, Cell cell, String content) {

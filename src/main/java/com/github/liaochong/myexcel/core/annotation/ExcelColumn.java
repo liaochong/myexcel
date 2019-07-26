@@ -98,4 +98,11 @@ public @interface ExcelColumn {
      * @return 样式集合
      */
     String[] style() default {};
+
+    /**
+     * 链接
+     *
+     * @return link
+     */
+    String link() default "";
 }

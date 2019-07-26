@@ -34,7 +34,11 @@ public enum ContentTypeEnum {
 
     NUMBER_DROP_DOWN_LIST,
 
-    BOOLEAN_DROP_DOWN_LIST;
+    BOOLEAN_DROP_DOWN_LIST,
+
+    LINK_EMAIL,
+
+    LINK_URL;
 
     public static boolean isString(ContentTypeEnum contentTypeEnum) {
         return STRING.equals(contentTypeEnum);

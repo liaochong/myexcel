@@ -410,10 +410,6 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
-        if (ReflectUtil.isNumber(fieldType)) {
-            td.setTdContentType(ContentTypeEnum.DOUBLE);
-            return;
-        }
         if (fieldType == DropDownList.class) {
             td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
             return;
@@ -424,6 +420,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
         if (fieldType == BooleanDropDownList.class) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST);
+        }
+        if (ReflectUtil.isNumber(fieldType)) {
+            td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
         }
     }
 
