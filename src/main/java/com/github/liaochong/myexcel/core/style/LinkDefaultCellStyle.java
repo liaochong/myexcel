@@ -37,9 +37,9 @@ public class LinkDefaultCellStyle implements DefaultCellStyle {
         linkStyle.setFont(linkFont);
         linkStyle.setAlignment(HorizontalAlignment.CENTER);
         linkStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        linkStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
-        linkStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
-        linkStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+        linkStyle.setBorderBottom(BorderStyle.THIN);
+        linkStyle.setBorderRight(BorderStyle.THIN);
+        linkStyle.setBorderLeft(BorderStyle.THIN);
         linkStyle.setBorderTop(BorderStyle.THIN);
         return linkStyle;
     }

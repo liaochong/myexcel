@@ -71,8 +71,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 偶数行单元格样式
      */
     private Map<String, String> evenTdStyle;
-
-    private Map<String, String> linkStyle;
+    /**
+     * 超链接公共样式
+     */
+    private Map<String, String> linkCommonStyle;
+    /**
+     * 超链接偶数行样式
+     */
+    private Map<String, String> linkEvenStyle;
     /**
      * 标题
      */
@@ -377,7 +383,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         int trIndex = index + shift;
         Tr tr = new Tr(trIndex);
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
-        Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
+        boolean isCommon = (index & 1) == 0;
+        Map<String, String> tdStyle = isCommon ? commonTdStyle : evenTdStyle;
+        Map<String, String> linkStyle = isCommon ? linkCommonStyle : linkEvenStyle;
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td();
             td.setRow(trIndex);
@@ -392,8 +400,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 td.setStyle(style);
             } else {
                 if (ContentTypeEnum.isLink(td.getTdContentType())) {
-                    td.setStyle(new HashMap<>(tdStyle));
-                    td.getStyle().putAll(linkStyle);
+                    td.setStyle(linkStyle);
                 } else {
                     td.setStyle(tdStyle);
                 }
@@ -462,11 +469,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 初始化单元格样式
      */
     protected void initStyleMap() {
-        linkStyle = new HashMap<>();
-        linkStyle.put(FontStyle.FONT_COLOR, "blue");
-        linkStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
         if (noStyle) {
-            commonTdStyle = evenTdStyle = Collections.emptyMap();
+            commonTdStyle = evenTdStyle = linkCommonStyle = linkEvenStyle = Collections.emptyMap();
         } else {
             commonTdStyle = new HashMap<>(3);
             commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
@@ -480,6 +484,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             evenTdStyle = new HashMap<>(4);
             evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
             evenTdStyle.putAll(commonTdStyle);
+
+            linkCommonStyle = new HashMap<>(commonTdStyle);
+            linkCommonStyle.put(FontStyle.FONT_COLOR, "blue");
+            linkCommonStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
+
+            linkEvenStyle = new HashMap<>(linkCommonStyle);
+            linkEvenStyle.putAll(evenTdStyle);
         }
     }
 
