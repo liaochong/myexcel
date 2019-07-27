@@ -20,7 +20,6 @@ import lombok.experimental.FieldDefaults;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -48,7 +47,7 @@ public class CustomColor {
     }
 
     public DefaultIndexedColorMap getDefaultIndexedColorMap() {
-        if (Objects.isNull(defaultIndexedColorMap)) {
+        if (defaultIndexedColorMap == null) {
             defaultIndexedColorMap = new DefaultIndexedColorMap();
         }
         return defaultIndexedColorMap;
