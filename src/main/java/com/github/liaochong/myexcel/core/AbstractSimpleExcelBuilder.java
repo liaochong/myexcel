@@ -20,6 +20,8 @@ import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
+import com.github.liaochong.myexcel.core.constant.LinkEmail;
+import com.github.liaochong.myexcel.core.constant.LinkUrl;
 import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
@@ -69,6 +71,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 偶数行单元格样式
      */
     private Map<String, String> evenTdStyle;
+    /**
+     * 超链接公共样式
+     */
+    private Map<String, String> linkCommonStyle;
+    /**
+     * 超链接偶数行样式
+     */
+    private Map<String, String> linkEvenStyle;
     /**
      * 标题
      */
@@ -373,7 +383,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         int trIndex = index + shift;
         Tr tr = new Tr(trIndex);
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
-        Map<String, String> tdStyle = (index & 1) == 0 ? commonTdStyle : evenTdStyle;
+        boolean isCommon = (index & 1) == 0;
+        Map<String, String> tdStyle = isCommon ? commonTdStyle : evenTdStyle;
+        Map<String, String> linkStyle = isCommon ? linkCommonStyle : linkEvenStyle;
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td();
             td.setRow(trIndex);
@@ -387,7 +399,11 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 Map<String, String> style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
                 td.setStyle(style);
             } else {
-                td.setStyle(tdStyle);
+                if (ContentTypeEnum.isLink(td.getTdContentType())) {
+                    td.setStyle(linkStyle);
+                } else {
+                    td.setStyle(tdStyle);
+                }
             }
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
@@ -406,12 +422,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (String.class == fieldType) {
             return;
         }
-        if (ReflectUtil.isBool(fieldType)) {
-            td.setTdContentType(ContentTypeEnum.BOOLEAN);
-            return;
-        }
         if (ReflectUtil.isNumber(fieldType)) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
+        if (ReflectUtil.isBool(fieldType)) {
+            td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
         if (fieldType == DropDownList.class) {
@@ -424,6 +440,28 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
         if (fieldType == BooleanDropDownList.class) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST);
+            return;
+        }
+        if (td.getContent() != null && fieldType == LinkUrl.class) {
+            td.setTdContentType(ContentTypeEnum.LINK_URL);
+            String[] splits = td.getContent().split("->");
+            if (splits.length == 1) {
+                td.setLink(td.getContent());
+            } else {
+                td.setContent(splits[0]);
+                td.setLink(splits[1]);
+            }
+            return;
+        }
+        if (td.getContent() != null && fieldType == LinkEmail.class) {
+            td.setTdContentType(ContentTypeEnum.LINK_EMAIL);
+            String[] splits = td.getContent().split("->");
+            if (splits.length == 1) {
+                td.setLink(td.getContent());
+            } else {
+                td.setContent(splits[0]);
+                td.setLink(splits[1]);
+            }
         }
     }
 
@@ -432,7 +470,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      */
     protected void initStyleMap() {
         if (noStyle) {
-            commonTdStyle = evenTdStyle = Collections.emptyMap();
+            commonTdStyle = evenTdStyle = linkCommonStyle = linkEvenStyle = Collections.emptyMap();
         } else {
             commonTdStyle = new HashMap<>(3);
             commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
@@ -446,6 +484,13 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             evenTdStyle = new HashMap<>(4);
             evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
             evenTdStyle.putAll(commonTdStyle);
+
+            linkCommonStyle = new HashMap<>(commonTdStyle);
+            linkCommonStyle.put(FontStyle.FONT_COLOR, "blue");
+            linkCommonStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
+
+            linkEvenStyle = new HashMap<>(linkCommonStyle);
+            linkEvenStyle.putAll(evenTdStyle);
         }
     }
 

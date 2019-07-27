@@ -44,7 +44,7 @@ public final class BackgroundStyle {
             return;
         }
         Short colorPredefined = ColorUtil.getPredefinedColorIndex(color);
-        if (Objects.nonNull(colorPredefined)) {
+        if (colorPredefined != null) {
             style.setFillForegroundColor(colorPredefined);
             style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             return;
