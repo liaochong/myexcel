@@ -15,6 +15,8 @@
  */
 package com.github.liaochong.myexcel.core.annotation;
 
+import com.github.liaochong.myexcel.core.constant.LinkType;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -102,7 +104,7 @@ public @interface ExcelColumn {
     /**
      * 链接
      *
-     * @return link
+     * @return linkType
      */
-    String link() default "";
+    LinkType linkType() default LinkType.NONE;
 }

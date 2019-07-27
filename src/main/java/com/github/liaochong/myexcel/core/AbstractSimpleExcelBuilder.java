@@ -20,6 +20,8 @@ import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
+import com.github.liaochong.myexcel.core.constant.LinkEmail;
+import com.github.liaochong.myexcel.core.constant.LinkUrl;
 import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
@@ -406,6 +408,10 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         if (String.class == fieldType) {
             return;
         }
+        if (ReflectUtil.isNumber(fieldType)) {
+            td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
         if (ReflectUtil.isBool(fieldType)) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
@@ -420,10 +426,28 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         }
         if (fieldType == BooleanDropDownList.class) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST);
-        }
-        if (ReflectUtil.isNumber(fieldType)) {
-            td.setTdContentType(ContentTypeEnum.DOUBLE);
             return;
+        }
+        if (td.getContent() != null && fieldType == LinkUrl.class) {
+            td.setTdContentType(ContentTypeEnum.LINK_URL);
+            String[] splits = td.getContent().split("->");
+            if (splits.length == 1) {
+                td.setLink(td.getContent());
+            } else {
+                td.setContent(splits[0]);
+                td.setLink(splits[1]);
+            }
+            return;
+        }
+        if (td.getContent() != null && fieldType == LinkEmail.class) {
+            td.setTdContentType(ContentTypeEnum.LINK_EMAIL);
+            String[] splits = td.getContent().split("->");
+            if (splits.length == 1) {
+                td.setLink(td.getContent());
+            } else {
+                td.setContent(splits[0]);
+                td.setLink(splits[1]);
+            }
         }
     }
 

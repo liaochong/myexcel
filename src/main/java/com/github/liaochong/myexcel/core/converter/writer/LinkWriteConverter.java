@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.constant.LinkEmail;
+import com.github.liaochong.myexcel.core.constant.LinkType;
 import com.github.liaochong.myexcel.core.constant.LinkUrl;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
@@ -23,7 +24,7 @@ import com.github.liaochong.myexcel.core.converter.WriteConverter;
 import java.lang.reflect.Field;
 
 /**
- * 超链接
+ * 超链接写转换器
  *
  * @author liaochong
  * @version 1.0
@@ -32,25 +33,20 @@ public class LinkWriteConverter implements WriteConverter {
 
     @Override
     public Pair<Class, Object> convert(Field field, Object fieldVal) {
-        String link = field.getAnnotation(ExcelColumn.class).link();
-        String[] splits = link.split(":");
-        if (splits.length == 1) {
-            // 默认为url
-            return Pair.of(LinkUrl.class, link);
-        }
-        switch (splits[0]) {
-            case "url":
-                return Pair.of(LinkUrl.class, splits[1]);
-            case "email":
-                return Pair.of(LinkEmail.class, splits[1]);
+        LinkType linkType = field.getAnnotation(ExcelColumn.class).linkType();
+        switch (linkType) {
+            case URL:
+                return Pair.of(LinkUrl.class, fieldVal);
+            case EMAIL:
+                return Pair.of(LinkEmail.class, fieldVal);
             default:
-                throw new IllegalArgumentException("Illegal link type, only URL or email");
+                throw new IllegalArgumentException("Illegal linkType type, only URL or email");
         }
     }
 
     @Override
     public boolean support(Field field, Object fieldVal) {
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && !"".equals(excelColumn.link());
+        return excelColumn != null && !LinkType.NONE.equals(excelColumn.linkType());
     }
 }
