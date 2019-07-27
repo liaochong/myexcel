@@ -49,6 +49,8 @@ public final class FontStyle {
 
     public static final String LINE_THROUGH = "line-through";
 
+    public static final String UNDERLINE = "underline";
+
     public static final String BOLD = "bold";
 
     public static final short DEFAULT_FONT_SIZE = 12;
@@ -77,10 +79,13 @@ public final class FontStyle {
             font = createFontIfNull(fontSupplier, font);
             font.setItalic(true);
         }
-        String strikeout = tdStyle.get(TEXT_DECORATION);
-        if (Objects.equals(strikeout, LINE_THROUGH)) {
+        String textDecoration = tdStyle.get(TEXT_DECORATION);
+        if (Objects.equals(textDecoration, LINE_THROUGH)) {
             font = createFontIfNull(fontSupplier, font);
             font.setStrikeout(true);
+        } else if (UNDERLINE.equals(textDecoration)) {
+            font = createFontIfNull(fontSupplier, font);
+            font.setUnderline(Font.U_SINGLE);
         }
         String fontWeight = tdStyle.get(FONT_WEIGHT);
         if (Objects.equals(fontWeight, BOLD)) {

@@ -71,6 +71,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 偶数行单元格样式
      */
     private Map<String, String> evenTdStyle;
+
+    private Map<String, String> linkStyle;
     /**
      * 标题
      */
@@ -389,7 +391,12 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 Map<String, String> style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
                 td.setStyle(style);
             } else {
-                td.setStyle(tdStyle);
+                if (ContentTypeEnum.isLink(td.getTdContentType())) {
+                    td.setStyle(new HashMap<>(tdStyle));
+                    td.getStyle().putAll(linkStyle);
+                } else {
+                    td.setStyle(tdStyle);
+                }
             }
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
@@ -455,6 +462,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * 初始化单元格样式
      */
     protected void initStyleMap() {
+        linkStyle = new HashMap<>();
+        linkStyle.put(FontStyle.FONT_COLOR, "blue");
+        linkStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
         if (noStyle) {
             commonTdStyle = evenTdStyle = Collections.emptyMap();
         } else {

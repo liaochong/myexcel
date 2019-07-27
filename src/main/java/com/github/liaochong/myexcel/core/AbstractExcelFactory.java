@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
@@ -23,6 +24,7 @@ import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.CustomColor;
 import com.github.liaochong.myexcel.core.style.FontStyle;
+import com.github.liaochong.myexcel.core.style.LinkDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
@@ -100,10 +102,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private List<Td> stagingTds = new LinkedList<>();
 
     private CreationHelper createHelper;
-    /**
-     * 链接样式
-     */
-    private CellStyle linkStyle;
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -230,21 +228,21 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     break;
                 case NUMBER_DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.getCol(), CellType.NUMERIC);
-                    String firstEle = setDropDownList(td, sheet, cell, content);
+                    String firstEle = setDropDownList(td, sheet, content);
                     if (firstEle != null) {
                         cell.setCellValue(Double.parseDouble(firstEle));
                     }
                     break;
                 case BOOLEAN_DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.getCol(), CellType.BOOLEAN);
-                    firstEle = setDropDownList(td, sheet, cell, content);
+                    firstEle = setDropDownList(td, sheet, content);
                     if (firstEle != null) {
                         cell.setCellValue(Boolean.parseBoolean(firstEle));
                     }
                     break;
                 case DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.getCol(), CellType.STRING);
-                    firstEle = setDropDownList(td, sheet, cell, content);
+                    firstEle = setDropDownList(td, sheet, content);
                     if (firstEle != null) {
                         cell.setCellValue(firstEle);
                     }
@@ -281,22 +279,16 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
-            linkStyle = workbook.createCellStyle();
-            Font linkFont = workbook.createFont();
-            linkFont.setUnderline(Font.U_SINGLE);
-            linkFont.setColor(IndexedColors.BLUE.getIndex());
-            linkStyle.setFont(linkFont);
         }
         Cell cell = currentRow.createCell(td.getCol(), CellType.STRING);
         cell.setCellValue(td.getContent());
         Hyperlink link = createHelper.createHyperlink(hyperlinkType);
         link.setAddress(td.getLink());
         cell.setHyperlink(link);
-        cell.setCellStyle(linkStyle);
         return cell;
     }
 
-    private String setDropDownList(Td td, Sheet sheet, Cell cell, String content) {
+    private String setDropDownList(Td td, Sheet sheet, String content) {
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
@@ -328,7 +320,11 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (td.isTh()) {
                 cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.th));
             } else {
-                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
+                if (ContentTypeEnum.isLink(td.getTdContentType())) {
+                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.link));
+                } else {
+                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
+                }
             }
         } else {
             if (td.getStyle().isEmpty()) {
@@ -385,6 +381,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
             defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
             defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap.put(HtmlTableParser.TableTag.link, new LinkDefaultCellStyle().supply(workbook));
         } else {
             if (workbook instanceof HSSFWorkbook) {
                 HSSFPalette palette = ((HSSFWorkbook) workbook).getCustomPalette();

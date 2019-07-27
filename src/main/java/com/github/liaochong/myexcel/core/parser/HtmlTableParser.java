@@ -305,6 +305,10 @@ public class HtmlTableParser {
         /**
          * rowspan
          */
-        rowspan;
+        rowspan,
+        /**
+         * link
+         */
+        link;
     }
 }
