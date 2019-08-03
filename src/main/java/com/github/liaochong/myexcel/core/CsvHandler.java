@@ -119,6 +119,9 @@ class CsvHandler<T> {
                 ReadConverterContext.convert(content, field, obj);
             }
         }
+        if (!beanFilter.test(obj)) {
+            return;
+        }
         if (consumer != null) {
             consumer.accept(obj);
         } else if (function != null) {
