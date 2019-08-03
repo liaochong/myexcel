@@ -23,6 +23,7 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
+import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.openxml4j.exceptions.OLE2NotOfficeXmlFileException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -107,13 +108,13 @@ public class SaxExcelReader<T> {
                 result = new LinkedList<>();
                 new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
                 return result;
-            } catch (OLE2NotOfficeXmlFileException e1) {
-                result = new LinkedList<>();
-                new CsvHandler<>(fileInputStream, readConfig, result).read();
-                return result;
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
+        } catch (NotOfficeXmlFileException e) {
+            result = new LinkedList<>();
+            new CsvHandler<>(fileInputStream, readConfig, result).read();
+            return result;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -152,11 +153,11 @@ public class SaxExcelReader<T> {
         } catch (OLE2NotOfficeXmlFileException e) {
             try {
                 new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
-            } catch (OLE2NotOfficeXmlFileException e1) {
-                new CsvHandler<>(fileInputStream, readConfig, result).read();
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
+        } catch (NotOfficeXmlFileException e) {
+            new CsvHandler<>(fileInputStream, readConfig, result).read();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -196,14 +197,14 @@ public class SaxExcelReader<T> {
                 new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
             } catch (StopReadException e1) {
                 // do nothing
-            } catch (OLE2NotOfficeXmlFileException e1) {
-                try {
-                    new CsvHandler<>(fileInputStream, readConfig, result).read();
-                } catch (StopReadException e3) {
-                    // do nothing
-                }
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
+            }
+        } catch (NotOfficeXmlFileException e) {
+            try {
+                new CsvHandler<>(fileInputStream, readConfig, result).read();
+            } catch (StopReadException e3) {
+                // do nothing
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

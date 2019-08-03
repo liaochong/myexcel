@@ -58,6 +58,11 @@ class CsvHandler<T> {
                       SaxExcelReader.ReadConfig<T> readConfig,
                       List<T> result) {
         this.is = is;
+        try {
+            is.reset();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.result = result;
         this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
@@ -88,14 +93,13 @@ class CsvHandler<T> {
         if (is == null) {
             return;
         }
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-        try {
+        try (InputStreamReader isr = new InputStreamReader(is);
+             BufferedReader bufferedReader = new BufferedReader(isr)) {
             int lineIndex = 0;
-            String line = bufferedReader.readLine();
-            while (line != null) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
                 Row row = new Row(lineIndex);
                 this.process(line, row);
-                line = bufferedReader.readLine();
                 lineIndex++;
             }
         } catch (StopReadException e) {
