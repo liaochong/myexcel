@@ -35,4 +35,10 @@ public class Constants {
     public static final String ZERO = "0";
 
     public static final String HTML_SUFFIX = ".html";
+
+    public static final String COMMA = ",";
+
+    public static final String QUOTES = "\"";
+
+    public static final String CSV = ".csv";
 }
