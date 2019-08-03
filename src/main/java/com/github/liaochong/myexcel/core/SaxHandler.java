@@ -24,7 +24,6 @@ import org.apache.poi.xssf.usermodel.XSSFComment;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -90,9 +89,9 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
             return;
         }
         count++;
-        if (Objects.nonNull(consumer)) {
+        if (consumer != null) {
             consumer.accept(obj);
-        } else if (Objects.nonNull(function)) {
+        } else if (function != null) {
             Boolean noStop = function.apply(obj);
             if (!noStop) {
                 throw new StopReadException();
@@ -113,7 +112,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         }
         int thisCol = (new CellReference(cellReference)).getCol();
         Field field = fieldMap.get(thisCol);
-        if (Objects.isNull(field)) {
+        if (field == null) {
             return;
         }
         ReadConverterContext.convert(formattedValue, field, obj);

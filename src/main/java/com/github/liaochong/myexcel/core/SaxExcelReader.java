@@ -53,7 +53,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * sax模式读取excel
+ * sax模式读取excel，支持xls、xlsx、csv格式读取
  *
  * @author liaochong
  * @version 1.0
@@ -107,6 +107,10 @@ public class SaxExcelReader<T> {
                 result = new LinkedList<>();
                 new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
                 return result;
+            } catch (OLE2NotOfficeXmlFileException e1) {
+                result = new LinkedList<>();
+                new CsvHandler<>(fileInputStream, readConfig, result).read();
+                return result;
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
@@ -116,7 +120,8 @@ public class SaxExcelReader<T> {
     }
 
     public List<T> read(@NonNull File file) {
-        if (file.getName().endsWith(Constants.XLS)) {
+        String fileName = file.getName();
+        if (fileName.endsWith(Constants.XLS)) {
             result = new LinkedList<>();
             try {
                 new HSSFSaxHandler<>(file, result, readConfig).process();
@@ -124,7 +129,7 @@ public class SaxExcelReader<T> {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else {
+        } else if (fileName.endsWith(Constants.XLSX)) {
             try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
                 xlsxPackage = p;
                 process();
@@ -132,6 +137,10 @@ public class SaxExcelReader<T> {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            result = new LinkedList<>();
+            new CsvHandler<>(file, readConfig, result).read();
+            return result;
         }
     }
 
@@ -143,6 +152,8 @@ public class SaxExcelReader<T> {
         } catch (OLE2NotOfficeXmlFileException e) {
             try {
                 new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
+            } catch (OLE2NotOfficeXmlFileException e1) {
+                new CsvHandler<>(fileInputStream, readConfig, result).read();
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
@@ -153,19 +164,23 @@ public class SaxExcelReader<T> {
 
     public void readThen(@NonNull File file, Consumer<T> consumer) {
         this.readConfig.consumer = consumer;
-        if (file.getName().endsWith(Constants.XLS)) {
+        String fileName = file.getName();
+        if (fileName.endsWith(Constants.XLS)) {
             try {
                 new HSSFSaxHandler<>(file, result, readConfig).process();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else {
+        } else if (fileName.endsWith(Constants.XLSX)) {
             try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
                 xlsxPackage = p;
                 process();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            result = new LinkedList<>();
+            new CsvHandler<>(file, readConfig, result).read();
         }
     }
 
@@ -181,6 +196,12 @@ public class SaxExcelReader<T> {
                 new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
             } catch (StopReadException e1) {
                 // do nothing
+            } catch (OLE2NotOfficeXmlFileException e1) {
+                try {
+                    new CsvHandler<>(fileInputStream, readConfig, result).read();
+                } catch (StopReadException e3) {
+                    // do nothing
+                }
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
@@ -191,7 +212,8 @@ public class SaxExcelReader<T> {
 
     public void readThen(@NonNull File file, Function<T, Boolean> function) {
         this.readConfig.function = function;
-        if (file.getName().endsWith(Constants.XLS)) {
+        String fileName = file.getName();
+        if (fileName.endsWith(Constants.XLS)) {
             try {
                 new HSSFSaxHandler<>(file, result, readConfig).process();
             } catch (StopReadException e) {
@@ -199,7 +221,7 @@ public class SaxExcelReader<T> {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else {
+        } else if (fileName.endsWith(Constants.XLSX)) {
             try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
                 xlsxPackage = p;
                 process();
@@ -207,6 +229,12 @@ public class SaxExcelReader<T> {
                 // do nothing
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            }
+        } else {
+            try {
+                new CsvHandler<>(file, readConfig, result).read();
+            } catch (StopReadException e) {
+                // do nothing
             }
         }
     }
