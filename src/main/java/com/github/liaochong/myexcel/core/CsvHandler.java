@@ -98,6 +98,8 @@ class CsvHandler<T> {
                 line = bufferedReader.readLine();
                 lineIndex++;
             }
+        } catch (StopReadException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
