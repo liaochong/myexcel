@@ -41,6 +41,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,6 +100,9 @@ public class SaxExcelReader<T> {
     }
 
     public List<T> read(@NonNull InputStream fileInputStream) {
+        if (!fileInputStream.markSupported()) {
+            fileInputStream = new BufferedInputStream(fileInputStream);
+        }
         try (OPCPackage p = OPCPackage.open(fileInputStream)) {
             xlsxPackage = p;
             process();
@@ -146,6 +150,9 @@ public class SaxExcelReader<T> {
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
+        if (!fileInputStream.markSupported()) {
+            fileInputStream = new BufferedInputStream(fileInputStream);
+        }
         this.readConfig.consumer = consumer;
         try (OPCPackage p = OPCPackage.open(fileInputStream)) {
             xlsxPackage = p;
@@ -186,6 +193,9 @@ public class SaxExcelReader<T> {
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
+        if (!fileInputStream.markSupported()) {
+            fileInputStream = new BufferedInputStream(fileInputStream);
+        }
         this.readConfig.function = function;
         try (OPCPackage p = OPCPackage.open(fileInputStream)) {
             xlsxPackage = p;
