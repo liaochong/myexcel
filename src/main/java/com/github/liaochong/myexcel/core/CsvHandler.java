@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,6 +37,7 @@ import java.util.function.Predicate;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 class CsvHandler<T> {
 
     private final Map<Integer, Field> fieldMap;
@@ -93,8 +95,8 @@ class CsvHandler<T> {
         if (is == null) {
             return;
         }
-        try (InputStreamReader isr = new InputStreamReader(is);
-             BufferedReader bufferedReader = new BufferedReader(isr)) {
+        long startTime = System.currentTimeMillis();
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is))) {
             int lineIndex = 0;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -102,7 +104,9 @@ class CsvHandler<T> {
                 this.process(line, row);
                 lineIndex++;
             }
+            log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
         } catch (StopReadException e) {
+            log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
