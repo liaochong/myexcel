@@ -24,6 +24,8 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -34,7 +36,7 @@ import java.util.function.Consumer;
  * @author liaochong
  * @version 1.0
  */
-public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder {
+public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder, Closeable {
     /**
      * 线程池
      */
@@ -202,7 +204,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @Override
     public Workbook build() {
         if (fixedTitles && titleLevel > 0) {
-            FreezePane freezePane = new FreezePane(titleLevel, titles.size());
+            FreezePane freezePane = new FreezePane(titleLevel, 0);
             htmlToExcelStreamFactory.freezePanes(freezePane);
         }
         return htmlToExcelStreamFactory.build();
@@ -216,6 +218,13 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @Override
     public Path buildAsZip(String fileName) {
         return htmlToExcelStreamFactory.buildAsZip(fileName);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (htmlToExcelStreamFactory != null) {
+            htmlToExcelStreamFactory.closeWorkbook();
+        }
     }
 
     @Override
