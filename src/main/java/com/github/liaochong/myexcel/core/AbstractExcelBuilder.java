@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
@@ -99,4 +100,8 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
      */
     protected abstract <T> void render(Map<String, T> renderData, Writer out) throws Exception;
 
+    @Override
+    public void close() throws IOException {
+        htmlToExcelFactory.closeWorkbook();
+    }
 }

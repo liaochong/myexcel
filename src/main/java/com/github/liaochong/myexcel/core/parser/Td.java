@@ -70,6 +70,11 @@ public class Td {
      */
     String link;
 
+    public Td(int row, int col) {
+        this.row = row;
+        this.col = col;
+    }
+
     public void setRowSpan(int rowSpan) {
         if (rowSpan < 2) {
             return;

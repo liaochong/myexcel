@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.Closeable;
 import java.util.Map;
 
 /**
@@ -26,7 +27,7 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-public interface ExcelBuilder {
+public interface ExcelBuilder extends Closeable {
 
     /**
      * excel类型

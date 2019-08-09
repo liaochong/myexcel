@@ -250,10 +250,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 titleLevel = multiTitles.length;
             }
             for (int j = 0; j < multiTitles.length; j++) {
-                Td td = new Td();
+                Td td = new Td(j, i);
                 td.setTh(true);
-                td.setCol(i);
-                td.setRow(j);
                 td.setContent(multiTitles[j]);
                 tds.add(td);
             }
@@ -387,9 +385,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         Map<String, String> tdStyle = isCommon ? commonTdStyle : evenTdStyle;
         Map<String, String> linkStyle = isCommon ? linkCommonStyle : linkEvenStyle;
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
-            Td td = new Td();
-            td.setRow(trIndex);
-            td.setCol(i);
+            Td td = new Td(trIndex, i);
 
             Pair<? extends Class, ?> pair = contents.get(i);
             td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
@@ -411,7 +407,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             return td;
         }).collect(Collectors.toList());
         if (isCustomWidth) {
-            customWidthMap.forEach((k, v) -> tr.getColWidthMap().put(k, v));
+            tr.setColWidthMap(customWidthMap);
         }
         tr.setTdList(tdList);
         return tr;

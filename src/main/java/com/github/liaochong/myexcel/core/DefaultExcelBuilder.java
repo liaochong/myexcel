@@ -24,6 +24,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -42,6 +43,8 @@ import java.util.Optional;
 public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
     private Workbook workbook;
+
+    private HtmlToExcelFactory htmlToExcelFactory;
 
     private DefaultExcelBuilder() {
     }
@@ -77,7 +80,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
     @SuppressWarnings("unchecked")
     @Override
     public Workbook build(List<?> data, Class<?>... groups) {
-        HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
+        htmlToExcelFactory = new HtmlToExcelFactory();
         try {
             htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
             List<Table> tableList = new ArrayList<>();
@@ -192,5 +195,12 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
         List<Table> tableList = new ArrayList<>();
         tableList.add(table);
         return htmlToExcelFactory.build(tableList, workbook);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (htmlToExcelFactory != null) {
+            htmlToExcelFactory.closeWorkbook();
+        }
     }
 }
