@@ -182,9 +182,15 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
                 contents.add(Pair.of(Objects.isNull(val) ? String.class : val.getClass(), val));
             }
             Tr tr = this.createTr(contents, i, thead.size());
+            if (widths != null) {
+                tr.setColWidthMap(widths);
+            }
             tbody.add(tr);
         }
         tbody.addAll(0, thead);
+        if (widths != null) {
+            thead.forEach(tr -> tr.setColWidthMap(widths));
+        }
         Table table = this.createTable();
         table.setTrList(tbody);
 

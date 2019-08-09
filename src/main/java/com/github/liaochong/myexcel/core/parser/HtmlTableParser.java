@@ -86,7 +86,7 @@ public class HtmlTableParser {
         log.info("Start parsing html file");
         long startTime = System.currentTimeMillis();
         Document document;
-        if (Objects.nonNull(htmlFile)) {
+        if (htmlFile != null) {
             document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
         } else {
             document = Jsoup.parse(html, CharEncoding.UTF_8);

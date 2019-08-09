@@ -148,6 +148,8 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      */
     private Map<String, Map<String, String>> customStyle = new HashMap<>();
 
+    protected Map<Integer, Integer> widths;
+
 
     @Override
     public AbstractSimpleExcelBuilder titles(@NonNull List<String> titles) {
@@ -200,6 +202,18 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         return this;
     }
 
+    @Override
+    public AbstractSimpleExcelBuilder widths(int... widths) {
+        if (widths.length == 0) {
+            return this;
+        }
+        this.widths = new HashMap<>(widths.length);
+        for (int i = 0, size = widths.length; i < size; i++) {
+            this.widths.put(i, widths[i]);
+        }
+        return this;
+    }
+
     /**
      * 获取只有head的table
      *
@@ -234,14 +248,14 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
      * @return 标题行
      */
     protected List<Tr> createThead() {
-        if (Objects.isNull(titles) || titles.isEmpty()) {
+        if (titles == null || titles.isEmpty()) {
             return Collections.emptyList();
         }
         List<List<Td>> tdLists = new ArrayList<>();
         // 初始化位置信息
         for (int i = 0; i < titles.size(); i++) {
             String title = titles.get(i);
-            if (Objects.isNull(title)) {
+            if (title == null) {
                 continue;
             }
             List<Td> tds = new ArrayList<>();
@@ -388,7 +402,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
             Td td = new Td(trIndex, i);
 
             Pair<? extends Class, ?> pair = contents.get(i);
-            td.setContent(Objects.isNull(pair.getValue()) ? null : String.valueOf(pair.getValue()));
+            td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
             Class fieldType = pair.getKey();
             setTdContentType(td, fieldType);
             if (!noStyle && !customStyle.isEmpty()) {
