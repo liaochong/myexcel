@@ -2,8 +2,6 @@ language: java
 sudo: false
 
 jdk:
-  - oraclejdk9
-  - oraclejdk8
   - openjdk8
 
 before_script:
