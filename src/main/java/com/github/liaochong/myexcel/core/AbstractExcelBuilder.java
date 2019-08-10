@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * excel创建者接口
@@ -67,7 +66,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     @Override
     public AbstractExcelBuilder freezePanes(FreezePane... freezePanes) {
-        if (Objects.isNull(freezePanes) || freezePanes.length == 0) {
+        if (freezePanes == null || freezePanes.length == 0) {
             return this;
         }
         htmlToExcelFactory.freezePanes(freezePanes);
@@ -102,6 +101,8 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     @Override
     public void close() throws IOException {
-        htmlToExcelFactory.closeWorkbook();
+        if (htmlToExcelFactory != null) {
+            htmlToExcelFactory.closeWorkbook();
+        }
     }
 }

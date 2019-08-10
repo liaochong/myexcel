@@ -41,4 +41,6 @@ public class Constants {
     public static final String QUOTES = "\"";
 
     public static final String CSV = ".csv";
+
+    public static final String COLON = ":";
 }
