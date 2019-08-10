@@ -24,6 +24,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -42,6 +43,8 @@ import java.util.Optional;
 public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
     private Workbook workbook;
+
+    private HtmlToExcelFactory htmlToExcelFactory;
 
     private DefaultExcelBuilder() {
     }
@@ -77,80 +80,85 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
     @SuppressWarnings("unchecked")
     @Override
     public Workbook build(List<?> data, Class<?>... groups) {
-        HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
-        List<Table> tableList = new ArrayList<>();
-        this.initStyleMap();
-        if (data != null) {
-            boolean isMapBuild = data.stream().anyMatch(d -> d instanceof Map);
-            if (isMapBuild) {
-                return this.mapBuild((List<Map<String, Object>>) data, htmlToExcelFactory);
-            }
-        }
-        if (Objects.isNull(dataType)) {
-            if (Objects.isNull(data) || data.isEmpty()) {
-                log.info("No valid data exists");
-                return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-            }
-            Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
-            if (!findResult.isPresent()) {
-                log.info("No valid data exists");
-                return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-            }
-            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-            List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
-
-            if (sortedFields.isEmpty()) {
-                log.info("The specified field mapping does not exist");
-                return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-            }
-            List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
-
-            Table table = this.createTable();
-            List<Tr> thead = this.createThead();
-            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
-            if (Objects.nonNull(thead)) {
-                tbody.addAll(0, thead);
-            }
-            table.setTrList(tbody);
-            tableList.add(table);
-        } else {
-            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
-
-            Table table = this.createTable();
-            List<Tr> thead = this.createThead();
-            tableList.add(table);
-
-            if (sortedFields.isEmpty()) {
-                if (Objects.nonNull(thead)) {
-                    table.getTrList().addAll(thead);
+        htmlToExcelFactory = new HtmlToExcelFactory();
+        try {
+            htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+            List<Table> tableList = new ArrayList<>();
+            this.initStyleMap();
+            if (data != null) {
+                boolean isMapBuild = data.stream().anyMatch(d -> d instanceof Map);
+                if (isMapBuild) {
+                    return this.mapBuild((List<Map<String, Object>>) data, htmlToExcelFactory);
                 }
-                log.info("The specified field mapping does not exist");
-                return htmlToExcelFactory.build(tableList, workbook);
             }
-
-            if (Objects.isNull(data) || data.isEmpty()) {
-                if (Objects.nonNull(thead)) {
-                    table.getTrList().addAll(thead);
+            if (Objects.isNull(dataType)) {
+                if (Objects.isNull(data) || data.isEmpty()) {
+                    log.info("No valid data exists");
+                    return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
                 }
-                log.info("No valid data exists");
-                return htmlToExcelFactory.build(tableList, workbook);
+                Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
+                if (!findResult.isPresent()) {
+                    log.info("No valid data exists");
+                    return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
+                }
+                ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
+                List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
+
+                if (sortedFields.isEmpty()) {
+                    log.info("The specified field mapping does not exist");
+                    return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
+                }
+                List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
+
+                Table table = this.createTable();
+                List<Tr> thead = this.createThead();
+                List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
+                if (Objects.nonNull(thead)) {
+                    tbody.addAll(0, thead);
+                }
+                table.setTrList(tbody);
+                tableList.add(table);
+            } else {
+                ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+                List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
+
+                Table table = this.createTable();
+                List<Tr> thead = this.createThead();
+                tableList.add(table);
+
+                if (sortedFields.isEmpty()) {
+                    if (Objects.nonNull(thead)) {
+                        table.getTrList().addAll(thead);
+                    }
+                    log.info("The specified field mapping does not exist");
+                    return htmlToExcelFactory.build(tableList, workbook);
+                }
+
+                if (Objects.isNull(data) || data.isEmpty()) {
+                    if (Objects.nonNull(thead)) {
+                        table.getTrList().addAll(thead);
+                    }
+                    log.info("No valid data exists");
+                    return htmlToExcelFactory.build(tableList, workbook);
+                }
+
+                List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
+                List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
+                if (Objects.nonNull(thead)) {
+                    tbody.addAll(0, thead);
+                }
+                table.setTrList(tbody);
             }
 
-            List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
-            List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
-            if (Objects.nonNull(thead)) {
-                tbody.addAll(0, thead);
+            if (fixedTitles && titleLevel > 0) {
+                FreezePane freezePane = new FreezePane(titleLevel, 0);
+                htmlToExcelFactory.freezePanes(freezePane);
             }
-            table.setTrList(tbody);
+            return htmlToExcelFactory.build(tableList, workbook);
+        } catch (Exception e) {
+            htmlToExcelFactory.closeWorkbook();
+            throw new RuntimeException(e);
         }
-
-        if (fixedTitles && titleLevel > 0) {
-            FreezePane freezePane = new FreezePane(titleLevel, titles.size());
-            htmlToExcelFactory.freezePanes(freezePane);
-        }
-        return htmlToExcelFactory.build(tableList, workbook);
     }
 
     private Workbook mapBuild(List<Map<String, Object>> data, HtmlToExcelFactory htmlToExcelFactory) {
@@ -174,18 +182,31 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
                 contents.add(Pair.of(Objects.isNull(val) ? String.class : val.getClass(), val));
             }
             Tr tr = this.createTr(contents, i, thead.size());
+            if (widths != null) {
+                tr.setColWidthMap(widths);
+            }
             tbody.add(tr);
         }
         tbody.addAll(0, thead);
+        if (widths != null) {
+            thead.forEach(tr -> tr.setColWidthMap(widths));
+        }
         Table table = this.createTable();
         table.setTrList(tbody);
 
         if (fixedTitles && titleLevel > 0) {
-            FreezePane freezePane = new FreezePane(titleLevel, titles.size());
+            FreezePane freezePane = new FreezePane(titleLevel, 0);
             htmlToExcelFactory.freezePanes(freezePane);
         }
         List<Table> tableList = new ArrayList<>();
         tableList.add(table);
         return htmlToExcelFactory.build(tableList, workbook);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (htmlToExcelFactory != null) {
+            htmlToExcelFactory.closeWorkbook();
+        }
     }
 }

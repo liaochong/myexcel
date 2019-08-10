@@ -86,7 +86,7 @@ public class HtmlTableParser {
         log.info("Start parsing html file");
         long startTime = System.currentTimeMillis();
         Document document;
-        if (Objects.nonNull(htmlFile)) {
+        if (htmlFile != null) {
             document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
         } else {
             document = Jsoup.parse(html, CharEncoding.UTF_8);
@@ -163,14 +163,11 @@ public class HtmlTableParser {
         int shift = 0;
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
-            Td td = new Td();
+            Td td = new Td(tr.getIndex(), i + shift);
             this.setTdContent(tdElement, td);
 
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
-            td.setRow(tr.getIndex());
             td.setStyle(StyleUtil.mixStyle(trStyle, StyleUtil.parseStyle(tdElement)));
-            // 除每行第一个单元格外，修正含跨列的单元格位置
-            td.setCol(i + shift);
 
             String colSpan = tdElement.attr(TableTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));
@@ -216,7 +213,7 @@ public class HtmlTableParser {
                 colWidthMap.put(td.getCol(), width);
             } else if (parseConfig.isCustomWidth()) {
                 String widthStr = td.getStyle().get("width");
-                if (Objects.nonNull(widthStr)) {
+                if (widthStr != null) {
                     Integer width = Integer.valueOf(widthStr.replaceAll("\\D*", ""));
                     if (width > 0) {
                         colWidthMap.put(td.getCol(), width);

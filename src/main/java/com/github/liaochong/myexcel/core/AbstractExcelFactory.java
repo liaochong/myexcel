@@ -175,9 +175,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             for (int i = td.getRow() + 1, rowBound = td.getRowBound(); i <= rowBound; i++) {
                 for (int j = td.getCol(), colBound = td.getColBound(); j <= colBound; j++) {
-                    Td blankTd = new Td();
-                    blankTd.setRow(i);
-                    blankTd.setCol(j);
+                    Td blankTd = new Td(i, j);
                     blankTd.setTh(td.isTh());
                     blankTd.setStyle(td.getStyle());
                     stagingTds.add(blankTd);

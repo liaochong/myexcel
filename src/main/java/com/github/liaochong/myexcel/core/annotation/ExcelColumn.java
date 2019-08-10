@@ -107,4 +107,11 @@ public @interface ExcelColumn {
      * @return linkType
      */
     LinkType linkType() default LinkType.NONE;
+
+    /**
+     * 简单映射，如"1:男,2:女"
+     *
+     * @return String
+     */
+    String mapping() default "";
 }

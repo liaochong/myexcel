@@ -61,7 +61,6 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
         return this;
     }
 
-
     @Override
     protected <T> void render(Map<String, T> data, Writer out) {
         Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");

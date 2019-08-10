@@ -21,10 +21,10 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * excel创建者接口
@@ -66,7 +66,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     @Override
     public AbstractExcelBuilder freezePanes(FreezePane... freezePanes) {
-        if (Objects.isNull(freezePanes) || freezePanes.length == 0) {
+        if (freezePanes == null || freezePanes.length == 0) {
             return this;
         }
         htmlToExcelFactory.freezePanes(freezePanes);
@@ -99,4 +99,10 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
      */
     protected abstract <T> void render(Map<String, T> renderData, Writer out) throws Exception;
 
+    @Override
+    public void close() throws IOException {
+        if (htmlToExcelFactory != null) {
+            htmlToExcelFactory.closeWorkbook();
+        }
+    }
 }
