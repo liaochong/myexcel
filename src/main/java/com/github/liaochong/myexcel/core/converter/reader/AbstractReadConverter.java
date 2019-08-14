@@ -35,7 +35,7 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     protected static final WeakCache<String, DateTimeFormatter> DATE_TIME_FORMATTER_WEAK_CACHE = new WeakCache<>();
 
-    protected static final WeakCache<String, SimpleDateFormat> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
+    protected static final WeakCache<String, ThreadLocal<SimpleDateFormat>> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
 
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
 
@@ -101,5 +101,14 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
             DATE_TIME_FORMATTER_WEAK_CACHE.cache(dateFormatPattern, dateTimeFormatter);
         }
         return dateTimeFormatter;
+    }
+
+    protected SimpleDateFormat getSimpleDateFormat(String dateFormatPattern) {
+        ThreadLocal<SimpleDateFormat> tl = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
+        if (tl == null) {
+            tl = ThreadLocal.withInitial(() -> new SimpleDateFormat(dateFormatPattern));
+            SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, tl);
+        }
+        return tl.get();
     }
 }
