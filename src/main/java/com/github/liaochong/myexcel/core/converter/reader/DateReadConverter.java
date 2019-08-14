@@ -34,11 +34,7 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
             return new Date(time);
         }
         String dateFormatPattern = getDateFormatPattern(field);
-        SimpleDateFormat sdf = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
-        if (sdf == null) {
-            sdf = new SimpleDateFormat(dateFormatPattern);
-            SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, sdf);
-        }
+        SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
         try {
             return sdf.parse(v);
         } catch (ParseException e) {

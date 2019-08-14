@@ -33,8 +33,6 @@ import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.model.SharedStrings;
-import org.apache.poi.xssf.model.Styles;
-import org.apache.poi.xssf.model.StylesTable;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -260,7 +258,6 @@ public class SaxExcelReader<T> {
         long startTime = System.currentTimeMillis();
         ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
         XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
-        StylesTable styles = xssfReader.getStylesTable();
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(readConfig.dataType);
         result = new LinkedList<>();
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
@@ -268,7 +265,7 @@ public class SaxExcelReader<T> {
             while (iter.hasNext()) {
                 try (InputStream stream = iter.next()) {
                     if (readConfig.sheetName.equals(iter.getSheetName())) {
-                        processSheet(styles, strings, new SaxHandler<>(fieldMap, result, readConfig), stream);
+                        processSheet(strings, new SaxHandler<>(fieldMap, result, readConfig), stream);
                     }
                 }
             }
@@ -280,7 +277,7 @@ public class SaxExcelReader<T> {
                         break;
                     }
                     if (index == readConfig.sheetIndex) {
-                        processSheet(styles, strings, new SaxHandler<>(fieldMap, result, readConfig), stream);
+                        processSheet(strings, new SaxHandler<>(fieldMap, result, readConfig), stream);
                     }
                     ++index;
                 }
@@ -293,7 +290,6 @@ public class SaxExcelReader<T> {
      * Parses and shows the content of one sheet
      * using the specified styles and shared-strings tables.
      *
-     * @param styles           The table of styles that may be referenced by cells in the sheet
      * @param strings          The table of strings that may be referenced by cells in the sheet
      * @param sheetInputStream The stream to read the sheet-data from.
      * @throws java.io.IOException An IO exception from the parser,
@@ -302,7 +298,6 @@ public class SaxExcelReader<T> {
      * @throws SAXException        if parsing the XML data fails.
      */
     private void processSheet(
-            Styles styles,
             SharedStrings strings,
             XSSFSheetXMLHandler.SheetContentsHandler sheetHandler,
             InputStream sheetInputStream) throws IOException, SAXException {
@@ -311,7 +306,7 @@ public class SaxExcelReader<T> {
         try {
             XMLReader sheetParser = SAXHelper.newXMLReader();
             ContentHandler handler = new XSSFSheetXMLHandler(
-                    styles, null, strings, sheetHandler, formatter, false);
+                    null, null, strings, sheetHandler, formatter, false);
             sheetParser.setContentHandler(handler);
             sheetParser.parse(sheetSource);
         } catch (ParserConfigurationException e) {
