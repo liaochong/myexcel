@@ -4,6 +4,7 @@
 [![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/myexcel.svg)](http://isitmaintained.com/project/liaochong/myexcel "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/myexcel.svg)](http://isitmaintained.com/project/liaochong/myexcel "Percentage of issues still open")
+<img src="https://img.shields.io/badge/JDK-1.8+-green.svg" ></img>
 
 > 使用示例参考请移步：[示例](https://github.com/liaochong/myexcel/tree/master/example/src/main/java/com/github/liaochong/example/controller)
 
