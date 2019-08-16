@@ -112,8 +112,8 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
                 Table table = this.createTable();
                 List<Tr> thead = this.createThead();
-                List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
-                if (Objects.nonNull(thead)) {
+                List<Tr> tbody = this.createTbody(contents, thead == null ? 0 : thead.size());
+                if (thead != null) {
                     tbody.addAll(0, thead);
                 }
                 table.setTrList(tbody);
@@ -127,15 +127,15 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
                 tableList.add(table);
 
                 if (sortedFields.isEmpty()) {
-                    if (Objects.nonNull(thead)) {
+                    if (thead != null) {
                         table.getTrList().addAll(thead);
                     }
                     log.info("The specified field mapping does not exist");
                     return htmlToExcelFactory.build(tableList, workbook);
                 }
 
-                if (Objects.isNull(data) || data.isEmpty()) {
-                    if (Objects.nonNull(thead)) {
+                if (data == null || data.isEmpty()) {
+                    if (thead != null) {
                         table.getTrList().addAll(thead);
                     }
                     log.info("No valid data exists");
@@ -144,7 +144,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
 
                 List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
                 List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
-                if (Objects.nonNull(thead)) {
+                if (thead != null) {
                     tbody.addAll(0, thead);
                 }
                 table.setTrList(tbody);
@@ -179,7 +179,7 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
             List<Pair<? extends Class, ?>> contents = new ArrayList<>(d.size());
             for (String fieldName : fieldDisplayOrder) {
                 Object val = d.get(fieldName);
-                contents.add(Pair.of(Objects.isNull(val) ? String.class : val.getClass(), val));
+                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
             }
             Tr tr = this.createTr(contents, i, thead.size());
             if (widths != null) {
