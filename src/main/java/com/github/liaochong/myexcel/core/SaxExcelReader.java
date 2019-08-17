@@ -97,6 +97,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> charset(String charset) {
+        this.readConfig.charset = charset;
+        return this;
+    }
+
     public List<T> read(@NonNull InputStream fileInputStream) {
         if (!fileInputStream.markSupported()) {
             fileInputStream = new BufferedInputStream(fileInputStream);
@@ -331,5 +336,7 @@ public class SaxExcelReader<T> {
         private Predicate<Row> rowFilter = row -> true;
 
         private Predicate<T> beanFilter = bean -> true;
+
+        private String charset = "UTF-8";
     }
 }

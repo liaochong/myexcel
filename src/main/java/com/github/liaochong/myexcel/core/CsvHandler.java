@@ -28,7 +28,6 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -56,6 +55,8 @@ class CsvHandler<T> {
 
     private Predicate<T> beanFilter;
 
+    private String charset;
+
     public CsvHandler(InputStream is,
                       SaxExcelReader.ReadConfig<T> readConfig,
                       List<T> result) {
@@ -72,6 +73,7 @@ class CsvHandler<T> {
         this.function = readConfig.getFunction();
         this.rowFilter = readConfig.getRowFilter();
         this.beanFilter = readConfig.getBeanFilter();
+        this.charset = readConfig.getCharset();
     }
 
     public CsvHandler(File file,
@@ -86,6 +88,7 @@ class CsvHandler<T> {
             this.function = readConfig.getFunction();
             this.rowFilter = readConfig.getRowFilter();
             this.beanFilter = readConfig.getBeanFilter();
+            this.charset = readConfig.getCharset();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -96,7 +99,7 @@ class CsvHandler<T> {
             return;
         }
         long startTime = System.currentTimeMillis();
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, charset))) {
             int lineIndex = 0;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
@@ -119,11 +122,11 @@ class CsvHandler<T> {
         }
         T obj = dataType.newInstance();
         if (line != null) {
-            String[] strArr = line.trim().split(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)", -1);
+            String[] strArr = line.split(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)", -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
                 String content = strArr[i];
                 Field field = fieldMap.get(i);
-                if (Objects.isNull(field)) {
+                if (field == null) {
                     continue;
                 }
                 ReadConverterContext.convert(content, field, obj);
