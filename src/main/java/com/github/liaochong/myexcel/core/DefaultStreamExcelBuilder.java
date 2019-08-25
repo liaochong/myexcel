@@ -26,7 +26,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -89,6 +92,10 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return defaultStreamExcelBuilder;
     }
 
+    public static DefaultStreamExcelBuilder getInstance() {
+        return new DefaultStreamExcelBuilder();
+    }
+
     @Override
     public DefaultStreamExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
         super.rowAccessWindowSize(rowAccessWindowSize);
@@ -126,8 +133,20 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
+    public DefaultStreamExcelBuilder titles(@NonNull List<String> titles) {
+        this.titles = titles;
+        return this;
+    }
+
+    @Override
     public DefaultStreamExcelBuilder fixedTitles() {
         this.fixedTitles = true;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+        this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
@@ -146,6 +165,18 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return this;
     }
 
+    @Override
+    public DefaultStreamExcelBuilder widths(int... widths) {
+        if (widths.length == 0) {
+            return this;
+        }
+        this.widths = new HashMap<>(widths.length);
+        for (int i = 0, size = widths.length; i < size; i++) {
+            this.widths.put(i, widths[i]);
+        }
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
      *
@@ -159,12 +190,13 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
 
     @Override
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
-        Objects.requireNonNull(dataType);
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity);
         htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
 
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        filteredFields = getFilteredFields(classFieldContainer, groups);
+        if (dataType != null) {
+            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+            filteredFields = getFilteredFields(classFieldContainer, groups);
+        }
 
         this.initStyleMap();
         Table table = this.createTable();
@@ -178,24 +210,50 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void append(List<?> data) {
         if (data == null || data.isEmpty()) {
             return;
         }
-        for (Object datum : data) {
-            List<Pair<? extends Class, ?>> contents = getRenderContent(datum, filteredFields);
-            Tr tr = this.createTr(contents, 0, 0);
-            htmlToExcelStreamFactory.append(tr);
+        boolean isMapBuild = data.stream().anyMatch(d -> d instanceof Map);
+        if (isMapBuild) {
+            for (Object datum : data) {
+                Map<String, Object> d = (Map<String, Object>) datum;
+                List<Pair<? extends Class, ?>> contents = new ArrayList<>(d.size());
+                for (String fieldName : fieldDisplayOrder) {
+                    Object val = d.get(fieldName);
+                    contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
+                }
+                Tr tr = this.createTr(contents, 0, 0);
+                htmlToExcelStreamFactory.append(tr);
+            }
+        } else {
+            for (Object datum : data) {
+                List<Pair<? extends Class, ?>> contents = getRenderContent(datum, filteredFields);
+                Tr tr = this.createTr(contents, 0, 0);
+                htmlToExcelStreamFactory.append(tr);
+            }
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> void append(T data) {
         if (data == null) {
             return;
         }
-        List<Pair<? extends Class, ?>> contents = getRenderContent(data, filteredFields);
+        List<Pair<? extends Class, ?>> contents;
+        if (data instanceof Map) {
+            Map<String, Object> d = (Map<String, Object>) data;
+            contents = new ArrayList<>(d.size());
+            for (String fieldName : fieldDisplayOrder) {
+                Object val = d.get(fieldName);
+                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
+            }
+        } else {
+            contents = getRenderContent(data, filteredFields);
+        }
         Tr tr = this.createTr(contents, 0, 0);
         htmlToExcelStreamFactory.append(tr);
     }
