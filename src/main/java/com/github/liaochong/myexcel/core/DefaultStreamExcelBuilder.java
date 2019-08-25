@@ -27,7 +27,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -167,13 +166,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
 
     @Override
     public DefaultStreamExcelBuilder widths(int... widths) {
-        if (widths.length == 0) {
-            return this;
-        }
-        this.widths = new HashMap<>(widths.length);
-        for (int i = 0, size = widths.length; i < size; i++) {
-            this.widths.put(i, widths[i]);
-        }
+        super.widths(widths);
         return this;
     }
 
