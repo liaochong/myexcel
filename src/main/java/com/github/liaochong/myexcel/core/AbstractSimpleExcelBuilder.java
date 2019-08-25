@@ -211,6 +211,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
         for (int i = 0, size = widths.length; i < size; i++) {
             this.widths.put(i, widths[i]);
         }
+        customWidthMap = this.widths;
         return this;
     }
 
@@ -542,7 +543,9 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 .sorted(this::sortFields)
                 .collect(Collectors.toList());
         defaultValueMap = new HashMap<>(preElectionFields.size());
-        customWidthMap = new HashMap<>(sortedFields.size());
+        if (customWidthMap == null) {
+            customWidthMap = new HashMap<>(sortedFields.size());
+        }
 
         boolean needToAddTitle = Objects.isNull(this.titles);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
@@ -559,7 +562,7 @@ public abstract class AbstractSimpleExcelBuilder implements SimpleExcelBuilder {
                 if (!excelColumn.defaultValue().isEmpty()) {
                     defaultValueMap.put(field, excelColumn.defaultValue());
                 }
-                if (excelColumn.width() > 0) {
+                if (widths == null && excelColumn.width() > 0) {
                     customWidthMap.put(i, excelColumn.width());
                 }
                 if (!noStyle && excelColumn.style().length > 0) {
