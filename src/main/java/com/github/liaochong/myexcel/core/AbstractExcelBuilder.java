@@ -47,12 +47,6 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
-    public AbstractExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize);
-        return this;
-    }
-
-    @Override
     public AbstractExcelBuilder useDefaultStyle() {
         htmlToExcelFactory.useDefaultStyle();
         return this;

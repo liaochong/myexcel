@@ -43,7 +43,10 @@ public interface ExcelBuilder extends Closeable {
      * @param rowAccessWindowSize 内存数据保有量
      * @return ExcelBuilder
      */
-    ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize);
+    @Deprecated
+    default ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
+        return this;
+    }
 
     /**
      * 使用默认样式

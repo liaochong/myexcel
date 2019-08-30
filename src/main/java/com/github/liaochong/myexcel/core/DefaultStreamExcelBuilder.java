@@ -318,7 +318,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     @Override
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity);
-        htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+        htmlToExcelStreamFactory.workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
 
         if (dataType != null) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
@@ -330,10 +330,9 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         htmlToExcelStreamFactory.start(table, workbook);
 
         List<Tr> head = this.createThead();
-        if (Objects.isNull(head)) {
-            return this;
+        if (head != null) {
+            htmlToExcelStreamFactory.appendTitles(head);
         }
-        htmlToExcelStreamFactory.appendTitles(head);
         return this;
     }
 
@@ -832,12 +831,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     private void setWorkbookWithExcelTableAnnotation(ExcelTable excelTable) {
         if (workbookType == null) {
             this.workbookType = excelTable.workbookType();
-        }
-        if (this.rowAccessWindowSize <= 0) {
-            int rowAccessWindowSize = excelTable.rowAccessWindowSize();
-            if (rowAccessWindowSize > 0) {
-                this.rowAccessWindowSize = rowAccessWindowSize;
-            }
         }
         if (StringUtil.isBlank(this.sheetName)) {
             String sheetName = excelTable.sheetName();

@@ -61,10 +61,12 @@ public @interface ExcelTable {
     String sheetName() default "";
 
     /**
-     * 内存行数保有量，只在WorkbookType.SXLSX有效
+     * 内存行数保有量，只在WorkbookType.SXLSX有效，
+     * 采用默认最佳实践值，4.0.0版本移除
      *
      * @return 行数
      */
+    @Deprecated
     int rowAccessWindowSize() default -1;
 
     /**
