@@ -40,12 +40,16 @@ public interface ExcelFactory {
     ExcelFactory freezePanes(FreezePane... freezePanes);
 
     /**
-     * 设置workbookType为SXSSFWorkbook的内存数据保有量
+     * 设置workbookType为SXSSFWorkbook的内存数据保有量，
+     * 将采用默认值作为唯一值，4.0.0版本将被剔除
      *
      * @param rowAccessWindowSize 内存数据保有量
      * @return ExcelFactory
      */
-    ExcelFactory rowAccessWindowSize(int rowAccessWindowSize);
+    @Deprecated
+    default ExcelFactory rowAccessWindowSize(int rowAccessWindowSize) {
+        return this;
+    }
 
     /**
      * 设置workbook类型

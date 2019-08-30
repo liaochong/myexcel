@@ -89,10 +89,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private FreezePane[] freezePanes;
     /**
-     * 内存数据保有量，默认为1，即不保留
-     */
-    private Integer rowAccessWindowSize = 1;
-    /**
      * 自动宽度策略
      */
     protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.CUSTOM_WIDTH;
@@ -116,15 +112,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory rowAccessWindowSize(int rowAccessWindowSize) {
-        if (rowAccessWindowSize <= 0) {
-            return this;
-        }
-        this.rowAccessWindowSize = rowAccessWindowSize;
-        return this;
-    }
-
-    @Override
     public ExcelFactory workbookType(WorkbookType workbookType) {
         if (Objects.nonNull(workbook)) {
             return this;
@@ -137,7 +124,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 workbook = new XSSFWorkbook();
                 break;
             case SXLSX:
-                workbook = new SXSSFWorkbook(rowAccessWindowSize);
+                workbook = new SXSSFWorkbook(1);
                 break;
             default:
                 workbook = new XSSFWorkbook();
