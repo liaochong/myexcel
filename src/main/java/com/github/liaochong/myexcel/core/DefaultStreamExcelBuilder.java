@@ -99,10 +99,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
      */
     private WorkbookType workbookType;
     /**
-     * 内存数据保有量
-     */
-    private int rowAccessWindowSize;
-    /**
      * 已排序字段
      */
     private List<Field> filteredFields;
@@ -305,13 +301,13 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     }
 
     /**
-     * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
+     * 流式构建启动，包含一些初始化操作
      *
      * @param groups 分组
      * @return DefaultExcelBuilder
      */
     public DefaultStreamExcelBuilder start(Class<?>... groups) {
-        this.start(HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE, groups);
+        this.start(Integer.MAX_VALUE, groups);
         return this;
     }
 

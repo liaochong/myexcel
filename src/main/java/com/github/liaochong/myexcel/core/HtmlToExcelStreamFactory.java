@@ -33,10 +33,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -54,8 +54,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private static final int XLSX_MAX_ROW_COUNT = 1048576;
 
     private static final int XLS_MAX_ROW_COUNT = 65536;
-
-    static final int DEFAULT_WAIT_SIZE = Runtime.getRuntime().availableProcessors();
 
     private static final Tr STOP_FLAG = new Tr(-1);
 
@@ -106,7 +104,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
                                     Consumer<Path> pathConsumer, int capacity) {
-        this.trWaitQueue = new ArrayBlockingQueue<>(waitSize);
+        this.trWaitQueue = new LinkedBlockingQueue<>(waitSize);
         this.executorService = executorService;
         this.pathConsumer = pathConsumer;
         this.capacity = capacity;
@@ -233,7 +231,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         return workbook;
     }
 
-    public List<Path> buildAsPaths() {
+    List<Path> buildAsPaths() {
         waiting();
         this.storeToTempFile();
         if (futures != null) {
@@ -325,7 +323,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    public Path buildAsZip(String fileName) {
+    Path buildAsZip(String fileName) {
         Objects.requireNonNull(fileName);
         waiting();
         boolean isXls = workbook instanceof HSSFWorkbook;
