@@ -412,22 +412,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     }
 
     /**
-     * 获取只有head的table
-     *
-     * @return table集合
-     */
-    private List<Table> getTableWithHeader() {
-        List<Table> tableList = new ArrayList<>();
-        Table table = this.createTable();
-        tableList.add(table);
-        List<Tr> thead = this.createThead();
-        if (thead != null) {
-            table.getTrList().addAll(thead);
-        }
-        return tableList;
-    }
-
-    /**
      * 创建table
      *
      * @return table
@@ -604,7 +588,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         }
         tr.setTdList(tdList);
         return tr;
-
     }
 
     private void setTdContentType(Td td, Class fieldType) {
