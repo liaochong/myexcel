@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
  * @author liaochong
  * @version 1.0
  */
-interface SimpleStreamExcelBuilder {
+interface SimpleStreamExcelBuilder extends Closeable {
 
     /**
      * 线程池设置
