@@ -313,7 +313,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
 
     @Override
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity);
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
         htmlToExcelStreamFactory.workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
 
         if (dataType != null) {
@@ -382,10 +382,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
 
     @Override
     public Workbook build() {
-        if (fixedTitles && titleLevel > 0) {
-            FreezePane freezePane = new FreezePane(titleLevel, 0);
-            htmlToExcelStreamFactory.freezePanes(freezePane);
-        }
         return htmlToExcelStreamFactory.build();
     }
 

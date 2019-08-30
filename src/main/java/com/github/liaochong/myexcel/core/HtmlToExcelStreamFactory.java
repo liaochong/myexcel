@@ -96,18 +96,24 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private List<CompletableFuture> futures;
 
     private Consumer<Path> pathConsumer;
-
     /**
      * 线程池
      */
     private ExecutorService executorService;
+    /**
+     * 是否固定标题
+     */
+    private boolean fixedTitles;
 
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
-                                    Consumer<Path> pathConsumer, int capacity) {
+                                    Consumer<Path> pathConsumer,
+                                    int capacity,
+                                    boolean fixedTitles) {
         this.trWaitQueue = new LinkedBlockingQueue<>(waitSize);
         this.executorService = executorService;
         this.pathConsumer = pathConsumer;
         this.capacity = capacity;
+        this.fixedTitles = fixedTitles;
     }
 
     public void start(Table table, Workbook workbook) {
@@ -182,21 +188,16 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 if (rowNum == maxRowCountOfSheet) {
                     sheetNum++;
                     this.setColWidth(colWidthMap, sheet, maxColIndex);
-                    colWidthMap = null;
+                    colWidthMap = new HashMap<>();
                     sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
                     rowNum = 0;
+                    this.setTitles();
                 }
-                tr.setIndex(rowNum);
-                tr.getTdList().forEach(td -> {
-                    td.setRow(rowNum);
-                });
-                rowNum++;
-                count++;
-                this.createRow(tr, sheet);
+                appendRow(tr);
                 totalSize++;
                 tr.getColWidthMap().forEach((k, v) -> {
                     Integer val = this.colWidthMap.get(k);
-                    if (Objects.isNull(val) || v > val) {
+                    if (val == null || v > val) {
                         this.colWidthMap.put(k, v);
                     }
                 });
@@ -226,7 +227,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     public Workbook build() {
         waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
-        this.freezePane(0, sheet);
+        this.freezeTitles(workbook);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }
@@ -271,7 +272,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 Map<Integer, Integer> tempColWidthMap = colWidthMap;
                 CompletableFuture future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
-                    this.freezePane(0, tempSheet);
+                    this.freezeTitles(tempWorkbook);
                     try {
                         FileExportUtil.export(tempWorkbook, path.toFile());
                     } catch (IOException e) {
@@ -284,7 +285,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 futures.add(future);
             } else {
                 this.setColWidth(colWidthMap, sheet, maxColIndex);
-                this.freezePane(0, sheet);
+                this.freezeTitles(workbook);
                 FileExportUtil.export(workbook, path.toFile());
                 if (Objects.nonNull(pathConsumer)) {
                     pathConsumer.accept(path);
@@ -294,6 +295,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void freezeTitles(Workbook workbook) {
+        if (fixedTitles && titles != null) {
+            for (int i = 0, size = workbook.getNumberOfSheets(); i < size; i++) {
+                workbook.getSheetAt(i).createFreezePane(0, titles.size());
+            }
         }
     }
 
@@ -312,15 +321,23 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (titles == null) {
             return;
         }
+        this.setTitles();
+    }
+
+    private void setTitles() {
         for (Tr titleTr : titles) {
-            titleTr.setIndex(rowNum);
-            titleTr.getTdList().forEach(td -> {
-                td.setRow(rowNum);
-            });
-            rowNum++;
-            count++;
-            this.createRow(titleTr, sheet);
+            appendRow(titleTr);
         }
+    }
+
+    private void appendRow(Tr tr) {
+        tr.setIndex(rowNum);
+        tr.getTdList().forEach(td -> {
+            td.setRow(rowNum);
+        });
+        rowNum++;
+        count++;
+        this.createRow(tr, sheet);
     }
 
     Path buildAsZip(String fileName) {
