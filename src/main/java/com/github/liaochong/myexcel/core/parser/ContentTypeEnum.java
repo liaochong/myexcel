@@ -38,7 +38,9 @@ public enum ContentTypeEnum {
 
     LINK_EMAIL,
 
-    LINK_URL;
+    LINK_URL,
+
+    IMAGE;
 
     public static boolean isString(ContentTypeEnum contentTypeEnum) {
         return STRING == contentTypeEnum;

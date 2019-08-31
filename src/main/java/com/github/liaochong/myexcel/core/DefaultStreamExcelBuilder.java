@@ -20,6 +20,7 @@ import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
+import com.github.liaochong.myexcel.core.constant.ImageFile;
 import com.github.liaochong.myexcel.core.constant.LinkEmail;
 import com.github.liaochong.myexcel.core.constant.LinkUrl;
 import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
@@ -43,6 +44,7 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -556,8 +558,12 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
             Td td = new Td(0, i);
 
             Pair<? extends Class, ?> pair = contents.get(i);
-            td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
             Class fieldType = pair.getKey();
+            if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
+                td.setFile(pair.getValue() == null ? null : (File) pair.getValue());
+            } else {
+                td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
+            }
             setTdContentType(td, fieldType);
             if (!noStyle && !customStyle.isEmpty()) {
                 Map<String, String> style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
@@ -613,6 +619,10 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         if (td.getContent() != null && fieldType == LinkEmail.class) {
             td.setTdContentType(ContentTypeEnum.LINK_EMAIL);
             setLinkTd(td);
+            return;
+        }
+        if (td.getFile() != null && fieldType == ImageFile.class) {
+            td.setTdContentType(ContentTypeEnum.IMAGE);
         }
     }
 

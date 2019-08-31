@@ -45,6 +45,7 @@ import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -238,6 +239,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 case LINK_EMAIL:
                     cell = setLink(td, currentRow, HyperlinkType.EMAIL);
                     break;
+                case IMAGE:
+                    cell = currentRow.createCell(td.getCol());
+                    setImage(td, sheet);
+                    break;
                 default:
                     cell = currentRow.createCell(td.getCol(), CellType.STRING);
                     cell.setCellValue(content);
@@ -255,6 +260,46 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
+        }
+    }
+
+    private void setImage(Td td, Sheet sheet) {
+        if (td.getFile() == null) {
+            return;
+        }
+        try {
+            if (createHelper == null) {
+                createHelper = workbook.getCreationHelper();
+            }
+            byte[] bytes = Files.readAllBytes(td.getFile().toPath());
+            String fileName = td.getFile().getName();
+            int format;
+            switch (fileName.substring(fileName.lastIndexOf(".") + 1)) {
+                case "jpg":
+                case "jpeg":
+                    format = Workbook.PICTURE_TYPE_JPEG;
+                    break;
+                case "png":
+                    format = Workbook.PICTURE_TYPE_PNG;
+                    break;
+                case "dib":
+                    format = Workbook.PICTURE_TYPE_DIB;
+                    break;
+                case "emf":
+                    format = Workbook.PICTURE_TYPE_EMF;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid image type");
+            }
+            int pictureIdx = workbook.addPicture(bytes, format);
+            Drawing drawing = sheet.createDrawingPatriarch();
+            ClientAnchor anchor = createHelper.createClientAnchor();
+            anchor.setCol1(td.getCol());
+            anchor.setRow1(td.getRow());
+            Picture pict = drawing.createPicture(anchor, pictureIdx);
+            pict.resize();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
