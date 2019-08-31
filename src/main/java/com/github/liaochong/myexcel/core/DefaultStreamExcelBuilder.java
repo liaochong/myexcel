@@ -174,6 +174,14 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
      * 是否为奇数行
      */
     private boolean isOddRow = true;
+    /**
+     * 行高
+     */
+    private int rowHeight;
+    /**
+     * 标题行行高
+     */
+    private int titleRowHeight;
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
@@ -518,7 +526,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         List<Tr> trs = new ArrayList<>();
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         rowTds.forEach((k, v) -> {
-            Tr tr = new Tr(k);
+            Tr tr = new Tr(k, titleRowHeight);
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
@@ -549,7 +557,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     private Tr createTr(List<Pair<? extends Class, ?>> contents) {
         boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
         boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
-        Tr tr = new Tr(0);
+        Tr tr = new Tr(0, rowHeight);
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
         Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
@@ -688,6 +696,8 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
             wrapText = excelTable.wrapText();
             titleSeparator = excelTable.titleSeparator();
             ignoreStaticFields = excelTable.ignoreStaticFields();
+            titleRowHeight = excelTable.titleRowHeight();
+            rowHeight = excelTable.rowHeight();
         }
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);
         if (ignoreStaticFields) {

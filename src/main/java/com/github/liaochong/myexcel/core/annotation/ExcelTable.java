@@ -103,4 +103,18 @@ public @interface ExcelTable {
      * @return 分离器
      */
     String titleSeparator() default "->";
+
+    /**
+     * 标题行高度
+     *
+     * @return 标题行高度
+     */
+    int titleRowHeight() default -1;
+
+    /**
+     * 普通行高度
+     *
+     * @return 普通行高度
+     */
+    int rowHeight() default -1;
 }

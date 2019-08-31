@@ -47,8 +47,13 @@ public class Tr {
      * 是否可见
      */
     boolean visibility = true;
+    /**
+     * 行高度
+     */
+    int height;
 
-    public Tr(int index) {
+    public Tr(int index, int height) {
         this.index = index;
+        this.height = height;
     }
 }

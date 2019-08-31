@@ -150,6 +150,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (!tr.isVisibility()) {
             row.setZeroHeight(true);
         }
+        if (tr.getHeight() > 0) {
+            row.setHeightInPoints(tr.getHeight());
+        }
         stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.getRow(), tr.getIndex())).forEach(td -> {
             if (tr.getTdList() == Collections.EMPTY_LIST) {
                 tr.setTdList(new LinkedList<>());
