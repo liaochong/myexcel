@@ -709,8 +709,8 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         List<String> titles = new ArrayList<>(preElectionFields.size());
         List<Field> sortedFields = preElectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && filterFields(selectedGroupList, field))
-                .sorted(this::sortFields)
+                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
+                .sorted(ReflectUtil::sortFields)
                 .collect(Collectors.toList());
         defaultValueMap = new HashMap<>(preElectionFields.size());
         if (customWidthMap == null) {
@@ -796,43 +796,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
             preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
         }
         return preElectionFields;
-    }
-
-    private boolean filterFields(List<Class<?>> selectedGroupList, Field field) {
-        if (selectedGroupList.isEmpty()) {
-            return true;
-        }
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (excelColumn == null) {
-            return false;
-        }
-        Class<?>[] groupArr = excelColumn.groups();
-        if (groupArr.length == 0) {
-            return false;
-        }
-        List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
-        return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
-    }
-
-    private int sortFields(Field field1, Field field2) {
-        ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
-        ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
-        if (excelColumn1 == null && excelColumn2 == null) {
-            return 0;
-        }
-        int defaultOrder = 0;
-        int order1 = defaultOrder;
-        if (excelColumn1 != null) {
-            order1 = excelColumn1.order();
-        }
-        int order2 = defaultOrder;
-        if (excelColumn2 != null) {
-            order2 = excelColumn2.order();
-        }
-        if (order1 == order2) {
-            return 0;
-        }
-        return order1 > order2 ? 1 : -1;
     }
 
     /**
