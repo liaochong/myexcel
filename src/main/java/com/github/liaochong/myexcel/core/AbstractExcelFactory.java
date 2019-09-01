@@ -322,6 +322,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     private String setDropDownList(Td td, Sheet sheet, String content) {
+        if (content.length() > 250) {
+            throw new IllegalArgumentException("The total number of words in the drop-down list should not exceed 250.");
+        }
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
