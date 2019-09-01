@@ -62,10 +62,11 @@ public interface ExcelBuilder extends Closeable {
      * @param autoWidthStrategy 策略
      * @return ExcelBuilder
      */
+    @Deprecated
     ExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy);
 
     /**
-     * 自动宽度策略
+     * 宽度策略
      *
      * @param widthStrategy 策略
      * @return ExcelBuilder
