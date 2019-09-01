@@ -55,7 +55,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private static final int XLS_MAX_ROW_COUNT = 65536;
 
-    private static final Tr STOP_FLAG = new Tr(-1);
+    private static final Tr STOP_FLAG = new Tr(-1, 0);
 
     private int maxRowCountOfSheet = XLSX_MAX_ROW_COUNT;
 
