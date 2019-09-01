@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -100,6 +101,12 @@ public class DefaultExcelBuilder implements Closeable {
         return this;
     }
 
+    public DefaultExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
+        streamExcelBuilder.widthStrategy(widthStrategy);
+        return this;
+    }
+
+    @Deprecated
     public DefaultExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
         streamExcelBuilder.autoWidthStrategy(autoWidthStrategy);
         return this;
