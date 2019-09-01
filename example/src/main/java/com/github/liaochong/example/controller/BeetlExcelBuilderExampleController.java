@@ -30,11 +30,12 @@ public class BeetlExcelBuilderExampleController {
      */
     @GetMapping("/beetl/example")
     public void build(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new BeetlExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").build(dataMap);
-        AttachmentExportUtil.export(workbook, "beetl_excel", response);
+            Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").build(dataMap);
+            AttachmentExportUtil.export(workbook, "beetl_excel", response);
+        }
     }
 
     /**
@@ -44,11 +45,12 @@ public class BeetlExcelBuilderExampleController {
      */
     @GetMapping("/beetl/defaultStyle/example")
     public void buildWithDefaultStyle(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new BeetlExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").useDefaultStyle().build(dataMap);
-        AttachmentExportUtil.export(workbook, "beetl_excel", response);
+            Workbook workbook = excelBuilder.template("/templates/beetlToExcelExample.btl").useDefaultStyle().build(dataMap);
+            AttachmentExportUtil.export(workbook, "beetl_excel", response);
+        }
     }
 
     /**
@@ -58,15 +60,16 @@ public class BeetlExcelBuilderExampleController {
      */
     @GetMapping("/beetl/xls/example")
     public void buildWithXLS(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new BeetlExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/beetlToExcelExample.btl")
-                .workbookType(WorkbookType.XLS)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "beetl_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/beetlToExcelExample.btl")
+                    .workbookType(WorkbookType.XLS)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "beetl_excel", response);
+        }
     }
 
     /**
@@ -76,15 +79,16 @@ public class BeetlExcelBuilderExampleController {
      */
     @GetMapping("/beetl/xlsx/example")
     public void buildWithXLSX(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new BeetlExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/beetlToExcelExample.btl")
-                .workbookType(WorkbookType.XLSX)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "beetl_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/beetlToExcelExample.btl")
+                    .workbookType(WorkbookType.XLSX)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "beetl_excel", response);
+        }
     }
 
     /**
@@ -94,15 +98,16 @@ public class BeetlExcelBuilderExampleController {
      */
     @GetMapping("/beetl/sxlsx/example")
     public void buildWithSXLSX(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new BeetlExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/beetlToExcelExample.btl")
-                .workbookType(WorkbookType.SXLSX)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "beetl_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/beetlToExcelExample.btl")
+                    .workbookType(WorkbookType.SXLSX)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "beetl_excel", response);
+        }
     }
 
     private Map<String, Object> getDataMap() {
