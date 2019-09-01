@@ -35,7 +35,7 @@ public class ParseConfig {
 
     boolean isComputeAutoWidth;
 
-    public void setAutoWidthStrategy(WidthStrategy widthStrategy) {
+    public void setWidthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
         this.isCustomWidth = WidthStrategy.isCustomWidth(widthStrategy);
         this.isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
