@@ -19,7 +19,7 @@ import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.CustomColor;
@@ -92,7 +92,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 自动宽度策略
      */
-    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.CUSTOM_WIDTH;
+    protected WidthStrategy widthStrategy = WidthStrategy.CUSTOM_WIDTH;
     /**
      * 暂存单元格，由后续行认领
      */
@@ -134,8 +134,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        this.autoWidthStrategy = autoWidthStrategy;
+    public ExcelFactory widthStrategy(@NonNull WidthStrategy widthStrategy) {
+        this.widthStrategy = widthStrategy;
         return this;
     }
 
@@ -448,7 +448,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
-        if (AutoWidthStrategy.isNoAuto(autoWidthStrategy) || AutoWidthStrategy.isAutoWidth(autoWidthStrategy)) {
+        if (WidthStrategy.isNoAuto(widthStrategy) || WidthStrategy.isAutoWidth(widthStrategy)) {
             return Collections.emptyMap();
         }
         if (useDefaultStyle) {
@@ -482,10 +482,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param maxColIndex    最大列索引
      */
     protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet, int maxColIndex) {
-        if (AutoWidthStrategy.isNoAuto(autoWidthStrategy)) {
+        if (WidthStrategy.isNoAuto(widthStrategy)) {
             return;
         }
-        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy)) {
+        if (WidthStrategy.isAutoWidth(widthStrategy)) {
             if (sheet instanceof SXSSFSheet) {
                 throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
             }

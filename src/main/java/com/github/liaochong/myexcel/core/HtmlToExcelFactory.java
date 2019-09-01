@@ -20,7 +20,7 @@ import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -124,7 +124,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     public Workbook build() {
         try {
             ParseConfig parseConfig = new ParseConfig();
-            parseConfig.setAutoWidthStrategy(autoWidthStrategy);
+            parseConfig.setAutoWidthStrategy(widthStrategy);
 
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
             htmlTableParser = null;
@@ -200,7 +200,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      */
     private void setTdOfTable(Table table, Sheet sheet) {
         int maxColIndex = 0;
-        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy) && !table.getTrList().isEmpty()) {
+        if (WidthStrategy.isAutoWidth(widthStrategy) && !table.getTrList().isEmpty()) {
             maxColIndex = table.getTrList().parallelStream()
                     .mapToInt(tr -> tr.getTdList().stream().mapToInt(Td::getCol).max().orElse(0))
                     .max()

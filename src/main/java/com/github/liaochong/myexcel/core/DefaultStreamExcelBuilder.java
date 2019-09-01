@@ -32,6 +32,7 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
@@ -119,7 +120,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     /**
      * 自动宽度策略
      */
-    private AutoWidthStrategy autoWidthStrategy;
+    private WidthStrategy widthStrategy;
     /**
      * 全局默认值
      */
@@ -185,7 +186,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
-        autoWidthStrategy = AutoWidthStrategy.NO_AUTO;
+        widthStrategy = WidthStrategy.NO_AUTO;
         workbookType = WorkbookType.SXLSX;
     }
 
@@ -261,8 +262,14 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         return this;
     }
 
+    public DefaultStreamExcelBuilder widthStrategy(@NonNull WidthStrategy widthStrategy) {
+        this.widthStrategy = widthStrategy;
+        return this;
+    }
+
+    @Deprecated
     public DefaultStreamExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        this.autoWidthStrategy = autoWidthStrategy;
+        this.widthStrategy = AutoWidthStrategy.map(autoWidthStrategy);
         return this;
     }
 
@@ -324,7 +331,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     @Override
     public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
-        htmlToExcelStreamFactory.workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
+        htmlToExcelStreamFactory.workbookType(workbookType).widthStrategy(widthStrategy);
 
         if (dataType != null) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
@@ -524,7 +531,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
 
         Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
         List<Tr> trs = new ArrayList<>();
-        boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
+        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
         rowTds.forEach((k, v) -> {
             Tr tr = new Tr(k, titleRowHeight);
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
@@ -555,8 +562,8 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
      * @return 内容行
      */
     private Tr createTr(List<Pair<? extends Class, ?>> contents) {
-        boolean isComputeAutoWidth = AutoWidthStrategy.isComputeAutoWidth(autoWidthStrategy);
-        boolean isCustomWidth = AutoWidthStrategy.isCustomWidth(autoWidthStrategy);
+        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
+        boolean isCustomWidth = WidthStrategy.isCustomWidth(widthStrategy);
         Tr tr = new Tr(0, rowHeight);
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
         Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
