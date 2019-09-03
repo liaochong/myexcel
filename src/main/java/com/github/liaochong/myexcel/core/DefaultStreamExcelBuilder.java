@@ -863,4 +863,9 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
+    public void cancle() {
+        htmlToExcelStreamFactory.waiting();
+        htmlToExcelStreamFactory.closeWorkbook();
+    }
+
 }

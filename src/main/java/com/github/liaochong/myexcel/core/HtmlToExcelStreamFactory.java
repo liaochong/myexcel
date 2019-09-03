@@ -242,7 +242,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         return paths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
     }
 
-    private void waiting() {
+    protected void waiting() {
         if (exception) {
             throw new IllegalStateException("An exception occurred while processing");
         }
