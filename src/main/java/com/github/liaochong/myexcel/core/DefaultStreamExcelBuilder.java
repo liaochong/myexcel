@@ -43,6 +43,7 @@ import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
@@ -68,6 +69,7 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     /**
      * 一般单元格样式
@@ -183,6 +185,10 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
      * 标题行行高
      */
     private int titleRowHeight;
+    /**
+     * 任务取消
+     */
+    private boolean cancel;
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
@@ -352,6 +358,10 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     @SuppressWarnings("unchecked")
     @Override
     public void append(List<?> data) {
+        if (cancel) {
+            log.info("Canceled build task");
+            return;
+        }
         if (data == null || data.isEmpty()) {
             return;
         }
@@ -379,6 +389,10 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
     @SuppressWarnings("unchecked")
     @Override
     public <T> void append(T data) {
+        if (cancel) {
+            log.info("Canceled build task");
+            return;
+        }
         if (data == null) {
             return;
         }
@@ -417,6 +431,12 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
         if (htmlToExcelStreamFactory != null) {
             htmlToExcelStreamFactory.closeWorkbook();
         }
+    }
+
+    public void cancle() {
+        cancel = true;
+        htmlToExcelStreamFactory.waiting();
+        htmlToExcelStreamFactory.closeWorkbook();
     }
 
     /**
@@ -861,11 +881,6 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
                     return value;
                 })
                 .collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    public void cancle() {
-        htmlToExcelStreamFactory.waiting();
-        htmlToExcelStreamFactory.closeWorkbook();
     }
 
 }
