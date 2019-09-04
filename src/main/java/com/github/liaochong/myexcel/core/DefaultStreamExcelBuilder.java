@@ -435,8 +435,7 @@ public class DefaultStreamExcelBuilder implements SimpleStreamExcelBuilder {
 
     public void cancle() {
         cancel = true;
-        htmlToExcelStreamFactory.waiting();
-        htmlToExcelStreamFactory.closeWorkbook();
+        htmlToExcelStreamFactory.cancle();
     }
 
     /**
