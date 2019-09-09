@@ -40,7 +40,7 @@ import java.util.function.Consumer;
  * @version 1.0
  */
 @Slf4j
-public class DefaultStreamExcelBuilder extends AbstractSimpleBuilder {
+public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
     /**
      * 设置需要渲染的数据的类类型
      */
@@ -312,13 +312,17 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleBuilder {
 
     @Override
     public void close() throws IOException {
-        if (htmlToExcelStreamFactory != null) {
-            htmlToExcelStreamFactory.closeWorkbook();
-        }
+        this.finish();
     }
 
     public void cancle() {
         cancel = true;
         htmlToExcelStreamFactory.cancle();
+    }
+
+    public void finish() {
+        if (htmlToExcelStreamFactory != null) {
+            htmlToExcelStreamFactory.closeWorkbook();
+        }
     }
 }

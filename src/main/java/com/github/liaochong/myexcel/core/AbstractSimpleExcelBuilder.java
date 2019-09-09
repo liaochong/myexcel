@@ -60,7 +60,7 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
-abstract class AbstractSimpleBuilder implements SimpleStreamExcelBuilder {
+abstract class AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder {
     /**
      * 字段展示顺序
      */
