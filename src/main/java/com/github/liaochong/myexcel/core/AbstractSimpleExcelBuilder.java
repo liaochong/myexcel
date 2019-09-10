@@ -70,10 +70,6 @@ abstract class AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder {
      */
     protected WorkbookType workbookType;
     /**
-     * 已排序字段
-     */
-    protected List<Field> filteredFields;
-    /**
      * 一般单元格样式
      */
     protected Map<String, String> commonTdStyle;

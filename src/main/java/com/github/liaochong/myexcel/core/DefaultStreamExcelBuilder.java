@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,10 @@ import java.util.function.Consumer;
  */
 @Slf4j
 public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
+    /**
+     * 已排序字段
+     */
+    private List<Field> filteredFields;
     /**
      * 设置需要渲染的数据的类类型
      */
@@ -312,17 +317,17 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
 
     @Override
     public void close() throws IOException {
-        this.finish();
+        if (htmlToExcelStreamFactory != null) {
+            htmlToExcelStreamFactory.closeWorkbook();
+        }
     }
 
     public void cancle() {
         cancel = true;
-        htmlToExcelStreamFactory.cancle();
+        htmlToExcelStreamFactory.clean();
     }
 
-    public void finish() {
-        if (htmlToExcelStreamFactory != null) {
-            htmlToExcelStreamFactory.closeWorkbook();
-        }
+    public void clean() {
+        htmlToExcelStreamFactory.clean();
     }
 }

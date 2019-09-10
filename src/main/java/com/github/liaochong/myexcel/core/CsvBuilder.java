@@ -59,8 +59,6 @@ public class CsvBuilder<T> {
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("\"");
 
-    private Class<T> type;
-
     private String globalDefaultValue;
     /**
      * 默认值集合
@@ -73,24 +71,31 @@ public class CsvBuilder<T> {
 
     private boolean isAppend = true;
 
-    private CsvBuilder(Class<T> type) {
-        this.type = type;
+    private List<Field> fields;
+
+    private CsvBuilder() {
     }
 
     public static <T> CsvBuilder<T> of(Class<T> clazz) {
-        return new CsvBuilder<>(clazz);
+        CsvBuilder<T> csvBuilder = new CsvBuilder<>();
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
+        csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
+        return csvBuilder;
     }
 
-    public Csv build(List<T> beans, Class<?>... groups) {
+    public CsvBuilder<T> groups(Class<?>... groups) {
+        fields = this.getGroupFields(fields, groups);
+        return this;
+    }
+
+    public Csv build(List<T> beans) {
         isAppend = false;
         Path path = TempFileOperator.createTempFile("d_t_c", Constants.CSV);
-        return this.build(beans, new Csv(path), groups);
+        return this.build(beans, new Csv(path));
     }
 
-    public Csv build(List<T> beans, Csv csv, Class<?>... groups) {
+    public Csv build(List<T> beans, Csv csv) {
         try {
-            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(type);
-            List<Field> fields = getFields(classFieldContainer, groups);
             if (beans == null || beans.isEmpty()) {
                 return csv;
             }
@@ -123,13 +128,9 @@ public class CsvBuilder<T> {
                     .filter(field -> !Modifier.isStatic(field.getModifiers()))
                     .collect(Collectors.toList());
         }
-        List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
+        List<Field> sortedFields = getGroupFields(preElectionFields, groups);
         List<String> titles = new ArrayList<>(preElectionFields.size());
-        List<Field> sortedFields = preElectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
-                .sorted(ReflectUtil::sortFields)
-                .collect(Collectors.toList());
         defaultValueMap = new HashMap<>(preElectionFields.size());
         boolean needToAddTitle = this.titles == null;
         for (Field field : sortedFields) {
@@ -160,6 +161,14 @@ public class CsvBuilder<T> {
             this.titles = titles;
         }
         return sortedFields;
+    }
+
+    private List<Field> getGroupFields(List<Field> preElectionFields, Class<?>[] groups) {
+        List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
+        return preElectionFields.stream()
+                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
+                .sorted(ReflectUtil::sortFields)
+                .collect(Collectors.toList());
     }
 
     private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {
