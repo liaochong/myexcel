@@ -122,9 +122,14 @@ public class DefaultExcelBuilder implements Closeable {
         return this;
     }
 
-    public Workbook build(List<?> data, Class<?>... groups) {
+    public DefaultExcelBuilder groups(Class<?>... groups) {
+        streamExcelBuilder.groups(groups);
+        return this;
+    }
+
+    public Workbook build(List<?> data) {
         try {
-            streamExcelBuilder.start(groups);
+            streamExcelBuilder.start();
             streamExcelBuilder.append(data);
             return streamExcelBuilder.build();
         } catch (Exception e) {

@@ -367,7 +367,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         return zipFile;
     }
 
-    public void clean() {
+    public void clear() {
         waiting();
         closeWorkbook();
         TempFileOperator.deleteTempFiles(paths);

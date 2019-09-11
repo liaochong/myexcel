@@ -41,7 +41,7 @@ import java.util.function.Consumer;
  * @version 1.0
  */
 @Slf4j
-public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
+public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder {
     /**
      * 已排序字段
      */
@@ -78,6 +78,14 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
      * 任务取消
      */
     private boolean cancel;
+    /**
+     * 分组
+     */
+    private Class<?>[] groups;
+    /**
+     * 等待队列
+     */
+    private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
@@ -212,19 +220,24 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
         return this;
     }
 
-    /**
-     * 流式构建启动，包含一些初始化操作
-     *
-     * @param groups 分组
-     * @return DefaultExcelBuilder
-     */
-    public DefaultStreamExcelBuilder start(Class<?>... groups) {
-        this.start(Integer.MAX_VALUE, groups);
+    @Override
+    public DefaultStreamExcelBuilder groups(Class<?>... groups) {
+        this.groups = groups;
         return this;
     }
 
+    public DefaultStreamExcelBuilder waitQueueSize(int waitQueueSize) {
+        this.waitQueueSize = waitQueueSize;
+        return this;
+    }
+
+    /**
+     * 流式构建启动，包含一些初始化操作
+     *
+     * @return DefaultExcelBuilder
+     */
     @Override
-    public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
+    public DefaultStreamExcelBuilder start() {
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
         htmlToExcelStreamFactory.workbookType(workbookType).widthStrategy(widthStrategy);
 
@@ -324,10 +337,10 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder {
 
     public void cancle() {
         cancel = true;
-        htmlToExcelStreamFactory.clean();
+        htmlToExcelStreamFactory.clear();
     }
 
-    public void clean() {
-        htmlToExcelStreamFactory.clean();
+    public void clear() {
+        htmlToExcelStreamFactory.clear();
     }
 }

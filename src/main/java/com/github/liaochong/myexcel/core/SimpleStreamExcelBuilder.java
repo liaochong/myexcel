@@ -42,11 +42,9 @@ interface SimpleStreamExcelBuilder extends Closeable {
     /**
      * 流式构建启动，包含一些初始化操作
      *
-     * @param waitQueueSize 等待队列容量
-     * @param groups        分组
      * @return SimpleStreamExcelBuilder
      */
-    SimpleStreamExcelBuilder start(int waitQueueSize, Class<?>... groups);
+    SimpleStreamExcelBuilder start();
 
     /**
      * 使用默认样式
@@ -70,6 +68,14 @@ interface SimpleStreamExcelBuilder extends Closeable {
      * @return SimpleStreamExcelBuilder
      */
     SimpleStreamExcelBuilder pathConsumer(Consumer<Path> pathConsumer);
+
+    /**
+     * 分组
+     *
+     * @param groups 分组
+     * @return SimpleStreamExcelBuilder
+     */
+    SimpleStreamExcelBuilder groups(Class<?>... groups);
 
     /**
      * 数据追加
