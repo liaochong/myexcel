@@ -117,4 +117,11 @@ public @interface ExcelTable {
      * @return 普通行高度
      */
     int rowHeight() default -1;
+
+    /**
+     * 样式
+     *
+     * @return 样式
+     */
+    String[] style() default {};
 }
