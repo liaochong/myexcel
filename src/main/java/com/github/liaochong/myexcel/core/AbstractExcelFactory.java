@@ -139,6 +139,21 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         return this;
     }
 
+    protected String getRealSheetName(String sheetName) {
+        if (sheetName == null) {
+            sheetName = "sheet";
+        }
+        Sheet sheet = workbook.getSheet(sheetName);
+        int sort = 1;
+        String realSheetName = sheetName;
+        while (sheet != null) {
+            sheetName = realSheetName + " (" + sort + ")";
+            sheet = workbook.getSheet(sheetName);
+            sort++;
+        }
+        return realSheetName;
+    }
+
     /**
      * 创建行-row
      *

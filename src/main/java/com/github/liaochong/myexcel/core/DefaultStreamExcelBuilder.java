@@ -185,6 +185,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         if (widths.length == 0) {
             return this;
         }
+        widthStrategy = WidthStrategy.CUSTOM_WIDTH;
         this.widths = new HashMap<>(widths.length);
         for (int i = 0, size = widths.length; i < size; i++) {
             this.widths.put(i, widths[i]);

@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +123,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             this.workbook = workbook;
         }
         startTime = System.currentTimeMillis();
-
         if (this.workbook == null) {
             workbookType(WorkbookType.SXLSX);
         }
@@ -131,7 +131,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         initCellStyle(workbook);
         if (table != null) {
-            sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? sheetName : table.getCaption();
+            sheetName = this.getRealSheetName(table.getCaption());
         }
         this.sheet = this.workbook.createSheet(sheetName);
         paths = new ArrayList<>();
@@ -247,13 +247,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             throw new IllegalStateException("An exception occurred while processing");
         }
         this.stop = true;
-        while (!trWaitQueue.isEmpty()) {
-            // wait all tr received
-        }
         try {
             trWaitQueue.put(STOP_FLAG);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new ExcelBuildException("Stop queue failure", e);
         }
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
