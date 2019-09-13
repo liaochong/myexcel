@@ -1,6 +1,8 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
+import com.github.liaochong.myexcel.core.pojo.CustomStylePeople;
+import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import com.sun.tools.javac.util.Assert;
@@ -138,6 +140,44 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
+    @Test
+    void customStyleBuild() throws Exception {
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CustomStylePeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .start()) {
+            customStyleData(excelBuilder, 1200000);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_DIR + "custom_style_build.xlsx"));
+        }
+    }
+
+    @Test
+    void evenOddBuild() throws Exception {
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(OddEvenStylePeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .start()) {
+            oddEvenData(excelBuilder, 10000);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_DIR + "odd_even_build.xlsx"));
+        }
+    }
+
+    @Test
+    void groupBuild() throws Exception {
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .groups(CommonPeople.class)
+                .widths(50)
+                .start()) {
+            data(excelBuilder, 10000);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_DIR + "group_build.xlsx"));
+        }
+    }
+
     private void data(DefaultStreamExcelBuilder excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
@@ -149,6 +189,34 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             commonPeople.setDance(odd ? true : false);
             commonPeople.setMoney(odd ? oddMoney : evenMoney);
             excelBuilder.append(commonPeople);
+        }
+    }
+
+    private void customStyleData(DefaultStreamExcelBuilder excelBuilder, int size) {
+        BigDecimal oddMoney = new BigDecimal(109898);
+        BigDecimal evenMoney = new BigDecimal(66666);
+        for (int i = 0; i < size; i++) {
+            CustomStylePeople customStylePeople = new CustomStylePeople();
+            boolean odd = i % 2 == 0;
+            customStylePeople.setName(odd ? "张三" : "李四");
+            customStylePeople.setAge(odd ? 18 : 24);
+            customStylePeople.setDance(odd ? true : false);
+            customStylePeople.setMoney(odd ? oddMoney : evenMoney);
+            excelBuilder.append(customStylePeople);
+        }
+    }
+
+    private void oddEvenData(DefaultStreamExcelBuilder excelBuilder, int size) {
+        BigDecimal oddMoney = new BigDecimal(109898);
+        BigDecimal evenMoney = new BigDecimal(66666);
+        for (int i = 0; i < size; i++) {
+            OddEvenStylePeople oddEvenStylePeople = new OddEvenStylePeople();
+            boolean odd = i % 2 == 0;
+            oddEvenStylePeople.setName(odd ? "张三" : "李四");
+            oddEvenStylePeople.setAge(odd ? 18 : 24);
+            oddEvenStylePeople.setDance(odd ? true : false);
+            oddEvenStylePeople.setMoney(odd ? oddMoney : evenMoney);
+            excelBuilder.append(oddEvenStylePeople);
         }
     }
 }

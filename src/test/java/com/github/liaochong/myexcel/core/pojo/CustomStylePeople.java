@@ -29,15 +29,15 @@ import java.math.BigDecimal;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @ExcelTable(sheetName = "人员信息")
-public class CommonPeople {
+public class CustomStylePeople {
 
-    @ExcelColumn(title = "姓名")
+    @ExcelColumn(title = "姓名", style = "title->color:red")
     String name;
 
     @ExcelColumn(title = "年龄")
     Integer age;
 
-    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class)
+    @ExcelColumn(title = "是否会跳舞", style = {"title->color:green", "cell->background-color:yellow"})
     boolean dance;
 
     @ExcelColumn(title = "金钱", decimalFormat = "#,000.00")

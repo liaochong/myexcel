@@ -28,8 +28,8 @@ import java.math.BigDecimal;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@ExcelTable(sheetName = "人员信息")
-public class CommonPeople {
+@ExcelTable(sheetName = "人员信息", style = {"even->color:red;width:100px"})
+public class OddEvenStylePeople {
 
     @ExcelColumn(title = "姓名")
     String name;
@@ -37,7 +37,7 @@ public class CommonPeople {
     @ExcelColumn(title = "年龄")
     Integer age;
 
-    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class)
+    @ExcelColumn(title = "是否会跳舞")
     boolean dance;
 
     @ExcelColumn(title = "金钱", decimalFormat = "#,000.00")
