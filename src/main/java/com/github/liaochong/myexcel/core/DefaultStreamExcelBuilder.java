@@ -342,7 +342,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
 
     public void cancle() {
         cancel = true;
-        htmlToExcelStreamFactory.clear();
+        htmlToExcelStreamFactory.cancel();
     }
 
     public void clear() {

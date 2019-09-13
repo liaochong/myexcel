@@ -2,11 +2,15 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
+import com.github.liaochong.myexcel.utils.TempFileOperator;
+import com.sun.tools.javac.util.Assert;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * @author liaochong
@@ -65,7 +69,6 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class, workbook)
                     .fixedTitles()
                     .hasStyle()
-                    .workbookType(WorkbookType.XLSX)
                     .start();
             data(excelBuilder, 10000);
             FileExportUtil.export(workbook, new File(TEST_DIR + "continue_build.xlsx"));
@@ -78,11 +81,61 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     }
 
     @Test
-    void buildAsPaths() {
+    void cancelBuild() throws Exception {
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .widths(15, 20, 25, 30)
+                .start()) {
+            data(excelBuilder, 10000);
+            excelBuilder.cancle();
+        }
     }
 
     @Test
-    void buildAsZip() {
+    void buildAsPaths() throws Exception {
+        List<Path> paths = null;
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .widths(15, 20, 25, 30)
+                .capacity(1000)
+                .start()) {
+            data(excelBuilder, 10000);
+            paths = excelBuilder.buildAsPaths();
+            Assert.check(paths.size() == 11);
+        } finally {
+            TempFileOperator.deleteTempFiles(paths);
+        }
+    }
+
+    @Test
+    void buildAsZip() throws Exception {
+        Path zip = null;
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .widths(15, 20, 25, 30)
+                .capacity(1000)
+                .start()) {
+            data(excelBuilder, 10000);
+            zip = excelBuilder.buildAsZip("test");
+        } finally {
+            TempFileOperator.deleteTempFile(zip);
+        }
+    }
+
+    @Test
+    void bigBuild() throws Exception {
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .widths(15, 20, 25, 30)
+                .start()) {
+            data(excelBuilder, 1200000);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_DIR + "big_build.xlsx"));
+        }
     }
 
     private void data(DefaultStreamExcelBuilder excelBuilder, int size) {
