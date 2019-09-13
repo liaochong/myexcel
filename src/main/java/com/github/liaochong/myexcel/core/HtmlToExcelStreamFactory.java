@@ -126,10 +126,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (this.workbook == null) {
             workbookType(WorkbookType.SXLSX);
         }
-        if (workbook instanceof HSSFWorkbook) {
+        if (this.workbook instanceof HSSFWorkbook) {
             maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
         }
-        initCellStyle(workbook);
+        initCellStyle(this.workbook);
         if (table != null) {
             sheetName = this.getRealSheetName(table.getCaption());
         }

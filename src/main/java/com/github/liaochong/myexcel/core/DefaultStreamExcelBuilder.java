@@ -151,6 +151,9 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
+        if (workbook != null) {
+            throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
+        }
         this.workbookType = workbookType;
         return this;
     }
@@ -240,13 +243,14 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @Override
     public DefaultStreamExcelBuilder start() {
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
-        htmlToExcelStreamFactory.workbookType(workbookType).widthStrategy(widthStrategy);
-
+        htmlToExcelStreamFactory.widthStrategy(widthStrategy);
+        if (workbook == null) {
+            htmlToExcelStreamFactory.workbookType(workbookType);
+        }
         if (dataType != null) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
-
         this.initStyleMap();
         Table table = this.createTable();
         htmlToExcelStreamFactory.start(table, workbook);

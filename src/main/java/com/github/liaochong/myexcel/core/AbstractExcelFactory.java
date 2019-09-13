@@ -147,8 +147,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         int sort = 1;
         String realSheetName = sheetName;
         while (sheet != null) {
-            sheetName = realSheetName + " (" + sort + ")";
-            sheet = workbook.getSheet(sheetName);
+            realSheetName = sheetName + " (" + sort + ")";
+            sheet = workbook.getSheet(realSheetName);
             sort++;
         }
         return realSheetName;
