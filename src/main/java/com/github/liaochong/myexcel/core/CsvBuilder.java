@@ -69,9 +69,11 @@ public class CsvBuilder<T> {
      */
     private List<String> titles;
 
-    private boolean isAppend = true;
-
     private List<Field> fields;
+    /**
+     * 文件路径
+     */
+    private Csv csv;
 
     private CsvBuilder() {
     }
@@ -80,6 +82,8 @@ public class CsvBuilder<T> {
         CsvBuilder<T> csvBuilder = new CsvBuilder<>();
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
         csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
+        Path csvTemp = TempFileOperator.createTempFile("d_t_c", Constants.CSV);
+        csvBuilder.csv = new Csv(csvTemp);
         return csvBuilder;
     }
 
@@ -89,12 +93,18 @@ public class CsvBuilder<T> {
     }
 
     public Csv build(List<T> beans) {
-        isAppend = false;
-        Path path = TempFileOperator.createTempFile("d_t_c", Constants.CSV);
-        return this.build(beans, new Csv(path));
+        return this.build(beans, csv);
     }
 
-    public Csv build(List<T> beans, Csv csv) {
+    public void append(List<T> beans) {
+        this.build(beans, csv);
+    }
+
+    public Csv build() {
+        return csv;
+    }
+
+    private Csv build(List<T> beans, Csv csv) {
         try {
             if (beans == null || beans.isEmpty()) {
                 return csv;
@@ -235,8 +245,9 @@ public class CsvBuilder<T> {
     }
 
     private void writeToCsv(List<List<?>> data, Csv csv) {
-        if (!isAppend && titles != null) {
+        if (titles != null) {
             data.add(0, titles);
+            titles = null;
         }
         List<String> content = data.stream().map(d -> {
             return d.stream().map(v -> {

@@ -345,6 +345,9 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         htmlToExcelStreamFactory.cancel();
     }
 
+    /**
+     * clear方法仅可在异常情况下调用
+     */
     public void clear() {
         htmlToExcelStreamFactory.clear();
     }
