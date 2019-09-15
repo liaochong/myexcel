@@ -92,6 +92,11 @@ public class CsvBuilder<T> {
         return this;
     }
 
+    public CsvBuilder<T> noTitles() {
+        this.titles = null;
+        return this;
+    }
+
     public Csv build(List<T> beans) {
         return this.build(beans, csv);
     }

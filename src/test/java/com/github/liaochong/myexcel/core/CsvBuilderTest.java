@@ -1,7 +1,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
-import com.github.liaochong.myexcel.utils.FileExportUtil;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -18,7 +17,7 @@ class CsvBuilderTest extends BasicTest {
     @Test
     void build() {
         Csv csv = CsvBuilder.of(CsvPeople.class).build(data(10000));
-        FileExportUtil.export(csv.getFilePath(), Paths.get(TEST_DIR + "common.csv"));
+        csv.write(Paths.get(TEST_DIR + "common.csv"));
     }
 
     @Test
@@ -28,7 +27,24 @@ class CsvBuilderTest extends BasicTest {
             csvBuilder.append(data(1000));
         }
         Csv csv = csvBuilder.build();
-        FileExportUtil.export(csv.getFilePath(), Paths.get(TEST_DIR + "append.csv"));
+        csv.write(Paths.get(TEST_DIR + "append.csv"));
+
+        csvBuilder = CsvBuilder.of(CsvPeople.class).noTitles();
+        for (int i = 0; i < 10; i++) {
+            csvBuilder.append(data(1000));
+        }
+        csv = csvBuilder.build();
+        csv.write(Paths.get(TEST_DIR + "append.csv"), true);
+    }
+
+    @Test
+    void noTitlesBuild() {
+        CsvBuilder<CsvPeople> csvBuilder = CsvBuilder.of(CsvPeople.class).noTitles();
+        for (int i = 0; i < 10; i++) {
+            csvBuilder.append(data(1000));
+        }
+        Csv csv = csvBuilder.build();
+        csv.write(Paths.get(TEST_DIR + "no_titles_append.csv"));
     }
 
     private List<CsvPeople> data(int size) {

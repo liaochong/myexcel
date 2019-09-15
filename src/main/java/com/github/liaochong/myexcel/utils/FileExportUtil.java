@@ -142,14 +142,4 @@ public final class FileExportUtil {
             TempFileOperator.deleteTempFile(path);
         }
     }
-
-    public static void export(Path origin, Path target) {
-        try {
-            Files.write(target, Files.readAllBytes(origin));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            TempFileOperator.deleteTempFile(origin);
-        }
-    }
 }

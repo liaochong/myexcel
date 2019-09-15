@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.utils.TempFileOperator;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author liaochong
@@ -43,6 +44,29 @@ public class Csv {
 
     public Path getFilePath() {
         return filePath;
+    }
+
+    public void write(Path target) {
+        this.write(target, false);
+    }
+
+    public void write(Path target, boolean append) {
+        Path origin = filePath;
+        try {
+            if (!Files.exists(target)) {
+                Files.write(target, Files.readAllBytes(origin));
+                return;
+            }
+            if (append) {
+                Files.write(target, Files.readAllBytes(origin), StandardOpenOption.APPEND);
+            } else {
+                Files.write(target, Files.readAllBytes(origin));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            clear();
+        }
     }
 
     public void clear() {
