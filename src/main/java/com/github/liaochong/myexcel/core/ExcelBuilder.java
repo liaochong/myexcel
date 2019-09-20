@@ -39,17 +39,6 @@ public interface ExcelBuilder extends Closeable {
     ExcelBuilder workbookType(WorkbookType workbookType);
 
     /**
-     * 设置workbookType为SXSSFWorkbook的内存数据保有量
-     *
-     * @param rowAccessWindowSize 内存数据保有量
-     * @return ExcelBuilder
-     */
-    @Deprecated
-    default ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        return this;
-    }
-
-    /**
      * 使用默认样式
      *
      * @return ExcelBuilder

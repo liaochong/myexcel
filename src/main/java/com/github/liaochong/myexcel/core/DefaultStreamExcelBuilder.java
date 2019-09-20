@@ -138,18 +138,6 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return this;
     }
 
-    /**
-     * SXSSF模式下设置窗口保留行数，采用默认值是最佳实践，不建议修改
-     *
-     * @param rowAccessWindowSize 内存保留行数
-     * @return DefaultStreamExcelBuilder
-     */
-    @Deprecated
-    public DefaultStreamExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        // do nothing
-        return this;
-    }
-
     public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");

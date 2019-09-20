@@ -79,18 +79,6 @@ public class DefaultExcelBuilder implements Closeable {
         return this;
     }
 
-    /**
-     * SXSSF模式下设置窗口保留行数，采用默认值是最佳实践，不可修改
-     *
-     * @param rowAccessWindowSize 内存保留行数
-     * @return DefaultExcelBuilder
-     */
-    @Deprecated
-    public DefaultExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        // do nothing
-        return this;
-    }
-
     public DefaultExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         streamExcelBuilder.workbookType(workbookType);
         return this;
