@@ -305,7 +305,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
             if (field == null) {
                 return;
             }
-            ReadConverterContext.convert(thisStr, field, obj);
+            ReadConverterContext.convert(thisStr, field, obj, currentRow.getRowNum());
         }
 
         // Handle end of row

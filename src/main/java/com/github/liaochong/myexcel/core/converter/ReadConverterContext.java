@@ -23,6 +23,7 @@ import com.github.liaochong.myexcel.core.converter.reader.NumberReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.StringReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter;
 import com.github.liaochong.myexcel.exception.SaxReadException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -40,6 +41,7 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class ReadConverterContext {
 
     private static final Map<Class<?>, Converter<String, ?>> READ_CONVERTERS = new HashMap<>();
@@ -88,12 +90,18 @@ public class ReadConverterContext {
         return this;
     }
 
-    public static void convert(String content, Field field, Object obj) {
+    public static void convert(String content, Field field, Object obj, int rowNum) {
         Converter<String, ?> converter = READ_CONVERTERS.get(field.getType());
         if (Objects.isNull(converter)) {
             throw new IllegalStateException("No suitable type converter was found.");
         }
-        Object value = converter.convert(content, field);
+        Object value;
+        try {
+            value = converter.convert(content, field);
+        } catch (Exception e) {
+            log.error("Failed to convert content，Field:{},Content:{},rowNum:{}", field.getName(), content, rowNum);
+            return;
+        }
         if (Objects.isNull(value)) {
             return;
         }
