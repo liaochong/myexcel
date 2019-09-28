@@ -3,6 +3,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CustomStylePeople;
 import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
+import com.github.liaochong.myexcel.core.pojo.WidthPeople;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import com.sun.tools.javac.util.Assert;
@@ -23,6 +24,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     @Test
     void commonBuild() throws Exception {
         try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .workbookType(WorkbookType.XLS)
                 .fixedTitles()
                 .start()) {
             data(excelBuilder, 10000);
@@ -178,6 +180,18 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
+    @Test
+    void widthBuild() throws Exception {
+        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(WidthPeople.class)
+                .fixedTitles()
+                .hasStyle()
+                .start()) {
+            widthEvenData(excelBuilder, 10000);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_DIR + "width_build.xlsx"));
+        }
+    }
+
     private void data(DefaultStreamExcelBuilder excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
@@ -211,6 +225,20 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         BigDecimal evenMoney = new BigDecimal(66666);
         for (int i = 0; i < size; i++) {
             OddEvenStylePeople oddEvenStylePeople = new OddEvenStylePeople();
+            boolean odd = i % 2 == 0;
+            oddEvenStylePeople.setName(odd ? "张三" : "李四");
+            oddEvenStylePeople.setAge(odd ? 18 : 24);
+            oddEvenStylePeople.setDance(odd ? true : false);
+            oddEvenStylePeople.setMoney(odd ? oddMoney : evenMoney);
+            excelBuilder.append(oddEvenStylePeople);
+        }
+    }
+
+    private void widthEvenData(DefaultStreamExcelBuilder excelBuilder, int size) {
+        BigDecimal oddMoney = new BigDecimal(109898);
+        BigDecimal evenMoney = new BigDecimal(66666);
+        for (int i = 0; i < size; i++) {
+            WidthPeople oddEvenStylePeople = new WidthPeople();
             boolean odd = i % 2 == 0;
             oddEvenStylePeople.setName(odd ? "张三" : "李四");
             oddEvenStylePeople.setAge(odd ? 18 : 24);

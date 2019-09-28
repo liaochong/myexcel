@@ -298,6 +298,7 @@ abstract class AbstractSimpleExcelBuilder {
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
         Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
+        String oddEvenPrefix = isOddRow ? "odd&" : "even&";
         isOddRow = !isOddRow;
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
@@ -310,7 +311,10 @@ abstract class AbstractSimpleExcelBuilder {
             }
             setTdContentType(td, fieldType);
             if (!noStyle && !customStyle.isEmpty()) {
-                Map<String, String> style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
+                Map<String, String> style = customStyle.get(oddEvenPrefix + i);
+                if (style == null) {
+                    style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
+                }
                 td.setStyle(style);
             } else {
                 if (ContentTypeEnum.isLink(td.getTdContentType())) {
@@ -502,12 +506,24 @@ abstract class AbstractSimpleExcelBuilder {
             String[] splits = style.split(Constants.ARROW);
             if (splits.length == 1) {
                 // 发现未设置样式归属，则设置为全局样式，清除其他样式
-                customStyle.put("cell&" + i, StyleUtil.parseStyle(splits[0]));
+                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, i);
+                customStyle.put("cell&" + i, styleMap);
                 break;
             } else {
-                customStyle.put(splits[0] + "&" + i, StyleUtil.parseStyle(splits[1]));
+                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, i);
+                customStyle.put(splits[0] + "&" + i, styleMap);
             }
         }
+    }
+
+    private Map<String, String> setWidthStrategyAndWidth(String[] splits, int splitIndex, int fieldIndex) {
+        Map<String, String> styleMap = StyleUtil.parseStyle(splits[splitIndex]);
+        String width = styleMap.get("width");
+        if (width != null) {
+            this.widthStrategy = WidthStrategy.CUSTOM_WIDTH;
+            customWidthMap.put(fieldIndex, TdUtil.getValue(width));
+        }
+        return styleMap;
     }
 
     private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {

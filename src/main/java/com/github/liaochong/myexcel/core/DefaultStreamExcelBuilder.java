@@ -230,17 +230,18 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      */
     @Override
     public DefaultStreamExcelBuilder start() {
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
-        htmlToExcelStreamFactory.widthStrategy(widthStrategy);
-        if (workbook == null) {
-            htmlToExcelStreamFactory.workbookType(workbookType);
-        }
         if (dataType != null) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
         this.initStyleMap();
         Table table = this.createTable();
+
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
+        htmlToExcelStreamFactory.widthStrategy(widthStrategy);
+        if (workbook == null) {
+            htmlToExcelStreamFactory.workbookType(workbookType);
+        }
         htmlToExcelStreamFactory.start(table, workbook);
 
         List<Tr> head = this.createThead();
