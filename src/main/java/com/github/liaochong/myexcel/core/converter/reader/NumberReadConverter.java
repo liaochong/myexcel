@@ -66,8 +66,9 @@ public class NumberReadConverter<R extends Number> extends AbstractReadConverter
     /**
      * 数字转换器
      *
-     * @param func 转换函数
-     * @param <R>  目标类型
+     * @param func      转换函数
+     * @param <R>       目标类型
+     * @param isInteger 是否为整数
      * @return 转换器
      */
     public static <R extends Number> NumberReadConverter<R> of(Function<String, R> func, boolean isInteger) {

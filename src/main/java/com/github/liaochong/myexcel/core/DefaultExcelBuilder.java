@@ -37,7 +37,7 @@ public class DefaultExcelBuilder implements Closeable {
     private DefaultStreamExcelBuilder streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder streamExcelBuilder) {
-        streamExcelBuilder.workbookType(WorkbookType.XLSX).hasStyle();
+        streamExcelBuilder.hasStyle();
         this.streamExcelBuilder = streamExcelBuilder;
     }
 
@@ -47,7 +47,9 @@ public class DefaultExcelBuilder implements Closeable {
      * @return DefaultExcelBuilder
      */
     public static DefaultExcelBuilder getInstance() {
-        return new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance());
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance());
+        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
+        return defaultExcelBuilder;
     }
 
     /**
@@ -57,7 +59,9 @@ public class DefaultExcelBuilder implements Closeable {
      * @return DefaultExcelBuilder
      */
     public static DefaultExcelBuilder of(@NonNull Class<?> dataType) {
-        return new DefaultExcelBuilder(DefaultStreamExcelBuilder.of(dataType));
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.of(dataType));
+        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
+        return defaultExcelBuilder;
     }
 
     public static DefaultExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
