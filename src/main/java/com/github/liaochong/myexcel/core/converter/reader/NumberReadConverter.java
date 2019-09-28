@@ -17,6 +17,8 @@ package com.github.liaochong.myexcel.core.converter.reader;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 数值读取转换
@@ -26,10 +28,20 @@ import java.util.function.Function;
  */
 public class NumberReadConverter<R extends Number> extends AbstractReadConverter<R> {
 
+    private static final Pattern PATTERN_ZERO = Pattern.compile("(.+)\\.0*");
+
     private Function<String, R> func;
 
-    private NumberReadConverter(Function<String, R> func) {
-        this.func = func;
+    private NumberReadConverter(Function<String, R> func, boolean isInteger) {
+        if (isInteger) {
+            this.func = c -> {
+                Matcher matcher = PATTERN_ZERO.matcher(c);
+                boolean zeroSuffix = matcher.matches();
+                return zeroSuffix ? func.apply(matcher.group(1)) : func.apply(c);
+            };
+        } else {
+            this.func = func;
+        }
     }
 
     @Override
@@ -48,7 +60,17 @@ public class NumberReadConverter<R extends Number> extends AbstractReadConverter
      * @return 转换器
      */
     public static <R extends Number> NumberReadConverter<R> of(Function<String, R> func) {
-        return new NumberReadConverter<>(func);
+        return new NumberReadConverter<>(func, false);
     }
 
+    /**
+     * 数字转换器
+     *
+     * @param func 转换函数
+     * @param <R>  目标类型
+     * @return 转换器
+     */
+    public static <R extends Number> NumberReadConverter<R> of(Function<String, R> func, boolean isInteger) {
+        return new NumberReadConverter<>(func, isInteger);
+    }
 }

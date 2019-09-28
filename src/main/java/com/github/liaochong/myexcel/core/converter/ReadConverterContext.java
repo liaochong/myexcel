@@ -63,19 +63,19 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(Float.class, floatReadConverter);
         READ_CONVERTERS.put(float.class, floatReadConverter);
 
-        NumberReadConverter<Long> longReadConverter = NumberReadConverter.of(Long::valueOf);
+        NumberReadConverter<Long> longReadConverter = NumberReadConverter.of(Long::valueOf, true);
         READ_CONVERTERS.put(Long.class, longReadConverter);
         READ_CONVERTERS.put(long.class, longReadConverter);
 
-        NumberReadConverter<Integer> integerReadConverter = NumberReadConverter.of(Integer::valueOf);
+        NumberReadConverter<Integer> integerReadConverter = NumberReadConverter.of(Integer::valueOf, true);
         READ_CONVERTERS.put(Integer.class, integerReadConverter);
         READ_CONVERTERS.put(int.class, integerReadConverter);
 
-        NumberReadConverter<Short> shortReadConverter = NumberReadConverter.of(Short::valueOf);
+        NumberReadConverter<Short> shortReadConverter = NumberReadConverter.of(Short::valueOf, true);
         READ_CONVERTERS.put(Short.class, shortReadConverter);
         READ_CONVERTERS.put(short.class, shortReadConverter);
 
-        NumberReadConverter<Byte> byteReadConverter = NumberReadConverter.of(Byte::valueOf);
+        NumberReadConverter<Byte> byteReadConverter = NumberReadConverter.of(Byte::valueOf, true);
         READ_CONVERTERS.put(Byte.class, byteReadConverter);
         READ_CONVERTERS.put(byte.class, byteReadConverter);
 

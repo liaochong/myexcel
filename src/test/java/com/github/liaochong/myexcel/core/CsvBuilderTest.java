@@ -16,7 +16,7 @@ class CsvBuilderTest extends BasicTest {
 
     @Test
     void build() {
-        Csv csv = CsvBuilder.of(CsvPeople.class).build(data(10000));
+        Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1000));
         csv.write(Paths.get(TEST_DIR + "common.csv"));
     }
 
@@ -35,6 +35,13 @@ class CsvBuilderTest extends BasicTest {
         }
         csv = csvBuilder.build();
         csv.write(Paths.get(TEST_DIR + "append.csv"), true);
+
+        csvBuilder = CsvBuilder.of(CsvPeople.class);
+        for (int i = 0; i < 10; i++) {
+            csvBuilder.append(data(1000));
+        }
+        csv = csvBuilder.build();
+        csv.write(Paths.get(TEST_DIR + "append.csv"));
     }
 
     @Test

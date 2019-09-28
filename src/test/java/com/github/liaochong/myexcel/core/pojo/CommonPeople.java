@@ -31,15 +31,15 @@ import java.math.BigDecimal;
 @ExcelTable(sheetName = "人员信息")
 public class CommonPeople {
 
-    @ExcelColumn(title = "姓名")
+    @ExcelColumn(title = "姓名", index = 0)
     String name;
 
-    @ExcelColumn(title = "年龄")
+    @ExcelColumn(title = "年龄", index = 1)
     Integer age;
 
-    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class)
+    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class, index = 2)
     boolean dance;
 
-    @ExcelColumn(title = "金钱", decimalFormat = "#,000.00")
+    @ExcelColumn(title = "金钱", decimalFormat = "#,000.00", index = 3)
     BigDecimal money;
 }
