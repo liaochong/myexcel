@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.converter.reader.LocalDateTimeReadConve
 import com.github.liaochong.myexcel.core.converter.reader.NumberReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.StringReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter;
+import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -100,7 +101,7 @@ public class ReadConverterContext {
             value = converter.convert(content, field);
         } catch (Exception e) {
             log.error("Failed to convert content，Field:{},Content:{},RowNum:{}", field.getName(), content, rowNum);
-            return;
+            throw new ExcelReadException("Convert content failure", e);
         }
         if (Objects.isNull(value)) {
             return;
