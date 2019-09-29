@@ -15,23 +15,15 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.container.Pair;
-import com.github.liaochong.myexcel.core.parser.Table;
-import com.github.liaochong.myexcel.core.parser.Tr;
-import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 默认excel创建者
@@ -40,13 +32,13 @@ import java.util.Optional;
  * @version 1.0
  */
 @Slf4j
-public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
+public class DefaultExcelBuilder implements Closeable {
 
-    private Workbook workbook;
+    private DefaultStreamExcelBuilder streamExcelBuilder;
 
-    private HtmlToExcelFactory htmlToExcelFactory;
-
-    private DefaultExcelBuilder() {
+    private DefaultExcelBuilder(DefaultStreamExcelBuilder streamExcelBuilder) {
+        streamExcelBuilder.hasStyle();
+        this.streamExcelBuilder = streamExcelBuilder;
     }
 
     /**
@@ -55,7 +47,9 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
      * @return DefaultExcelBuilder
      */
     public static DefaultExcelBuilder getInstance() {
-        return new DefaultExcelBuilder();
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance());
+        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
+        return defaultExcelBuilder;
     }
 
     /**
@@ -65,148 +59,86 @@ public class DefaultExcelBuilder extends AbstractSimpleExcelBuilder {
      * @return DefaultExcelBuilder
      */
     public static DefaultExcelBuilder of(@NonNull Class<?> dataType) {
-        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
-        defaultExcelBuilder.dataType = dataType;
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.of(dataType));
+        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
         return defaultExcelBuilder;
     }
 
     public static DefaultExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
-        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder();
-        defaultExcelBuilder.dataType = dataType;
-        defaultExcelBuilder.workbook = workbook;
-        return defaultExcelBuilder;
+        return new DefaultExcelBuilder(DefaultStreamExcelBuilder.of(dataType, workbook));
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Workbook build(List<?> data, Class<?>... groups) {
-        htmlToExcelFactory = new HtmlToExcelFactory();
+    public DefaultExcelBuilder titles(@NonNull List<String> titles) {
+        streamExcelBuilder.titles(titles);
+        return this;
+    }
+
+    public DefaultExcelBuilder sheetName(@NonNull String sheetName) {
+        streamExcelBuilder.sheetName(sheetName);
+        return this;
+    }
+
+    public DefaultExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+        streamExcelBuilder.fieldDisplayOrder(fieldDisplayOrder);
+        return this;
+    }
+
+    public DefaultExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
+        streamExcelBuilder.workbookType(workbookType);
+        return this;
+    }
+
+    public DefaultExcelBuilder noStyle() {
+        streamExcelBuilder.noStyle();
+        return this;
+    }
+
+    public DefaultExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
+        streamExcelBuilder.widthStrategy(widthStrategy);
+        return this;
+    }
+
+    @Deprecated
+    public DefaultExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        streamExcelBuilder.autoWidthStrategy(autoWidthStrategy);
+        return this;
+    }
+
+    public DefaultExcelBuilder fixedTitles() {
+        streamExcelBuilder.fixedTitles();
+        return this;
+    }
+
+    public DefaultExcelBuilder widths(int... widths) {
+        streamExcelBuilder.widths(widths);
+        return this;
+    }
+
+    public DefaultExcelBuilder groups(Class<?>... groups) {
+        streamExcelBuilder.groups(groups);
+        return this;
+    }
+
+    public Workbook build(List<?> data) {
         try {
-            htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
-            List<Table> tableList = new ArrayList<>();
-            this.initStyleMap();
-            if (data != null) {
-                boolean isMapBuild = data.stream().anyMatch(d -> d instanceof Map);
-                if (isMapBuild) {
-                    return this.mapBuild((List<Map<String, Object>>) data, htmlToExcelFactory);
-                }
-            }
-            if (Objects.isNull(dataType)) {
-                if (Objects.isNull(data) || data.isEmpty()) {
-                    log.info("No valid data exists");
-                    return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-                }
-                Optional<?> findResult = data.stream().filter(Objects::nonNull).findFirst();
-                if (!findResult.isPresent()) {
-                    log.info("No valid data exists");
-                    return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-                }
-                ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(findResult.get().getClass());
-                List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
-
-                if (sortedFields.isEmpty()) {
-                    log.info("The specified field mapping does not exist");
-                    return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-                }
-                List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
-
-                Table table = this.createTable();
-                List<Tr> thead = this.createThead();
-                List<Tr> tbody = this.createTbody(contents, thead == null ? 0 : thead.size());
-                if (thead != null) {
-                    tbody.addAll(0, thead);
-                }
-                table.setTrList(tbody);
-                tableList.add(table);
-            } else {
-                ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-                List<Field> sortedFields = getFilteredFields(classFieldContainer, groups);
-
-                Table table = this.createTable();
-                List<Tr> thead = this.createThead();
-                tableList.add(table);
-
-                if (sortedFields.isEmpty()) {
-                    if (thead != null) {
-                        table.getTrList().addAll(thead);
-                    }
-                    log.info("The specified field mapping does not exist");
-                    return htmlToExcelFactory.build(tableList, workbook);
-                }
-
-                if (data == null || data.isEmpty()) {
-                    if (thead != null) {
-                        table.getTrList().addAll(thead);
-                    }
-                    log.info("No valid data exists");
-                    return htmlToExcelFactory.build(tableList, workbook);
-                }
-
-                List<List<Pair<? extends Class, ?>>> contents = getRenderContent(data, sortedFields);
-                List<Tr> tbody = this.createTbody(contents, Objects.isNull(thead) ? 0 : thead.size());
-                if (thead != null) {
-                    tbody.addAll(0, thead);
-                }
-                table.setTrList(tbody);
-            }
-
-            if (fixedTitles && titleLevel > 0) {
-                FreezePane freezePane = new FreezePane(titleLevel, 0);
-                htmlToExcelFactory.freezePanes(freezePane);
-            }
-            return htmlToExcelFactory.build(tableList, workbook);
+            streamExcelBuilder.start();
+            streamExcelBuilder.append(data);
+            return streamExcelBuilder.build();
         } catch (Exception e) {
-            htmlToExcelFactory.closeWorkbook();
+            try {
+                streamExcelBuilder.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                // do nothing
+            }
             throw new RuntimeException(e);
         }
     }
 
-    private Workbook mapBuild(List<Map<String, Object>> data, HtmlToExcelFactory htmlToExcelFactory) {
-        if (null == fieldDisplayOrder) {
-            throw new IllegalArgumentException();
-        }
-        if (data == null || data.isEmpty()) {
-            log.info("No valid data exists");
-            return htmlToExcelFactory.build(this.getTableWithHeader(), workbook);
-        }
-        List<Tr> thead = this.createThead();
-        List<Tr> tbody = new LinkedList<>();
-        for (int i = 0, size = data.size(); i < size; i++) {
-            Map<String, Object> d = data.get(i);
-            if (d == null) {
-                continue;
-            }
-            List<Pair<? extends Class, ?>> contents = new ArrayList<>(d.size());
-            for (String fieldName : fieldDisplayOrder) {
-                Object val = d.get(fieldName);
-                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
-            }
-            Tr tr = this.createTr(contents, i, thead.size());
-            if (widths != null) {
-                tr.setColWidthMap(widths);
-            }
-            tbody.add(tr);
-        }
-        tbody.addAll(0, thead);
-        if (widths != null) {
-            thead.forEach(tr -> tr.setColWidthMap(widths));
-        }
-        Table table = this.createTable();
-        table.setTrList(tbody);
-
-        if (fixedTitles && titleLevel > 0) {
-            FreezePane freezePane = new FreezePane(titleLevel, 0);
-            htmlToExcelFactory.freezePanes(freezePane);
-        }
-        List<Table> tableList = new ArrayList<>();
-        tableList.add(table);
-        return htmlToExcelFactory.build(tableList, workbook);
-    }
-
     @Override
     public void close() throws IOException {
-        if (htmlToExcelFactory != null) {
-            htmlToExcelFactory.closeWorkbook();
+        if (streamExcelBuilder != null) {
+            streamExcelBuilder.close();
         }
     }
 }

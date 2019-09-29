@@ -129,7 +129,7 @@ class CsvHandler<T> {
                 if (field == null) {
                     continue;
                 }
-                ReadConverterContext.convert(content, field, obj);
+                ReadConverterContext.convert(content, field, obj, row.getRowNum());
             }
         }
         if (!beanFilter.test(obj)) {

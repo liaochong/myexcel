@@ -34,9 +34,9 @@ public class ThymeleafExcelBuilderExampleController {
 
     @GetMapping("/thymeleaf/example")
     public void build(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new ThymeleafExcelBuilder();
-
-        Workbook workbook = excelBuilder.template("/templates/demo2.html").build(new HashMap<>());
-        AttachmentExportUtil.export(workbook, "thymeleaf_excel", response);
+        try (ExcelBuilder excelBuilder = new ThymeleafExcelBuilder()) {
+            Workbook workbook = excelBuilder.template("/templates/demo2.html").build(new HashMap<>());
+            AttachmentExportUtil.export(workbook, "thymeleaf_excel", response);
+        }
     }
 }

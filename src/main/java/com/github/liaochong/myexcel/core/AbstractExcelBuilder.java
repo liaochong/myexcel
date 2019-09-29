@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -41,14 +42,8 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         htmlToExcelFactory.workbookType(workbookType);
         if (WorkbookType.isSxlsx(workbookType)) {
-            autoWidthStrategy(AutoWidthStrategy.NO_AUTO);
+            widthStrategy(WidthStrategy.NO_AUTO);
         }
-        return this;
-    }
-
-    @Override
-    public AbstractExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        htmlToExcelFactory.rowAccessWindowSize(rowAccessWindowSize);
         return this;
     }
 
@@ -59,8 +54,15 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
+    public AbstractExcelBuilder widthStrategy(@NonNull WidthStrategy widthStrategy) {
+        htmlToExcelFactory.widthStrategy(widthStrategy);
+        return this;
+    }
+
+    @Deprecated
+    @Override
     public AbstractExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        htmlToExcelFactory.autoWidthStrategy(autoWidthStrategy);
+        htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
 

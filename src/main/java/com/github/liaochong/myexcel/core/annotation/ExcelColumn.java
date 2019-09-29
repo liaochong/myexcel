@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.annotation;
 
+import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 
 import java.lang.annotation.Documented;
@@ -114,4 +115,11 @@ public @interface ExcelColumn {
      * @return String
      */
     String mapping() default "";
+
+    /**
+     * 文件类型
+     *
+     * @return 文件类型
+     */
+    FileType fileType() default FileType.NONE;
 }

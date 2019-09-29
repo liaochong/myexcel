@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
-        <version>7</version>
+        <version>9</version>
         <relativePath/>
     </parent>
 
@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>2.8.5</version>
+    <version>3.0.0.RC</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -86,9 +86,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.5.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

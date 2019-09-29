@@ -22,10 +22,12 @@ import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -121,5 +123,42 @@ public final class ReflectUtil {
 
     public static boolean isBool(Class clazz) {
         return clazz == boolean.class || clazz == Boolean.class;
+    }
+
+    public static int sortFields(Field field1, Field field2) {
+        ExcelColumn excelColumn1 = field1.getAnnotation(ExcelColumn.class);
+        ExcelColumn excelColumn2 = field2.getAnnotation(ExcelColumn.class);
+        if (excelColumn1 == null && excelColumn2 == null) {
+            return 0;
+        }
+        int defaultOrder = 0;
+        int order1 = defaultOrder;
+        if (excelColumn1 != null) {
+            order1 = excelColumn1.order();
+        }
+        int order2 = defaultOrder;
+        if (excelColumn2 != null) {
+            order2 = excelColumn2.order();
+        }
+        if (order1 == order2) {
+            return 0;
+        }
+        return order1 > order2 ? 1 : -1;
+    }
+
+    public static boolean isFieldSelected(List<Class<?>> selectedGroupList, Field field) {
+        if (selectedGroupList.isEmpty()) {
+            return true;
+        }
+        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+        if (excelColumn == null) {
+            return false;
+        }
+        Class<?>[] groupArr = excelColumn.groups();
+        if (groupArr.length == 0) {
+            return false;
+        }
+        List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
+        return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
     }
 }

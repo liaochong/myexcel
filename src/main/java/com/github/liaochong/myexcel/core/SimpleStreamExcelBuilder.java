@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
  * @author liaochong
  * @version 1.0
  */
-interface SimpleStreamExcelBuilder {
+interface SimpleStreamExcelBuilder extends Closeable {
 
     /**
      * 线程池设置
@@ -41,11 +42,9 @@ interface SimpleStreamExcelBuilder {
     /**
      * 流式构建启动，包含一些初始化操作
      *
-     * @param waitQueueSize 等待队列容量
-     * @param groups        分组
      * @return SimpleStreamExcelBuilder
      */
-    SimpleStreamExcelBuilder start(int waitQueueSize, Class<?>... groups);
+    SimpleStreamExcelBuilder start();
 
     /**
      * 使用默认样式
@@ -69,6 +68,14 @@ interface SimpleStreamExcelBuilder {
      * @return SimpleStreamExcelBuilder
      */
     SimpleStreamExcelBuilder pathConsumer(Consumer<Path> pathConsumer);
+
+    /**
+     * 分组
+     *
+     * @param groups 分组
+     * @return SimpleStreamExcelBuilder
+     */
+    SimpleStreamExcelBuilder groups(Class<?>... groups);
 
     /**
      * 数据追加

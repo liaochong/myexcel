@@ -130,9 +130,10 @@ public class HtmlTableParser {
                     parentStyleMap.putIfAbsent(parent, upperStyle);
                 }
             }
-            Tr tr = new Tr(index);
-            // 行可见性
             Map<String, String> trStyleMap = StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement));
+            String height = trStyleMap.get("height");
+            Tr tr = new Tr(index, TdUtil.getValue(height));
+            // 行可见性
             tr.setVisibility(!Objects.equals(trStyleMap.get("visibility"), "hidden"));
             this.parseTdOfTr(tr, trElement, trStyleMap, seizeMap);
             return tr;

@@ -3,6 +3,7 @@ package com.github.liaochong.example.controller;
 import com.github.liaochong.example.pojo.ArtCrowd;
 import com.github.liaochong.myexcel.core.DefaultStreamExcelBuilder;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -24,23 +25,23 @@ public class DefaultStreamExcelBuilderExampleController {
 
     @GetMapping("/default/excel/stream/example")
     public void streamBuild(HttpServletResponse response) throws Exception {
-        DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
-                .autoWidthStrategy(AutoWidthStrategy.CUSTOM_WIDTH)
+        try (DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
+                .widthStrategy(WidthStrategy.CUSTOM_WIDTH)
                 .hasStyle()
                 .threadPool(Executors.newFixedThreadPool(10))
-                .start();
-
-        List<CompletableFuture> futures = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            CompletableFuture future = CompletableFuture.runAsync(() -> {
-                List<ArtCrowd> dataList = this.getDataList();
-                defaultExcelBuilder.append(dataList);
-            });
-            futures.add(future);
+                .start()) {
+            List<CompletableFuture> futures = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                CompletableFuture future = CompletableFuture.runAsync(() -> {
+                    List<ArtCrowd> dataList = this.getDataList();
+                    defaultExcelBuilder.append(dataList);
+                });
+                futures.add(future);
+            }
+            futures.forEach(CompletableFuture::join);
+            Workbook workbook = defaultExcelBuilder.build();
+            AttachmentExportUtil.export(workbook, "艺术生信息", response);
         }
-        futures.forEach(CompletableFuture::join);
-        Workbook workbook = defaultExcelBuilder.build();
-        AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
 
     @GetMapping("/default/excel/stream/continue/example")

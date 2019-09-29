@@ -15,7 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -48,7 +48,7 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
     }
 
     public ThymeleafExcelBuilder() {
-        autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH);
+        widthStrategy(WidthStrategy.AUTO_WIDTH);
     }
 
     @Override

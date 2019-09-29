@@ -61,13 +61,6 @@ public @interface ExcelTable {
     String sheetName() default "";
 
     /**
-     * 内存行数保有量，只在WorkbookType.SXLSX有效
-     *
-     * @return 行数
-     */
-    int rowAccessWindowSize() default -1;
-
-    /**
      * 是否使用字段名称作为标题
      *
      * @return true/false
@@ -101,4 +94,25 @@ public @interface ExcelTable {
      * @return 分离器
      */
     String titleSeparator() default "->";
+
+    /**
+     * 标题行高度
+     *
+     * @return 标题行高度
+     */
+    int titleRowHeight() default -1;
+
+    /**
+     * 普通行高度
+     *
+     * @return 普通行高度
+     */
+    int rowHeight() default -1;
+
+    /**
+     * 样式
+     *
+     * @return 样式
+     */
+    String[] style() default {};
 }

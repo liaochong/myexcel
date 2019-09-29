@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.BigDecimalWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DropDownListWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.ImageWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.LinkWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MappingWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
@@ -48,6 +49,7 @@ public class WriteConverterContext {
         WRITE_CONVERTER_CONTAINER.add(new DropDownListWriteConverter());
         WRITE_CONVERTER_CONTAINER.add(new LinkWriteConverter());
         WRITE_CONVERTER_CONTAINER.add(new MappingWriteConverter());
+        WRITE_CONVERTER_CONTAINER.add(new ImageWriteConverter());
     }
 
     public static synchronized void registering(WriteConverter... writeConverters) {

@@ -115,7 +115,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         if (field == null) {
             return;
         }
-        ReadConverterContext.convert(formattedValue, field, obj);
+        ReadConverterContext.convert(formattedValue, field, obj, currentRow.getRowNum());
     }
 
     @Override
