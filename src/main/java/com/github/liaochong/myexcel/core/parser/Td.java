@@ -20,6 +20,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -69,6 +70,10 @@ public class Td {
      * 链接
      */
     String link;
+    /**
+     * 文件
+     */
+    File file;
 
     public Td(int row, int col) {
         this.row = row;

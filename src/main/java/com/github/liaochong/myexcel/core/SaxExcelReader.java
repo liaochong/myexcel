@@ -15,11 +15,13 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
@@ -44,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -63,9 +64,7 @@ public class SaxExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
 
-    private OPCPackage xlsxPackage;
-
-    private List<T> result = Collections.emptyList();
+    private List<T> result = new LinkedList<>();
 
     private ReadConfig<T> readConfig = new ReadConfig<>();
 
@@ -103,153 +102,118 @@ public class SaxExcelReader<T> {
     }
 
     public List<T> read(@NonNull InputStream fileInputStream) {
-        if (!fileInputStream.markSupported()) {
-            fileInputStream = new BufferedInputStream(fileInputStream);
-        }
-        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
-            xlsxPackage = p;
-            process();
-            return result;
-        } catch (OLE2NotOfficeXmlFileException e) {
-            try {
-                result = new LinkedList<>();
-                new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
-                return result;
-            } catch (IOException e1) {
-                throw new RuntimeException(e1);
-            }
-        } catch (NotOfficeXmlFileException e) {
-            result = new LinkedList<>();
-            new CsvHandler<>(fileInputStream, readConfig, result).read();
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        doReadInputStream(fileInputStream);
+        return result;
     }
 
     public List<T> read(@NonNull File file) {
-        String fileName = file.getName();
-        if (fileName.endsWith(Constants.XLS)) {
-            result = new LinkedList<>();
-            try {
-                new HSSFSaxHandler<>(file, result, readConfig).process();
-                return result;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (fileName.endsWith(Constants.XLSX)) {
-            try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-                xlsxPackage = p;
-                process();
-                return result;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            result = new LinkedList<>();
-            new CsvHandler<>(file, readConfig, result).read();
-            return result;
-        }
+        doReadFile(file);
+        return result;
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
-        if (!fileInputStream.markSupported()) {
-            fileInputStream = new BufferedInputStream(fileInputStream);
-        }
         this.readConfig.consumer = consumer;
-        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
-            xlsxPackage = p;
-            process();
-        } catch (OLE2NotOfficeXmlFileException e) {
-            try {
-                new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
-            } catch (IOException e1) {
-                throw new RuntimeException(e1);
-            }
-        } catch (NotOfficeXmlFileException e) {
-            new CsvHandler<>(fileInputStream, readConfig, result).read();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        doReadInputStream(fileInputStream);
     }
 
     public void readThen(@NonNull File file, Consumer<T> consumer) {
         this.readConfig.consumer = consumer;
-        String fileName = file.getName();
-        if (fileName.endsWith(Constants.XLS)) {
-            try {
-                new HSSFSaxHandler<>(file, result, readConfig).process();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (fileName.endsWith(Constants.XLSX)) {
-            try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-                xlsxPackage = p;
-                process();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            result = new LinkedList<>();
-            new CsvHandler<>(file, readConfig, result).read();
-        }
+        doReadFile(file);
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
-        if (!fileInputStream.markSupported()) {
-            fileInputStream = new BufferedInputStream(fileInputStream);
-        }
         this.readConfig.function = function;
-        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
-            xlsxPackage = p;
-            process();
-        } catch (StopReadException e) {
-            // do nothing
-        } catch (OLE2NotOfficeXmlFileException e) {
-            try {
-                new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
-            } catch (StopReadException e1) {
-                // do nothing
-            } catch (IOException e1) {
-                throw new RuntimeException(e1);
-            }
-        } catch (NotOfficeXmlFileException e) {
-            try {
-                new CsvHandler<>(fileInputStream, readConfig, result).read();
-            } catch (StopReadException e3) {
-                // do nothing
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        doReadInputStream(fileInputStream);
     }
 
     public void readThen(@NonNull File file, Function<T, Boolean> function) {
         this.readConfig.function = function;
-        String fileName = file.getName();
-        if (fileName.endsWith(Constants.XLS)) {
-            try {
-                new HSSFSaxHandler<>(file, result, readConfig).process();
-            } catch (StopReadException e) {
-                // do nothing
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (fileName.endsWith(Constants.XLSX)) {
-            try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-                xlsxPackage = p;
-                process();
-            } catch (StopReadException e) {
-                // do nothing
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            try {
-                new CsvHandler<>(file, readConfig, result).read();
-            } catch (StopReadException e) {
-                // do nothing
-            }
+        doReadFile(file);
+    }
+
+    private void doReadFile(@NonNull File file) {
+        String suffix = file.getName().substring(file.getName().lastIndexOf(Constants.SPOT));
+        switch (suffix) {
+            case Constants.XLSX:
+                doReadXlsx(file);
+                break;
+            case Constants.XLS:
+                doReadXls(file);
+                break;
+            case Constants.CSV:
+                doReadCsv(file);
+                break;
+            default:
+                throw new IllegalArgumentException("The file type does not match, and the file suffix must be one of .xlsx,.xls,.csv");
+        }
+    }
+
+    private void doReadXls(File file) {
+        try {
+            new HSSFSaxHandler<>(file, result, readConfig).process();
+        } catch (StopReadException e) {
+            // do nothing
+        } catch (IOException e) {
+            throw new SaxReadException("Fail to read file", e);
+        }
+    }
+
+    private void doReadXlsx(File file) {
+        try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
+            process(p);
+        } catch (StopReadException e) {
+            // do nothing
+        } catch (Exception e) {
+            throw new SaxReadException("Fail to read file", e);
+        }
+    }
+
+    private void doReadCsv(File file) {
+        try {
+            new CsvHandler<>(file, readConfig, result).read();
+        } catch (StopReadException e) {
+            // do nothing
+        }
+    }
+
+    private void doReadXls(@NonNull InputStream fileInputStream) {
+        try {
+            new HSSFSaxHandler<>(fileInputStream, result, readConfig).process();
+        } catch (StopReadException e) {
+            // do nothing
+        } catch (IOException e) {
+            throw new SaxReadException("Fail to read file inputStream", e);
+        }
+    }
+
+    private void doReadCsv(@NonNull InputStream fileInputStream) {
+        try {
+            new CsvHandler<>(fileInputStream, readConfig, result).read();
+        } catch (StopReadException e3) {
+            // do nothing
+        }
+    }
+
+    @NonNull
+    private InputStream modifyInputStreamTypeIfNotMarkSupported(@NonNull InputStream fileInputStream) {
+        if (fileInputStream.markSupported()) {
+            return fileInputStream;
+        }
+        return new BufferedInputStream(fileInputStream);
+    }
+
+    private void doReadInputStream(@NonNull InputStream fileInputStream) {
+        fileInputStream = modifyInputStreamTypeIfNotMarkSupported(fileInputStream);
+        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
+            process(p);
+        } catch (StopReadException e) {
+            // do nothing
+        } catch (OLE2NotOfficeXmlFileException e) {
+            doReadXls(fileInputStream);
+        } catch (NotOfficeXmlFileException e) {
+            doReadCsv(fileInputStream);
+        } catch (Exception e) {
+            throw new SaxReadException("Fail to read file inputStream", e);
         }
     }
 
@@ -259,12 +223,11 @@ public class SaxExcelReader<T> {
      * @throws IOException  If reading the data from the package fails.
      * @throws SAXException if parsing the XML data fails.
      */
-    private void process() throws IOException, OpenXML4JException, SAXException {
+    private void process(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
         long startTime = System.currentTimeMillis();
-        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(this.xlsxPackage);
-        XSSFReader xssfReader = new XSSFReader(this.xlsxPackage);
+        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage);
+        XSSFReader xssfReader = new XSSFReader(xlsxPackage);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(readConfig.dataType);
-        result = new LinkedList<>();
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
         if (readConfig.sheetName != null) {
             while (iter.hasNext()) {
@@ -319,7 +282,8 @@ public class SaxExcelReader<T> {
         }
     }
 
-    @Data
+    @Getter
+    @Setter
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ReadConfig<T> {
 

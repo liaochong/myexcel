@@ -43,4 +43,8 @@ public class Constants {
     public static final String CSV = ".csv";
 
     public static final String COLON = ":";
+
+    public static final String ARROW = "->";
+
+    public static final String SPOT = ".";
 }

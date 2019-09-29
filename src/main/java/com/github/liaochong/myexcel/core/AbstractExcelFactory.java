@@ -19,7 +19,7 @@ import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.CustomColor;
@@ -45,6 +45,7 @@ import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -89,13 +90,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private FreezePane[] freezePanes;
     /**
-     * 内存数据保有量，默认为1，即不保留
-     */
-    private Integer rowAccessWindowSize = 1;
-    /**
      * 自动宽度策略
      */
-    protected AutoWidthStrategy autoWidthStrategy = AutoWidthStrategy.CUSTOM_WIDTH;
+    protected WidthStrategy widthStrategy = WidthStrategy.CUSTOM_WIDTH;
     /**
      * 暂存单元格，由后续行认领
      */
@@ -116,15 +113,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory rowAccessWindowSize(int rowAccessWindowSize) {
-        if (rowAccessWindowSize <= 0) {
-            return this;
-        }
-        this.rowAccessWindowSize = rowAccessWindowSize;
-        return this;
-    }
-
-    @Override
     public ExcelFactory workbookType(WorkbookType workbookType) {
         if (Objects.nonNull(workbook)) {
             return this;
@@ -137,7 +125,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 workbook = new XSSFWorkbook();
                 break;
             case SXLSX:
-                workbook = new SXSSFWorkbook(rowAccessWindowSize);
+                workbook = new SXSSFWorkbook(1);
                 break;
             default:
                 workbook = new XSSFWorkbook();
@@ -146,9 +134,24 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        this.autoWidthStrategy = autoWidthStrategy;
+    public ExcelFactory widthStrategy(@NonNull WidthStrategy widthStrategy) {
+        this.widthStrategy = widthStrategy;
         return this;
+    }
+
+    protected String getRealSheetName(String sheetName) {
+        if (sheetName == null) {
+            sheetName = "sheet";
+        }
+        Sheet sheet = workbook.getSheet(sheetName);
+        int sort = 1;
+        String realSheetName = sheetName;
+        while (sheet != null) {
+            realSheetName = sheetName + " (" + sort + ")";
+            sheet = workbook.getSheet(realSheetName);
+            sort++;
+        }
+        return realSheetName;
     }
 
     /**
@@ -161,6 +164,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         Row row = sheet.createRow(tr.getIndex());
         if (!tr.isVisibility()) {
             row.setZeroHeight(true);
+        }
+        if (tr.getHeight() > 0) {
+            row.setHeightInPoints(tr.getHeight());
         }
         stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.getRow(), tr.getIndex())).forEach(td -> {
             if (tr.getTdList() == Collections.EMPTY_LIST) {
@@ -251,6 +257,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 case LINK_EMAIL:
                     cell = setLink(td, currentRow, HyperlinkType.EMAIL);
                     break;
+                case IMAGE:
+                    cell = currentRow.createCell(td.getCol());
+                    setImage(td, sheet);
+                    break;
                 default:
                     cell = currentRow.createCell(td.getCol(), CellType.STRING);
                     cell.setCellValue(content);
@@ -271,6 +281,46 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
     }
 
+    private void setImage(Td td, Sheet sheet) {
+        if (td.getFile() == null) {
+            return;
+        }
+        try {
+            if (createHelper == null) {
+                createHelper = workbook.getCreationHelper();
+            }
+            byte[] bytes = Files.readAllBytes(td.getFile().toPath());
+            String fileName = td.getFile().getName();
+            int format;
+            switch (fileName.substring(fileName.lastIndexOf(".") + 1)) {
+                case "jpg":
+                case "jpeg":
+                    format = Workbook.PICTURE_TYPE_JPEG;
+                    break;
+                case "png":
+                    format = Workbook.PICTURE_TYPE_PNG;
+                    break;
+                case "dib":
+                    format = Workbook.PICTURE_TYPE_DIB;
+                    break;
+                case "emf":
+                    format = Workbook.PICTURE_TYPE_EMF;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid image type");
+            }
+            int pictureIdx = workbook.addPicture(bytes, format);
+            Drawing drawing = sheet.createDrawingPatriarch();
+            ClientAnchor anchor = createHelper.createClientAnchor();
+            anchor.setCol1(td.getCol());
+            anchor.setRow1(td.getRow());
+            Picture pict = drawing.createPicture(anchor, pictureIdx);
+            pict.resize();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Cell setLink(Td td, Row currentRow, HyperlinkType hyperlinkType) {
         if (StringUtil.isBlank(td.getContent())) {
             return currentRow.createCell(td.getCol());
@@ -287,6 +337,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     private String setDropDownList(Td td, Sheet sheet, String content) {
+        if (content.length() > 250) {
+            throw new IllegalArgumentException("The total number of words in the drop-down list should not exceed 250.");
+        }
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
@@ -413,7 +466,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
-        if (AutoWidthStrategy.isNoAuto(autoWidthStrategy) || AutoWidthStrategy.isAutoWidth(autoWidthStrategy)) {
+        if (WidthStrategy.isNoAuto(widthStrategy) || WidthStrategy.isAutoWidth(widthStrategy)) {
             return Collections.emptyMap();
         }
         if (useDefaultStyle) {
@@ -447,10 +500,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param maxColIndex    最大列索引
      */
     protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet, int maxColIndex) {
-        if (AutoWidthStrategy.isNoAuto(autoWidthStrategy)) {
+        if (WidthStrategy.isNoAuto(widthStrategy)) {
             return;
         }
-        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy)) {
+        if (WidthStrategy.isAutoWidth(widthStrategy)) {
             if (sheet instanceof SXSSFSheet) {
                 throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
             }

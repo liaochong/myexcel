@@ -32,11 +32,11 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/example")
     public void build(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
-
-        Workbook workbook = excelBuilder.template("/templates/freemarkerToExcelExample.ftl").build(dataMap);
-        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
+            Workbook workbook = excelBuilder.template("/templates/freemarkerToExcelExample.ftl").build(dataMap);
+            AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        }
     }
 
     /**
@@ -46,14 +46,15 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/defaultStyle/example")
     public void buildWithDefaultStyle(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/freemarkerToExcelExample.ftl")
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/freemarkerToExcelExample.ftl")
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        }
     }
 
     /**
@@ -63,15 +64,16 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/xls/example")
     public void buildWithXLS(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/freemarkerToExcelExample.ftl")
-                .workbookType(WorkbookType.XLS)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/freemarkerToExcelExample.ftl")
+                    .workbookType(WorkbookType.XLS)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        }
     }
 
     /**
@@ -81,15 +83,16 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/xlsx/example")
     public void buildWithXLSX(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/freemarkerToExcelExample.ftl")
-                .workbookType(WorkbookType.XLSX)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/freemarkerToExcelExample.ftl")
+                    .workbookType(WorkbookType.XLSX)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        }
     }
 
     /**
@@ -99,15 +102,16 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/sxlsx/example")
     public void buildWithSXLSX(HttpServletResponse response) throws IOException {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/freemarkerToExcelExample.ftl")
-                .workbookType(WorkbookType.SXLSX)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/freemarkerToExcelExample.ftl")
+                    .workbookType(WorkbookType.SXLSX)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        }
     }
 
     /**
@@ -117,15 +121,16 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/encrypt/example")
     public void buildWithEncrypt(HttpServletResponse response) throws Exception {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/freemarkerToExcelExample.ftl")
-                .workbookType(WorkbookType.SXLSX)
-                .useDefaultStyle()
-                .build(dataMap);
-        AttachmentExportUtil.encryptExport(workbook, "freemarker_excel", response, "123456");
+            Workbook workbook = excelBuilder
+                    .template("/templates/freemarkerToExcelExample.ftl")
+                    .workbookType(WorkbookType.SXLSX)
+                    .useDefaultStyle()
+                    .build(dataMap);
+            AttachmentExportUtil.encryptExport(workbook, "freemarker_excel", response, "123456");
+        }
     }
 
     /**
@@ -135,15 +140,16 @@ public class FreemarkerExcelBuilderExampleController {
      */
     @GetMapping("/freemarker/autoWidth/example")
     public void buildWithAutoWidth(HttpServletResponse response) throws Exception {
-        ExcelBuilder excelBuilder = new FreemarkerExcelBuilder();
-        Map<String, Object> dataMap = this.getDataMap();
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            Map<String, Object> dataMap = this.getDataMap();
 
-        Workbook workbook = excelBuilder
-                .template("/templates/freemarkerToExcelExample.ftl")
-                .useDefaultStyle()
-                .autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH)
-                .build(dataMap);
-        AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+            Workbook workbook = excelBuilder
+                    .template("/templates/freemarkerToExcelExample.ftl")
+                    .useDefaultStyle()
+                    .autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH)
+                    .build(dataMap);
+            AttachmentExportUtil.export(workbook, "freemarker_excel", response);
+        }
     }
 
     private Map<String, Object> getDataMap() {

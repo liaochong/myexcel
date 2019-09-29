@@ -20,16 +20,19 @@ import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -37,7 +40,20 @@ import java.util.function.Consumer;
  * @author liaochong
  * @version 1.0
  */
+@Slf4j
 public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder {
+    /**
+     * 已排序字段
+     */
+    private List<Field> filteredFields;
+    /**
+     * 设置需要渲染的数据的类类型
+     */
+    private Class<?> dataType;
+    /**
+     * 是否固定标题
+     */
+    private boolean fixedTitles;
     /**
      * 线程池
      */
@@ -58,10 +74,22 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
      * path消费者
      */
     private Consumer<Path> pathConsumer;
+    /**
+     * 任务取消
+     */
+    private boolean cancel;
+    /**
+     * 分组
+     */
+    private Class<?>[] groups;
+    /**
+     * 等待队列
+     */
+    private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
 
     private DefaultStreamExcelBuilder() {
         noStyle = true;
-        autoWidthStrategy = AutoWidthStrategy.NO_AUTO;
+        widthStrategy = WidthStrategy.NO_AUTO;
         workbookType = WorkbookType.SXLSX;
     }
 
@@ -95,57 +123,77 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return new DefaultStreamExcelBuilder();
     }
 
-    @Override
-    public DefaultStreamExcelBuilder rowAccessWindowSize(int rowAccessWindowSize) {
-        super.rowAccessWindowSize(rowAccessWindowSize);
+    public DefaultStreamExcelBuilder titles(@NonNull List<String> titles) {
+        this.titles = titles;
         return this;
     }
 
-    @Override
-    public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
-        super.workbookType(workbookType);
-        return this;
-    }
-
-    @Override
-    public DefaultStreamExcelBuilder threadPool(@NonNull ExecutorService executorService) {
-        this.executorService = executorService;
-        return this;
-    }
-
-    @Override
     public DefaultStreamExcelBuilder sheetName(@NonNull String sheetName) {
-        super.sheetName(sheetName);
+        this.sheetName = sheetName;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+        this.fieldDisplayOrder = fieldDisplayOrder;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
+        if (workbook != null) {
+            throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
+        }
+        this.workbookType = workbookType;
+        return this;
+    }
+
+    /**
+     * 设置为无样式
+     *
+     * @return DefaultStreamExcelBuilder
+     */
+    public DefaultStreamExcelBuilder noStyle() {
+        this.noStyle = true;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder widthStrategy(@NonNull WidthStrategy widthStrategy) {
+        this.widthStrategy = widthStrategy;
+        return this;
+    }
+
+    @Deprecated
+    public DefaultStreamExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        this.widthStrategy = AutoWidthStrategy.map(autoWidthStrategy);
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder fixedTitles() {
+        this.fixedTitles = true;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder widths(int... widths) {
+        if (widths.length == 0) {
+            return this;
+        }
+        widthStrategy = WidthStrategy.CUSTOM_WIDTH;
+        this.widths = new HashMap<>(widths.length);
+        for (int i = 0, size = widths.length; i < size; i++) {
+            this.widths.put(i, widths[i]);
+        }
+        customWidthMap = this.widths;
+        return this;
+    }
+
+    @Override
+    public DefaultStreamExcelBuilder threadPool(ExecutorService executorService) {
+        this.executorService = executorService;
         return this;
     }
 
     @Override
     public DefaultStreamExcelBuilder hasStyle() {
         this.noStyle = false;
-        return this;
-    }
-
-    @Override
-    public DefaultStreamExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        super.autoWidthStrategy(autoWidthStrategy);
-        return this;
-    }
-
-    @Override
-    public DefaultStreamExcelBuilder titles(@NonNull List<String> titles) {
-        this.titles = titles;
-        return this;
-    }
-
-    @Override
-    public DefaultStreamExcelBuilder fixedTitles() {
-        this.fixedTitles = true;
-        return this;
-    }
-
-    @Override
-    public DefaultStreamExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
-        this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
@@ -165,47 +213,51 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     }
 
     @Override
-    public DefaultStreamExcelBuilder widths(int... widths) {
-        super.widths(widths);
+    public DefaultStreamExcelBuilder groups(Class<?>... groups) {
+        this.groups = groups;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder waitQueueSize(int waitQueueSize) {
+        this.waitQueueSize = waitQueueSize;
         return this;
     }
 
     /**
-     * 流式构建启动，包含一些初始化操作，等待队列容量采用CPU核心数目
+     * 流式构建启动，包含一些初始化操作
      *
-     * @param groups 分组
      * @return DefaultExcelBuilder
      */
-    public DefaultStreamExcelBuilder start(Class<?>... groups) {
-        this.start(HtmlToExcelStreamFactory.DEFAULT_WAIT_SIZE, groups);
-        return this;
-    }
-
     @Override
-    public DefaultStreamExcelBuilder start(int waitQueueSize, Class<?>... groups) {
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity);
-        htmlToExcelStreamFactory.rowAccessWindowSize(rowAccessWindowSize).workbookType(workbookType).autoWidthStrategy(autoWidthStrategy);
-
+    public DefaultStreamExcelBuilder start() {
         if (dataType != null) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
-
         this.initStyleMap();
         Table table = this.createTable();
+
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
+        htmlToExcelStreamFactory.widthStrategy(widthStrategy);
+        if (workbook == null) {
+            htmlToExcelStreamFactory.workbookType(workbookType);
+        }
         htmlToExcelStreamFactory.start(table, workbook);
 
         List<Tr> head = this.createThead();
-        if (Objects.isNull(head)) {
-            return this;
+        if (head != null) {
+            htmlToExcelStreamFactory.appendTitles(head);
         }
-        htmlToExcelStreamFactory.appendTitles(head);
         return this;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void append(List<?> data) {
+        if (cancel) {
+            log.info("Canceled build task");
+            return;
+        }
         if (data == null || data.isEmpty()) {
             return;
         }
@@ -218,13 +270,13 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
                     Object val = d.get(fieldName);
                     contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
                 }
-                Tr tr = this.createTr(contents, 0, 0);
+                Tr tr = this.createTr(contents);
                 htmlToExcelStreamFactory.append(tr);
             }
         } else {
             for (Object datum : data) {
                 List<Pair<? extends Class, ?>> contents = getRenderContent(datum, filteredFields);
-                Tr tr = this.createTr(contents, 0, 0);
+                Tr tr = this.createTr(contents);
                 htmlToExcelStreamFactory.append(tr);
             }
         }
@@ -233,6 +285,10 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
     @SuppressWarnings("unchecked")
     @Override
     public <T> void append(T data) {
+        if (cancel) {
+            log.info("Canceled build task");
+            return;
+        }
         if (data == null) {
             return;
         }
@@ -247,16 +303,12 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         } else {
             contents = getRenderContent(data, filteredFields);
         }
-        Tr tr = this.createTr(contents, 0, 0);
+        Tr tr = this.createTr(contents);
         htmlToExcelStreamFactory.append(tr);
     }
 
     @Override
     public Workbook build() {
-        if (fixedTitles && titleLevel > 0) {
-            FreezePane freezePane = new FreezePane(titleLevel, 0);
-            htmlToExcelStreamFactory.freezePanes(freezePane);
-        }
         return htmlToExcelStreamFactory.build();
     }
 
@@ -277,9 +329,15 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         }
     }
 
-    @Override
-    public Workbook build(List<?> data, Class<?>... groups) {
-        throw new UnsupportedOperationException();
+    public void cancle() {
+        cancel = true;
+        htmlToExcelStreamFactory.cancel();
     }
 
+    /**
+     * clear方法仅可在异常情况下调用
+     */
+    public void clear() {
+        htmlToExcelStreamFactory.clear();
+    }
 }

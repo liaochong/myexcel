@@ -39,7 +39,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -297,16 +296,16 @@ class HSSFSaxHandler<T> implements HSSFListener {
             }
         }
 
-        if (Objects.isNull(obj)) {
+        if (obj == null) {
             return;
         }
 
         if (thisStr != null) {
             Field field = fieldMap.get(thisColumn);
-            if (Objects.isNull(field)) {
+            if (field == null) {
                 return;
             }
-            ReadConverterContext.convert(thisStr, field, obj);
+            ReadConverterContext.convert(thisStr, field, obj, currentRow.getRowNum());
         }
 
         // Handle end of row
@@ -324,9 +323,9 @@ class HSSFSaxHandler<T> implements HSSFListener {
             if (!beanFilter.test(obj)) {
                 return;
             }
-            if (Objects.nonNull(consumer)) {
+            if (consumer != null) {
                 consumer.accept(obj);
-            } else if (Objects.nonNull(function)) {
+            } else if (function != null) {
                 Boolean noStop = function.apply(obj);
                 if (!noStop) {
                     throw new StopReadException();

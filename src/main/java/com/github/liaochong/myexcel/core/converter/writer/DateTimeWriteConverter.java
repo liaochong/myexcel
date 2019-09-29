@@ -37,6 +37,8 @@ public class DateTimeWriteConverter implements WriteConverter {
 
     private static final Cache<String, DateTimeFormatter> DATETIME_FORMATTER_CONTAINER = new WeakCache<>();
 
+    private static final WeakCache<String, ThreadLocal<SimpleDateFormat>> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
+
     @Override
     public boolean support(Field field, Object fieldVal) {
         Class<?> fieldType = field.getType();
@@ -63,9 +65,8 @@ public class DateTimeWriteConverter implements WriteConverter {
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
             return Pair.of(String.class, formatter.format(localDate));
         }
-        Date date = (Date) fieldVal;
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-        return Pair.of(String.class, simpleDateFormat.format(date));
+        SimpleDateFormat simpleDateFormat = this.getSimpleDateFormat(dateFormatPattern);
+        return Pair.of(String.class, simpleDateFormat.format((Date) fieldVal));
     }
 
     /**
@@ -81,5 +82,14 @@ public class DateTimeWriteConverter implements WriteConverter {
             DATETIME_FORMATTER_CONTAINER.cache(dateFormat, formatter);
         }
         return formatter;
+    }
+
+    private SimpleDateFormat getSimpleDateFormat(String dateFormatPattern) {
+        ThreadLocal<SimpleDateFormat> tl = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
+        if (tl == null) {
+            tl = ThreadLocal.withInitial(() -> new SimpleDateFormat(dateFormatPattern));
+            SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, tl);
+        }
+        return tl.get();
     }
 }

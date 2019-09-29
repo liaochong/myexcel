@@ -20,7 +20,7 @@ import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -124,7 +124,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     public Workbook build() {
         try {
             ParseConfig parseConfig = new ParseConfig();
-            parseConfig.setAutoWidthStrategy(autoWidthStrategy);
+            parseConfig.setWidthStrategy(widthStrategy);
 
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
             htmlTableParser = null;
@@ -169,18 +169,11 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         // 2、处理解析表格
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
-            String sheetName = Objects.isNull(table.getCaption()) || table.getCaption().length() < 1 ? "Sheet" + (i + 1) : table.getCaption();
+            String sheetName = this.getRealSheetName(table.getCaption());
             Sheet sheet = workbook.getSheet(sheetName);
-            // 避免重名
-            int sort = 1;
-            String realSheetName = sheetName;
-            while (Objects.nonNull(sheet)) {
-                sheetName = realSheetName + " (" + sort + ")";
-                sheet = workbook.getSheet(sheetName);
-                sort++;
+            if (sheet == null) {
+                sheet = workbook.createSheet(sheetName);
             }
-            realSheetName = sheetName;
-            sheet = workbook.createSheet(realSheetName);
             boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
             if (!hasTd) {
                 continue;
@@ -200,7 +193,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      */
     private void setTdOfTable(Table table, Sheet sheet) {
         int maxColIndex = 0;
-        if (AutoWidthStrategy.isAutoWidth(autoWidthStrategy) && !table.getTrList().isEmpty()) {
+        if (WidthStrategy.isAutoWidth(widthStrategy) && !table.getTrList().isEmpty()) {
             maxColIndex = table.getTrList().parallelStream()
                     .mapToInt(tr -> tr.getTdList().stream().mapToInt(Td::getCol).max().orElse(0))
                     .max()

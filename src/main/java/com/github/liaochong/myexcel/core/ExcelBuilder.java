@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.Closeable;
@@ -38,14 +39,6 @@ public interface ExcelBuilder extends Closeable {
     ExcelBuilder workbookType(WorkbookType workbookType);
 
     /**
-     * 设置workbookType为SXSSFWorkbook的内存数据保有量
-     *
-     * @param rowAccessWindowSize 内存数据保有量
-     * @return ExcelBuilder
-     */
-    ExcelBuilder rowAccessWindowSize(int rowAccessWindowSize);
-
-    /**
      * 使用默认样式
      *
      * @return ExcelBuilder
@@ -58,7 +51,16 @@ public interface ExcelBuilder extends Closeable {
      * @param autoWidthStrategy 策略
      * @return ExcelBuilder
      */
+    @Deprecated
     ExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy);
+
+    /**
+     * 宽度策略
+     *
+     * @param widthStrategy 策略
+     * @return ExcelBuilder
+     */
+    ExcelBuilder widthStrategy(WidthStrategy widthStrategy);
 
     /**
      * 选择固定区域

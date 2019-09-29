@@ -315,7 +315,7 @@ public class DefaultExcelReader<T> {
                 return;
             }
             String content = formatter.formatCellValue(cell);
-            ReadConverterContext.convert(content, field, obj);
+            ReadConverterContext.convert(content, field, obj, row.getRowNum());
         });
         return obj;
     }

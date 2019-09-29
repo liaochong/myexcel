@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 import com.github.liaochong.myexcel.utils.StringUtil;
@@ -32,6 +33,8 @@ import java.text.DecimalFormat;
  */
 public class BigDecimalWriteConverter implements WriteConverter {
 
+    private static final WeakCache<String, ThreadLocal<DecimalFormat>> DECIMAL_FORMAT_WEAK_CACHE = new WeakCache<>();
+
     @Override
     public Pair<Class, Object> convert(Field field, Object fieldVal) {
         String format = field.getAnnotation(ExcelColumn.class).decimalFormat();
@@ -40,7 +43,7 @@ public class BigDecimalWriteConverter implements WriteConverter {
         if (formatSplits.length == 2) {
             value = value.setScale(formatSplits[1].length(), RoundingMode.HALF_UP);
         }
-        DecimalFormat decimalFormat = new DecimalFormat(format);
+        DecimalFormat decimalFormat = this.getDecimalFormat(format);
         return Pair.of(String.class, decimalFormat.format(value));
     }
 
@@ -52,5 +55,14 @@ public class BigDecimalWriteConverter implements WriteConverter {
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         return StringUtil.isNotBlank(excelColumn.decimalFormat());
+    }
+
+    private DecimalFormat getDecimalFormat(String decimalFormat) {
+        ThreadLocal<DecimalFormat> tl = DECIMAL_FORMAT_WEAK_CACHE.get(decimalFormat);
+        if (tl == null) {
+            tl = ThreadLocal.withInitial(() -> new DecimalFormat(decimalFormat));
+            DECIMAL_FORMAT_WEAK_CACHE.cache(decimalFormat, tl);
+        }
+        return tl.get();
     }
 }

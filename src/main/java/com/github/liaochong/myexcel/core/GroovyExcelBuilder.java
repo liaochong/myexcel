@@ -15,14 +15,18 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +47,7 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
     private Template template;
 
     public GroovyExcelBuilder() {
-        autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH);
+        widthStrategy(WidthStrategy.AUTO_WIDTH);
     }
 
     @Override

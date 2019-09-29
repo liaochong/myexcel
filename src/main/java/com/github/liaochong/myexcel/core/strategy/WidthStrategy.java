@@ -14,12 +14,15 @@
  */
 package com.github.liaochong.myexcel.core.strategy;
 
+import java.util.Objects;
+
 /**
+ * 宽度策略
+ *
  * @author liaochong
  * @version 1.0
  */
-public enum AutoWidthStrategy {
-
+public enum WidthStrategy {
     /**
      * 无自动宽度
      */
@@ -39,16 +42,19 @@ public enum AutoWidthStrategy {
      */
     CUSTOM_WIDTH;
 
-    public static WidthStrategy map(AutoWidthStrategy autoWidthStrategy) {
-        if (autoWidthStrategy == NO_AUTO) {
-            return WidthStrategy.NO_AUTO;
-        }
-        if (autoWidthStrategy == AUTO_WIDTH) {
-            return WidthStrategy.AUTO_WIDTH;
-        }
-        if (autoWidthStrategy == COMPUTE_AUTO_WIDTH) {
-            return WidthStrategy.COMPUTE_AUTO_WIDTH;
-        }
-        return WidthStrategy.CUSTOM_WIDTH;
+    public static boolean isNoAuto(WidthStrategy widthStrategy) {
+        return Objects.equals(widthStrategy, NO_AUTO);
+    }
+
+    public static boolean isAutoWidth(WidthStrategy widthStrategy) {
+        return Objects.equals(widthStrategy, AUTO_WIDTH);
+    }
+
+    public static boolean isComputeAutoWidth(WidthStrategy widthStrategy) {
+        return Objects.equals(widthStrategy, COMPUTE_AUTO_WIDTH);
+    }
+
+    public static boolean isCustomWidth(WidthStrategy widthStrategy) {
+        return Objects.equals(widthStrategy, CUSTOM_WIDTH);
     }
 }
