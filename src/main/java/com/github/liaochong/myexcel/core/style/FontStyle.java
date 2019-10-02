@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core.style;
 
 import com.github.liaochong.myexcel.utils.ColorUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.TdUtil;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFColor;
@@ -28,6 +29,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
+ * 字体样式
+ *
  * @author liaochong
  * @version 1.0
  */
@@ -57,15 +60,14 @@ public final class FontStyle {
 
     public static void setFont(Supplier<Font> fontSupplier, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap, CustomColor customColor) {
         String cacheKey = getCacheKey(tdStyle);
-        if (Objects.nonNull(fontMap.get(cacheKey))) {
+        if (fontMap.get(cacheKey) != null) {
             cellStyle.setFont(fontMap.get(cacheKey));
             return;
         }
         Font font = null;
         String fs = tdStyle.get(FONT_SIZE);
         if (fs != null) {
-            fs = fs.replaceAll("\\D*", "");
-            short fontSize = Short.parseShort(fs);
+            short fontSize = (short) TdUtil.getValue(fs);
             font = fontSupplier.get();
             font.setFontHeightInPoints(fontSize);
         }
@@ -127,10 +129,7 @@ public final class FontStyle {
     }
 
     private static Font createFontIfNull(Supplier<Font> fontSupplier, Font font) {
-        if (font == null) {
-            font = fontSupplier.get();
-        }
-        return font;
+        return font == null ? fontSupplier.get() : font;
     }
 
     private static String getCacheKey(Map<String, String> tdStyle) {
