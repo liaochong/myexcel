@@ -46,7 +46,7 @@ public class NumberReadConverter<R extends Number> extends AbstractReadConverter
 
     @Override
     protected R doConvert(String v, Field field) {
-        v = PATTERN_NON_NUMBER.matcher(v).replaceAll("");
+        v = PATTERN_COMMA.matcher(v).replaceAll("");
         BigDecimal bigDecimal = new BigDecimal(v);
         String realValue = bigDecimal.toPlainString();
         return func.apply(realValue);
