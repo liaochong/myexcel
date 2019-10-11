@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * @author liaochong
  * @version 1.0
  */
-@ExcelTable(sheetName = "艺术生", rowAccessWindowSize = 100, useFieldNameAsTitle = true)
+@ExcelTable(sheetName = "艺术生", useFieldNameAsTitle = true)
 public class ArtCrowd extends People {
 
     @ExcelColumn(order = 3, index = 3, width = 20)
