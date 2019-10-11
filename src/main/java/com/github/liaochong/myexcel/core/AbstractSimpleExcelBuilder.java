@@ -470,6 +470,9 @@ abstract class AbstractSimpleExcelBuilder {
         if (hasTitle) {
             this.titles = titles;
         }
+        if (!customWidthMap.isEmpty()) {
+            this.widthStrategy = WidthStrategy.CUSTOM_WIDTH;
+        }
         return sortedFields;
     }
 
