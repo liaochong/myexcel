@@ -481,7 +481,11 @@ abstract class AbstractSimpleExcelBuilder {
         if (globalStyle != null) {
             Arrays.stream(globalStyle).forEach(style -> {
                 String[] splits = style.split(Constants.ARROW);
-                globalStyleMap.put(splits[0], style);
+                if (splits.length == 1) {
+                    globalStyleMap.put("cell", style);
+                } else {
+                    globalStyleMap.put(splits[0], style);
+                }
             });
         }
         return globalStyleMap;
