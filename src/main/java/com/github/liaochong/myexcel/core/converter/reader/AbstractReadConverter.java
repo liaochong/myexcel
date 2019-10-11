@@ -39,7 +39,7 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
 
-    protected static final Pattern PATTERN_NON_NUMBER = Pattern.compile("[^\\.\\d\\-]");
+    protected static final Pattern PATTERN_COMMA = Pattern.compile(",");
 
     protected static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 

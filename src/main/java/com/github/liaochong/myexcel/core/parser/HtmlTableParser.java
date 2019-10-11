@@ -211,11 +211,22 @@ public class HtmlTableParser {
             // 设置每列宽度
             if (parseConfig.isComputeAutoWidth()) {
                 int width = TdUtil.getStringWidth(td.getContent());
-                colWidthMap.put(td.getCol(), width);
+                if (td.getColSpan() > 1) {
+                    int realWidth = (int) Math.ceil(width * 1.0 / td.getColSpan());
+                    for (int j = 0, span = td.getColSpan(); j < span; j++) {
+                        int colIndex = td.getCol() + j;
+                        Integer colWidth = colWidthMap.get(colIndex);
+                        if (colWidth == null || colWidth < realWidth) {
+                            colWidthMap.put(colIndex, realWidth);
+                        }
+                    }
+                } else {
+                    colWidthMap.put(td.getCol(), width);
+                }
             } else if (parseConfig.isCustomWidth()) {
                 String widthStr = td.getStyle().get("width");
                 if (widthStr != null) {
-                    Integer width = Integer.valueOf(widthStr.replaceAll("\\D*", ""));
+                    int width = TdUtil.getValue(widthStr);
                     if (width > 0) {
                         colWidthMap.put(td.getCol(), width);
                     }
