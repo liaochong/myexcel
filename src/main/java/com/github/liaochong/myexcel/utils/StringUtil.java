@@ -42,7 +42,7 @@ public final class StringUtil {
     }
 
     public static boolean isNotBlank(String content) {
-        return Objects.nonNull(content) && content.trim().length() > 0;
+        return content != null && content.trim().length() > 0;
     }
 
 }

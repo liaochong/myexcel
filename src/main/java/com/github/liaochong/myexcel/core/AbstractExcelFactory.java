@@ -35,8 +35,22 @@ import lombok.NonNull;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -100,6 +114,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private CreationHelper createHelper;
 
+    private DataFormat format;
+
     @Override
     public ExcelFactory useDefaultStyle() {
         this.useDefaultStyle = true;
@@ -130,6 +146,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             default:
                 workbook = new XSSFWorkbook();
         }
+        format = workbook.createDataFormat();
         return this;
     }
 
@@ -404,6 +421,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
             // word-break
             WordBreakStyle.setWordBreak(cellStyle, td.getStyle());
+            // 文件格式化
+            if (td.getFormat() != null) {
+                cellStyle.setDataFormat(format.getFormat(td.getFormat()));
+            }
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }

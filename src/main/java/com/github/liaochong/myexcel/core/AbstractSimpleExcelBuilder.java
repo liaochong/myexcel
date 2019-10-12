@@ -144,6 +144,10 @@ abstract class AbstractSimpleExcelBuilder {
     protected WidthStrategy widthStrategy;
 
     protected Map<Integer, Integer> widths;
+    /**
+     * 格式化
+     */
+    private Map<Integer, String> formats;
 
     /**
      * 创建table
@@ -326,6 +330,7 @@ abstract class AbstractSimpleExcelBuilder {
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
+            td.setFormat(formats.get(i));
             return td;
         }).collect(Collectors.toList());
         if (isCustomWidth) {
@@ -428,6 +433,7 @@ abstract class AbstractSimpleExcelBuilder {
         if (customWidthMap == null) {
             customWidthMap = new HashMap<>(sortedFields.size());
         }
+        formats = new HashMap<>(sortedFields.size());
         List<String> titles = new ArrayList<>(sortedFields.size());
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         boolean needToAddTitle = Objects.isNull(this.titles);
@@ -454,6 +460,9 @@ abstract class AbstractSimpleExcelBuilder {
                 }
                 if (!noStyle && excelColumn.style().length > 0) {
                     setCustomStyle(i, excelColumn.style());
+                }
+                if (StringUtil.isNotBlank(excelColumn.decimalFormat())) {
+                    formats.put(i, excelColumn.decimalFormat());
                 }
             } else {
                 if (needToAddTitle) {
