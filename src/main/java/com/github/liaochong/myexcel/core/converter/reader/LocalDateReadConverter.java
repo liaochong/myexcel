@@ -33,7 +33,13 @@ public class LocalDateReadConverter extends AbstractReadConverter<LocalDate> {
     public LocalDate doConvert(String v, Field field) {
         if (isNumber(v)) {
             final long time = Long.parseLong(v);
-            LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(time), TimeZone
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
+                    .getDefault().toZoneId());
+            return localDateTime.toLocalDate();
+        }
+        if (isExcelNumber(v)) {
+            final long time = convertExcelNumberDateToMilli(v);
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
                     .getDefault().toZoneId());
             return localDateTime.toLocalDate();
         }
