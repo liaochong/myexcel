@@ -100,8 +100,7 @@ public class ReadConverterContext {
         try {
             value = converter.convert(content, field);
         } catch (Exception e) {
-            log.error("Failed to convert content，Field:{},Content:{},RowNum:{}", field.getName(), content, rowNum);
-            throw new ExcelReadException("Convert content failure", e);
+            throw new ExcelReadException("Failed to convert content，Field:" + field.getName() + ",Content:" + content + ",RowNum:" + rowNum, e);
         }
         if (Objects.isNull(value)) {
             return;
