@@ -332,11 +332,11 @@ abstract class AbstractSimpleExcelBuilder {
             }
             if (formats.get(i) != null) {
                 String format = formats.get(i);
-                Map<String, String> formatStyle = formatsStyleMap.get(format);
+                Map<String, String> formatStyle = formatsStyleMap.get(format + "_" + i);
                 if (formatStyle == null) {
                     formatStyle = new HashMap<>(style);
                     formatStyle.put("format", format);
-                    formatsStyleMap.put(format, formatStyle);
+                    formatsStyleMap.put(format + "_" + i, formatStyle);
                 }
                 style = formatStyle;
             }
