@@ -17,16 +17,14 @@ package com.github.liaochong.myexcel.core.converter.reader;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.converter.Converter;
-import com.github.liaochong.myexcel.exception.DateOutRangeException;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -42,22 +40,21 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     protected static final WeakCache<String, ThreadLocal<SimpleDateFormat>> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
 
-    /** 10位以上数字正则表达式（时间戳10位以上）*/
-    private static final Pattern PATTERN_NUMBER = Pattern.compile("^[1-9]\\d{10,}$");
+    /**
+     * 数字正则表达式
+     */
+    private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
 
-    /** 数字、小数正则表达式*/
+    /**
+     * 数字、小数正则表达式
+     */
     private static final Pattern PATTERN_DECIMAL = Pattern.compile("[0-9]+\\.*[0-9]*");
 
     protected static final Pattern PATTERN_COMMA = Pattern.compile(",");
 
     protected static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
-    /** 最小时间，以MySQL支持的为准*/
-    private static final Long MIN_TIME = LocalDateTime.of(1970, 1, 1, 9, 0, 0).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-
-    /** 最大时间，以MySQL支持的为准*/
-    private static final Long MAX_TIME = LocalDateTime.of(2038, 1, 19, 23, 59, 59).toInstant(ZoneOffset.of("+8")).toEpochMilli();
-
+    private static final LocalDateTime START_LOCAL_DATE_TIME = LocalDateTime.of(1900, 1, 1, 0, 0, 0);
 
     @Override
     public R convert(String obj, Field field) {
@@ -105,6 +102,7 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     /**
      * 是否为Excel数字日期
+     *
      * @param v 内容
      * @return true/false
      */
@@ -139,36 +137,21 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
 
     /**
      * 将Excel转换的数字日期转换为时间戳
+     *
      * @param value 数字日期，例如43728.9319444444
      * @return 时间戳
      */
-    protected Long convertExcelNumberDateToMilli(String value){
+    protected long convertExcelNumberDateToMilli(String value) {
         //如果是数字 小于0则 返回
         BigDecimal bd = new BigDecimal(value);
-        //天数
         int days = bd.intValue();
-        int mills = (int) Math.round(bd.subtract(new BigDecimal(days)).doubleValue() * 24 * 3600);
+        int seconds = (int) Math.round(bd.subtract(new BigDecimal(days)).doubleValue() * 24 * 3600);
         //获取时间
-        Calendar c = Calendar.getInstance();
-        c.set(1900, Calendar.JANUARY, 1);
-        c.add(Calendar.DATE, days - 2);
-        int hour = mills / 3600;
-        int minute = (mills - hour * 3600) / 60;
-        int second = mills - hour * 3600 - minute * 60;
-        c.set(Calendar.HOUR_OF_DAY, hour);
-        c.set(Calendar.MINUTE, minute);
-        c.set(Calendar.SECOND, second);
-        //时间戳区间判断
-        Long time = c.getTimeInMillis();
-        if(MIN_TIME <= time && time <= MAX_TIME){
-            return time;
-        }else{
-            StringBuilder builder = new StringBuilder();
-            builder.append("Failed to read the date field column, because range out date: ")
-                    .append(time)
-                    .append(", and it converted from ")
-                    .append(value);
-            throw DateOutRangeException.of(builder.toString());
-        }
+        int hour = seconds / 3600;
+        int secondsOfHours = hour * 3600;
+        int minute = (seconds - secondsOfHours) / 60;
+        int second = seconds - secondsOfHours - minute * 60;
+        LocalDateTime localDateTime = START_LOCAL_DATE_TIME.plusDays(days - 2).plusHours(hour).plusMinutes(minute).plusSeconds(second);
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 }
