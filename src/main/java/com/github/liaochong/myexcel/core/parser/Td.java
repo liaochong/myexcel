@@ -74,10 +74,6 @@ public class Td {
      * 文件
      */
     File file;
-    /**
-     * 格式
-     */
-    String format;
 
     public Td(int row, int col) {
         this.row = row;

@@ -35,6 +35,6 @@ public class BigDecimalWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Object fieldVal) {
-        return field.getType() != BigDecimal.class;
+        return field.getType() == BigDecimal.class;
     }
 }

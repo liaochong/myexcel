@@ -148,6 +148,10 @@ abstract class AbstractSimpleExcelBuilder {
      * 格式化
      */
     private Map<Integer, String> formats;
+    /**
+     * 格式样式Map
+     */
+    private Map<String, Map<String, String>> formatsStyleMap;
 
     /**
      * 创建table
@@ -314,23 +318,29 @@ abstract class AbstractSimpleExcelBuilder {
                 td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
             }
             setTdContentType(td, fieldType);
+            Map<String, String> style;
             if (!noStyle && !customStyle.isEmpty()) {
-                Map<String, String> style = customStyle.get(oddEvenPrefix + i);
+                style = customStyle.get(oddEvenPrefix + i);
                 if (style == null) {
                     style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
                 }
-                td.setStyle(style);
             } else {
-                if (ContentTypeEnum.isLink(td.getTdContentType())) {
-                    td.setStyle(linkStyle);
-                } else {
-                    td.setStyle(tdStyle);
-                }
+                style = ContentTypeEnum.isLink(td.getTdContentType()) ? linkStyle : tdStyle;
             }
             if (isComputeAutoWidth) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
-            td.setFormat(formats.get(i));
+            if (formats.get(i) != null) {
+                String format = formats.get(i);
+                Map<String, String> formatStyle = formatsStyleMap.get(format);
+                if (formatStyle == null) {
+                    formatStyle = new HashMap<>(style);
+                    formatStyle.put("format", format);
+                    formatsStyleMap.put(format, formatStyle);
+                }
+                style = formatStyle;
+            }
+            td.setStyle(style);
             return td;
         }).collect(Collectors.toList());
         if (isCustomWidth) {
@@ -434,6 +444,7 @@ abstract class AbstractSimpleExcelBuilder {
             customWidthMap = new HashMap<>(sortedFields.size());
         }
         formats = new HashMap<>(sortedFields.size());
+        formatsStyleMap = new HashMap<>();
         List<String> titles = new ArrayList<>(sortedFields.size());
         boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         boolean needToAddTitle = Objects.isNull(this.titles);

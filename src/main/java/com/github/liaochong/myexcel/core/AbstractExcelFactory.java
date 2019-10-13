@@ -400,8 +400,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             String fs = td.getStyle().get("font-size");
             if (fs != null) {
-                fs = fs.replaceAll("\\D*", "");
-                short fontSize = Short.parseShort(fs);
+                short fontSize = (short) TdUtil.getValue(fs);
                 if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
                     maxTdHeightMap.put(row.getRowNum(), fontSize);
                 }
@@ -421,9 +420,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
             // word-break
             WordBreakStyle.setWordBreak(cellStyle, td.getStyle());
-            // 文件格式化
-            if (td.getFormat() != null) {
-                cellStyle.setDataFormat(format.getFormat(td.getFormat()));
+            // 内容格式
+            String formatStr = td.getStyle().get("format");
+            if (formatStr != null) {
+                cellStyle.setDataFormat(format.getFormat(formatStr));
             }
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
