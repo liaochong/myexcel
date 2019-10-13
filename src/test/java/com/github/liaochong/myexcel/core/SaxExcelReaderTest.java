@@ -2,7 +2,6 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
-import com.sun.tools.javac.util.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
@@ -23,7 +22,6 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CsvPeople> csvPeoples = SaxExcelReader.of(CsvPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
-        Assert.check(csvPeoples.size() == 1000);
     }
 
     @Test
@@ -32,7 +30,6 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
-        Assert.check(commonPeoples.size() == 10000);
     }
 
     @Test
@@ -41,7 +38,6 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
-        Assert.check(commonPeoples.size() == 10000);
     }
 
     @Test

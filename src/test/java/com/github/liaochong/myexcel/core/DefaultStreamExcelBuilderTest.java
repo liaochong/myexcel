@@ -6,7 +6,6 @@ import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
 import com.github.liaochong.myexcel.core.pojo.WidthPeople;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import com.sun.tools.javac.util.Assert;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.jupiter.api.Test;
 
@@ -107,7 +106,6 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 10000);
             paths = excelBuilder.buildAsPaths();
-            Assert.check(paths.size() == 11);
         } finally {
             TempFileOperator.deleteTempFiles(paths);
         }

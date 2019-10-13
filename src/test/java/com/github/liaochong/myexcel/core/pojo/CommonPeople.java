@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author liaochong
@@ -42,4 +43,7 @@ public class CommonPeople {
 
     @ExcelColumn(title = "金钱", decimalFormat = "#,000.00", index = 3)
     BigDecimal money;
+
+    @ExcelColumn(title = "生日", dateFormatPattern = "yyyy-MM-dd HH:mm:ss", index = 4)
+    Date birthday;
 }
