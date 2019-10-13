@@ -32,7 +32,12 @@ public class LocalDateTimeReadConverter extends AbstractReadConverter<LocalDateT
     public LocalDateTime doConvert(String v, Field field) {
         if (isNumber(v)) {
             final long time = Long.parseLong(v);
-            return LocalDateTime.ofInstant(Instant.ofEpochSecond(time), TimeZone
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
+                    .getDefault().toZoneId());
+        }
+        if (isExcelNumber(v)) {
+            final long time = convertExcelNumberDateToMilli(v);
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
                     .getDefault().toZoneId());
         }
         DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(field);

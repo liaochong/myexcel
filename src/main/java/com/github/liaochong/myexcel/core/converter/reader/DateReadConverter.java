@@ -33,6 +33,10 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
             final long time = Long.parseLong(v);
             return new Date(time);
         }
+        if (isExcelNumber(v)) {
+            final long time = convertExcelNumberDateToMilli(v);
+            return new Date(time);
+        }
         String dateFormatPattern = getDateFormatPattern(field);
         SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
         try {

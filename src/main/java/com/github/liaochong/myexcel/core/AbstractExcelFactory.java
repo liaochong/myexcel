@@ -35,8 +35,22 @@ import lombok.NonNull;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -99,6 +113,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private List<Td> stagingTds = new LinkedList<>();
 
     private CreationHelper createHelper;
+
+    private DataFormat format;
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -383,8 +399,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             String fs = td.getStyle().get("font-size");
             if (fs != null) {
-                fs = fs.replaceAll("\\D*", "");
-                short fontSize = Short.parseShort(fs);
+                short fontSize = (short) TdUtil.getValue(fs);
                 if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
                     maxTdHeightMap.put(row.getRowNum(), fontSize);
                 }
@@ -404,6 +419,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
             // word-break
             WordBreakStyle.setWordBreak(cellStyle, td.getStyle());
+            // 内容格式
+            String formatStr = td.getStyle().get("format");
+            if (formatStr != null) {
+                if (format == null) {
+                    format = workbook.createDataFormat();
+                }
+                cellStyle.setDataFormat(format.getFormat(formatStr));
+            }
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
