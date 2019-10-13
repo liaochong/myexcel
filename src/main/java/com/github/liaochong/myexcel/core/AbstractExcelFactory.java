@@ -146,7 +146,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             default:
                 workbook = new XSSFWorkbook();
         }
-        format = workbook.createDataFormat();
         return this;
     }
 
@@ -423,6 +422,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             // 内容格式
             String formatStr = td.getStyle().get("format");
             if (formatStr != null) {
+                if (format == null) {
+                    format = workbook.createDataFormat();
+                }
                 cellStyle.setDataFormat(format.getFormat(formatStr));
             }
             cell.setCellStyle(cellStyle);
