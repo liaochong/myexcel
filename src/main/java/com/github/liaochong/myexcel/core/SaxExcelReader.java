@@ -307,7 +307,7 @@ public class SaxExcelReader<T> {
 
         Predicate<T> beanFilter = bean -> true;
 
-        BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> true;
+        BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
         String charset = "UTF-8";
     }

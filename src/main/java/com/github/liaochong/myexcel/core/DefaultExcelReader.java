@@ -60,7 +60,7 @@ public class DefaultExcelReader<T> {
 
     private Workbook wb;
 
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (e, c) -> true;
+    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (e, c) -> false;
 
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;

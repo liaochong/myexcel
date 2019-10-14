@@ -105,6 +105,18 @@ class SaxExcelReaderTest {
     }
 
     @Test
+    void readXlsxNoException() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        try {
+            List<ExceptionPeople> commonPeoples = SaxExcelReader.of(ExceptionPeople.class).read(path.toFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
     void readXlsException() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
