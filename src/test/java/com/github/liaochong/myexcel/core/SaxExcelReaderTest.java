@@ -2,6 +2,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
+import com.github.liaochong.myexcel.core.pojo.ExceptionPeople;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
@@ -25,6 +26,32 @@ class SaxExcelReaderTest {
     }
 
     @Test
+    void csvReadContinuedException() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<ExceptionPeople> csvPeoples = SaxExcelReader.of(ExceptionPeople.class).exceptionally((e, context) -> {
+            System.out.println(context.getField().getName() + "_" + context.getVal() + "_" + context.getRowNum() + "_" + context.getColNum());
+            return true;
+        }).read(path.toFile());
+    }
+
+    @Test
+    void csvReadException() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        try {
+            List<ExceptionPeople> csvPeoples = SaxExcelReader.of(ExceptionPeople.class).exceptionally((e, context) -> {
+                System.out.println(context.getField().getName() + "_" + context.getVal() + "_" + context.getRowNum() + "_" + context.getColNum());
+                return false;
+            }).read(path.toFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
     void readXlsxFile() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
@@ -41,7 +68,7 @@ class SaxExcelReaderTest {
     }
 
     @Test
-    void readContinuedException() throws Exception {
+    void readXlsxContinuedException() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
@@ -52,14 +79,44 @@ class SaxExcelReaderTest {
     }
 
     @Test
-    void readException() throws Exception {
+    void readXlsxException() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).exceptionally((e, context) -> {
+        try {
+            List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).exceptionally((e, context) -> {
+                System.out.println(context.getField().getName() + "_" + context.getVal() + "_" + context.getRowNum() + "_" + context.getColNum());
+                return false;
+            }).read(path.toFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void readXlsContinuedException() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<ExceptionPeople> commonPeoples = SaxExcelReader.of(ExceptionPeople.class).exceptionally((e, context) -> {
             System.out.println(context.getField().getName() + "_" + context.getVal() + "_" + context.getRowNum() + "_" + context.getColNum());
-            return false;
+            return true;
         }).read(path.toFile());
+    }
+
+    @Test
+    void readXlsException() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        try {
+            List<ExceptionPeople> commonPeoples = SaxExcelReader.of(ExceptionPeople.class).exceptionally((e, context) -> {
+                System.out.println(context.getField().getName() + "_" + context.getVal() + "_" + context.getRowNum() + "_" + context.getColNum());
+                return false;
+            }).read(path.toFile());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

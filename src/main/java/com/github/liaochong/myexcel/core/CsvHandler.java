@@ -93,6 +93,7 @@ class CsvHandler<T> {
             this.rowFilter = readConfig.getRowFilter();
             this.beanFilter = readConfig.getBeanFilter();
             this.charset = readConfig.getCharset();
+            this.exceptionFunction = readConfig.getExceptionFunction();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
