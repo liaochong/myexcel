@@ -34,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiFunction;
 
 /**
@@ -94,7 +93,7 @@ public class ReadConverterContext {
 
     public static void convert(Object obj, ReadContext context, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         Converter<String, ?> converter = READ_CONVERTERS.get(context.getField().getType());
-        if (Objects.isNull(converter)) {
+        if (converter == null) {
             throw new IllegalStateException("No suitable type converter was found.");
         }
         Object value = null;
