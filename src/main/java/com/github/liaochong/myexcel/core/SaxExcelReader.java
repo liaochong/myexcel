@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -98,6 +99,11 @@ public class SaxExcelReader<T> {
 
     public SaxExcelReader<T> charset(String charset) {
         this.readConfig.charset = charset;
+        return this;
+    }
+
+    public SaxExcelReader<T> exceptionally(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+        this.readConfig.exceptionFunction = exceptionFunction;
         return this;
     }
 
@@ -287,20 +293,22 @@ public class SaxExcelReader<T> {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ReadConfig<T> {
 
-        private Class<T> dataType;
+        Class<T> dataType;
 
-        private String sheetName;
+        String sheetName;
 
-        private int sheetIndex = DEFAULT_SHEET_INDEX;
+        int sheetIndex = DEFAULT_SHEET_INDEX;
 
-        private Consumer<T> consumer;
+        Consumer<T> consumer;
 
-        private Function<T, Boolean> function;
+        Function<T, Boolean> function;
 
-        private Predicate<Row> rowFilter = row -> true;
+        Predicate<Row> rowFilter = row -> true;
 
-        private Predicate<T> beanFilter = bean -> true;
+        Predicate<T> beanFilter = bean -> true;
 
-        private String charset = "UTF-8";
+        BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> true;
+
+        String charset = "UTF-8";
     }
 }

@@ -24,6 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFComment;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -57,6 +58,8 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private int count;
 
+    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
+
     public SaxHandler(
             Map<Integer, Field> fieldMap,
             List<T> result,
@@ -68,6 +71,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         this.function = readConfig.getFunction();
         this.rowFilter = readConfig.getRowFilter();
         this.beanFilter = readConfig.getBeanFilter();
+        this.exceptionFunction = readConfig.getExceptionFunction();
     }
 
     @Override
@@ -115,7 +119,8 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         if (field == null) {
             return;
         }
-        ReadConverterContext.convert(formattedValue, field, obj, currentRow.getRowNum());
+        ReadContext context = new ReadContext(field, formattedValue, currentRow.getRowNum(), thisCol);
+        ReadConverterContext.convert(obj, context, exceptionFunction);
     }
 
     @Override

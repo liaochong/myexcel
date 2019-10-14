@@ -29,7 +29,7 @@ public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
 
     @Override
     protected Timestamp doConvert(String v, Field field) {
-        if (isNumber(v)) {
+        if (isDateNumber(v)) {
             final long time = Long.parseLong(v);
             return new Timestamp(time);
         }

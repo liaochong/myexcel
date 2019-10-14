@@ -27,7 +27,19 @@ import org.apache.poi.hssf.eventusermodel.MissingRecordAwareHSSFListener;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.LastCellOfRowDummyRecord;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.MissingCellDummyRecord;
 import org.apache.poi.hssf.model.HSSFFormulaParser;
-import org.apache.poi.hssf.record.*;
+import org.apache.poi.hssf.record.BOFRecord;
+import org.apache.poi.hssf.record.BlankRecord;
+import org.apache.poi.hssf.record.BoolErrRecord;
+import org.apache.poi.hssf.record.BoundSheetRecord;
+import org.apache.poi.hssf.record.FormulaRecord;
+import org.apache.poi.hssf.record.LabelRecord;
+import org.apache.poi.hssf.record.LabelSSTRecord;
+import org.apache.poi.hssf.record.NoteRecord;
+import org.apache.poi.hssf.record.NumberRecord;
+import org.apache.poi.hssf.record.RKRecord;
+import org.apache.poi.hssf.record.Record;
+import org.apache.poi.hssf.record.SSTRecord;
+import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
@@ -39,6 +51,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -107,6 +120,8 @@ class HSSFSaxHandler<T> implements HSSFListener {
     private int nextColumn;
     private boolean outputNextStringRecord;
 
+    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
+
     public HSSFSaxHandler(File file,
                           List<T> result,
                           SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
@@ -120,6 +135,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
         this.rowFilter = readConfig.getRowFilter();
         this.beanFilter = readConfig.getBeanFilter();
         this.readConfig = readConfig;
+        this.exceptionFunction = readConfig.getExceptionFunction();
     }
 
     public HSSFSaxHandler(InputStream inputStream,
@@ -135,6 +151,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
         this.rowFilter = readConfig.getRowFilter();
         this.beanFilter = readConfig.getBeanFilter();
         this.readConfig = readConfig;
+        this.exceptionFunction = readConfig.getExceptionFunction();
     }
 
     public void process() throws IOException {
@@ -305,7 +322,8 @@ class HSSFSaxHandler<T> implements HSSFListener {
             if (field == null) {
                 return;
             }
-            ReadConverterContext.convert(thisStr, field, obj, currentRow.getRowNum());
+            ReadContext context = new ReadContext(field, thisStr, currentRow.getRowNum(), thisColumn);
+            ReadConverterContext.convert(obj, context, exceptionFunction);
         }
 
         // Handle end of row

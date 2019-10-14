@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -58,6 +59,8 @@ public class DefaultExcelReader<T> {
     private Predicate<T> beanFilter = bean -> true;
 
     private Workbook wb;
+
+    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (e, c) -> true;
 
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
@@ -83,6 +86,11 @@ public class DefaultExcelReader<T> {
 
     public DefaultExcelReader<T> beanFilter(@NonNull Predicate<T> beanFilter) {
         this.beanFilter = beanFilter;
+        return this;
+    }
+
+    public DefaultExcelReader<T> exceptionally(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+        this.exceptionFunction = exceptionFunction;
         return this;
     }
 
@@ -315,7 +323,8 @@ public class DefaultExcelReader<T> {
                 return;
             }
             String content = formatter.formatCellValue(cell);
-            ReadConverterContext.convert(content, field, obj, row.getRowNum());
+            ReadContext context = new ReadContext(field, content, row.getRowNum(), key);
+            ReadConverterContext.convert(obj, context, exceptionFunction);
         });
         return obj;
     }

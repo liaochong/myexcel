@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -57,6 +58,8 @@ class CsvHandler<T> {
 
     private String charset;
 
+    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
+
     public CsvHandler(InputStream is,
                       SaxExcelReader.ReadConfig<T> readConfig,
                       List<T> result) {
@@ -74,6 +77,7 @@ class CsvHandler<T> {
         this.rowFilter = readConfig.getRowFilter();
         this.beanFilter = readConfig.getBeanFilter();
         this.charset = readConfig.getCharset();
+        this.exceptionFunction = readConfig.getExceptionFunction();
     }
 
     public CsvHandler(File file,
@@ -129,7 +133,8 @@ class CsvHandler<T> {
                 if (field == null) {
                     continue;
                 }
-                ReadConverterContext.convert(content, field, obj, row.getRowNum());
+                ReadContext context = new ReadContext(field, content, row.getRowNum(), i);
+                ReadConverterContext.convert(obj, context, exceptionFunction);
             }
         }
         if (!beanFilter.test(obj)) {

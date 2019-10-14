@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.ReadContext;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
@@ -26,7 +27,6 @@ import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
  * 读取转换器上下文
@@ -91,24 +92,27 @@ public class ReadConverterContext {
         return this;
     }
 
-    public static void convert(String content, Field field, Object obj, int rowNum) {
-        Converter<String, ?> converter = READ_CONVERTERS.get(field.getType());
+    public static void convert(Object obj, ReadContext context, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+        Converter<String, ?> converter = READ_CONVERTERS.get(context.getField().getType());
         if (Objects.isNull(converter)) {
             throw new IllegalStateException("No suitable type converter was found.");
         }
-        Object value;
+        Object value = null;
         try {
-            value = converter.convert(content, field);
+            value = converter.convert(context.getVal(), context.getField());
         } catch (Exception e) {
-            throw new ExcelReadException("Failed to convert content，Field:" + field.getName() + ",Content:" + content + ",RowNum:" + rowNum, e);
+            Boolean toContinue = exceptionFunction.apply(e, context);
+            if (!toContinue) {
+                throw new ExcelReadException("Failed to convert content，Field:" + context.getField().getName() + ",Content:" + context.getVal() + ",RowNum:" + context.getRowNum(), e);
+            }
         }
-        if (Objects.isNull(value)) {
+        if (value == null) {
             return;
         }
         try {
-            field.set(obj, value);
+            context.getField().set(obj, value);
         } catch (IllegalAccessException e) {
-            throw new SaxReadException("Failed to set the " + field.getName() + " field value to " + content, e);
+            throw new SaxReadException("Failed to set the " + context.getField().getName() + " field value to " + context.getVal(), e);
         }
     }
 }

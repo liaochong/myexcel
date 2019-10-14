@@ -31,13 +31,13 @@ public class LocalDateReadConverter extends AbstractReadConverter<LocalDate> {
 
     @Override
     public LocalDate doConvert(String v, Field field) {
-        if (isNumber(v)) {
+        if (isDateNumber(v)) {
             final long time = Long.parseLong(v);
             LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
                     .getDefault().toZoneId());
             return localDateTime.toLocalDate();
         }
-        if (isExcelNumber(v)) {
+        if (isDateDecimalNumber(v)) {
             final long time = convertExcelNumberDateToMilli(v);
             LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
                     .getDefault().toZoneId());

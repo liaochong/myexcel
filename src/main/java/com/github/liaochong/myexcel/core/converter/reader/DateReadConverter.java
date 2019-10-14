@@ -29,11 +29,11 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
 
     @Override
     public Date doConvert(String v, Field field) {
-        if (isNumber(v)) {
+        if (isDateNumber(v)) {
             final long time = Long.parseLong(v);
             return new Date(time);
         }
-        if (isExcelNumber(v)) {
+        if (isDateDecimalNumber(v)) {
             final long time = convertExcelNumberDateToMilli(v);
             return new Date(time);
         }

@@ -41,14 +41,14 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
     protected static final WeakCache<String, ThreadLocal<SimpleDateFormat>> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
 
     /**
-     * 数字正则表达式
+     * 时间数字正则表达式
      */
-    private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
+    private static final Pattern PATTERN_DATE_NUMBER = Pattern.compile("^[1-9]\\d{10,}$");
 
     /**
      * 数字、小数正则表达式
      */
-    private static final Pattern PATTERN_DECIMAL = Pattern.compile("[0-9]+\\.*[0-9]*");
+    private static final Pattern PATTERN_DATE_DECIMAL = Pattern.compile("[0-9]+\\.*[0-9]*");
 
     protected static final Pattern PATTERN_COMMA = Pattern.compile(",");
 
@@ -91,13 +91,13 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
     }
 
     /**
-     * 是否为数值
+     * 是否为时间类数值
      *
      * @param v 内容
      * @return true/false
      */
-    protected boolean isNumber(String v) {
-        return PATTERN_NUMBER.matcher(v).matches();
+    protected boolean isDateNumber(String v) {
+        return PATTERN_DATE_NUMBER.matcher(v).matches();
     }
 
     /**
@@ -106,8 +106,8 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      * @param v 内容
      * @return true/false
      */
-    protected boolean isExcelNumber(String v) {
-        return PATTERN_DECIMAL.matcher(v).matches();
+    protected boolean isDateDecimalNumber(String v) {
+        return PATTERN_DATE_DECIMAL.matcher(v).matches();
     }
 
     /**
