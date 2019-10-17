@@ -123,6 +123,12 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return new DefaultStreamExcelBuilder();
     }
 
+    public static DefaultStreamExcelBuilder getInstance(Workbook workbook) {
+        DefaultStreamExcelBuilder defaultStreamExcelBuilder = new DefaultStreamExcelBuilder();
+        defaultStreamExcelBuilder.workbook = workbook;
+        return defaultStreamExcelBuilder;
+    }
+
     public DefaultStreamExcelBuilder titles(@NonNull List<String> titles) {
         this.titles = titles;
         return this;

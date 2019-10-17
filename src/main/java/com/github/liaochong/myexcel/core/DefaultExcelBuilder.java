@@ -54,6 +54,17 @@ public class DefaultExcelBuilder implements Closeable {
     }
 
     /**
+     * 获取实例
+     *
+     * @return DefaultExcelBuilder
+     */
+    public static DefaultExcelBuilder getInstance(Workbook workbook) {
+        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance(workbook));
+        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
+        return defaultExcelBuilder;
+    }
+
+    /**
      * 获取实例，设定需要渲染的数据的类类型
      *
      * @param dataType 数据的类类型
