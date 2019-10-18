@@ -147,7 +147,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 格式化
      */
-    private Map<Integer, String> formats;
+    private Map<Integer, String> formats = new HashMap<>();
     /**
      * 格式样式Map
      */
