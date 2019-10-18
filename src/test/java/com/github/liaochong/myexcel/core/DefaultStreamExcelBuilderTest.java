@@ -12,13 +12,38 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liaochong
  * @version 1.0
  */
 class DefaultStreamExcelBuilderTest extends BasicTest {
+
+    @Test
+    void mapBuild() throws Exception {
+        List<Map<String, String>> list = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Map<String, String> obj = new HashMap<>();
+            obj.put("1", "1");
+            obj.put("2", "2");
+            obj.put("3", "3");
+            obj.put("4", "4");
+            list.add(obj);
+        }
+        List<String> titles = new ArrayList<>();
+        titles.add("1");
+        titles.add("2");
+        titles.add("3");
+        titles.add("4");
+
+        Workbook workbook = DefaultExcelBuilder.getInstance().fieldDisplayOrder(titles).build(list);
+        workbook = DefaultExcelBuilder.getInstance(workbook).fieldDisplayOrder(titles).build(list);
+        FileExportUtil.export(workbook, new File(TEST_DIR + "map_build.xlsx"));
+    }
 
     @Test
     void commonBuild() throws Exception {

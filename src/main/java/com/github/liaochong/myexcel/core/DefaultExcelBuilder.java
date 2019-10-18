@@ -59,9 +59,7 @@ public class DefaultExcelBuilder implements Closeable {
      * @return DefaultExcelBuilder
      */
     public static DefaultExcelBuilder getInstance(Workbook workbook) {
-        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance(workbook));
-        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
-        return defaultExcelBuilder;
+        return new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance(workbook));
     }
 
     /**
