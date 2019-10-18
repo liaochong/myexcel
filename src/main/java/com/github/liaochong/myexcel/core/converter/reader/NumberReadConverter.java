@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.utils.RegexpUtil;
+
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.function.Function;
@@ -46,7 +48,7 @@ public class NumberReadConverter<R extends Number> extends AbstractReadConverter
 
     @Override
     protected R doConvert(String v, Field field) {
-        v = PATTERN_COMMA.matcher(v).replaceAll("");
+        v = RegexpUtil.removeComma(v);
         BigDecimal bigDecimal = new BigDecimal(v);
         String realValue = bigDecimal.toPlainString();
         return func.apply(realValue);

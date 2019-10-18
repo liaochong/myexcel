@@ -50,8 +50,6 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      */
     private static final Pattern PATTERN_DATE_DECIMAL = Pattern.compile("[0-9]+\\.*[0-9]*");
 
-    protected static final Pattern PATTERN_COMMA = Pattern.compile(",");
-
     protected static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private static final LocalDateTime START_LOCAL_DATE_TIME = LocalDateTime.of(1900, 1, 1, 0, 0, 0);

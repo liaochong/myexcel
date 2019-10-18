@@ -12,24 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
+package com.github.liaochong.myexcel.utils;
 
-import com.github.liaochong.myexcel.utils.RegexpUtil;
-
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
+import java.util.regex.Pattern;
 
 /**
- * BigDecimal读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class BigDecimalReadConverter extends AbstractReadConverter<BigDecimal> {
+public final class RegexpUtil {
 
-    @Override
-    public BigDecimal doConvert(String v, Field field) {
-        v = RegexpUtil.removeComma(v);
-        return new BigDecimal(v);
+    private static final Pattern PATTERN_COMMA = Pattern.compile(",");
+
+    public static String removeComma(String content) {
+        if (content == null) {
+            return content;
+        }
+        return PATTERN_COMMA.matcher(content).replaceAll("");
     }
 }

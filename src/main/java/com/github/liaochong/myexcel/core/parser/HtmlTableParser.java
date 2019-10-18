@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -244,6 +245,11 @@ public class HtmlTableParser {
             return;
         }
         if (tdElement.hasAttr("string")) {
+            return;
+        }
+        if (tdElement.hasAttr("double")) {
+            td.setTdContentType(ContentTypeEnum.DOUBLE);
+            td.setContent(RegexpUtil.removeComma(td.getContent()));
             return;
         }
         // 公式设置
