@@ -56,7 +56,10 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class)
+                .rowFilter(row -> row.getRowNum() > 0)
+                .sheet(0, 1)
+                .read(path.toFile());
     }
 
     @Test
