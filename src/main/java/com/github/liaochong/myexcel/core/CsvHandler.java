@@ -42,7 +42,9 @@ import java.util.regex.Pattern;
 @Slf4j
 class CsvHandler<T> {
 
-    private static final Pattern PATTERN = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
+    private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
+
+    private static final Pattern PATTERN_QUOTES = Pattern.compile("[\"]{2}");
 
     private final Map<Integer, Field> fieldMap;
 
@@ -131,7 +133,7 @@ class CsvHandler<T> {
         }
         T obj = dataType.newInstance();
         if (line != null) {
-            String[] strArr = PATTERN.split(line, -1);
+            String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
                 Field field = fieldMap.get(i);
                 if (field == null) {
@@ -144,6 +146,9 @@ class CsvHandler<T> {
                     } else {
                         content = "";
                     }
+                }
+                if (content != null) {
+                    content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
                 ReadContext context = new ReadContext(field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);

@@ -55,7 +55,7 @@ import java.util.stream.IntStream;
  */
 public class CsvBuilder<T> {
 
-    private static final Pattern PATTERN_COMMA = Pattern.compile(",+");
+    private static final Pattern PATTERN_COMMA = Pattern.compile("[,\"]+");
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("\"");
 
