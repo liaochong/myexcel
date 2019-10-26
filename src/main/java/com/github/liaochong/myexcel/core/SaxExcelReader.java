@@ -46,9 +46,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,7 +70,7 @@ public class SaxExcelReader<T> {
 
     private List<T> result = new LinkedList<>();
 
-    private ReadConfig<T> readConfig = new ReadConfig<>();
+    private ReadConfig<T> readConfig = new ReadConfig<>(DEFAULT_SHEET_INDEX);
 
     private SaxExcelReader(Class<T> dataType) {
         this.readConfig.dataType = dataType;
@@ -77,13 +80,13 @@ public class SaxExcelReader<T> {
         return new SaxExcelReader<>(clazz);
     }
 
-    public SaxExcelReader<T> sheet(int index) {
-        this.readConfig.sheetIndex = index;
+    public SaxExcelReader<T> sheet(Integer... indexs) {
+        this.readConfig.sheetIndexs.addAll(Arrays.asList(indexs));
         return this;
     }
 
-    public SaxExcelReader<T> sheet(String sheetName) {
-        this.readConfig.sheetName = sheetName;
+    public SaxExcelReader<T> sheet(String... sheetNames) {
+        this.readConfig.sheetNames.addAll(Arrays.asList(sheetNames));
         return this;
     }
 
@@ -235,10 +238,10 @@ public class SaxExcelReader<T> {
         XSSFReader xssfReader = new XSSFReader(xlsxPackage);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(readConfig.dataType);
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-        if (readConfig.sheetName != null) {
+        if (!readConfig.sheetNames.isEmpty()) {
             while (iter.hasNext()) {
                 try (InputStream stream = iter.next()) {
-                    if (readConfig.sheetName.equals(iter.getSheetName())) {
+                    if (readConfig.sheetNames.contains(iter.getSheetName())) {
                         processSheet(strings, new SaxHandler<>(fieldMap, result, readConfig), stream);
                     }
                 }
@@ -247,10 +250,7 @@ public class SaxExcelReader<T> {
             int index = 0;
             while (iter.hasNext()) {
                 try (InputStream stream = iter.next()) {
-                    if (index > readConfig.sheetIndex) {
-                        break;
-                    }
-                    if (index == readConfig.sheetIndex) {
+                    if (readConfig.sheetIndexs.contains(index)) {
                         processSheet(strings, new SaxHandler<>(fieldMap, result, readConfig), stream);
                     }
                     ++index;
@@ -295,9 +295,9 @@ public class SaxExcelReader<T> {
 
         Class<T> dataType;
 
-        String sheetName;
+        Set<String> sheetNames = new HashSet<>();
 
-        int sheetIndex = DEFAULT_SHEET_INDEX;
+        Set<Integer> sheetIndexs = new HashSet<>();
 
         Consumer<T> consumer;
 
@@ -310,5 +310,9 @@ public class SaxExcelReader<T> {
         BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
         String charset = "UTF-8";
+
+        public ReadConfig(int sheetIndex) {
+            sheetIndexs.add(sheetIndex);
+        }
     }
 }

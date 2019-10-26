@@ -62,7 +62,7 @@ class CsvBuilderTest extends BasicTest {
         for (int i = 0; i < size; i++) {
             CsvPeople csvPeople = new CsvPeople();
             boolean odd = i % 2 == 0;
-            csvPeople.setName(odd ? "张三" : "李四");
+            csvPeople.setName(odd ? "张三\"" : "李四");
             csvPeople.setAge(odd ? 18 : 24);
             csvPeople.setDance(odd ? true : false);
             csvPeople.setMoney(odd ? oddMoney : evenMoney);

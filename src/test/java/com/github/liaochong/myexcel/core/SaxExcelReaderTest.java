@@ -23,6 +23,7 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CsvPeople> csvPeoples = SaxExcelReader.of(CsvPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
+        System.out.println(csvPeoples.size());
     }
 
     @Test
@@ -56,7 +57,11 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class)
+                .rowFilter(row -> row.getRowNum() > 0)
+                .sheet(0, 1)
+                .read(path.toFile());
+        System.out.println(commonPeoples.size());
     }
 
     @Test
@@ -64,7 +69,33 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0)
+                .sheet(0, 1)
+                .read(path.toFile());
+        System.out.println(commonPeoples.size());
+    }
+
+    @Test
+    void readXlsxFileWithName() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class)
+                .rowFilter(row -> row.getRowNum() > 0)
+                .sheet("人员信息", "工作表1")
+                .read(path.toFile());
+        System.out.println(commonPeoples.size());
+    }
+
+    @Test
+    void readXlsFileWithName() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0)
+                .sheet("人员信息", "工作表2")
+                .read(path.toFile());
+        System.out.println(commonPeoples.size());
     }
 
     @Test

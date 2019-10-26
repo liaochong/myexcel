@@ -51,6 +51,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -83,7 +84,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
     private Row currentRow;
 
-    private int sheet;
+    private Set<Integer> sheetIndexs;
 
     private String sheetName;
 
@@ -126,7 +127,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
                           List<T> result,
                           SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.sheet = readConfig.getSheetIndex();
+        this.sheetIndexs = readConfig.getSheetIndexs();
         this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.result = result;
@@ -142,7 +143,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
                           List<T> result,
                           SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(inputStream);
-        this.sheet = readConfig.getSheetIndex();
+        this.sheetIndexs = readConfig.getSheetIndexs();
         this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.result = result;
@@ -190,6 +191,8 @@ class HSSFSaxHandler<T> implements HSSFListener {
                         stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
                     }
                     sheetIndex++;
+                    obj = null;
+                    lastRowNumber = -1;
                     if (orderedBSRs == null) {
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
@@ -328,11 +331,11 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
-            if (readConfig.getSheetName() != null) {
-                if (!readConfig.getSheetName().equals(sheetName)) {
+            if (!readConfig.getSheetNames().isEmpty()) {
+                if (!readConfig.getSheetNames().contains(sheetName)) {
                     return;
                 }
-            } else if (sheetIndex != sheet) {
+            } else if (!sheetIndexs.contains(sheetIndex)) {
                 return;
             }
             if (!rowFilter.test(currentRow)) {

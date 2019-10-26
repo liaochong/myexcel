@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -32,6 +33,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * @author liaochong
@@ -39,6 +41,10 @@ import java.util.function.Predicate;
  */
 @Slf4j
 class CsvHandler<T> {
+
+    private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
+
+    private static final Pattern PATTERN_QUOTES = Pattern.compile("[\"]{2}");
 
     private final Map<Integer, Field> fieldMap;
 
@@ -127,12 +133,22 @@ class CsvHandler<T> {
         }
         T obj = dataType.newInstance();
         if (line != null) {
-            String[] strArr = line.split(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)", -1);
+            String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
-                String content = strArr[i];
                 Field field = fieldMap.get(i);
                 if (field == null) {
                     continue;
+                }
+                String content = strArr[i];
+                if (content != null && content.indexOf(Constants.QUOTES) == 0) {
+                    if (content.length() > 2) {
+                        content = content.substring(1, content.length() - 1);
+                    } else {
+                        content = "";
+                    }
+                }
+                if (content != null) {
+                    content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
                 ReadContext context = new ReadContext(field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);

@@ -55,7 +55,7 @@ import java.util.stream.IntStream;
  */
 public class CsvBuilder<T> {
 
-    private static final Pattern PATTERN_COMMA = Pattern.compile(",+");
+    private static final Pattern PATTERN_QUOTES_PREMISE = Pattern.compile("[,\"]+");
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("\"");
 
@@ -261,7 +261,7 @@ public class CsvBuilder<T> {
                 }
                 String vStr = v.toString();
                 vStr = PATTERN_QUOTES.matcher(vStr).replaceAll("\"\"");
-                boolean hasComma = PATTERN_COMMA.matcher(v.toString()).find();
+                boolean hasComma = PATTERN_QUOTES_PREMISE.matcher(v.toString()).find();
                 if (hasComma) {
                     vStr = "\"" + vStr + "\"";
                 }
