@@ -140,6 +140,9 @@ class CsvHandler<T> {
                     continue;
                 }
                 String content = strArr[i];
+                if (content != null && content.isEmpty()) {
+                    content = null;
+                }
                 if (content != null && content.indexOf(Constants.QUOTES) == 0) {
                     if (content.length() > 2) {
                         content = content.substring(1, content.length() - 1);

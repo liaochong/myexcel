@@ -257,7 +257,7 @@ public class CsvBuilder<T> {
         List<String> content = data.stream().map(d -> {
             return d.stream().map(v -> {
                 if (v == null) {
-                    return "\"\"";
+                    return "";
                 }
                 String vStr = v.toString();
                 vStr = PATTERN_QUOTES.matcher(vStr).replaceAll("\"\"");
