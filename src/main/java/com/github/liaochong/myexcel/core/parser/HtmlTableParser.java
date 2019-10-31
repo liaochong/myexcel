@@ -25,6 +25,7 @@ import org.apache.commons.codec.CharEncoding;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import java.io.File;
@@ -247,6 +248,7 @@ public class HtmlTableParser {
 
     private void setTdContent(Element tdElement, Td td) {
         String tdContent = LINE_FEED_PATTERN.matcher(tdElement.html()).replaceAll("\n");
+        tdContent = Jsoup.clean(tdContent, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
         td.setContent(tdContent);
         if (StringUtil.isBlank(tdContent)) {
             return;
