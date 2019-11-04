@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * @version 1.0
  */
 @Slf4j
-class CsvHandler<T> {
+class CsvReadHandler<T> {
 
     private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
 
@@ -66,9 +66,9 @@ class CsvHandler<T> {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
-    public CsvHandler(InputStream is,
-                      SaxExcelReader.ReadConfig<T> readConfig,
-                      List<T> result) {
+    public CsvReadHandler(InputStream is,
+                          SaxExcelReader.ReadConfig<T> readConfig,
+                          List<T> result) {
         this.is = is;
         try {
             is.reset();
@@ -86,9 +86,9 @@ class CsvHandler<T> {
         this.exceptionFunction = readConfig.getExceptionFunction();
     }
 
-    public CsvHandler(File file,
-                      SaxExcelReader.ReadConfig<T> readConfig,
-                      List<T> result) {
+    public CsvReadHandler(File file,
+                          SaxExcelReader.ReadConfig<T> readConfig,
+                          List<T> result) {
         try {
             this.is = Files.newInputStream(file.toPath());
             this.result = result;

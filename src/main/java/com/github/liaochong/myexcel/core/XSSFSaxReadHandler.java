@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  * @version 1.0
  */
 @Slf4j
-class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
+class XSSFSaxReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private final Map<Integer, Field> fieldMap;
 
@@ -60,7 +60,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
-    public SaxHandler(
+    public XSSFSaxReadHandler(
             Map<Integer, Field> fieldMap,
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {

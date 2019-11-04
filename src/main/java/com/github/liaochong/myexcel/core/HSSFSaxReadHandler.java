@@ -64,7 +64,7 @@ import java.util.function.Predicate;
  * @version 1.0
  */
 @Slf4j
-class HSSFSaxHandler<T> implements HSSFListener {
+class HSSFSaxReadHandler<T> implements HSSFListener {
 
     private final Map<Integer, Field> fieldMap;
 
@@ -123,9 +123,9 @@ class HSSFSaxHandler<T> implements HSSFListener {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
-    public HSSFSaxHandler(File file,
-                          List<T> result,
-                          SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
+    public HSSFSaxReadHandler(File file,
+                              List<T> result,
+                              SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(new FileInputStream(file));
         this.sheetIndexs = readConfig.getSheetIndexs();
         this.dataType = readConfig.getDataType();
@@ -139,9 +139,9 @@ class HSSFSaxHandler<T> implements HSSFListener {
         this.exceptionFunction = readConfig.getExceptionFunction();
     }
 
-    public HSSFSaxHandler(InputStream inputStream,
-                          List<T> result,
-                          SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
+    public HSSFSaxReadHandler(InputStream inputStream,
+                              List<T> result,
+                              SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(inputStream);
         this.sheetIndexs = readConfig.getSheetIndexs();
         this.dataType = readConfig.getDataType();
