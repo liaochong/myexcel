@@ -137,14 +137,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
                 String content = strArr[i];
-                if (isMapType) {
-                    ((Map<Integer, String>) obj).put(i, content);
-                    continue;
-                }
-                Field field = fieldMap.get(i);
-                if (field == null) {
-                    continue;
-                }
                 if (content != null && content.isEmpty()) {
                     content = null;
                 }
@@ -157,6 +149,14 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 }
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
+                }
+                if (isMapType) {
+                    ((Map<Integer, String>) obj).put(i, content);
+                    continue;
+                }
+                Field field = fieldMap.get(i);
+                if (field == null) {
+                    continue;
                 }
                 ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);

@@ -188,11 +188,31 @@ class SaxExcelReaderTest {
     }
 
     @Test
-    void readMap() throws Exception {
+    void readXlsMap() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d);
+        });
+    }
+
+    @Test
+    void readXlsxMap() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d);
+        });
+    }
+
+    @Test
+    void readCsvMap() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(path.toFile(), d -> {
             System.out.println(d);
         });
     }
