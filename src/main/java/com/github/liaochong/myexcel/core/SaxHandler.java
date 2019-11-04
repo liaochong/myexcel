@@ -119,7 +119,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         if (field == null) {
             return;
         }
-        ReadContext context = new ReadContext(field, formattedValue, currentRow.getRowNum(), thisCol);
+        ReadContext<T> context = new ReadContext<>(obj, field, formattedValue, currentRow.getRowNum(), thisCol);
         ReadConverterContext.convert(obj, context, exceptionFunction);
     }
 

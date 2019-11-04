@@ -323,7 +323,7 @@ public class DefaultExcelReader<T> {
                 return;
             }
             String content = formatter.formatCellValue(cell);
-            ReadContext context = new ReadContext(field, content, row.getRowNum(), key);
+            ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), key);
             ReadConverterContext.convert(obj, context, exceptionFunction);
         });
         return obj;

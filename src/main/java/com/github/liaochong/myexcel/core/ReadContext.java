@@ -32,7 +32,9 @@ import java.lang.reflect.Field;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class ReadContext {
+public class ReadContext<T> {
+
+    T object;
 
     Field field;
 

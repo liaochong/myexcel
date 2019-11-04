@@ -325,7 +325,7 @@ class HSSFSaxHandler<T> implements HSSFListener {
             if (field == null) {
                 return;
             }
-            ReadContext context = new ReadContext(field, thisStr, currentRow.getRowNum(), thisColumn);
+            ReadContext<T> context = new ReadContext<>(obj, field, thisStr, currentRow.getRowNum(), thisColumn);
             ReadConverterContext.convert(obj, context, exceptionFunction);
         }
 

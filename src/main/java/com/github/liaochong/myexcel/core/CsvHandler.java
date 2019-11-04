@@ -153,7 +153,7 @@ class CsvHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
-                ReadContext context = new ReadContext(field, content, row.getRowNum(), i);
+                ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);
             }
         }
