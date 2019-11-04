@@ -64,7 +64,7 @@ import java.util.function.Predicate;
  * @version 1.0
  */
 @Slf4j
-class HSSFSaxReadHandler<T> implements HSSFListener {
+class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
 
     private final Map<Integer, Field> fieldMap;
 
@@ -174,6 +174,7 @@ class HSSFSaxReadHandler<T> implements HSSFListener {
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void processRecord(Record record) {
         int thisRow = -1;
@@ -309,11 +310,7 @@ class HSSFSaxReadHandler<T> implements HSSFListener {
             if (!rowFilter.test(currentRow)) {
                 return;
             }
-            try {
-                obj = dataType.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            obj = this.newInstance(dataType);
         }
 
         if (obj == null) {
@@ -321,6 +318,10 @@ class HSSFSaxReadHandler<T> implements HSSFListener {
         }
 
         if (thisStr != null) {
+            if (isMapType) {
+                ((Map<Integer, String>) obj).put(thisColumn, thisStr);
+                return;
+            }
             Field field = fieldMap.get(thisColumn);
             if (field == null) {
                 return;

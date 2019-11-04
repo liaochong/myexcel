@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liaochong
@@ -187,6 +188,12 @@ class SaxExcelReaderTest {
     }
 
     @Test
-    void readThen3() {
+    void readMap() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d);
+        });
     }
 }

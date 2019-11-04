@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  * @version 1.0
  */
 @Slf4j
-class XSSFSaxReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
+class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private final Map<Integer, Field> fieldMap;
 
@@ -77,11 +77,7 @@ class XSSFSaxReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler 
     @Override
     public void startRow(int rowNum) {
         currentRow = new Row(rowNum);
-        try {
-            obj = dataType.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        obj = this.newInstance(dataType);
     }
 
     @Override
@@ -105,6 +101,7 @@ class XSSFSaxReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler 
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
@@ -115,6 +112,10 @@ class XSSFSaxReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler 
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        if (isMapType) {
+            ((Map<Integer, String>) obj).put(thisCol, formattedValue);
+            return;
+        }
         Field field = fieldMap.get(thisCol);
         if (field == null) {
             return;

@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * @version 1.0
  */
 @Slf4j
-class CsvReadHandler<T> {
+class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
 
@@ -127,19 +127,24 @@ class CsvReadHandler<T> {
         }
     }
 
-    private void process(String line, Row row) throws Exception {
+    @SuppressWarnings("unchecked")
+    private void process(String line, Row row) {
         if (!rowFilter.test(row)) {
             return;
         }
-        T obj = dataType.newInstance();
+        T obj = this.newInstance(dataType);
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
+                String content = strArr[i];
+                if (isMapType) {
+                    ((Map<Integer, String>) obj).put(i, content);
+                    continue;
+                }
                 Field field = fieldMap.get(i);
                 if (field == null) {
                     continue;
                 }
-                String content = strArr[i];
                 if (content != null && content.isEmpty()) {
                     content = null;
                 }
