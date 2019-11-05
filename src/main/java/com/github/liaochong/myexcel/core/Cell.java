@@ -14,32 +14,26 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 /**
- * 读取抽象
+ * excel单元格
  *
  * @author liaochong
  * @version 1.0
  */
-abstract class AbstractReadHandler<T> {
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Cell {
 
-    protected boolean isMapType;
+    int rowNum;
 
-    @SuppressWarnings("unchecked")
-    T newInstance(Class<T> clazz) {
-        if (isMapType) {
-            return (T) new LinkedHashMap<Cell, String>();
-        }
-        if (clazz == Map.class) {
-            isMapType = true;
-            return (T) new LinkedHashMap<Cell, String>();
-        }
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    int colNum;
+
+    public Cell(int rowNum, int colNum) {
+        this.rowNum = rowNum;
+        this.colNum = colNum;
     }
 }

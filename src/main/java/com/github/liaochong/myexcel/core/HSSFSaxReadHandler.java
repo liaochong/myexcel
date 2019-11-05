@@ -319,7 +319,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
         if (thisStr != null) {
             if (isMapType) {
-                ((Map<Integer, String>) obj).put(thisColumn, thisStr);
+                ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
                 return;
             }
             Field field = fieldMap.get(thisColumn);

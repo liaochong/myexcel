@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -25,11 +26,10 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
-import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
-import org.apache.poi.openxml4j.exceptions.OLE2NotOfficeXmlFileException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -179,9 +180,11 @@ public class SaxExcelReader<T> {
 
     private void doReadCsv(File file) {
         try {
-            new CsvReadHandler<>(file, readConfig, result).read();
+            new CsvReadHandler<>(Files.newInputStream(file.toPath()), readConfig, result).read();
         } catch (StopReadException e) {
             // do nothing
+        } catch (Throwable throwable) {
+            throw new ExcelReadException("Fail to read file", throwable);
         }
     }
 
@@ -212,17 +215,22 @@ public class SaxExcelReader<T> {
     }
 
     private void doReadInputStream(@NonNull InputStream fileInputStream) {
-        fileInputStream = modifyInputStreamTypeIfNotMarkSupported(fileInputStream);
-        try (OPCPackage p = OPCPackage.open(fileInputStream)) {
-            process(p);
-        } catch (StopReadException e) {
-            // do nothing
-        } catch (OLE2NotOfficeXmlFileException e) {
-            doReadXls(fileInputStream);
-        } catch (NotOfficeXmlFileException e) {
-            doReadCsv(fileInputStream);
-        } catch (Exception e) {
-            throw new SaxReadException("Fail to read file inputStream", e);
+        try (InputStream is = FileMagic.prepareToCheckMagic(fileInputStream);) {
+            FileMagic fm = FileMagic.valueOf(is);
+            switch (fm) {
+                case OLE2:
+                    doReadXls(is);
+                    break;
+                case OOXML:
+                    try (OPCPackage p = OPCPackage.open(is)) {
+                        process(p);
+                    }
+                    break;
+                default:
+                    doReadCsv(is);
+            }
+        } catch (Throwable throwable) {
+            throw new SaxReadException("Fail to read file inputStream", throwable);
         }
     }
 

@@ -113,7 +113,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
         }
         int thisCol = (new CellReference(cellReference)).getCol();
         if (isMapType) {
-            ((Map<Integer, String>) obj).put(thisCol, formattedValue);
+            ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisCol), formattedValue);
             return;
         }
         Field field = fieldMap.get(thisCol);

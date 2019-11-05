@@ -21,12 +21,9 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -70,11 +67,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
         this.is = is;
-        try {
-            is.reset();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         this.result = result;
         this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
@@ -84,25 +76,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
         this.beanFilter = readConfig.getBeanFilter();
         this.charset = readConfig.getCharset();
         this.exceptionFunction = readConfig.getExceptionFunction();
-    }
-
-    public CsvReadHandler(File file,
-                          SaxExcelReader.ReadConfig<T> readConfig,
-                          List<T> result) {
-        try {
-            this.is = Files.newInputStream(file.toPath());
-            this.result = result;
-            this.dataType = readConfig.getDataType();
-            this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-            this.consumer = readConfig.getConsumer();
-            this.function = readConfig.getFunction();
-            this.rowFilter = readConfig.getRowFilter();
-            this.beanFilter = readConfig.getBeanFilter();
-            this.charset = readConfig.getCharset();
-            this.exceptionFunction = readConfig.getExceptionFunction();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void read() {
@@ -151,7 +124,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
                 if (isMapType) {
-                    ((Map<Integer, String>) obj).put(i, content);
+                    ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
                     continue;
                 }
                 Field field = fieldMap.get(i);
