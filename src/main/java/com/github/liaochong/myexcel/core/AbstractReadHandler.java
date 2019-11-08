@@ -14,33 +14,32 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.FieldDefaults;
-
-import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * 读取异常上下文
+ * 读取抽象
  *
  * @author liaochong
  * @version 1.0
  */
-@Getter
-@Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
-public class ReadContext<T> {
+abstract class AbstractReadHandler<T> {
 
-    T object;
+    protected boolean isMapType;
 
-    Field field;
-
-    String val;
-
-    int rowNum;
-
-    int colNum;
+    @SuppressWarnings("unchecked")
+    T newInstance(Class<T> clazz) {
+        if (isMapType) {
+            return (T) new LinkedHashMap<Cell, String>();
+        }
+        if (clazz == Map.class) {
+            isMapType = true;
+            return (T) new LinkedHashMap<Cell, String>();
+        }
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

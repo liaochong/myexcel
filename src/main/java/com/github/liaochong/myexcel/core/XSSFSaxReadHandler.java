@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  * @version 1.0
  */
 @Slf4j
-class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
+class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private final Map<Integer, Field> fieldMap;
 
@@ -60,7 +60,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
-    public SaxHandler(
+    public XSSFSaxReadHandler(
             Map<Integer, Field> fieldMap,
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
@@ -77,11 +77,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
     @Override
     public void startRow(int rowNum) {
         currentRow = new Row(rowNum);
-        try {
-            obj = dataType.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        obj = this.newInstance(dataType);
     }
 
     @Override
@@ -105,6 +101,7 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
@@ -115,11 +112,15 @@ class SaxHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        if (isMapType) {
+            ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisCol), formattedValue);
+            return;
+        }
         Field field = fieldMap.get(thisCol);
         if (field == null) {
             return;
         }
-        ReadContext context = new ReadContext(field, formattedValue, currentRow.getRowNum(), thisCol);
+        ReadContext<T> context = new ReadContext<>(obj, field, formattedValue, currentRow.getRowNum(), thisCol);
         ReadConverterContext.convert(obj, context, exceptionFunction);
     }
 

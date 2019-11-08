@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liaochong
@@ -23,6 +24,15 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CsvPeople> csvPeoples = SaxExcelReader.of(CsvPeople.class).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
+        System.out.println(csvPeoples.size());
+    }
+
+    @Test
+    void csvReadInputStream() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<Map> csvPeoples = SaxExcelReader.of(Map.class).read(Files.newInputStream(path));
         System.out.println(csvPeoples.size());
     }
 
@@ -181,12 +191,37 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        SaxExcelReader.of(CsvPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
             System.out.println(d.getMoney());
         });
     }
 
     @Test
-    void readThen3() {
+    void readXlsMap() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d);
+        });
+    }
+
+    @Test
+    void readXlsxMap() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<Map> result = SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).read(Files.newInputStream(path));
+        System.out.println("");
+    }
+
+    @Test
+    void readCsvMap() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(path.toFile(), d -> {
+            System.out.println(d);
+        });
     }
 }

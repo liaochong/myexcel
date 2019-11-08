@@ -12,35 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core;
+package com.github.liaochong.myexcel.core.pojo;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.lang.reflect.Field;
-
 /**
- * 读取异常上下文
- *
  * @author liaochong
  * @version 1.0
  */
-@Getter
-@Setter
+@Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
-public class ReadContext<T> {
+public class Product {
 
-    T object;
+    String category;
 
-    Field field;
+    String name;
 
-    String val;
-
-    int rowNum;
-
-    int colNum;
+    Integer count;
 }

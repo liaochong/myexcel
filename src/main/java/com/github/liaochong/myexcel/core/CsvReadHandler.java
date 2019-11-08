@@ -21,12 +21,9 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -40,7 +37,7 @@ import java.util.regex.Pattern;
  * @version 1.0
  */
 @Slf4j
-class CsvHandler<T> {
+class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
 
@@ -66,15 +63,10 @@ class CsvHandler<T> {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
-    public CsvHandler(InputStream is,
-                      SaxExcelReader.ReadConfig<T> readConfig,
-                      List<T> result) {
+    public CsvReadHandler(InputStream is,
+                          SaxExcelReader.ReadConfig<T> readConfig,
+                          List<T> result) {
         this.is = is;
-        try {
-            is.reset();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         this.result = result;
         this.dataType = readConfig.getDataType();
         this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
@@ -84,25 +76,6 @@ class CsvHandler<T> {
         this.beanFilter = readConfig.getBeanFilter();
         this.charset = readConfig.getCharset();
         this.exceptionFunction = readConfig.getExceptionFunction();
-    }
-
-    public CsvHandler(File file,
-                      SaxExcelReader.ReadConfig<T> readConfig,
-                      List<T> result) {
-        try {
-            this.is = Files.newInputStream(file.toPath());
-            this.result = result;
-            this.dataType = readConfig.getDataType();
-            this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-            this.consumer = readConfig.getConsumer();
-            this.function = readConfig.getFunction();
-            this.rowFilter = readConfig.getRowFilter();
-            this.beanFilter = readConfig.getBeanFilter();
-            this.charset = readConfig.getCharset();
-            this.exceptionFunction = readConfig.getExceptionFunction();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void read() {
@@ -127,18 +100,15 @@ class CsvHandler<T> {
         }
     }
 
-    private void process(String line, Row row) throws Exception {
+    @SuppressWarnings("unchecked")
+    private void process(String line, Row row) {
         if (!rowFilter.test(row)) {
             return;
         }
-        T obj = dataType.newInstance();
+        T obj = this.newInstance(dataType);
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
-                Field field = fieldMap.get(i);
-                if (field == null) {
-                    continue;
-                }
                 String content = strArr[i];
                 if (content != null && content.isEmpty()) {
                     content = null;
@@ -153,7 +123,15 @@ class CsvHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
-                ReadContext context = new ReadContext(field, content, row.getRowNum(), i);
+                if (isMapType) {
+                    ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
+                    continue;
+                }
+                Field field = fieldMap.get(i);
+                if (field == null) {
+                    continue;
+                }
+                ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);
             }
         }

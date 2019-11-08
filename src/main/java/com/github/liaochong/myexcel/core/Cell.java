@@ -15,32 +15,25 @@
 package com.github.liaochong.myexcel.core;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.lang.reflect.Field;
-
 /**
- * 读取异常上下文
+ * excel单元格
  *
  * @author liaochong
  * @version 1.0
  */
-@Getter
-@Setter
+@Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
-public class ReadContext<T> {
-
-    T object;
-
-    Field field;
-
-    String val;
+public class Cell {
 
     int rowNum;
 
     int colNum;
+
+    public Cell(int rowNum, int colNum) {
+        this.rowNum = rowNum;
+        this.colNum = colNum;
+    }
 }
