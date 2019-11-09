@@ -56,7 +56,7 @@ public final class ReflectUtil {
             return Collections.emptyMap();
         }
         Map<Integer, Field> fieldMap = FIELD_CACHE.get(dataType);
-        if (Objects.nonNull(fieldMap)) {
+        if (fieldMap != null) {
             return fieldMap;
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
@@ -90,7 +90,7 @@ public final class ReflectUtil {
      * @return 字段值
      */
     public static Object getFieldValue(Object o, Field field) {
-        if (Objects.isNull(o) || Objects.isNull(field)) {
+        if (o == null || field == null) {
             return null;
         }
         try {

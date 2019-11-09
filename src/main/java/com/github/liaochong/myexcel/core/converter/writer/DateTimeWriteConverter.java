@@ -27,7 +27,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * @author liaochong
@@ -77,7 +76,7 @@ public class DateTimeWriteConverter implements WriteConverter {
      */
     private DateTimeFormatter getDateTimeFormatter(String dateFormat) {
         DateTimeFormatter formatter = DATETIME_FORMATTER_CONTAINER.get(dateFormat);
-        if (Objects.isNull(formatter)) {
+        if (formatter == null) {
             formatter = DateTimeFormatter.ofPattern(dateFormat);
             DATETIME_FORMATTER_CONTAINER.cache(dateFormat, formatter);
         }

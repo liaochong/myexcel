@@ -23,7 +23,6 @@ import org.jsoup.nodes.Element;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 样式工具
@@ -47,7 +46,7 @@ public final class StyleUtil {
             return Collections.emptyMap();
         }
         Map<String, String> cacheResult = STYLE_CACHE.get(style);
-        if (Objects.nonNull(cacheResult)) {
+        if (cacheResult != null) {
             return cacheResult;
         }
         String[] styleArr = style.split(";");
@@ -81,12 +80,12 @@ public final class StyleUtil {
      * @return 结果
      */
     public static Map<String, String> mixStyle(Map<String, String> originStyle, Map<String, String> targetStyle) {
-        if (Objects.isNull(targetStyle) && Objects.isNull(originStyle)) {
+        if (targetStyle == null && originStyle == null) {
             return Collections.emptyMap();
         }
-        if (Objects.isNull(targetStyle)) {
+        if (targetStyle == null) {
             return new HashMap<>(originStyle);
-        } else if (Objects.isNull(originStyle)) {
+        } else if (originStyle == null) {
             return new HashMap<>(targetStyle);
         }
         // 相加的两倍，防止扩容。

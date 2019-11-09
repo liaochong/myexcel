@@ -21,7 +21,6 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +48,7 @@ public final class TextAlignStyle {
     }
 
     public static void setTextAlign(CellStyle cellStyle, Map<String, String> tdStyle) {
-        if (Objects.isNull(tdStyle)) {
+        if (tdStyle == null) {
             return;
         }
         String textAlign = tdStyle.get(TEXT_ALIGN);

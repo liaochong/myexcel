@@ -38,7 +38,7 @@ public final class StringUtil {
     }
 
     public static boolean isBlank(String content) {
-        return Objects.isNull(content) || content.trim().length() == 0;
+        return content == null || content.trim().length() == 0;
     }
 
     public static boolean isNotBlank(String content) {

@@ -19,7 +19,6 @@ import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import lombok.experimental.UtilityClass;
 
-import java.util.Objects;
 import java.util.function.IntSupplier;
 import java.util.regex.Pattern;
 
@@ -47,7 +46,7 @@ public final class TdUtil {
 
     public static int getSpan(String span) {
         Integer cacheResult = SPAN_CACHE.get(span);
-        if (Objects.nonNull(cacheResult)) {
+        if (cacheResult != null) {
             return cacheResult;
         }
         if (!isSpanValid(span)) {
@@ -68,7 +67,7 @@ public final class TdUtil {
     }
 
     public static int getStringWidth(String s, double shift) {
-        if (Objects.isNull(s)) {
+        if (s == null) {
             return 1;
         }
         // 最小为1
