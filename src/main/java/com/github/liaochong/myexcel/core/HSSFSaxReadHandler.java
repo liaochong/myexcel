@@ -53,9 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * HSSF sax处理
@@ -65,22 +62,6 @@ import java.util.function.Predicate;
  */
 @Slf4j
 class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
-
-    private final Map<Integer, Field> fieldMap;
-
-    private List<T> result;
-
-    private T obj;
-
-    private Class<T> dataType;
-
-    private Consumer<T> consumer;
-
-    private Function<T, Boolean> function;
-
-    private Predicate<Row> rowFilter;
-
-    private Predicate<T> beanFilter;
 
     private Row currentRow;
 
@@ -126,17 +107,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     public HSSFSaxReadHandler(File file,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
-        this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.sheetIndexs = readConfig.getSheetIndexs();
-        this.dataType = readConfig.getDataType();
-        this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        this.result = result;
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
-        this.readConfig = readConfig;
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this(new FileInputStream(file), result, readConfig);
     }
 
     public HSSFSaxReadHandler(InputStream inputStream,
@@ -307,6 +278,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
             currentRow = new Row(thisRow);
+            this.addTitles(thisStr, thisRow, thisColumn);
             if (!rowFilter.test(currentRow)) {
                 return;
             }
@@ -339,6 +311,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             } else if (!sheetIndexs.contains(sheetIndex)) {
                 return;
             }
+            initFieldMap(currentRow.getRowNum());
             if (!rowFilter.test(currentRow)) {
                 return;
             }

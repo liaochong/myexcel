@@ -16,20 +16,14 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * sax处理
@@ -40,27 +34,9 @@ import java.util.function.Predicate;
 @Slf4j
 class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
-    private Map<Integer, Field> fieldMap;
-
-    private List<T> result;
-
-    private T obj;
-
-    private Class<T> dataType;
-
-    private Consumer<T> consumer;
-
-    private Function<T, Boolean> function;
-
-    private Predicate<Row> rowFilter;
-
-    private Predicate<T> beanFilter;
-
     private Row currentRow;
 
     private int count;
-
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
     public XSSFSaxReadHandler(
             Map<Integer, Field> fieldMap,
@@ -84,13 +60,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void endRow(int rowNum) {
-        if (rowNum == 0 && fieldMap.isEmpty()) {
-            Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(dataType);
-            fieldMap = new HashMap<>(titleFieldMap.size());
-            titles.forEach((k, v) -> {
-                fieldMap.put(v, titleFieldMap.get(k));
-            });
-        }
+        this.initFieldMap(rowNum);
         if (!rowFilter.test(currentRow)) {
             return;
         }
@@ -118,9 +88,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
-        if (currentRow.getRowNum() == 0) {
-            titles.put(formattedValue, thisCol);
-        }
+        this.addTitles(formattedValue, currentRow.getRowNum(), thisCol);
         if (!rowFilter.test(currentRow)) {
             return;
         }

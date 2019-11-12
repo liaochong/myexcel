@@ -26,10 +26,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -43,25 +39,9 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("[\"]{2}");
 
-    private final Map<Integer, Field> fieldMap;
-
     private InputStream is;
 
-    private List<T> result;
-
-    private Class<T> dataType;
-
-    private Consumer<T> consumer;
-
-    private Function<T, Boolean> function;
-
-    private Predicate<Row> rowFilter;
-
-    private Predicate<T> beanFilter;
-
     private String charset;
-
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
@@ -89,6 +69,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             while ((line = bufferedReader.readLine()) != null) {
                 Row row = new Row(lineIndex);
                 this.process(line, row);
+                this.initFieldMap(lineIndex);
                 lineIndex++;
             }
             log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
@@ -123,6 +104,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
+                this.addTitles(content, row.getRowNum(), i);
                 if (isMapType) {
                     ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
                     continue;
