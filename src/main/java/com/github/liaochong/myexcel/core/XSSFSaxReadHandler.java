@@ -16,12 +16,14 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -38,7 +40,7 @@ import java.util.function.Predicate;
 @Slf4j
 class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
-    private final Map<Integer, Field> fieldMap;
+    private Map<Integer, Field> fieldMap;
 
     private List<T> result;
 
@@ -82,6 +84,13 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void endRow(int rowNum) {
+        if (rowNum == 0 && fieldMap.isEmpty()) {
+            Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(dataType);
+            fieldMap = new HashMap<>(titleFieldMap.size());
+            titles.forEach((k, v) -> {
+                fieldMap.put(v, titleFieldMap.get(k));
+            });
+        }
         if (!rowFilter.test(currentRow)) {
             return;
         }
@@ -105,13 +114,16 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
-        if (!rowFilter.test(currentRow)) {
-            return;
-        }
         if (cellReference == null) {
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        if (currentRow.getRowNum() == 0) {
+            titles.put(formattedValue, thisCol);
+        }
+        if (!rowFilter.test(currentRow)) {
+            return;
+        }
         if (isMapType) {
             ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisCol), formattedValue);
             return;

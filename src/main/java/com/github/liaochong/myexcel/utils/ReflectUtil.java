@@ -39,6 +39,8 @@ public final class ReflectUtil {
 
     private static final WeakCache<Class<?>, Map<Integer, Field>> FIELD_CACHE = new WeakCache<>();
 
+    private static final WeakCache<Class<?>, Map<String, Field>> TITLE_FIELD_CACHE = new WeakCache<>();
+
     /**
      * 获取指定类的所有字段，包含父类字段，其中
      *
@@ -79,6 +81,37 @@ public final class ReflectUtil {
             fieldMap.put(index, field);
         }
         FIELD_CACHE.cache(dataType, fieldMap);
+        return fieldMap;
+    }
+
+    public static Map<String, Field> getFieldMapOfTitleExcelColumn(Class<?> dataType) {
+        if (dataType == Map.class) {
+            return Collections.emptyMap();
+        }
+        Map<String, Field> fieldMap = TITLE_FIELD_CACHE.get(dataType);
+        if (fieldMap != null) {
+            return fieldMap;
+        }
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        if (fields.isEmpty()) {
+            throw new IllegalStateException("There is no field with @ExcelColumn");
+        }
+        fieldMap = new HashMap<>(fields.size());
+        for (Field field : fields) {
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            String title = excelColumn.title();
+            if (title.isEmpty()) {
+                continue;
+            }
+            Field f = fieldMap.get(title);
+            if (f != null) {
+                throw new IllegalStateException("Title cannot be repeated. Please check it.");
+            }
+            field.setAccessible(true);
+            fieldMap.put(title, field);
+        }
+        TITLE_FIELD_CACHE.cache(dataType, fieldMap);
         return fieldMap;
     }
 

@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core;
 
+
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,6 +28,8 @@ import java.util.Map;
 abstract class AbstractReadHandler<T> {
 
     protected boolean isMapType;
+
+    protected Map<String, Integer> titles = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     T newInstance(Class<T> clazz) {
