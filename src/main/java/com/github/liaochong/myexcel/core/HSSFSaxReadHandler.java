@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
@@ -52,7 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 /**
  * HSSF sax处理
@@ -68,8 +66,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     private Set<Integer> sheetIndexs;
 
     private String sheetName;
-
-    private SaxExcelReader.ReadConfig<T> readConfig;
 
     private POIFSFileSystem fs;
 
@@ -102,8 +98,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     private int nextColumn;
     private boolean outputNextStringRecord;
 
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
-
     public HSSFSaxReadHandler(File file,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
@@ -115,15 +109,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(inputStream);
         this.sheetIndexs = readConfig.getSheetIndexs();
-        this.dataType = readConfig.getDataType();
-        this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        this.result = result;
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
-        this.readConfig = readConfig;
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this.init(result, readConfig);
     }
 
     public void process() throws IOException {

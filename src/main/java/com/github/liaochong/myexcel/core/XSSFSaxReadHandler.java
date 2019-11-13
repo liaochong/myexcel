@@ -39,17 +39,9 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     private int count;
 
     public XSSFSaxReadHandler(
-            Map<Integer, Field> fieldMap,
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
-        this.fieldMap = fieldMap;
-        this.result = result;
-        this.dataType = readConfig.getDataType();
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this.init(result, readConfig);
     }
 
     @Override

@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -47,15 +46,8 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
         this.is = is;
-        this.result = result;
-        this.dataType = readConfig.getDataType();
-        this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
         this.charset = readConfig.getCharset();
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this.init(result, readConfig);
     }
 
     public void read() {

@@ -18,7 +18,6 @@ import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -45,13 +44,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -244,13 +241,12 @@ public class SaxExcelReader<T> {
         long startTime = System.currentTimeMillis();
         ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage);
         XSSFReader xssfReader = new XSSFReader(xlsxPackage);
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(readConfig.dataType);
         XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
         if (!readConfig.sheetNames.isEmpty()) {
             while (iter.hasNext()) {
                 try (InputStream stream = iter.next()) {
                     if (readConfig.sheetNames.contains(iter.getSheetName())) {
-                        processSheet(strings, new XSSFSaxReadHandler<>(fieldMap, result, readConfig), stream);
+                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                     }
                 }
             }
@@ -259,7 +255,7 @@ public class SaxExcelReader<T> {
             while (iter.hasNext()) {
                 try (InputStream stream = iter.next()) {
                     if (readConfig.sheetIndexs.contains(index)) {
-                        processSheet(strings, new XSSFSaxReadHandler<>(fieldMap, result, readConfig), stream);
+                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                     }
                     ++index;
                 }

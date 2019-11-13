@@ -57,6 +57,22 @@ abstract class AbstractReadHandler<T> {
 
     protected BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
+    protected SaxExcelReader.ReadConfig<T> readConfig;
+
+    protected void init(
+            List<T> result,
+            SaxExcelReader.ReadConfig<T> readConfig) {
+        this.result = result;
+        dataType = readConfig.getDataType();
+        fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        consumer = readConfig.getConsumer();
+        function = readConfig.getFunction();
+        rowFilter = readConfig.getRowFilter();
+        beanFilter = readConfig.getBeanFilter();
+        exceptionFunction = readConfig.getExceptionFunction();
+        this.readConfig = readConfig;
+    }
+
     @SuppressWarnings("unchecked")
     T newInstance(Class<T> clazz) {
         if (isMapType) {
