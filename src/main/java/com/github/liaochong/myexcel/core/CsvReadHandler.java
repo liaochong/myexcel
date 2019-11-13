@@ -94,6 +94,9 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
                 this.addTitleConsumer.accept(content, row.getRowNum(), i);
+                if (!rowFilter.test(row)) {
+                    continue;
+                }
                 if (isMapType) {
                     ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
                     continue;
