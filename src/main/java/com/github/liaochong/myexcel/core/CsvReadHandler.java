@@ -75,9 +75,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     @SuppressWarnings("unchecked")
     private void process(String line, Row row) {
-        if (!rowFilter.test(row)) {
-            return;
-        }
         T obj = this.newInstance(dataType);
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
@@ -96,7 +93,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
-                this.addTitles(content, row.getRowNum(), i);
+                this.addTitleConsumer.accept(content, row.getRowNum(), i);
                 if (isMapType) {
                     ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
                     continue;
@@ -108,6 +105,9 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);
             }
+        }
+        if (!rowFilter.test(row)) {
+            return;
         }
         if (!beanFilter.test(obj)) {
             return;

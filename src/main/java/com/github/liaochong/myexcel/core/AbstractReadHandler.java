@@ -59,6 +59,9 @@ abstract class AbstractReadHandler<T> {
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
+    protected AddTitleConsumer<String, Integer, Integer> addTitleConsumer = (v, rowNum, colNum) -> {
+    };
+
     protected void init(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
@@ -71,6 +74,9 @@ abstract class AbstractReadHandler<T> {
         beanFilter = readConfig.getBeanFilter();
         exceptionFunction = readConfig.getExceptionFunction();
         this.readConfig = readConfig;
+        if (fieldMap.isEmpty()) {
+            addTitleConsumer = this::addTitles;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -90,7 +96,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     protected void initFieldMap(int rowNum) {
-        if (rowNum == 0 && fieldMap.isEmpty()) {
+        if (rowNum != 0 || !fieldMap.isEmpty()) {
             return;
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(dataType);
@@ -100,8 +106,8 @@ abstract class AbstractReadHandler<T> {
         });
     }
 
-    protected void addTitles(String formattedValue, int rowNum, int thisCol) {
-        if (rowNum == 0 && fieldMap.isEmpty()) {
+    private void addTitles(String formattedValue, int rowNum, int thisCol) {
+        if (rowNum == 0) {
             titles.put(formattedValue, thisCol);
         }
     }

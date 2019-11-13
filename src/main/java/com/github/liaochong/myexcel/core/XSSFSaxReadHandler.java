@@ -80,7 +80,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
-        this.addTitles(formattedValue, currentRow.getRowNum(), thisCol);
+        this.addTitleConsumer.accept(formattedValue, currentRow.getRowNum(), thisCol);
         if (!rowFilter.test(currentRow)) {
             return;
         }

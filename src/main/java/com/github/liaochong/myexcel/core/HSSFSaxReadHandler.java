@@ -259,45 +259,41 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisColumn = mc.getColumn();
             thisStr = null;
         }
+        this.addTitleConsumer.accept(thisStr, thisRow, thisColumn);
 
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
             currentRow = new Row(thisRow);
-            this.addTitles(thisStr, thisRow, thisColumn);
-            if (!rowFilter.test(currentRow)) {
-                return;
-            }
             obj = this.newInstance(dataType);
         }
 
-        if (obj == null) {
-            return;
-        }
-
         if (thisStr != null) {
-            if (isMapType) {
-                ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
-                return;
+            if (rowFilter.test(currentRow)) {
+                if (isMapType) {
+                    ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
+                } else {
+                    Field field = fieldMap.get(thisColumn);
+                    if (field != null) {
+                        ReadContext<T> context = new ReadContext<>(obj, field, thisStr, currentRow.getRowNum(), thisColumn);
+                        ReadConverterContext.convert(obj, context, exceptionFunction);
+                    }
+                }
             }
-            Field field = fieldMap.get(thisColumn);
-            if (field == null) {
-                return;
-            }
-            ReadContext<T> context = new ReadContext<>(obj, field, thisStr, currentRow.getRowNum(), thisColumn);
-            ReadConverterContext.convert(obj, context, exceptionFunction);
         }
 
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
             if (!readConfig.getSheetNames().isEmpty()) {
                 if (!readConfig.getSheetNames().contains(sheetName)) {
+                    this.titles.clear();
                     return;
                 }
             } else if (!sheetIndexs.contains(sheetIndex)) {
+                this.titles.clear();
                 return;
             }
-            initFieldMap(currentRow.getRowNum());
+            this.initFieldMap(currentRow.getRowNum());
             if (!rowFilter.test(currentRow)) {
                 return;
             }

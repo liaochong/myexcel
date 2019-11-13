@@ -184,8 +184,28 @@ class SaxExcelReaderTest {
     }
 
     @Test
-    void readWithTitle() throws Exception {
+    void readXlsxWithTitle() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(TitlePeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d.getMoney());
+        });
+    }
+
+    @Test
+    void readXlsWithTitle() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(TitlePeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d.getMoney());
+        });
+    }
+
+    @Test
+    void readCsvWithTitle() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         SaxExcelReader.of(TitlePeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
