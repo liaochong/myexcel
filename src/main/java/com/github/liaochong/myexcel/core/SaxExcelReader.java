@@ -79,11 +79,13 @@ public class SaxExcelReader<T> {
     }
 
     public SaxExcelReader<T> sheet(Integer... indexs) {
+        this.readConfig.sheetIndexs.clear();
         this.readConfig.sheetIndexs.addAll(Arrays.asList(indexs));
         return this;
     }
 
     public SaxExcelReader<T> sheet(String... sheetNames) {
+        this.readConfig.sheetNames.clear();
         this.readConfig.sheetNames.addAll(Arrays.asList(sheetNames));
         return this;
     }
