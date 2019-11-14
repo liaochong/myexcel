@@ -19,7 +19,6 @@ import org.apache.poi.ss.usermodel.CellStyle;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +45,7 @@ public final class BorderStyle {
     }
 
     public static void setBorder(CellStyle cellStyle, Map<String, String> tdStyle) {
-        if (Objects.isNull(tdStyle)) {
+        if (tdStyle == null) {
             return;
         }
         String borderLeftStyle = tdStyle.get(BORDER_LEFT_STYLE);

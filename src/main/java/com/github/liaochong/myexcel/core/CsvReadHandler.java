@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -26,10 +25,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -43,39 +38,16 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("[\"]{2}");
 
-    private final Map<Integer, Field> fieldMap;
-
     private InputStream is;
 
-    private List<T> result;
-
-    private Class<T> dataType;
-
-    private Consumer<T> consumer;
-
-    private Function<T, Boolean> function;
-
-    private Predicate<Row> rowFilter;
-
-    private Predicate<T> beanFilter;
-
     private String charset;
-
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
         this.is = is;
-        this.result = result;
-        this.dataType = readConfig.getDataType();
-        this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
         this.charset = readConfig.getCharset();
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this.init(result, readConfig);
     }
 
     public void read() {
@@ -89,6 +61,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             while ((line = bufferedReader.readLine()) != null) {
                 Row row = new Row(lineIndex);
                 this.process(line, row);
+                this.initFieldMap(lineIndex);
                 lineIndex++;
             }
             log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
@@ -102,9 +75,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     @SuppressWarnings("unchecked")
     private void process(String line, Row row) {
-        if (!rowFilter.test(row)) {
-            return;
-        }
         T obj = this.newInstance(dataType);
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
@@ -123,6 +93,10 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
+                this.addTitleConsumer.accept(content, row.getRowNum(), i);
+                if (!rowFilter.test(row)) {
+                    continue;
+                }
                 if (isMapType) {
                     ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
                     continue;
@@ -134,6 +108,9 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), i);
                 ReadConverterContext.convert(obj, context, exceptionFunction);
             }
+        }
+        if (!rowFilter.test(row)) {
+            return;
         }
         if (!beanFilter.test(obj)) {
             return;

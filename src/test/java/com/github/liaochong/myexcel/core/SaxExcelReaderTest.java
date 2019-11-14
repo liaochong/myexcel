@@ -3,6 +3,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
 import com.github.liaochong.myexcel.core.pojo.ExceptionPeople;
+import com.github.liaochong.myexcel.core.pojo.TitlePeople;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
@@ -183,7 +184,33 @@ class SaxExcelReaderTest {
     }
 
     @Test
-    void readThenFile() {
+    void readXlsxWithTitle() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(TitlePeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d.getMoney());
+        });
+    }
+
+    @Test
+    void readXlsWithTitle() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(TitlePeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d.getMoney());
+        });
+    }
+
+    @Test
+    void readCsvWithTitle() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(TitlePeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), d -> {
+            System.out.println(d.getMoney());
+        });
     }
 
     @Test

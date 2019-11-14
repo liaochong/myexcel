@@ -24,7 +24,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 
 import java.awt.*;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author liaochong
@@ -36,11 +35,11 @@ public final class BackgroundStyle {
     public static final String BACKGROUND_COLOR = "background-color";
 
     public static void setBackgroundColor(CellStyle style, Map<String, String> tdStyle, CustomColor customColor) {
-        if (Objects.isNull(tdStyle)) {
+        if (tdStyle == null) {
             return;
         }
         String color = tdStyle.get(BACKGROUND_COLOR);
-        if (Objects.isNull(color)) {
+        if (color == null) {
             return;
         }
         Short colorPredefined = ColorUtil.getPredefinedColorIndex(color);
@@ -58,7 +57,7 @@ public final class BackgroundStyle {
     }
 
     private static void setCustomColor(CellStyle style, int[] rgb, CustomColor customColor) {
-        if (Objects.isNull(rgb)) {
+        if (rgb == null) {
             return;
         }
         XSSFCellStyle xssfCellStyle = (XSSFCellStyle) style;

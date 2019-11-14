@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
@@ -52,10 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * HSSF sax处理
@@ -66,29 +61,11 @@ import java.util.function.Predicate;
 @Slf4j
 class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
 
-    private final Map<Integer, Field> fieldMap;
-
-    private List<T> result;
-
-    private T obj;
-
-    private Class<T> dataType;
-
-    private Consumer<T> consumer;
-
-    private Function<T, Boolean> function;
-
-    private Predicate<Row> rowFilter;
-
-    private Predicate<T> beanFilter;
-
     private Row currentRow;
 
     private Set<Integer> sheetIndexs;
 
     private String sheetName;
-
-    private SaxExcelReader.ReadConfig<T> readConfig;
 
     private POIFSFileSystem fs;
 
@@ -121,22 +98,10 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     private int nextColumn;
     private boolean outputNextStringRecord;
 
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
-
     public HSSFSaxReadHandler(File file,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
-        this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.sheetIndexs = readConfig.getSheetIndexs();
-        this.dataType = readConfig.getDataType();
-        this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        this.result = result;
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
-        this.readConfig = readConfig;
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this(new FileInputStream(file), result, readConfig);
     }
 
     public HSSFSaxReadHandler(InputStream inputStream,
@@ -144,15 +109,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         this.fs = new POIFSFileSystem(inputStream);
         this.sheetIndexs = readConfig.getSheetIndexs();
-        this.dataType = readConfig.getDataType();
-        this.fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        this.result = result;
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
-        this.readConfig = readConfig;
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this.init(result, readConfig);
     }
 
     public void process() throws IOException {
@@ -302,43 +259,41 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisColumn = mc.getColumn();
             thisStr = null;
         }
+        this.addTitleConsumer.accept(thisStr, thisRow, thisColumn);
 
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
             currentRow = new Row(thisRow);
-            if (!rowFilter.test(currentRow)) {
-                return;
-            }
             obj = this.newInstance(dataType);
         }
 
-        if (obj == null) {
-            return;
-        }
-
         if (thisStr != null) {
-            if (isMapType) {
-                ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
-                return;
+            if (rowFilter.test(currentRow)) {
+                if (isMapType) {
+                    ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
+                } else {
+                    Field field = fieldMap.get(thisColumn);
+                    if (field != null) {
+                        ReadContext<T> context = new ReadContext<>(obj, field, thisStr, currentRow.getRowNum(), thisColumn);
+                        ReadConverterContext.convert(obj, context, exceptionFunction);
+                    }
+                }
             }
-            Field field = fieldMap.get(thisColumn);
-            if (field == null) {
-                return;
-            }
-            ReadContext<T> context = new ReadContext<>(obj, field, thisStr, currentRow.getRowNum(), thisColumn);
-            ReadConverterContext.convert(obj, context, exceptionFunction);
         }
 
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
             if (!readConfig.getSheetNames().isEmpty()) {
                 if (!readConfig.getSheetNames().contains(sheetName)) {
+                    this.titles.clear();
                     return;
                 }
             } else if (!sheetIndexs.contains(sheetIndex)) {
+                this.titles.clear();
                 return;
             }
+            this.initFieldMap(currentRow.getRowNum());
             if (!rowFilter.test(currentRow)) {
                 return;
             }

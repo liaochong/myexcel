@@ -27,6 +27,7 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -53,7 +54,7 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
-public class CsvBuilder<T> {
+public class CsvBuilder<T> implements Closeable {
 
     private static final Pattern PATTERN_QUOTES_PREMISE = Pattern.compile("[,\"]+");
 
@@ -273,6 +274,17 @@ public class CsvBuilder<T> {
             Files.write(csv.getFilePath(), content, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        clear();
+    }
+
+    public void clear() {
+        if (csv != null) {
+            csv.clear();
         }
     }
 }

@@ -24,10 +24,6 @@ import org.apache.poi.xssf.usermodel.XSSFComment;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * sax处理
@@ -38,40 +34,14 @@ import java.util.function.Predicate;
 @Slf4j
 class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
-    private final Map<Integer, Field> fieldMap;
-
-    private List<T> result;
-
-    private T obj;
-
-    private Class<T> dataType;
-
-    private Consumer<T> consumer;
-
-    private Function<T, Boolean> function;
-
-    private Predicate<Row> rowFilter;
-
-    private Predicate<T> beanFilter;
-
     private Row currentRow;
 
     private int count;
 
-    private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
-
     public XSSFSaxReadHandler(
-            Map<Integer, Field> fieldMap,
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
-        this.fieldMap = fieldMap;
-        this.result = result;
-        this.dataType = readConfig.getDataType();
-        this.consumer = readConfig.getConsumer();
-        this.function = readConfig.getFunction();
-        this.rowFilter = readConfig.getRowFilter();
-        this.beanFilter = readConfig.getBeanFilter();
-        this.exceptionFunction = readConfig.getExceptionFunction();
+        this.init(result, readConfig);
     }
 
     @Override
@@ -82,6 +52,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void endRow(int rowNum) {
+        this.initFieldMap(rowNum);
         if (!rowFilter.test(currentRow)) {
             return;
         }
@@ -105,13 +76,14 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
-        if (!rowFilter.test(currentRow)) {
-            return;
-        }
         if (cellReference == null) {
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        this.addTitleConsumer.accept(formattedValue, currentRow.getRowNum(), thisCol);
+        if (!rowFilter.test(currentRow)) {
+            return;
+        }
         if (isMapType) {
             ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisCol), formattedValue);
             return;
