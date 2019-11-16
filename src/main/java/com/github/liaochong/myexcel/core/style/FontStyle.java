@@ -25,7 +25,6 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 
 import java.awt.*;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -96,7 +95,8 @@ public final class FontStyle {
         }
         String fontColor = tdStyle.get(FONT_COLOR);
         if (StringUtil.isNotBlank(fontColor)) {
-            font = setFontColor(fontSupplier, customColor, fontColor);
+            font = createFontIfNull(fontSupplier, font);
+            font = setFontColor(font, customColor, fontColor);
         }
         if (font != null) {
             cellStyle.setFont(font);
@@ -104,25 +104,20 @@ public final class FontStyle {
         }
     }
 
-    private static Font setFontColor(Supplier<Font> fontSupplier, CustomColor customColor, String fontColor) {
+    private static Font setFontColor(Font font, CustomColor customColor, String fontColor) {
         Short colorPredefined = ColorUtil.getPredefinedColorIndex(fontColor);
-        if (Objects.nonNull(colorPredefined)) {
-            Font font = fontSupplier.get();
-            font = createFontIfNull(fontSupplier, font);
+        if (colorPredefined != null) {
             font.setColor(colorPredefined);
             return font;
         }
         int[] rgb = ColorUtil.getRGBByColor(fontColor);
-        if (Objects.isNull(rgb)) {
+        if (rgb == null) {
             return null;
         }
-        Font font = null;
         if (customColor.isXls()) {
             short index = ColorUtil.getCustomColorIndex(customColor, rgb);
-            font = createFontIfNull(fontSupplier, font);
             font.setColor(index);
         } else {
-            font = createFontIfNull(fontSupplier, font);
             ((XSSFFont) font).setColor(new XSSFColor(new Color(rgb[0], rgb[1], rgb[2]), customColor.getDefaultIndexedColorMap()));
         }
         return font;
