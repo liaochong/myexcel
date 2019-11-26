@@ -47,13 +47,10 @@ public class Csv {
     public void write(Path target, boolean append) {
         Path origin = filePath;
         try {
-            if (!Files.exists(target)) {
-                Files.write(target, Files.readAllBytes(origin));
+            if (!Files.exists(target) || Files.size(target) == 0) {
+                byte[] result = this.getBomBytes(origin);
+                Files.write(target, result);
                 return;
-            }
-            if (Files.size(target) == 0) {
-                byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
-                Files.write(target, bom);
             }
             if (append) {
                 Files.write(target, Files.readAllBytes(origin), StandardOpenOption.APPEND);
@@ -65,6 +62,18 @@ public class Csv {
         } finally {
             clear();
         }
+    }
+
+    private byte[] getBomBytes(Path origin) throws IOException {
+        byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] originBytes = Files.readAllBytes(origin);
+        if (originBytes.length == 0) {
+            return bom;
+        }
+        byte[] result = new byte[bom.length + originBytes.length];
+        System.arraycopy(bom, 0, result, 0, bom.length);
+        System.arraycopy(originBytes, 0, result, bom.length, originBytes.length);
+        return result;
     }
 
     public void clear() {
