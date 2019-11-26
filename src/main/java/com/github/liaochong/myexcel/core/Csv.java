@@ -34,12 +34,6 @@ public class Csv {
 
     Csv(Path filePath) {
         this.filePath = filePath;
-        byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
-        try {
-            Files.write(this.filePath, bom);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public Path getFilePath() {
@@ -56,6 +50,10 @@ public class Csv {
             if (!Files.exists(target)) {
                 Files.write(target, Files.readAllBytes(origin));
                 return;
+            }
+            if (Files.size(target) == 0) {
+                byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+                Files.write(target, bom);
             }
             if (append) {
                 Files.write(target, Files.readAllBytes(origin), StandardOpenOption.APPEND);
