@@ -16,10 +16,11 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 /**
  * @author liaochong
@@ -51,16 +52,24 @@ public class Csv {
     }
 
     public void write(Path target, boolean append) {
-        Path origin = filePath;
         try {
-            if (!Files.exists(target)) {
-                Files.write(target, Files.readAllBytes(origin));
-                return;
+            if (!append && Files.exists(target)) {
+                boolean delSuccess = Files.deleteIfExists(target);
+                if (!delSuccess) {
+                    throw new IllegalStateException("can not delete file:" + target.getFileName());
+                }
+                Files.createFile(target);
             }
-            if (append) {
-                Files.write(target, Files.readAllBytes(origin), StandardOpenOption.APPEND);
-            } else {
-                Files.write(target, Files.readAllBytes(origin));
+            try (FileInputStream fis = new FileInputStream(filePath.toFile());
+                 FileOutputStream fos = new FileOutputStream(target.toFile(), true)) {
+                if (append && Files.exists(target) && Files.size(target) > 0) {
+                    fis.skip(3);
+                }
+                byte[] buffer = new byte[8 * 1024];
+                int len;
+                while ((len = fis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, len);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
