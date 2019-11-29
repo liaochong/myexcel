@@ -1,9 +1,11 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,10 +16,21 @@ import java.util.List;
  */
 class CsvBuilderTest extends BasicTest {
 
+    @BeforeAll
+    static void before() throws Exception {
+        Files.deleteIfExists(Paths.get(TEST_DIR + "common.csv"));
+    }
+
     @Test
     void build() {
-        Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1000));
+        Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1));
         csv.write(Paths.get(TEST_DIR + "common.csv"));
+    }
+
+    @Test
+    void buildContinued() {
+        Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1));
+        csv.write(Paths.get(TEST_DIR + "common.csv"), true);
     }
 
     @Test
