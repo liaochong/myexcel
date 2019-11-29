@@ -53,7 +53,7 @@ public class Csv {
 
     public void write(Path target, boolean append) {
         try {
-            if (!append || Files.notExists(target)) {
+            if (!append && Files.exists(target)) {
                 boolean delSuccess = Files.deleteIfExists(target);
                 if (!delSuccess) {
                     throw new IllegalStateException("can not delete file:" + target.getFileName());
