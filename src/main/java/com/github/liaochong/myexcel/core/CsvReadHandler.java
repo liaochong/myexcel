@@ -60,7 +60,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 Row row = new Row(lineIndex);
-                if (lineIndex == 0 && line.length() > 1) {
+                if (lineIndex == 0 && line.length() >= 1 && line.charAt(0) == '\uFEFF') {
                     line = line.substring(1);
                 }
                 this.process(line, row);
