@@ -66,7 +66,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private boolean stop;
 
-    private boolean exception;
+    private volatile boolean exception;
 
     private long startTime;
 
@@ -105,6 +105,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
      * 是否固定标题
      */
     private boolean fixedTitles;
+    /**
+     * 接收线程
+     */
+    private volatile Thread receiveThread;
 
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
                                     Consumer<Path> pathConsumer,
@@ -163,21 +167,18 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.warn("This tr is null and will be discarded");
             return;
         }
-        try {
-            trWaitQueue.put(tr);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        this.putToWaitQueue(tr);
     }
 
     private void receive() {
-        Tr tr = this.getTrFromQueue();
-        if (maxColIndex == 0) {
-            int tdSize = tr.getTdList().size();
-            maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
-        }
-        int totalSize = 0;
         try {
+            receiveThread = Thread.currentThread();
+            Tr tr = this.getTrFromQueue();
+            if (maxColIndex == 0) {
+                int tdSize = tr.getTdList().size();
+                maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
+            }
+            int totalSize = 0;
             while (tr != STOP_FLAG) {
                 if (capacity > 0 && count == capacity) {
                     // 上一份数据保存
@@ -207,20 +208,15 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         } catch (Exception e) {
             log.error("An exception occurred while processing", e);
             exception = true;
-            closeWorkbook();
             trWaitQueue.clear();
             trWaitQueue = null;
+            closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
         }
     }
 
-    private Tr getTrFromQueue() {
-        try {
-            return trWaitQueue.take();
-        } catch (InterruptedException e) {
-            closeWorkbook();
-            throw new RuntimeException(e);
-        }
+    private Tr getTrFromQueue() throws InterruptedException {
+        return trWaitQueue.take();
     }
 
     @Override
@@ -247,13 +243,23 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             throw new IllegalStateException("An exception occurred while processing");
         }
         this.stop = true;
-        try {
-            trWaitQueue.put(STOP_FLAG);
-        } catch (InterruptedException e) {
-            throw new ExcelBuildException("Stop queue failure", e);
-        }
+        this.putToWaitQueue(STOP_FLAG);
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
+            if (exception) {
+                throw new IllegalThreadStateException("An exception occurred while processing");
+            }
+        }
+    }
+
+    private void putToWaitQueue(Tr tr) {
+        try {
+            trWaitQueue.put(tr);
+        } catch (InterruptedException e) {
+            if (receiveThread != null) {
+                receiveThread.interrupt();
+            }
+            throw new ExcelBuildException("put tr queue failure", e);
         }
     }
 
