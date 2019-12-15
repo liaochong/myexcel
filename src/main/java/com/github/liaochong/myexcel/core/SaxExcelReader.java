@@ -111,7 +111,12 @@ public class SaxExcelReader<T> {
     }
 
     public SaxExcelReader<T> trim() {
-        this.readConfig.trim = String::trim;
+        this.readConfig.trim = v -> {
+            if (v == null) {
+                return v;
+            }
+            return v.trim();
+        };
         return this;
     }
 

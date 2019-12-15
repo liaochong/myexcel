@@ -95,6 +95,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
+                content = readConfig.getTrim().apply(content);
                 this.addTitleConsumer.accept(content, row.getRowNum(), i);
                 if (!rowFilter.test(row)) {
                     continue;
@@ -104,7 +105,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                     continue;
                 }
                 Field field = fieldMap.get(i);
-                convert(content, row.getRowNum(), i, field, readConfig);
+                convert(content, row.getRowNum(), i, field);
             }
         }
         if (!rowFilter.test(row)) {

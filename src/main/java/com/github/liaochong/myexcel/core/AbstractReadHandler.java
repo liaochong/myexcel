@@ -109,11 +109,10 @@ abstract class AbstractReadHandler<T> {
         });
     }
 
-    protected void convert(String value, int rowNum, int colNum, Field field, SaxExcelReader.ReadConfig<T> readConfig) {
+    protected void convert(String value, int rowNum, int colNum, Field field) {
         if (field == null) {
             return;
         }
-        value = readConfig.getTrim().apply(value);
         context.reset(obj, field, value, rowNum, colNum);
         ReadConverterContext.convert(obj, context, exceptionFunction);
     }

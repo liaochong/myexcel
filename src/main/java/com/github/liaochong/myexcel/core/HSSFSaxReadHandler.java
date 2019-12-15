@@ -258,6 +258,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisColumn = mc.getColumn();
             thisStr = null;
         }
+        thisStr = readConfig.getTrim().apply(thisStr);
         this.addTitleConsumer.accept(thisStr, thisRow, thisColumn);
 
         // Handle new row
@@ -273,7 +274,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
                 } else {
                     Field field = fieldMap.get(thisColumn);
-                    convert(thisStr, currentRow.getRowNum(), thisColumn, field, readConfig);
+                    convert(thisStr, currentRow.getRowNum(), thisColumn, field);
                 }
             }
         }

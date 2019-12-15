@@ -79,6 +79,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        formattedValue = readConfig.getTrim().apply(formattedValue);
         this.addTitleConsumer.accept(formattedValue, currentRow.getRowNum(), thisCol);
         if (!rowFilter.test(currentRow)) {
             return;
@@ -88,7 +89,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         Field field = fieldMap.get(thisCol);
-        convert(formattedValue, currentRow.getRowNum(), thisCol, field, readConfig);
+        convert(formattedValue, currentRow.getRowNum(), thisCol, field);
     }
 
     @Override
