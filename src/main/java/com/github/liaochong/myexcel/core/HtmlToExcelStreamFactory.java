@@ -259,7 +259,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             if (receiveThread != null) {
                 receiveThread.interrupt();
             }
-            throw new ExcelBuildException("put tr queue failure", e);
+            throw new ExcelBuildException("put tr to queue failure", e);
         }
     }
 

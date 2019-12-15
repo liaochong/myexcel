@@ -77,7 +77,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     @SuppressWarnings("unchecked")
     private void process(String line, Row row) {
-        T obj = this.newInstance(dataType);
+        obj = this.newInstance(dataType);
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
