@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 
+import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -104,6 +105,15 @@ abstract class AbstractReadHandler<T> {
         titles.forEach((k, v) -> {
             fieldMap.put(v, titleFieldMap.get(k));
         });
+    }
+
+    protected void convert(String value, int rowNum, int colNum, Field field, SaxExcelReader.ReadConfig<T> readConfig) {
+        if (field == null) {
+            return;
+        }
+        value = readConfig.getTrim().apply(value);
+        ReadContext<T> context = new ReadContext<>(obj, field, value, rowNum, colNum);
+        ReadConverterContext.convert(obj, context, exceptionFunction);
     }
 
     private void addTitles(String formattedValue, int rowNum, int thisCol) {

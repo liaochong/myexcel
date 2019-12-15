@@ -110,6 +110,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> trim() {
+        this.readConfig.trim = String::trim;
+        return this;
+    }
+
     public List<T> read(@NonNull InputStream fileInputStream) {
         doReadInputStream(fileInputStream);
         return result;
@@ -316,6 +321,8 @@ public class SaxExcelReader<T> {
         BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
         String charset = "UTF-8";
+
+        Function<String, String> trim = v -> v;
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
