@@ -38,6 +38,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -167,7 +168,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.warn("This tr is null and will be discarded");
             return;
         }
-        this.putToWaitQueue(tr);
+        this.putTrToQueue(tr);
     }
 
     private void receive() {
@@ -216,7 +217,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private Tr getTrFromQueue() throws InterruptedException {
-        return trWaitQueue.take();
+        Tr tr = trWaitQueue.poll(1, TimeUnit.HOURS);
+        if (tr == null) {
+            throw new IllegalStateException("Get tr failure,timeout 1 hour.");
+        }
+        return tr;
     }
 
     @Override
@@ -243,7 +248,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             throw new IllegalStateException("An exception occurred while processing");
         }
         this.stop = true;
-        this.putToWaitQueue(STOP_FLAG);
+        this.putTrToQueue(STOP_FLAG);
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
             if (exception) {
@@ -252,14 +257,17 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private void putToWaitQueue(Tr tr) {
+    private void putTrToQueue(Tr tr) {
         try {
-            trWaitQueue.put(tr);
+            boolean putSuccess = trWaitQueue.offer(tr, 1, TimeUnit.HOURS);
+            if (!putSuccess) {
+                throw new IllegalStateException("Put tr to queue failure,timeout 1 hour.");
+            }
         } catch (InterruptedException e) {
             if (receiveThread != null) {
                 receiveThread.interrupt();
             }
-            throw new ExcelBuildException("put tr to queue failure", e);
+            throw new ExcelBuildException("Put tr to queue failure", e);
         }
     }
 
