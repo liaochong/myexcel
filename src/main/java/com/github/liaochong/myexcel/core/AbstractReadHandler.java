@@ -63,6 +63,8 @@ abstract class AbstractReadHandler<T> {
     protected AddTitleConsumer<String, Integer, Integer> addTitleConsumer = (v, rowNum, colNum) -> {
     };
 
+    private ReadContext<T> context = new ReadContext<>();
+
     protected void init(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
@@ -112,7 +114,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         value = readConfig.getTrim().apply(value);
-        ReadContext<T> context = new ReadContext<>(obj, field, value, rowNum, colNum);
+        context.reset(obj, field, value, rowNum, colNum);
         ReadConverterContext.convert(obj, context, exceptionFunction);
     }
 
