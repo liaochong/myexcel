@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core.converter.reader;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.Converter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
@@ -60,6 +61,15 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
             return null;
         }
         String trimContent = obj.trim();
+        // negative
+        if (trimContent.startsWith(Constants.LEFT_BRACKET)) {
+            if (trimContent.endsWith(Constants.RIGHT_BRACKET)) {
+                int length = trimContent.length();
+                if (length > 2) {
+                    trimContent = "-" + trimContent.substring(1, length - 1);
+                }
+            }
+        }
         return doConvert(trimContent, field);
     }
 
