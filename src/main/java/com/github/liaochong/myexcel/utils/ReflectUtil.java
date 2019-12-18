@@ -22,6 +22,7 @@ import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -155,7 +156,7 @@ public final class ReflectUtil {
                 || clazz == Integer.class || clazz == int.class
                 || clazz == Short.class || clazz == short.class
                 || clazz == Byte.class || clazz == byte.class
-                || clazz == BigDecimal.class;
+                || clazz == BigDecimal.class || clazz == BigInteger.class;
     }
 
     public static boolean isBool(Class clazz) {

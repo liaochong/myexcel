@@ -110,13 +110,8 @@ public class SaxExcelReader<T> {
         return this;
     }
 
-    public SaxExcelReader<T> trim() {
-        this.readConfig.trim = v -> {
-            if (v == null) {
-                return v;
-            }
-            return v.trim();
-        };
+    public SaxExcelReader<T> noTrim() {
+        this.readConfig.trim = v -> v;
         return this;
     }
 
@@ -327,7 +322,12 @@ public class SaxExcelReader<T> {
 
         String charset = "UTF-8";
 
-        Function<String, String> trim = v -> v;
+        Function<String, String> trim = v -> {
+            if (v == null) {
+                return v;
+            }
+            return v.trim();
+        };
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);

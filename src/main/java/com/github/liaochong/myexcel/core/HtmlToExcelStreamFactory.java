@@ -142,11 +142,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         paths = new ArrayList<>();
         if (executorService == null) {
             Thread thread = new Thread(this::receive);
-            thread.setName("Excel-builder-1");
+            thread.setName("Excel-build-" + thread.getId());
             thread.start();
         } else {
             futures = new ArrayList<>();
-            CompletableFuture.runAsync(this::receive, executorService);
+            executorService.submit(this::receive);
         }
     }
 
