@@ -142,7 +142,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         paths = new ArrayList<>();
         if (executorService == null) {
             Thread thread = new Thread(this::receive);
-            thread.setName("Excel-build-" + thread.getId());
+            thread.setName("myexcel-build-" + thread.getId());
             thread.start();
         } else {
             futures = new ArrayList<>();
@@ -207,12 +207,12 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             }
             log.info("Total size:{}", totalSize);
         } catch (Exception e) {
-            log.error("An exception occurred while processing", e);
             exception = true;
             trWaitQueue.clear();
             trWaitQueue = null;
             closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
+            throw new ExcelBuildException("An exception occurred while processing", e);
         }
     }
 
