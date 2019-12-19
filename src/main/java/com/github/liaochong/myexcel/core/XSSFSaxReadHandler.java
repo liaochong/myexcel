@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
@@ -80,6 +79,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
+        formattedValue = readConfig.getTrim().apply(formattedValue);
         this.addTitleConsumer.accept(formattedValue, currentRow.getRowNum(), thisCol);
         if (!rowFilter.test(currentRow)) {
             return;
@@ -89,11 +89,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         Field field = fieldMap.get(thisCol);
-        if (field == null) {
-            return;
-        }
-        ReadContext<T> context = new ReadContext<>(obj, field, formattedValue, currentRow.getRowNum(), thisCol);
-        ReadConverterContext.convert(obj, context, exceptionFunction);
+        convert(formattedValue, currentRow.getRowNum(), thisCol, field);
     }
 
     @Override

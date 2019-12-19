@@ -47,4 +47,8 @@ public class Constants {
     public static final String ARROW = "->";
 
     public static final String SPOT = ".";
+
+    public static final String LEFT_BRACKET = "(";
+
+    public static final String RIGHT_BRACKET = ")";
 }

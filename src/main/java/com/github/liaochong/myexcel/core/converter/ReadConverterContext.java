@@ -28,6 +28,7 @@ import com.github.liaochong.myexcel.exception.SaxReadException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -84,6 +85,9 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(String.class, new StringReadConverter());
 
         READ_CONVERTERS.put(Timestamp.class, new TimestampReadConverter());
+
+        NumberReadConverter<BigInteger> bigIntegerReadConverter = NumberReadConverter.of(BigInteger::new, true);
+        READ_CONVERTERS.put(BigInteger.class, bigIntegerReadConverter);
     }
 
     public synchronized ReadConverterContext registering(Class<?> clazz, Converter<String, ?> converter) {

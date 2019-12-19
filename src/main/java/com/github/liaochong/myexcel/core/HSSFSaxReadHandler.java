@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
@@ -259,6 +258,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisColumn = mc.getColumn();
             thisStr = null;
         }
+        thisStr = readConfig.getTrim().apply(thisStr);
         this.addTitleConsumer.accept(thisStr, thisRow, thisColumn);
 
         // Handle new row
@@ -274,10 +274,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
                 } else {
                     Field field = fieldMap.get(thisColumn);
-                    if (field != null) {
-                        ReadContext<T> context = new ReadContext<>(obj, field, thisStr, currentRow.getRowNum(), thisColumn);
-                        ReadConverterContext.convert(obj, context, exceptionFunction);
-                    }
+                    convert(thisStr, currentRow.getRowNum(), thisColumn, field);
                 }
             }
         }

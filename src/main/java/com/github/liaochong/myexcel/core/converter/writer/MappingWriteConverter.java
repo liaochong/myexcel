@@ -52,7 +52,7 @@ public class MappingWriteConverter implements WriteConverter {
         Arrays.stream(mappingGroups).forEach(m -> {
             String[] mappingGroup = m.split(Constants.COLON);
             if (mappingGroup.length != 2) {
-                throw new IllegalArgumentException("Illegal mapping");
+                throw new IllegalArgumentException("Illegal mapping:" + m);
             }
             properties.setProperty(mappingGroup[0], mappingGroup[1]);
         });

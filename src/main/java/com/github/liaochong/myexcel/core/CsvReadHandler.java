@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,7 +77,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     @SuppressWarnings("unchecked")
     private void process(String line, Row row) {
-        T obj = this.newInstance(dataType);
+        obj = this.newInstance(dataType);
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
@@ -96,6 +95,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
+                content = readConfig.getTrim().apply(content);
                 this.addTitleConsumer.accept(content, row.getRowNum(), i);
                 if (!rowFilter.test(row)) {
                     continue;
@@ -105,11 +105,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                     continue;
                 }
                 Field field = fieldMap.get(i);
-                if (field == null) {
-                    continue;
-                }
-                ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), i);
-                ReadConverterContext.convert(obj, context, exceptionFunction);
+                convert(content, row.getRowNum(), i, field);
             }
         }
         if (!rowFilter.test(row)) {

@@ -62,6 +62,8 @@ public class DefaultExcelReader<T> {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (e, c) -> false;
 
+    private ReadContext<T> context = new ReadContext<>();
+
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
     }
@@ -323,7 +325,7 @@ public class DefaultExcelReader<T> {
                 return;
             }
             String content = formatter.formatCellValue(cell);
-            ReadContext<T> context = new ReadContext<>(obj, field, content, row.getRowNum(), key);
+            context.reset(obj, field, content, row.getRowNum(), key);
             ReadConverterContext.convert(obj, context, exceptionFunction);
         });
         return obj;

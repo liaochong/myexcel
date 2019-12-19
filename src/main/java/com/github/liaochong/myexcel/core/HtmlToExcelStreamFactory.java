@@ -38,6 +38,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -66,7 +67,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private boolean stop;
 
-    private boolean exception;
+    private volatile boolean exception;
 
     private long startTime;
 
@@ -105,6 +106,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
      * 是否固定标题
      */
     private boolean fixedTitles;
+    /**
+     * 接收线程
+     */
+    private volatile Thread receiveThread;
 
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
                                     Consumer<Path> pathConsumer,
@@ -137,11 +142,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         paths = new ArrayList<>();
         if (executorService == null) {
             Thread thread = new Thread(this::receive);
-            thread.setName("Excel-builder-1");
+            thread.setName("myexcel-build-" + thread.getId());
             thread.start();
         } else {
             futures = new ArrayList<>();
-            CompletableFuture.runAsync(this::receive, executorService);
+            executorService.submit(this::receive);
         }
     }
 
@@ -163,21 +168,18 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.warn("This tr is null and will be discarded");
             return;
         }
-        try {
-            trWaitQueue.put(tr);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        this.putTrToQueue(tr);
     }
 
     private void receive() {
-        Tr tr = this.getTrFromQueue();
-        if (maxColIndex == 0) {
-            int tdSize = tr.getTdList().size();
-            maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
-        }
-        int totalSize = 0;
         try {
+            receiveThread = Thread.currentThread();
+            Tr tr = this.getTrFromQueue();
+            if (maxColIndex == 0) {
+                int tdSize = tr.getTdList().size();
+                maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
+            }
+            int totalSize = 0;
             while (tr != STOP_FLAG) {
                 if (capacity > 0 && count == capacity) {
                     // 上一份数据保存
@@ -205,22 +207,21 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             }
             log.info("Total size:{}", totalSize);
         } catch (Exception e) {
-            log.error("An exception occurred while processing", e);
             exception = true;
-            closeWorkbook();
             trWaitQueue.clear();
             trWaitQueue = null;
+            closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
+            throw new ExcelBuildException("An exception occurred while processing", e);
         }
     }
 
-    private Tr getTrFromQueue() {
-        try {
-            return trWaitQueue.take();
-        } catch (InterruptedException e) {
-            closeWorkbook();
-            throw new RuntimeException(e);
+    private Tr getTrFromQueue() throws InterruptedException {
+        Tr tr = trWaitQueue.poll(1, TimeUnit.HOURS);
+        if (tr == null) {
+            throw new IllegalStateException("Get tr failure,timeout 1 hour.");
         }
+        return tr;
     }
 
     @Override
@@ -247,13 +248,26 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             throw new IllegalStateException("An exception occurred while processing");
         }
         this.stop = true;
-        try {
-            trWaitQueue.put(STOP_FLAG);
-        } catch (InterruptedException e) {
-            throw new ExcelBuildException("Stop queue failure", e);
-        }
+        this.putTrToQueue(STOP_FLAG);
         while (!trWaitQueue.isEmpty()) {
             // wait all tr received
+            if (exception) {
+                throw new IllegalThreadStateException("An exception occurred while processing");
+            }
+        }
+    }
+
+    private void putTrToQueue(Tr tr) {
+        try {
+            boolean putSuccess = trWaitQueue.offer(tr, 1, TimeUnit.HOURS);
+            if (!putSuccess) {
+                throw new IllegalStateException("Put tr to queue failure,timeout 1 hour.");
+            }
+        } catch (InterruptedException e) {
+            if (receiveThread != null) {
+                receiveThread.interrupt();
+            }
+            throw new ExcelBuildException("Put tr to queue failure", e);
         }
     }
 
