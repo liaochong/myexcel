@@ -64,6 +64,13 @@ public class DefaultExcelReader<T> {
 
     private ReadContext<T> context = new ReadContext<>();
 
+    private Function<String, String> trim = v -> {
+        if (v == null) {
+            return v;
+        }
+        return v.trim();
+    };
+
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
     }
@@ -93,6 +100,11 @@ public class DefaultExcelReader<T> {
 
     public DefaultExcelReader<T> exceptionally(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         this.exceptionFunction = exceptionFunction;
+        return this;
+    }
+
+    public DefaultExcelReader<T> noTrim() {
+        this.trim = v -> v;
         return this;
     }
 
@@ -284,7 +296,7 @@ public class DefaultExcelReader<T> {
         DataFormatter formatter = new DataFormatter();
         for (int i = firstRowNum; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
-            if (Objects.isNull(row)) {
+            if (row == null) {
                 log.info("Row of {} is null,it will be ignored.", i);
                 continue;
             }
@@ -299,9 +311,9 @@ public class DefaultExcelReader<T> {
             }
             T obj = instanceObj(fieldMap, formatter, row);
             if (beanFilter.test(obj)) {
-                if (Objects.nonNull(consumer)) {
+                if (consumer != null) {
                     consumer.accept(obj);
-                } else if (Objects.nonNull(function)) {
+                } else if (function != null) {
                     Boolean noStop = function.apply(obj);
                     if (!noStop) {
                         break;
@@ -321,10 +333,11 @@ public class DefaultExcelReader<T> {
         }
         fieldMap.forEach((key, field) -> {
             Cell cell = row.getCell(key, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-            if (Objects.isNull(cell)) {
+            if (cell == null) {
                 return;
             }
             String content = formatter.formatCellValue(cell);
+            content = trim.apply(content);
             context.reset(obj, field, content, row.getRowNum(), key);
             ReadConverterContext.convert(obj, context, exceptionFunction);
         });
