@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -62,31 +63,44 @@ public class ClassFieldContainer {
     }
 
     private void getFieldsByContainer(ClassFieldContainer classFieldContainer, List<Field> fields) {
-        fields.addAll(classFieldContainer.getDeclaredFields());
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
-        if (Objects.isNull(parentContainer)) {
-            return;
+        if (parentContainer != null) {
+            this.getFieldsByContainer(parentContainer, fields);
         }
-        this.getFieldsByContainer(parentContainer, fields);
+        filterFields(classFieldContainer.getDeclaredFields(), fields);
     }
 
     private void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
-        List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
-        annotationFieldContainer.addAll(annotationFields);
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
-        if (Objects.isNull(parentContainer)) {
-            return;
+        if (parentContainer != null) {
+            this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
         }
-        this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
+        List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
+        filterFields(annotationFields, annotationFieldContainer);
+    }
+
+    private void filterFields(List<Field> declaredFields, List<Field> fieldContainer) {
+        for (int i = 0, size = declaredFields.size(); i < size; i++) {
+            Field field = declaredFields.get(i);
+            Optional<Field> fieldOptional = fieldContainer
+                    .stream()
+                    .filter(f -> f.getName().equals(field.getName()))
+                    .findFirst();
+            if (fieldOptional.isPresent()) {
+                fieldContainer.set(i, field);
+            } else {
+                fieldContainer.add(field);
+            }
+        }
     }
 
     private Field getFieldByName(String fieldName, ClassFieldContainer container) {
         Field field = container.getFieldMap().get(fieldName);
-        if (Objects.nonNull(field)) {
+        if (field != null) {
             return field;
         }
         ClassFieldContainer parentContainer = container.getParent();
-        if (Objects.isNull(parentContainer)) {
+        if (parentContainer == null) {
             return null;
         }
         return getFieldByName(fieldName, parentContainer);

@@ -246,6 +246,13 @@ public class HtmlTableParser {
     }
 
     private void setTdContent(Element tdElement, Td td) {
+        Elements imgs = tdElement.getElementsByTag(TableTag.img.name());
+        if (imgs != null && !imgs.isEmpty()) {
+            String src = imgs.get(0).attr("src");
+            td.setFile(new File(src));
+            td.setTdContentType(ContentTypeEnum.IMAGE);
+            return;
+        }
         String tdContent = LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
         td.setContent(tdContent);
         if (StringUtil.isBlank(tdContent)) {
@@ -331,6 +338,10 @@ public class HtmlTableParser {
         /**
          * link
          */
-        link;
+        link,
+        /**
+         * img
+         */
+        img;
     }
 }
