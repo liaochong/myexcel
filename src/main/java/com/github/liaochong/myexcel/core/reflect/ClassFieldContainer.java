@@ -62,31 +62,29 @@ public class ClassFieldContainer {
     }
 
     private void getFieldsByContainer(ClassFieldContainer classFieldContainer, List<Field> fields) {
-        fields.addAll(classFieldContainer.getDeclaredFields());
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
-        if (Objects.isNull(parentContainer)) {
-            return;
+        if (parentContainer != null) {
+            this.getFieldsByContainer(parentContainer, fields);
         }
-        this.getFieldsByContainer(parentContainer, fields);
+        fields.addAll(classFieldContainer.getDeclaredFields());
     }
 
     private void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
+        ClassFieldContainer parentContainer = classFieldContainer.getParent();
+        if (parentContainer != null) {
+            this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
+        }
         List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
         annotationFieldContainer.addAll(annotationFields);
-        ClassFieldContainer parentContainer = classFieldContainer.getParent();
-        if (Objects.isNull(parentContainer)) {
-            return;
-        }
-        this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
     }
 
     private Field getFieldByName(String fieldName, ClassFieldContainer container) {
         Field field = container.getFieldMap().get(fieldName);
-        if (Objects.nonNull(field)) {
+        if (field != null) {
             return field;
         }
         ClassFieldContainer parentContainer = container.getParent();
-        if (Objects.isNull(parentContainer)) {
+        if (parentContainer == null) {
             return null;
         }
         return getFieldByName(fieldName, parentContainer);
