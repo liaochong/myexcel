@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +67,7 @@ public class ClassFieldContainer {
         if (parentContainer != null) {
             this.getFieldsByContainer(parentContainer, fields);
         }
-        fields.addAll(classFieldContainer.getDeclaredFields());
+        filterFields(classFieldContainer, fields);
     }
 
     private void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
@@ -75,7 +76,23 @@ public class ClassFieldContainer {
             this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
         }
         List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
-        annotationFieldContainer.addAll(annotationFields);
+        filterFields(classFieldContainer, annotationFields);
+    }
+
+    private void filterFields(ClassFieldContainer classFieldContainer, List<Field> fields) {
+        int size = classFieldContainer.getDeclaredFields().size();
+        for (int i = 0; i < size; i++) {
+            Field field = classFieldContainer.getDeclaredFields().get(i);
+            Optional<Field> fieldOptional = fields
+                    .stream()
+                    .filter(f -> f.getName().equals(field.getName()))
+                    .findFirst();
+            if (fieldOptional.isPresent()) {
+                fields.set(i, field);
+            } else {
+                fields.add(field);
+            }
+        }
     }
 
     private Field getFieldByName(String fieldName, ClassFieldContainer container) {
