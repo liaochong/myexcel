@@ -67,7 +67,7 @@ public class ClassFieldContainer {
         if (parentContainer != null) {
             this.getFieldsByContainer(parentContainer, fields);
         }
-        filterFields(classFieldContainer, fields);
+        filterFields(classFieldContainer.getDeclaredFields(), fields);
     }
 
     private void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
@@ -76,21 +76,20 @@ public class ClassFieldContainer {
             this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
         }
         List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
-        filterFields(classFieldContainer, annotationFields);
+        filterFields(annotationFields, annotationFieldContainer);
     }
 
-    private void filterFields(ClassFieldContainer classFieldContainer, List<Field> fields) {
-        int size = classFieldContainer.getDeclaredFields().size();
-        for (int i = 0; i < size; i++) {
-            Field field = classFieldContainer.getDeclaredFields().get(i);
-            Optional<Field> fieldOptional = fields
+    private void filterFields(List<Field> declaredFields, List<Field> fieldContainer) {
+        for (int i = 0, size = declaredFields.size(); i < size; i++) {
+            Field field = declaredFields.get(i);
+            Optional<Field> fieldOptional = fieldContainer
                     .stream()
                     .filter(f -> f.getName().equals(field.getName()))
                     .findFirst();
             if (fieldOptional.isPresent()) {
-                fields.set(i, field);
+                fieldContainer.set(i, field);
             } else {
-                fields.add(field);
+                fieldContainer.add(field);
             }
         }
     }
