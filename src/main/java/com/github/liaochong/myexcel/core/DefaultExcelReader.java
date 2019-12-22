@@ -16,30 +16,45 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.hssf.usermodel.HSSFAnchor;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFPatriarch;
+import org.apache.poi.hssf.usermodel.HSSFPicture;
+import org.apache.poi.hssf.usermodel.HSSFShape;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
+import org.apache.poi.xssf.usermodel.XSSFPicture;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Spliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -64,6 +79,21 @@ public class DefaultExcelReader<T> {
 
     private ReadContext<T> context = new ReadContext<>();
 
+    private Map<String, XSSFPicture> xssfPicturesMap = Collections.emptyMap();
+
+    private Map<String, HSSFPicture> hssfPictureMap = Collections.emptyMap();
+
+    private boolean isXSSFSheet;
+
+    private String sheetName;
+
+    private Function<String, String> trim = v -> {
+        if (v == null) {
+            return v;
+        }
+        return v.trim();
+    };
+
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
     }
@@ -78,6 +108,11 @@ public class DefaultExcelReader<T> {
         } else {
             throw new IllegalArgumentException("Sheet index must be greater than or equal to 0");
         }
+        return this;
+    }
+
+    public DefaultExcelReader<T> sheet(String sheetName) {
+        this.sheetName = sheetName;
         return this;
     }
 
@@ -96,6 +131,11 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
+    public DefaultExcelReader<T> noTrim() {
+        this.trim = v -> v;
+        return this;
+    }
+
     public List<T> read(@NonNull InputStream fileInputStream) throws Exception {
         return this.read(fileInputStream, null);
     }
@@ -109,9 +149,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             return getDataFromFile(sheet, fieldMap);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -120,9 +158,7 @@ public class DefaultExcelReader<T> {
     }
 
     public List<T> read(@NonNull File file, String password) throws Exception {
-        if (!file.getName().endsWith(Constants.XLSX) && !file.getName().endsWith(Constants.XLS)) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
+        checkFileSuffix(file);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
@@ -131,9 +167,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfFile(file, password);
             return getDataFromFile(sheet, fieldMap);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -150,9 +184,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             readThenConsume(sheet, fieldMap, consumer, null);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -161,9 +193,7 @@ public class DefaultExcelReader<T> {
     }
 
     public void readThen(@NonNull File file, String password, Consumer<T> consumer) throws Exception {
-        if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
+        checkFileSuffix(file);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
@@ -172,9 +202,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfFile(file, password);
             readThenConsume(sheet, fieldMap, consumer, null);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -191,9 +219,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             readThenConsume(sheet, fieldMap, null, function);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -202,9 +228,7 @@ public class DefaultExcelReader<T> {
     }
 
     public void readThen(@NonNull File file, String password, Function<T, Boolean> function) throws Exception {
-        if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
+        checkFileSuffix(file);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
@@ -213,9 +237,19 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfFile(file, password);
             readThenConsume(sheet, fieldMap, null, function);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
+        }
+    }
+
+    private void checkFileSuffix(@NonNull File file) {
+        if (!file.getName().endsWith(Constants.XLSX) && !file.getName().endsWith(Constants.XLS)) {
+            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
+        }
+    }
+
+    private void clearWorkbook() throws IOException {
+        if (Objects.nonNull(wb)) {
+            wb.close();
         }
     }
 
@@ -225,7 +259,7 @@ public class DefaultExcelReader<T> {
         } else {
             wb = WorkbookFactory.create(fileInputStream, password);
         }
-        return wb.getSheetAt(sheetIndex);
+        return getSheet();
     }
 
     private Sheet getSheetOfFile(@NonNull File file, String password) throws IOException {
@@ -234,7 +268,21 @@ public class DefaultExcelReader<T> {
         } else {
             wb = WorkbookFactory.create(file, password);
         }
-        return wb.getSheetAt(sheetIndex);
+        return getSheet();
+    }
+
+    private Sheet getSheet() {
+        Sheet sheet;
+        if (sheetName != null) {
+            sheet = wb.getSheet(sheetName);
+            if (sheet == null) {
+                throw new ExcelReadException("Cannot find sheet based on sheetName:" + sheetName);
+            }
+        } else {
+            sheet = wb.getSheetAt(sheetIndex);
+        }
+        getAllPictures(sheet);
+        return sheet;
     }
 
     private List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
@@ -250,7 +298,7 @@ public class DefaultExcelReader<T> {
         List<T> result = new LinkedList<>();
         for (int i = firstRowNum; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
-            if (Objects.isNull(row)) {
+            if (row == null) {
                 log.info("Row of {} is null,it will be ignored.", i);
                 continue;
             }
@@ -284,7 +332,7 @@ public class DefaultExcelReader<T> {
         DataFormatter formatter = new DataFormatter();
         for (int i = firstRowNum; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
-            if (Objects.isNull(row)) {
+            if (row == null) {
                 log.info("Row of {} is null,it will be ignored.", i);
                 continue;
             }
@@ -299,9 +347,9 @@ public class DefaultExcelReader<T> {
             }
             T obj = instanceObj(fieldMap, formatter, row);
             if (beanFilter.test(obj)) {
-                if (Objects.nonNull(consumer)) {
+                if (consumer != null) {
                     consumer.accept(obj);
-                } else if (Objects.nonNull(function)) {
+                } else if (function != null) {
                     Boolean noStop = function.apply(obj);
                     if (!noStop) {
                         break;
@@ -312,6 +360,41 @@ public class DefaultExcelReader<T> {
         log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
     }
 
+    private void getAllPictures(Sheet sheet) {
+        if (sheet instanceof XSSFSheet) {
+            isXSSFSheet = true;
+            XSSFDrawing xssfDrawing = ((XSSFSheet) sheet).getDrawingPatriarch();
+            if (xssfDrawing == null) {
+                return;
+            }
+            xssfPicturesMap = xssfDrawing.getShapes()
+                    .stream()
+                    .map(s -> (XSSFPicture) s)
+                    .collect(Collectors.toMap(s -> {
+                        XSSFClientAnchor anchor = (XSSFClientAnchor) s.getAnchor();
+                        return anchor.getRow1() + "_" + anchor.getCol1();
+                    }, s -> s));
+        } else if (sheet instanceof HSSFSheet) {
+            HSSFPatriarch hssfPatriarch = ((HSSFSheet) sheet).getDrawingPatriarch();
+            if (hssfPatriarch == null) {
+                return;
+            }
+            Spliterator<HSSFShape> spliterator = hssfPatriarch.spliterator();
+            hssfPictureMap = new HashMap<>();
+            spliterator.forEachRemaining(shape -> {
+                if (shape instanceof HSSFPicture) {
+                    HSSFPicture picture = (HSSFPicture) shape;
+                    HSSFAnchor anchor = picture.getAnchor();
+                    if (anchor instanceof HSSFClientAnchor) {
+                        int row = ((HSSFClientAnchor) anchor).getRow1();
+                        int col = ((HSSFClientAnchor) anchor).getCol1();
+                        hssfPictureMap.put(row + "_" + col, picture);
+                    }
+                }
+            });
+        }
+    }
+
     private T instanceObj(Map<Integer, Field> fieldMap, DataFormatter formatter, Row row) {
         T obj;
         try {
@@ -319,15 +402,42 @@ public class DefaultExcelReader<T> {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        fieldMap.forEach((key, field) -> {
-            Cell cell = row.getCell(key, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
-            if (Objects.isNull(cell)) {
+        fieldMap.forEach((index, field) -> {
+            if (field.getType() == InputStream.class) {
+                convertPicture(row, obj, index, field);
+                return;
+            }
+            Cell cell = row.getCell(index, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+            if (cell == null) {
                 return;
             }
             String content = formatter.formatCellValue(cell);
-            context.reset(obj, field, content, row.getRowNum(), key);
+            content = trim.apply(content);
+            context.reset(obj, field, content, row.getRowNum(), index);
             ReadConverterContext.convert(obj, context, exceptionFunction);
         });
         return obj;
+    }
+
+    private void convertPicture(Row row, T obj, Integer index, Field field) {
+        byte[] pictureData;
+        if (isXSSFSheet) {
+            XSSFPicture xssfPicture = xssfPicturesMap.get(row.getRowNum() + "_" + index);
+            if (xssfPicture == null) {
+                return;
+            }
+            pictureData = xssfPicture.getPictureData().getData();
+        } else {
+            HSSFPicture hssfPicture = hssfPictureMap.get(row.getRowNum() + "_" + index);
+            if (hssfPicture == null) {
+                return;
+            }
+            pictureData = hssfPicture.getPictureData().getData();
+        }
+        try {
+            field.set(obj, new ByteArrayInputStream(pictureData));
+        } catch (IllegalAccessException e) {
+            throw new ExcelReadException("Failed to read picture.", e);
+        }
     }
 }

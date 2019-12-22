@@ -12,19 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.exception;
+package com.github.liaochong.myexcel.core.pojo;
+
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import lombok.Data;
+
+import java.io.InputStream;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class ExcelReadException extends RuntimeException {
+@Data
+public class Picture {
 
-    public ExcelReadException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ExcelReadException(String message) {
-        super(message);
-    }
+    @ExcelColumn(index = 1)
+    InputStream picture;
 }
