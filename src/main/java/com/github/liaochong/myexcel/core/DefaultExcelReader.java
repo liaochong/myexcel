@@ -140,9 +140,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             return getDataFromFile(sheet, fieldMap);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -162,9 +160,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfFile(file, password);
             return getDataFromFile(sheet, fieldMap);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -181,9 +177,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             readThenConsume(sheet, fieldMap, consumer, null);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -203,9 +197,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfFile(file, password);
             readThenConsume(sheet, fieldMap, consumer, null);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -222,9 +214,7 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
             readThenConsume(sheet, fieldMap, null, function);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
         }
     }
 
@@ -244,9 +234,13 @@ public class DefaultExcelReader<T> {
             Sheet sheet = getSheetOfFile(file, password);
             readThenConsume(sheet, fieldMap, null, function);
         } finally {
-            if (Objects.nonNull(wb)) {
-                wb.close();
-            }
+            clearWorkbook();
+        }
+    }
+
+    private void clearWorkbook() throws IOException {
+        if (Objects.nonNull(wb)) {
+            wb.close();
         }
     }
 
