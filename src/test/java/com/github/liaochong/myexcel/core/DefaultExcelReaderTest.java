@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.Picture;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,15 @@ public class DefaultExcelReaderTest extends BasicTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/picture.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
         List<Picture> pictures = DefaultExcelReader.of(Picture.class).read(path.toFile());
+        System.out.println("");
+    }
+
+    @Test
+    public void readWithSheetName() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<CommonPeople> list = DefaultExcelReader.of(CommonPeople.class).sheet("工作表2").rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
         System.out.println("");
     }
 }

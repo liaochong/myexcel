@@ -23,6 +23,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFAnchor;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFPatriarch;
 import org.apache.poi.hssf.usermodel.HSSFPicture;
 import org.apache.poi.hssf.usermodel.HSSFShape;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -33,6 +34,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFPicture;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 
@@ -361,7 +363,11 @@ public class DefaultExcelReader<T> {
     private void getAllPictures(Sheet sheet) {
         if (sheet instanceof XSSFSheet) {
             isXSSFSheet = true;
-            xssfPicturesMap = ((XSSFSheet) sheet).getDrawingPatriarch().getShapes()
+            XSSFDrawing xssfDrawing = ((XSSFSheet) sheet).getDrawingPatriarch();
+            if (xssfDrawing == null) {
+                return;
+            }
+            xssfPicturesMap = xssfDrawing.getShapes()
                     .stream()
                     .map(s -> (XSSFPicture) s)
                     .collect(Collectors.toMap(s -> {
@@ -369,7 +375,11 @@ public class DefaultExcelReader<T> {
                         return anchor.getRow1() + "_" + anchor.getCol1();
                     }, s -> s));
         } else if (sheet instanceof HSSFSheet) {
-            Spliterator<HSSFShape> spliterator = ((HSSFSheet) sheet).getDrawingPatriarch().spliterator();
+            HSSFPatriarch hssfPatriarch = ((HSSFSheet) sheet).getDrawingPatriarch();
+            if (hssfPatriarch == null) {
+                return;
+            }
+            Spliterator<HSSFShape> spliterator = hssfPatriarch.spliterator();
             hssfPictureMap = new HashMap<>();
             spliterator.forEachRemaining(shape -> {
                 if (shape instanceof HSSFPicture) {
