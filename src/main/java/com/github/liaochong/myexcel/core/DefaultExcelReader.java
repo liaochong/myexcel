@@ -83,6 +83,8 @@ public class DefaultExcelReader<T> {
 
     private boolean isXSSFSheet;
 
+    private String sheetName;
+
     private Function<String, String> trim = v -> {
         if (v == null) {
             return v;
@@ -104,6 +106,11 @@ public class DefaultExcelReader<T> {
         } else {
             throw new IllegalArgumentException("Sheet index must be greater than or equal to 0");
         }
+        return this;
+    }
+
+    public DefaultExcelReader<T> sheet(String sheetName) {
+        this.sheetName = sheetName;
         return this;
     }
 
@@ -149,9 +156,7 @@ public class DefaultExcelReader<T> {
     }
 
     public List<T> read(@NonNull File file, String password) throws Exception {
-        if (!file.getName().endsWith(Constants.XLSX) && !file.getName().endsWith(Constants.XLS)) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
+        checkFileSuffix(file);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
@@ -186,9 +191,7 @@ public class DefaultExcelReader<T> {
     }
 
     public void readThen(@NonNull File file, String password, Consumer<T> consumer) throws Exception {
-        if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
+        checkFileSuffix(file);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
@@ -223,9 +226,7 @@ public class DefaultExcelReader<T> {
     }
 
     public void readThen(@NonNull File file, String password, Function<T, Boolean> function) throws Exception {
-        if (!file.getName().endsWith(".xlsx") && !file.getName().endsWith(".xls")) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
+        checkFileSuffix(file);
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
@@ -235,6 +236,12 @@ public class DefaultExcelReader<T> {
             readThenConsume(sheet, fieldMap, null, function);
         } finally {
             clearWorkbook();
+        }
+    }
+
+    private void checkFileSuffix(@NonNull File file) {
+        if (!file.getName().endsWith(Constants.XLSX) && !file.getName().endsWith(Constants.XLS)) {
+            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
         }
     }
 
@@ -250,9 +257,7 @@ public class DefaultExcelReader<T> {
         } else {
             wb = WorkbookFactory.create(fileInputStream, password);
         }
-        Sheet sheet = wb.getSheetAt(sheetIndex);
-        getAllPictures(sheet);
-        return sheet;
+        return getSheet();
     }
 
     private Sheet getSheetOfFile(@NonNull File file, String password) throws IOException {
@@ -261,7 +266,19 @@ public class DefaultExcelReader<T> {
         } else {
             wb = WorkbookFactory.create(file, password);
         }
-        Sheet sheet = wb.getSheetAt(sheetIndex);
+        return getSheet();
+    }
+
+    private Sheet getSheet() {
+        Sheet sheet;
+        if (sheetName != null) {
+            sheet = wb.getSheet(sheetName);
+            if (sheet == null) {
+                throw new ExcelReadException("Cannot find sheet based on sheetName:" + sheetName);
+            }
+        } else {
+            sheet = wb.getSheetAt(sheetIndex);
+        }
         getAllPictures(sheet);
         return sheet;
     }
