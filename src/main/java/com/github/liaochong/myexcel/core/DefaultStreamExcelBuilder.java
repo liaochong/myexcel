@@ -119,10 +119,25 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         return defaultStreamExcelBuilder;
     }
 
+    /**
+     * 已过时，请使用of方法代替
+     * 4.0版本移除
+     *
+     * @return DefaultStreamExcelBuilder
+     */
+    @Deprecated
     public static DefaultStreamExcelBuilder getInstance() {
         return new DefaultStreamExcelBuilder();
     }
 
+    /**
+     * 已过时，请使用of方法代替
+     * 4.0版本移除
+     *
+     * @param workbook 工作簿
+     * @return DefaultStreamExcelBuilder
+     */
+    @Deprecated
     public static DefaultStreamExcelBuilder getInstance(Workbook workbook) {
         DefaultStreamExcelBuilder defaultStreamExcelBuilder = new DefaultStreamExcelBuilder();
         defaultStreamExcelBuilder.workbook = workbook;
@@ -266,7 +281,7 @@ public class DefaultStreamExcelBuilder extends AbstractSimpleExcelBuilder implem
         if (data == null || data.isEmpty()) {
             return;
         }
-        boolean isMapBuild = data.stream().anyMatch(d -> d instanceof Map);
+        boolean isMapBuild = dataType == Map.class || data.stream().anyMatch(d -> d instanceof Map);
         if (isMapBuild) {
             for (Object datum : data) {
                 Map<String, Object> d = (Map<String, Object>) datum;

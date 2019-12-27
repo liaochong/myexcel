@@ -70,7 +70,7 @@ class SaxExcelReaderTest {
 
         List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class)
                 .rowFilter(row -> row.getRowNum() > 0)
-                .sheet(0, 1)
+                .sheets(0, 1)
                 .read(path.toFile());
         System.out.println(commonPeoples.size());
     }
@@ -81,7 +81,7 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0)
-                .sheet(0, 1)
+                .sheets(0, 1)
                 .read(path.toFile());
         System.out.println(commonPeoples.size());
     }
@@ -93,7 +93,7 @@ class SaxExcelReaderTest {
 
         List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class)
                 .rowFilter(row -> row.getRowNum() > 0)
-                .sheet("人员信息", "工作表1")
+                .sheets("人员信息", "工作表1")
                 .read(path.toFile());
         System.out.println(commonPeoples.size());
     }
@@ -104,7 +104,7 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0)
-                .sheet("人员信息", "工作表2")
+                .sheets("人员信息", "工作表2")
                 .read(path.toFile());
         System.out.println(commonPeoples.size());
     }
