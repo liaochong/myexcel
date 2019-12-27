@@ -76,7 +76,7 @@ public final class ReflectUtil {
             }
             Field f = fieldMap.get(index);
             if (Objects.nonNull(f)) {
-                throw new IllegalStateException("Index cannot be repeated. Please check it.");
+                throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
             }
             field.setAccessible(true);
             fieldMap.put(index, field);
@@ -107,7 +107,7 @@ public final class ReflectUtil {
             }
             Field f = fieldMap.get(title);
             if (f != null) {
-                throw new IllegalStateException("Title cannot be repeated. Please check it.");
+                throw new IllegalStateException("Title cannot be repeated: " + title + ". Please check it.");
             }
             field.setAccessible(true);
             fieldMap.put(title, field);
