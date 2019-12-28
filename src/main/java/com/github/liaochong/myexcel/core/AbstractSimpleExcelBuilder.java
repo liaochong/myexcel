@@ -458,8 +458,8 @@ abstract class AbstractSimpleExcelBuilder {
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            setCustomStyle(i, globalStyleMap.get("cell"));
-            setCustomStyle(i, globalStyleMap.get("title"));
+            setCustomStyle(field, i, globalStyleMap.get("cell"));
+            setCustomStyle(field, i, globalStyleMap.get("title"));
             if (excelColumn != null) {
                 if (needToAddTitle) {
                     if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
@@ -475,7 +475,7 @@ abstract class AbstractSimpleExcelBuilder {
                     customWidthMap.put(i, excelColumn.width());
                 }
                 if (!noStyle && excelColumn.style().length > 0) {
-                    setCustomStyle(i, excelColumn.style());
+                    setCustomStyle(field, i, excelColumn.style());
                 }
                 if (!excelColumn.format().isEmpty()) {
                     formats.put(i, excelColumn.format());
@@ -581,23 +581,23 @@ abstract class AbstractSimpleExcelBuilder {
         }
     }
 
-    private void setCustomStyle(int i, String... styles) {
+    private void setCustomStyle(Field field, int index, String... styles) {
         for (String style : styles) {
             if (StringUtil.isBlank(style)) {
                 continue;
             }
             if (StringUtil.isBlank(style)) {
-                throw new IllegalArgumentException("Illegal style");
+                throw new IllegalArgumentException("Illegal style,field:" + field.getName());
             }
             String[] splits = style.split(Constants.ARROW);
             if (splits.length == 1) {
                 // 发现未设置样式归属，则设置为全局样式，清除其他样式
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, i);
-                customStyle.put("cell&" + i, styleMap);
+                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, index);
+                customStyle.put("cell&" + index, styleMap);
                 break;
             } else {
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, i);
-                customStyle.put(splits[0] + "&" + i, styleMap);
+                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, index);
+                customStyle.put(splits[0] + "&" + index, styleMap);
             }
         }
     }
