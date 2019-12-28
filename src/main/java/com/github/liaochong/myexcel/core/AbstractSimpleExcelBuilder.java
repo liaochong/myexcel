@@ -58,6 +58,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -431,28 +432,13 @@ abstract class AbstractSimpleExcelBuilder {
      * @return Field
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-        boolean excelTableExist = Objects.nonNull(excelTable);
-        boolean excludeParent = false;
-        boolean includeAllField = false;
-        boolean ignoreStaticFields = true;
-        String[] globalStyle = null;
-        if (excelTableExist) {
-            setWorkbookWithExcelTableAnnotation(excelTable);
-            excludeParent = excelTable.excludeParent();
-            includeAllField = excelTable.includeAllField();
-            if (!excelTable.defaultValue().isEmpty()) {
-                globalDefaultValue = excelTable.defaultValue();
-            }
-            wrapText = excelTable.wrapText();
-            titleSeparator = excelTable.titleSeparator();
-            ignoreStaticFields = excelTable.ignoreStaticFields();
-            titleRowHeight = excelTable.titleRowHeight();
-            rowHeight = excelTable.rowHeight();
-            globalStyle = excelTable.style();
-        }
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);
-        if (ignoreStaticFields) {
+        GlobalSetting globalSetting = new GlobalSetting();
+        getGlobalSetting(classFieldContainer, globalSetting);
+
+        setWorkbookWithExcelTableAnnotation(globalSetting);
+        globalDefaultValue = globalSetting.getDefaultValue();
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting.isExcludeParent(), globalSetting.isExcludeParent());
+        if (globalSetting.isIgnoreStaticFields()) {
             preElectionFields = preElectionFields.stream()
                     .filter(field -> !Modifier.isStatic(field.getModifiers()))
                     .collect(Collectors.toList());
@@ -470,9 +456,8 @@ abstract class AbstractSimpleExcelBuilder {
         formats = new HashMap<>(sortedFields.size());
         formatsStyleMap = new HashMap<>();
         List<String> titles = new ArrayList<>(sortedFields.size());
-        boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
         boolean needToAddTitle = Objects.isNull(this.titles);
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyle);
+        Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
         this.setOddEvenStyle(globalStyleMap);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
@@ -481,7 +466,7 @@ abstract class AbstractSimpleExcelBuilder {
             setCustomStyle(i, globalStyleMap.get("title"));
             if (excelColumn != null) {
                 if (needToAddTitle) {
-                    if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
+                    if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
                         titles.add(field.getName());
                     } else {
                         titles.add(excelColumn.title());
@@ -505,7 +490,7 @@ abstract class AbstractSimpleExcelBuilder {
                 }
             } else {
                 if (needToAddTitle) {
-                    if (useFieldNameAsTitle) {
+                    if (globalSetting.isUseFieldNameAsTitle()) {
                         titles.add(field.getName());
                     } else {
                         titles.add(null);
@@ -524,10 +509,57 @@ abstract class AbstractSimpleExcelBuilder {
         return sortedFields;
     }
 
-    private Map<String, String> getGlobalStyleMap(String[] globalStyle) {
+    private void getGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+        ClassFieldContainer parentContainer = classFieldContainer.getParent();
+        if (parentContainer != null) {
+            getGlobalSetting(parentContainer, globalSetting);
+        }
+        if (classFieldContainer.getClazz() == Object.class) {
+            return;
+        }
+        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
+        if (excelTable == null) {
+            return;
+        }
+        if (!excelTable.sheetName().isEmpty()) {
+            globalSetting.setSheetName(excelTable.sheetName());
+        }
+        if (excelTable.workbookType() != WorkbookType.SXLSX) {
+            globalSetting.setWorkbookType(excelTable.workbookType());
+        }
+        if (excelTable.excludeParent()) {
+            globalSetting.setExcludeParent(true);
+        }
+        if (!excelTable.includeAllField()) {
+            globalSetting.setIncludeAllField(false);
+        }
+        if (!excelTable.defaultValue().isEmpty()) {
+            globalSetting.setDefaultValue(excelTable.defaultValue());
+        }
+        if (!excelTable.wrapText()) {
+            globalSetting.setWrapText(false);
+        }
+        if (!excelTable.titleSeparator().equals(Constants.ARROW)) {
+            globalSetting.setTitleSeparator(excelTable.titleSeparator());
+        }
+        if (!excelTable.ignoreStaticFields()) {
+            globalSetting.setIgnoreStaticFields(false);
+        }
+        if (excelTable.titleRowHeight() != -1) {
+            globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
+        }
+        if (excelTable.rowHeight() != -1) {
+            globalSetting.setRowHeight(excelTable.rowHeight());
+        }
+        if (excelTable.style().length != 0) {
+            globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
+        }
+    }
+
+    private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
         Map<String, String> globalStyleMap = new HashMap<>();
         if (globalStyle != null) {
-            Arrays.stream(globalStyle).forEach(style -> {
+            globalStyle.forEach(style -> {
                 String[] splits = style.split(Constants.ARROW);
                 if (splits.length == 1) {
                     globalStyleMap.put("cell", style);
@@ -609,14 +641,14 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 设置workbook
      *
-     * @param excelTable excelTable
+     * @param globalSetting globalSetting
      */
-    private void setWorkbookWithExcelTableAnnotation(ExcelTable excelTable) {
+    private void setWorkbookWithExcelTableAnnotation(GlobalSetting globalSetting) {
         if (workbookType == null) {
-            this.workbookType = excelTable.workbookType();
+            this.workbookType = globalSetting.getWorkbookType();
         }
         if (StringUtil.isBlank(this.sheetName)) {
-            String sheetName = excelTable.sheetName();
+            String sheetName = globalSetting.getSheetName();
             if (StringUtil.isNotBlank(sheetName)) {
                 this.sheetName = sheetName;
             }
