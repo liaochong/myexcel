@@ -300,9 +300,12 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 内容行
      */
     protected Tr createTr(List<Pair<? extends Class, ?>> contents) {
+        Tr tr = new Tr(0, rowHeight);
+        if (contents.isEmpty()) {
+            return tr;
+        }
         boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
         boolean isCustomWidth = WidthStrategy.isCustomWidth(widthStrategy);
-        Tr tr = new Tr(0, rowHeight);
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
         Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
@@ -472,8 +475,12 @@ abstract class AbstractSimpleExcelBuilder {
                 if (!noStyle && excelColumn.style().length > 0) {
                     setCustomStyle(i, excelColumn.style());
                 }
-                if (StringUtil.isNotBlank(excelColumn.decimalFormat())) {
+                if (!excelColumn.format().isEmpty()) {
+                    formats.put(i, excelColumn.format());
+                } else if (!excelColumn.decimalFormat().isEmpty()) {
                     formats.put(i, excelColumn.decimalFormat());
+                } else if (!excelColumn.dateFormatPattern().isEmpty()) {
+                    formats.put(i, excelColumn.dateFormatPattern());
                 }
             } else {
                 if (needToAddTitle) {

@@ -92,8 +92,13 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      */
     protected String getDateFormatPattern(Field field) {
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (Objects.nonNull(excelColumn) && StringUtil.isNotBlank(excelColumn.dateFormatPattern())) {
-            return excelColumn.dateFormatPattern();
+        if (excelColumn != null) {
+            if (!excelColumn.format().isEmpty()) {
+                return excelColumn.format();
+            }
+            if (!excelColumn.dateFormatPattern().isEmpty()) {
+                return excelColumn.dateFormatPattern();
+            }
         }
         return DEFAULT_DATE_FORMAT;
     }
