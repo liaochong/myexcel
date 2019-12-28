@@ -45,10 +45,13 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -314,13 +317,8 @@ abstract class AbstractSimpleExcelBuilder {
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
             Pair<? extends Class, ?> pair = contents.get(i);
-            Class fieldType = pair.getKey();
-            if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
-                td.setFile(pair.getValue() == null ? null : (File) pair.getValue());
-            } else {
-                td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
-            }
-            setTdContentType(td, fieldType);
+            setTdContent(td, pair);
+            setTdContentType(td, pair.getKey());
             Map<String, String> style;
             if (!noStyle && !customStyle.isEmpty()) {
                 style = customStyle.get(oddEvenPrefix + i);
@@ -353,12 +351,31 @@ abstract class AbstractSimpleExcelBuilder {
         return tr;
     }
 
+    private void setTdContent(Td td, Pair<? extends Class, ?> pair) {
+        Class fieldType = pair.getKey();
+        if (fieldType == Date.class) {
+            td.setDate((Date) pair.getValue());
+        } else if (fieldType == LocalDateTime.class) {
+            td.setLocalDateTime((LocalDateTime) pair.getValue());
+        } else if (fieldType == LocalDate.class) {
+            td.setLocalDate((LocalDate) pair.getValue());
+        } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
+            td.setFile(pair.getValue() == null ? null : (File) pair.getValue());
+        } else {
+            td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
+        }
+    }
+
     private void setTdContentType(Td td, Class fieldType) {
         if (String.class == fieldType) {
             return;
         }
         if (ReflectUtil.isNumber(fieldType)) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
+        if (ReflectUtil.isDate(fieldType)) {
+            td.setTdContentType(ContentTypeEnum.DATE);
             return;
         }
         if (ReflectUtil.isBool(fieldType)) {

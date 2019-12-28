@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.BigDecimalWriteConverter;
-import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DropDownListWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.ImageWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.LinkWriteConverter;
@@ -43,7 +42,6 @@ public class WriteConverterContext {
     private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
     static {
-        WRITE_CONVERTER_CONTAINER.add(new DateTimeWriteConverter());
         WRITE_CONVERTER_CONTAINER.add(new StringWriteConverter());
         WRITE_CONVERTER_CONTAINER.add(new BigDecimalWriteConverter());
         WRITE_CONVERTER_CONTAINER.add(new DropDownListWriteConverter());
