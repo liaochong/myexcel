@@ -433,16 +433,11 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         GlobalSetting globalSetting = new GlobalSetting();
-        getGlobalSetting(classFieldContainer, globalSetting);
+        setGlobalSetting(classFieldContainer, globalSetting);
 
         setWorkbookWithExcelTableAnnotation(globalSetting);
-        globalDefaultValue = globalSetting.getDefaultValue();
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting.isExcludeParent(), globalSetting.isExcludeParent());
-        if (globalSetting.isIgnoreStaticFields()) {
-            preElectionFields = preElectionFields.stream()
-                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                    .collect(Collectors.toList());
-        }
+
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting);
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         List<Field> sortedFields = preElectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
@@ -456,6 +451,7 @@ abstract class AbstractSimpleExcelBuilder {
         formats = new HashMap<>(sortedFields.size());
         formatsStyleMap = new HashMap<>();
         List<String> titles = new ArrayList<>(sortedFields.size());
+
         boolean needToAddTitle = Objects.isNull(this.titles);
         Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
         this.setOddEvenStyle(globalStyleMap);
@@ -509,10 +505,10 @@ abstract class AbstractSimpleExcelBuilder {
         return sortedFields;
     }
 
-    private void getGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+    private void setGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (parentContainer != null) {
-            getGlobalSetting(parentContainer, globalSetting);
+            setGlobalSetting(parentContainer, globalSetting);
         }
         if (classFieldContainer.getClazz() == Object.class) {
             return;
@@ -553,6 +549,9 @@ abstract class AbstractSimpleExcelBuilder {
         }
         if (excelTable.style().length != 0) {
             globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
+        }
+        if (excelTable.useFieldNameAsTitle()) {
+            globalSetting.setUseFieldNameAsTitle(true);
         }
     }
 
@@ -613,7 +612,7 @@ abstract class AbstractSimpleExcelBuilder {
         return styleMap;
     }
 
-    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {
+    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
         if (Objects.nonNull(fieldDisplayOrder) && !fieldDisplayOrder.isEmpty()) {
             this.selfAdaption();
             return fieldDisplayOrder.stream()
@@ -621,19 +620,25 @@ abstract class AbstractSimpleExcelBuilder {
                     .collect(Collectors.toList());
         }
         List<Field> preElectionFields;
-        if (includeAllField) {
-            if (excludeParent) {
+        if (globalSetting.isIncludeAllField()) {
+            if (globalSetting.isExcludeParent()) {
                 preElectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preElectionFields = classFieldContainer.getFields();
             }
-            return preElectionFields;
-        }
-        if (excludeParent) {
-            preElectionFields = classFieldContainer.getDeclaredFields().stream()
-                    .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
         } else {
-            preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            if (globalSetting.isExcludeParent()) {
+                preElectionFields = classFieldContainer.getDeclaredFields().stream()
+                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
+                        .collect(Collectors.toList());
+            } else {
+                preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            }
+        }
+        if (globalSetting.isIgnoreStaticFields()) {
+            preElectionFields = preElectionFields.stream()
+                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                    .collect(Collectors.toList());
         }
         return preElectionFields;
     }
@@ -653,6 +658,7 @@ abstract class AbstractSimpleExcelBuilder {
                 this.sheetName = sheetName;
             }
         }
+        globalDefaultValue = globalSetting.getDefaultValue();
     }
 
     /**
