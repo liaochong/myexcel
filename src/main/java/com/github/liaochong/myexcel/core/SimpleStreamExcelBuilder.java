@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * @author liaochong
  * @version 1.0
  */
-interface SimpleStreamExcelBuilder extends Closeable {
+interface SimpleStreamExcelBuilder<T> extends Closeable {
 
     /**
      * 线程池设置
@@ -82,15 +82,14 @@ interface SimpleStreamExcelBuilder extends Closeable {
      *
      * @param data 需要追加的数据
      */
-    void append(List<?> data);
+    void append(List<T> data);
 
     /**
      * 数据追加
      *
      * @param data 数据
-     * @param <T>  数据类型
      */
-    <T> void append(T data);
+    void append(T data);
 
     /**
      * 停止追加数据，开始构建

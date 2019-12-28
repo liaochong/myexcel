@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 默认excel创建者
@@ -32,105 +33,107 @@ import java.util.List;
  * @version 1.0
  */
 @Slf4j
-public class DefaultExcelBuilder implements Closeable {
+public class DefaultExcelBuilder<T> implements Closeable {
 
-    private DefaultStreamExcelBuilder streamExcelBuilder;
+    private DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
-    private DefaultExcelBuilder(DefaultStreamExcelBuilder streamExcelBuilder) {
+    private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
         streamExcelBuilder.hasStyle();
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
         this.streamExcelBuilder = streamExcelBuilder;
     }
 
     /**
-     * 获取实例
-     *
-     * @return DefaultExcelBuilder
-     */
-    public static DefaultExcelBuilder getInstance() {
-        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance());
-        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
-        return defaultExcelBuilder;
-    }
-
-    /**
-     * 获取实例
-     *
-     * @param workbook workbook
-     * @return DefaultExcelBuilder
-     */
-    public static DefaultExcelBuilder getInstance(Workbook workbook) {
-        return new DefaultExcelBuilder(DefaultStreamExcelBuilder.getInstance(workbook));
-    }
-
-    /**
-     * 获取实例，设定需要渲染的数据的类类型
+     * 获取实例，设定需要渲染的数据的类类型ff
      *
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
      */
-    public static DefaultExcelBuilder of(@NonNull Class<?> dataType) {
-        DefaultExcelBuilder defaultExcelBuilder = new DefaultExcelBuilder(DefaultStreamExcelBuilder.of(dataType));
+    public static <T> DefaultExcelBuilder<T> of(@NonNull Class<T> dataType) {
+        DefaultExcelBuilder<T> defaultExcelBuilder = new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.of(dataType));
         defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
         return defaultExcelBuilder;
     }
 
-    public static DefaultExcelBuilder of(@NonNull Class<?> dataType, @NonNull Workbook workbook) {
-        return new DefaultExcelBuilder(DefaultStreamExcelBuilder.of(dataType, workbook));
+    public static <T> DefaultExcelBuilder<T> of(@NonNull Class<T> dataType, @NonNull Workbook workbook) {
+        return new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.of(dataType, workbook));
     }
 
-    public DefaultExcelBuilder titles(@NonNull List<String> titles) {
+    /**
+     * 已过时，获取实例
+     *
+     * @return DefaultExcelBuilder
+     */
+    @Deprecated
+    public static DefaultExcelBuilder<Map> getInstance() {
+        DefaultExcelBuilder<Map> defaultExcelBuilder = new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.getInstance());
+        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
+        return defaultExcelBuilder;
+    }
+
+    /**
+     * 已过时，获取实例
+     *
+     * @param workbook workbook
+     * @return DefaultExcelBuilder
+     */
+    @Deprecated
+    public static DefaultExcelBuilder<Map> getInstance(Workbook workbook) {
+        return new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.getInstance(workbook));
+    }
+
+    public DefaultExcelBuilder<T> titles(@NonNull List<String> titles) {
         streamExcelBuilder.titles(titles);
         return this;
     }
 
-    public DefaultExcelBuilder sheetName(@NonNull String sheetName) {
+    public DefaultExcelBuilder<T> sheetName(@NonNull String sheetName) {
         streamExcelBuilder.sheetName(sheetName);
         return this;
     }
 
-    public DefaultExcelBuilder fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+    public DefaultExcelBuilder<T> fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
         streamExcelBuilder.fieldDisplayOrder(fieldDisplayOrder);
         return this;
     }
 
-    public DefaultExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
+    public DefaultExcelBuilder<T> workbookType(@NonNull WorkbookType workbookType) {
         streamExcelBuilder.workbookType(workbookType);
         return this;
     }
 
-    public DefaultExcelBuilder noStyle() {
+    public DefaultExcelBuilder<T> noStyle() {
         streamExcelBuilder.noStyle();
         return this;
     }
 
-    public DefaultExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
+    public DefaultExcelBuilder<T> widthStrategy(WidthStrategy widthStrategy) {
         streamExcelBuilder.widthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
-    public DefaultExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+    public DefaultExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
         streamExcelBuilder.autoWidthStrategy(autoWidthStrategy);
         return this;
     }
 
-    public DefaultExcelBuilder fixedTitles() {
+    public DefaultExcelBuilder<T> fixedTitles() {
         streamExcelBuilder.fixedTitles();
         return this;
     }
 
-    public DefaultExcelBuilder widths(int... widths) {
+    public DefaultExcelBuilder<T> widths(int... widths) {
         streamExcelBuilder.widths(widths);
         return this;
     }
 
-    public DefaultExcelBuilder groups(Class<?>... groups) {
+    public DefaultExcelBuilder<T> groups(Class<?>... groups) {
         streamExcelBuilder.groups(groups);
         return this;
     }
 
-    public Workbook build(List<?> data) {
+    public Workbook build(List<T> data) {
         try {
             streamExcelBuilder.start();
             streamExcelBuilder.append(data);

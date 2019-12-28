@@ -25,7 +25,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void mapBuild() throws Exception {
-        List<Map<String, String>> list = new ArrayList<>();
+        List<Map> list = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Map<String, String> obj = new HashMap<>();
             obj.put("1", "1");
@@ -40,14 +40,14 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         titles.add("3");
         titles.add("4");
 
-        Workbook workbook = DefaultExcelBuilder.getInstance().fieldDisplayOrder(titles).build(list);
-        workbook = DefaultExcelBuilder.getInstance(workbook).fieldDisplayOrder(titles).build(list);
+        Workbook workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
+//        workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
         FileExportUtil.export(workbook, new File(TEST_DIR + "map_build.xlsx"));
     }
 
     @Test
     void commonBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .workbookType(WorkbookType.XLS)
                 .fixedTitles()
                 .start()) {
@@ -59,7 +59,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void hasStyleBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .start()) {
@@ -71,7 +71,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void customWidthBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .widths(15, 20, 25, 30)
@@ -84,7 +84,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void continueBuild() throws Exception {
-        DefaultStreamExcelBuilder excelBuilder = null;
+        DefaultStreamExcelBuilder<CommonPeople> excelBuilder = null;
         try {
             excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                     .fixedTitles()
@@ -110,20 +110,20 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void cancelBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .widths(15, 20, 25, 30)
                 .start()) {
             data(excelBuilder, 10000);
-            excelBuilder.cancle();
+            excelBuilder.cancel();
         }
     }
 
     @Test
     void buildAsPaths() throws Exception {
         List<Path> paths = null;
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .widths(15, 20, 25, 30)
@@ -139,7 +139,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     @Test
     void buildAsZip() throws Exception {
         Path zip = null;
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .widths(15, 20, 25, 30)
@@ -154,7 +154,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void bigBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .widths(15, 20, 25, 30)
@@ -167,7 +167,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void customStyleBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CustomStylePeople.class)
+        try (DefaultStreamExcelBuilder<CustomStylePeople> excelBuilder = DefaultStreamExcelBuilder.of(CustomStylePeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .start()) {
@@ -179,7 +179,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void evenOddBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(OddEvenStylePeople.class)
+        try (DefaultStreamExcelBuilder<OddEvenStylePeople> excelBuilder = DefaultStreamExcelBuilder.of(OddEvenStylePeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .start()) {
@@ -191,7 +191,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void groupBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .groups(CommonPeople.class)
@@ -205,7 +205,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 
     @Test
     void widthBuild() throws Exception {
-        try (DefaultStreamExcelBuilder excelBuilder = DefaultStreamExcelBuilder.of(WidthPeople.class)
+        try (DefaultStreamExcelBuilder<WidthPeople> excelBuilder = DefaultStreamExcelBuilder.of(WidthPeople.class)
                 .fixedTitles()
                 .hasStyle()
                 .start()) {
@@ -215,7 +215,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
-    private void data(DefaultStreamExcelBuilder excelBuilder, int size) {
+    private void data(DefaultStreamExcelBuilder<CommonPeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
         for (int i = 0; i < size; i++) {
@@ -229,7 +229,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
-    private void customStyleData(DefaultStreamExcelBuilder excelBuilder, int size) {
+    private void customStyleData(DefaultStreamExcelBuilder<CustomStylePeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
         for (int i = 0; i < size; i++) {
@@ -243,7 +243,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
-    private void oddEvenData(DefaultStreamExcelBuilder excelBuilder, int size) {
+    private void oddEvenData(DefaultStreamExcelBuilder<OddEvenStylePeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
         for (int i = 0; i < size; i++) {
@@ -257,7 +257,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
-    private void widthEvenData(DefaultStreamExcelBuilder excelBuilder, int size) {
+    private void widthEvenData(DefaultStreamExcelBuilder<WidthPeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
         for (int i = 0; i < size; i++) {
