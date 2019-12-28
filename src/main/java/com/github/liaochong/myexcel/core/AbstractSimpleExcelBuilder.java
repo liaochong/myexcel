@@ -42,6 +42,7 @@ import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
+import javax.lang.model.type.NullType;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -353,6 +354,9 @@ abstract class AbstractSimpleExcelBuilder {
 
     private void setTdContent(Td td, Pair<? extends Class, ?> pair) {
         Class fieldType = pair.getKey();
+        if (fieldType == NullType.class) {
+            return;
+        }
         if (fieldType == Date.class) {
             td.setDate((Date) pair.getValue());
         } else if (fieldType == LocalDateTime.class) {
@@ -360,9 +364,9 @@ abstract class AbstractSimpleExcelBuilder {
         } else if (fieldType == LocalDate.class) {
             td.setLocalDate((LocalDate) pair.getValue());
         } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
-            td.setFile(pair.getValue() == null ? null : (File) pair.getValue());
+            td.setFile((File) pair.getValue());
         } else {
-            td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
+            td.setContent(String.valueOf(pair.getValue()));
         }
     }
 

@@ -24,6 +24,7 @@ import com.github.liaochong.myexcel.core.converter.writer.MappingWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
+import javax.lang.model.type.NullType;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +38,7 @@ import java.util.Optional;
  */
 public class WriteConverterContext {
 
-    private static final Pair<? extends Class, Object> NULL_PAIR = Pair.of(String.class, null);
+    private static final Pair<? extends Class, Object> NULL_PAIR = Pair.of(NullType.class, null);
 
     private static final List<WriteConverter> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
