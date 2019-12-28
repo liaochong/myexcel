@@ -77,7 +77,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     /**
      * 任务取消
      */
-    private boolean cancel;
+    private volatile boolean cancel;
     /**
      * 分组
      */
@@ -258,14 +258,14 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
-        this.initStyleMap();
-        Table table = this.createTable();
 
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
         htmlToExcelStreamFactory.widthStrategy(widthStrategy);
         if (workbook == null) {
             htmlToExcelStreamFactory.workbookType(workbookType);
         }
+        this.initStyleMap();
+        Table table = this.createTable();
         htmlToExcelStreamFactory.start(table, workbook);
 
         List<Tr> head = this.createThead();
@@ -275,33 +275,17 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void append(List<T> data) {
+    public void append(List<T> dataList) {
         if (cancel) {
             log.info("Canceled build task");
             return;
         }
-        if (data == null || data.isEmpty()) {
+        if (dataList == null || dataList.isEmpty()) {
             return;
         }
-        if (isMapBuild) {
-            for (Object datum : data) {
-                Map<String, Object> d = (Map<String, Object>) datum;
-                List<Pair<? extends Class, ?>> contents = new ArrayList<>(d.size());
-                for (String fieldName : fieldDisplayOrder) {
-                    Object val = d.get(fieldName);
-                    contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
-                }
-                Tr tr = this.createTr(contents);
-                htmlToExcelStreamFactory.append(tr);
-            }
-        } else {
-            for (Object datum : data) {
-                List<Pair<? extends Class, ?>> contents = getRenderContent(datum, filteredFields);
-                Tr tr = this.createTr(contents);
-                htmlToExcelStreamFactory.append(tr);
-            }
+        for (T data : dataList) {
+            this.append(data);
         }
     }
 
@@ -317,17 +301,21 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         }
         List<Pair<? extends Class, ?>> contents;
         if (isMapBuild) {
-            Map<String, Object> d = (Map<String, Object>) data;
-            contents = new ArrayList<>(d.size());
-            for (String fieldName : fieldDisplayOrder) {
-                Object val = d.get(fieldName);
-                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
-            }
+            contents = assemblingMapContents((Map<String, Object>) data);
         } else {
             contents = getRenderContent(data, filteredFields);
         }
         Tr tr = this.createTr(contents);
         htmlToExcelStreamFactory.append(tr);
+    }
+
+    private List<Pair<? extends Class, ?>> assemblingMapContents(Map<String, Object> data) {
+        List<Pair<? extends Class, ?>> contents = new ArrayList<>(data.size());
+        for (String fieldName : fieldDisplayOrder) {
+            Object val = data.get(fieldName);
+            contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
+        }
+        return contents;
     }
 
     @Override

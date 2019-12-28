@@ -60,7 +60,7 @@ public class DefaultExcelBuilder<T> implements Closeable {
     }
 
     /**
-     * 已过时，获取实例
+     * 已过时，获取实例，请使用of方法代替
      *
      * @return DefaultExcelBuilder
      */
@@ -72,7 +72,7 @@ public class DefaultExcelBuilder<T> implements Closeable {
     }
 
     /**
-     * 已过时，获取实例
+     * 已过时，获取实例，请使用of方法代替
      *
      * @param workbook workbook
      * @return DefaultExcelBuilder
