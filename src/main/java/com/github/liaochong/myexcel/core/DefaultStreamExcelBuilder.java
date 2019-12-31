@@ -30,12 +30,14 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -245,6 +247,11 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public DefaultStreamExcelBuilder<T> waitQueueSize(int waitQueueSize) {
         this.waitQueueSize = waitQueueSize;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> globalStyle(String... styles) {
+        globalStyles = Arrays.stream(styles).collect(Collectors.toSet());
         return this;
     }
 

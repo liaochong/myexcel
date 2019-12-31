@@ -157,6 +157,10 @@ abstract class AbstractSimpleExcelBuilder {
      * 格式样式Map
      */
     private Map<String, Map<String, String>> formatsStyleMap;
+    /**
+     * 全局样式
+     */
+    protected Set<String> globalStyles = Collections.emptySet();
 
     /**
      * 创建table
@@ -453,7 +457,7 @@ abstract class AbstractSimpleExcelBuilder {
         List<String> titles = new ArrayList<>(sortedFields.size());
 
         boolean needToAddTitle = Objects.isNull(this.titles);
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
+        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyles.isEmpty() ? globalSetting.getGlobalStyle() : globalStyles);
         this.setOddEvenStyle(globalStyleMap);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);

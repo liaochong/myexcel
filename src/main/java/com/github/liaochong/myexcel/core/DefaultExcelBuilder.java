@@ -133,6 +133,11 @@ public class DefaultExcelBuilder<T> implements Closeable {
         return this;
     }
 
+    public DefaultExcelBuilder<T> globalStyle(String... styles) {
+        streamExcelBuilder.globalStyle(styles);
+        return this;
+    }
+
     public Workbook build(List<T> data) {
         try {
             streamExcelBuilder.start();
