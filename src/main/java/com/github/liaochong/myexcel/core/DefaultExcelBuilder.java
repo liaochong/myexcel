@@ -44,7 +44,7 @@ public class DefaultExcelBuilder<T> implements Closeable {
     }
 
     /**
-     * 获取实例，设定需要渲染的数据的类类型ff
+     * 获取实例，设定需要渲染的数据的类类型
      *
      * @param dataType 数据的类类型
      * @return DefaultExcelBuilder
