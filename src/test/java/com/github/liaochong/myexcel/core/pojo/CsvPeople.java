@@ -37,7 +37,7 @@ public class CsvPeople {
     @ExcelColumn(title = "年龄", index = 1)
     Integer age;
 
-    @ExcelColumn(title = "是否会跳舞", index = 2)
+    @ExcelColumn(title = "是否会跳舞", index = 2, mapping = "true:是,false:否")
     boolean dance;
 
     @ExcelColumn(title = "金钱", decimalFormat = "#,000.00", index = 3)

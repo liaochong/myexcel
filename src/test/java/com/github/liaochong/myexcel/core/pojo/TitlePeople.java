@@ -37,12 +37,12 @@ public class TitlePeople {
     @ExcelColumn(title = "年龄")
     Integer age;
 
-    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class)
+    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class, mapping = "true:是,false:否")
     boolean dance;
 
-    @ExcelColumn(title = "金钱", decimalFormat = "#,000.00")
+    @ExcelColumn(title = "金钱", format = "#,000.00")
     BigDecimal money;
 
-    @ExcelColumn(title = "生日", dateFormatPattern = "yyyy-MM-dd HH:mm:ss")
+    @ExcelColumn(title = "生日", format = "yyyy-MM-dd HH:mm:ss")
     Date birthday;
 }

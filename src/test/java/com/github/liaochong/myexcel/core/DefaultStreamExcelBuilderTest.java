@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,10 +51,10 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     @Test
     void commonBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
-                .workbookType(WorkbookType.XLS)
+//                .workbookType(WorkbookType.XLS)
                 .fixedTitles()
                 .start()) {
-            data(excelBuilder, 10000);
+            data(excelBuilder, 100);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_DIR + "common_build.xlsx"));
         }
@@ -225,6 +228,9 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             commonPeople.setAge(odd ? 18 : 24);
             commonPeople.setDance(odd ? true : false);
             commonPeople.setMoney(odd ? oddMoney : evenMoney);
+            commonPeople.setBirthday(new Date());
+            commonPeople.setLocalDate(LocalDate.now());
+            commonPeople.setLocalDateTime(LocalDateTime.now());
             excelBuilder.append(commonPeople);
         }
     }
