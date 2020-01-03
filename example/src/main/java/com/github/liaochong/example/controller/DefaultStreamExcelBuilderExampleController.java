@@ -25,7 +25,7 @@ public class DefaultStreamExcelBuilderExampleController {
 
     @GetMapping("/default/excel/stream/example")
     public void streamBuild(HttpServletResponse response) throws Exception {
-        try (DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
+        try (DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
                 .widthStrategy(WidthStrategy.CUSTOM_WIDTH)
                 .hasStyle()
                 .threadPool(Executors.newFixedThreadPool(10))
@@ -46,7 +46,7 @@ public class DefaultStreamExcelBuilderExampleController {
 
     @GetMapping("/default/excel/stream/continue/example")
     public void streamBuildWithContinue(HttpServletResponse response) throws Exception {
-        DefaultStreamExcelBuilder defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
+        DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
                 .threadPool(Executors.newFixedThreadPool(10))
                 .start();
 
@@ -61,7 +61,7 @@ public class DefaultStreamExcelBuilderExampleController {
         futures.forEach(CompletableFuture::join);
         Workbook workbook = defaultExcelBuilder.build();
 
-        DefaultStreamExcelBuilder defaultStreamExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class, workbook)
+        DefaultStreamExcelBuilder<ArtCrowd> defaultStreamExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class, workbook)
                 .threadPool(Executors.newFixedThreadPool(10))
                 .sheetName("sheet2")
                 .start();
