@@ -160,7 +160,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 全局样式
      */
-    protected Set<String> globalStyles;
+    protected Set<String> globalStyle;
 
     /**
      * 创建table
@@ -457,7 +457,7 @@ abstract class AbstractSimpleExcelBuilder {
         List<String> titles = new ArrayList<>(sortedFields.size());
 
         boolean needToAddTitle = Objects.isNull(this.titles);
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyles != null ? globalStyles : globalSetting.getGlobalStyle());
+        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyle != null ? globalStyle : globalSetting.getGlobalStyle());
         this.setOddEvenStyle(globalStyleMap);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
