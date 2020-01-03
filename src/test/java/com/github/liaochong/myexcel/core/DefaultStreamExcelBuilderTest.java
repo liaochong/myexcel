@@ -53,7 +53,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
 //                .workbookType(WorkbookType.XLS)
                 .fixedTitles()
-                .globalStyle("background-color:red")
+                .globalStyle("background-color:red;", "title->background-color:green;")
                 .start()) {
             data(excelBuilder, 100);
             Workbook workbook = excelBuilder.build();

@@ -15,20 +15,36 @@
 package com.github.liaochong.myexcel.core.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import lombok.AccessLevel;
+import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import lombok.Data;
-import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @author liaochong
  * @version 1.0
  */
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class CommonPeople extends Person {
+@ExcelTable(sheetName = "人员信息", rowHeight = 50, titleRowHeight = 80)
+public class Person {
+
+    @ExcelColumn(title = "基本信息->姓名", index = 0)
+    String name;
+
+    @ExcelColumn(title = "基本信息->年龄", index = 1)
+    Integer age;
+
+    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class, index = 2, mapping = "true:是,false:否")
+    boolean dance;
+
+    @ExcelColumn(title = "金钱", format = "#,000.00", index = 3)
+    BigDecimal money;
+
+    @ExcelColumn(title = "生日", format = "yyyy-MM-dd HH:mm:ss", index = 4)
+    Date birthday;
 
     @ExcelColumn(title = "当前日期", format = "yyyy/MM/dd", index = 5)
     LocalDate localDate;

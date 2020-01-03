@@ -122,7 +122,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 标题分离器
      */
-    protected String titleSeparator = Constants.ARROW;
+    protected String titleSeparator;
     /**
      * 自定义样式
      */
@@ -663,6 +663,10 @@ abstract class AbstractSimpleExcelBuilder {
             }
         }
         globalDefaultValue = globalSetting.getDefaultValue();
+        titleRowHeight = globalSetting.getTitleRowHeight();
+        rowHeight = globalSetting.getRowHeight();
+        wrapText = globalSetting.isWrapText();
+        titleSeparator = globalSetting.getTitleSeparator();
     }
 
     /**

@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -41,7 +42,7 @@ class GlobalSetting {
 
     boolean wrapText = true;
 
-    String titleSeparator;
+    String titleSeparator = Constants.ARROW;
 
     boolean ignoreStaticFields = true;
 

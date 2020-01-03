@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -80,17 +79,17 @@ public class ClassFieldContainer {
     }
 
     private void filterFields(List<Field> declaredFields, List<Field> fieldContainer) {
+        to:
         for (int i = 0, size = declaredFields.size(); i < size; i++) {
             Field field = declaredFields.get(i);
-            Optional<Field> fieldOptional = fieldContainer
-                    .stream()
-                    .filter(f -> f.getName().equals(field.getName()))
-                    .findFirst();
-            if (fieldOptional.isPresent()) {
-                fieldContainer.set(i, field);
-            } else {
-                fieldContainer.add(field);
+            for (int j = 0; j < fieldContainer.size(); j++) {
+                Field f = fieldContainer.get(j);
+                if (f.getName().equals(field.getName())) {
+                    fieldContainer.set(j, field);
+                    continue to;
+                }
             }
+            fieldContainer.add(field);
         }
     }
 
