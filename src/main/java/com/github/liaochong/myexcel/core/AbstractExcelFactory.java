@@ -241,6 +241,16 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                         cell.setCellValue(Double.parseDouble(content));
                     }
                     break;
+                case DATE:
+                    cell = currentRow.createCell(td.getCol());
+                    if (td.getDate() != null) {
+                        cell.setCellValue(td.getDate());
+                    } else if (td.getLocalDateTime() != null) {
+                        cell.setCellValue(td.getLocalDateTime());
+                    } else if (td.getLocalDate() != null) {
+                        cell.setCellValue(td.getLocalDate());
+                    }
+                    break;
                 case BOOLEAN:
                     cell = currentRow.createCell(td.getCol(), CellType.BOOLEAN);
                     if (null != content) {

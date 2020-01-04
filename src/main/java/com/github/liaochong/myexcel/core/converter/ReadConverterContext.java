@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.ReadContext;
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
@@ -25,6 +26,7 @@ import com.github.liaochong.myexcel.core.converter.reader.StringReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
+import com.github.liaochong.myexcel.utils.PropertyUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.BiFunction;
 
 /**
@@ -102,6 +105,14 @@ public class ReadConverterContext {
         }
         Object value = null;
         try {
+            ExcelColumn excelColumn = context.getField().getAnnotation(ExcelColumn.class);
+            if (excelColumn != null && !excelColumn.mapping().isEmpty()) {
+                Properties properties = PropertyUtil.getReverseProperties(excelColumn);
+                String mappingVal = properties.getProperty(context.getVal());
+                if (mappingVal != null) {
+                    context.setVal(mappingVal);
+                }
+            }
             value = converter.convert(context.getVal(), context.getField());
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, context);

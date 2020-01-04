@@ -12,27 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.pojo;
-
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+package com.github.liaochong.myexcel.core.constant;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class CommonPeople extends Person {
-
-    @ExcelColumn(title = "当前日期", format = "yyyy/MM/dd", index = 5)
-    LocalDate localDate;
-
-    @ExcelColumn(title = "当前时间", format = "yyyy/MM/dd HH:mm:ss", index = 6)
-    LocalDateTime localDateTime;
+public interface AllConverter {
 }

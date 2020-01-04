@@ -16,13 +16,11 @@ package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
-import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
-import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.PropertyUtil;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -36,7 +34,7 @@ public class MappingWriteConverter implements WriteConverter {
     @Override
     public boolean support(Field field, Object fieldVal) {
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && StringUtil.isNotBlank(excelColumn.mapping());
+        return excelColumn != null && !excelColumn.mapping().isEmpty();
     }
 
     @Override
@@ -47,15 +45,7 @@ public class MappingWriteConverter implements WriteConverter {
         if (mapping != null) {
             return mapping;
         }
-        String[] mappingGroups = excelColumn.mapping().split(Constants.COMMA);
-        Properties properties = new Properties();
-        Arrays.stream(mappingGroups).forEach(m -> {
-            String[] mappingGroup = m.split(Constants.COLON);
-            if (mappingGroup.length != 2) {
-                throw new IllegalArgumentException("Illegal mapping:" + m);
-            }
-            properties.setProperty(mappingGroup[0], mappingGroup[1]);
-        });
+        Properties properties = PropertyUtil.getProperties(excelColumn);
         String property = properties.getProperty(fieldVal.toString());
         if (property == null) {
             return Pair.of(field.getType(), fieldVal);

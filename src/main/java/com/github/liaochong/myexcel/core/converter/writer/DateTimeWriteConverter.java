@@ -19,7 +19,6 @@ import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
-import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -46,7 +45,7 @@ public class DateTimeWriteConverter implements WriteConverter {
             return false;
         }
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && StringUtil.isNotBlank(excelColumn.dateFormatPattern());
+        return excelColumn != null && (!excelColumn.format().isEmpty() || !excelColumn.dateFormatPattern().isEmpty());
     }
 
     @Override
@@ -54,7 +53,7 @@ public class DateTimeWriteConverter implements WriteConverter {
         Class<?> fieldType = field.getType();
         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         // 时间格式化
-        String dateFormatPattern = excelColumn.dateFormatPattern();
+        String dateFormatPattern = excelColumn.format().isEmpty() ? excelColumn.dateFormatPattern() : excelColumn.format();
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);

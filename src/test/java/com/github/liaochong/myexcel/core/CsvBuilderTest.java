@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -79,6 +80,7 @@ class CsvBuilderTest extends BasicTest {
             csvPeople.setAge(null);
             csvPeople.setDance(odd ? true : false);
             csvPeople.setMoney(odd ? oddMoney : evenMoney);
+            csvPeople.setBirthday(new Date());
             peoples.add(csvPeople);
         }
         return peoples;

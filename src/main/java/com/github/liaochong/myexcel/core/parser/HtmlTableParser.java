@@ -270,6 +270,11 @@ public class HtmlTableParser {
         boolean isFormula = tdElement.hasAttr("formula");
         if (isFormula) {
             td.setFormula(true);
+            String formula = td.getContent().trim();
+            if (formula.startsWith(Constants.EQUAL)) {
+                formula = formula.substring(1);
+            }
+            td.setContent(formula);
             return;
         }
         if (tdElement.hasAttr("url")) {

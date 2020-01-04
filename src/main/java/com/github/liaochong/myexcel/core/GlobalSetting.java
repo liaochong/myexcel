@@ -12,16 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.pojo;
+package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.math.BigDecimal;
-import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author liaochong
@@ -29,20 +28,29 @@ import java.util.Date;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@ExcelTable(sheetName = "人员信息")
-public class TitlePeople {
-    @ExcelColumn(title = "姓名")
-    String name;
+class GlobalSetting {
 
-    @ExcelColumn(title = "年龄")
-    Integer age;
+    String sheetName;
 
-    @ExcelColumn(title = "是否会跳舞", groups = CommonPeople.class, mapping = "true:是,false:否")
-    boolean dance;
+    WorkbookType workbookType = WorkbookType.SXLSX;
 
-    @ExcelColumn(title = "金钱", format = "#,000.00")
-    BigDecimal money;
+    boolean excludeParent = false;
 
-    @ExcelColumn(title = "生日", format = "yyyy-MM-dd HH:mm:ss")
-    Date birthday;
+    boolean includeAllField = true;
+
+    String defaultValue;
+
+    boolean wrapText = true;
+
+    String titleSeparator = Constants.ARROW;
+
+    boolean ignoreStaticFields = true;
+
+    int titleRowHeight;
+
+    int rowHeight;
+
+    Set<String> globalStyle = new HashSet<>();
+
+    boolean useFieldNameAsTitle = false;
 }

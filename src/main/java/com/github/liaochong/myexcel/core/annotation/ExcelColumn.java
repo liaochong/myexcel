@@ -54,13 +54,6 @@ public @interface ExcelColumn {
     int index() default -1;
 
     /**
-     * 时间格式化，如yyyy-MM-dd HH:mm:ss
-     *
-     * @return 时间格式化
-     */
-    String dateFormatPattern() default "";
-
-    /**
      * 分组
      *
      * @return 分组类类型集合
@@ -89,11 +82,29 @@ public @interface ExcelColumn {
     boolean convertToString() default false;
 
     /**
-     * 小数格式化
+     * 小数格式化，
+     * 已过期，请使用format代替
      *
      * @return 格式化
      */
+    @Deprecated
     String decimalFormat() default "";
+
+    /**
+     * 时间格式化，如yyyy-MM-dd HH:mm:ss，
+     * 已过期，请使用format代替
+     *
+     * @return 时间格式化
+     */
+    @Deprecated
+    String dateFormatPattern() default "";
+
+    /**
+     * 格式化，时间、金额等
+     *
+     * @return 格式化
+     */
+    String format() default "";
 
     /**
      * 样式

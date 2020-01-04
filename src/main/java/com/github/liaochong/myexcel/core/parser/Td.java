@@ -21,6 +21,9 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -74,6 +77,15 @@ public class Td {
      * 文件
      */
     File file;
+
+    /**
+     * 时间是常用对象，特殊化
+     */
+    Date date;
+
+    LocalDate localDate;
+
+    LocalDateTime localDateTime;
 
     public Td(int row, int col) {
         this.row = row;

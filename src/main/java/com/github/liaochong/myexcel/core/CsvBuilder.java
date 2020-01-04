@@ -18,6 +18,7 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
@@ -233,7 +234,7 @@ public class CsvBuilder<T> implements Closeable {
     private List<?> getRenderContent(T data, List<Field> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data);
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, CsvConverter.class);
                     if (value.getValue() != null) {
                         return value;
                     }

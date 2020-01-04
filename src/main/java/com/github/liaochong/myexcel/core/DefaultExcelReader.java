@@ -412,6 +412,9 @@ public class DefaultExcelReader<T> {
                 return;
             }
             String content = formatter.formatCellValue(cell);
+            if (content == null) {
+                return;
+            }
             content = trim.apply(content);
             context.reset(obj, field, content, row.getRowNum(), index);
             ReadConverterContext.convert(obj, context, exceptionFunction);

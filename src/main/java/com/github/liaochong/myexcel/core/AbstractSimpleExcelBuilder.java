@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
@@ -42,18 +43,23 @@ import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
+import javax.lang.model.type.NullType;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -117,7 +123,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 标题分离器
      */
-    protected String titleSeparator = Constants.ARROW;
+    protected String titleSeparator;
     /**
      * 自定义样式
      */
@@ -152,6 +158,10 @@ abstract class AbstractSimpleExcelBuilder {
      * 格式样式Map
      */
     private Map<String, Map<String, String>> formatsStyleMap;
+    /**
+     * 全局样式
+     */
+    protected Set<String> globalStyle;
 
     /**
      * 创建table
@@ -300,9 +310,12 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 内容行
      */
     protected Tr createTr(List<Pair<? extends Class, ?>> contents) {
+        Tr tr = new Tr(0, rowHeight);
+        if (contents.isEmpty()) {
+            return tr;
+        }
         boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
         boolean isCustomWidth = WidthStrategy.isCustomWidth(widthStrategy);
-        Tr tr = new Tr(0, rowHeight);
         tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
         Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
@@ -311,13 +324,8 @@ abstract class AbstractSimpleExcelBuilder {
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
             Pair<? extends Class, ?> pair = contents.get(i);
-            Class fieldType = pair.getKey();
-            if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
-                td.setFile(pair.getValue() == null ? null : (File) pair.getValue());
-            } else {
-                td.setContent(pair.getValue() == null ? null : String.valueOf(pair.getValue()));
-            }
-            setTdContentType(td, fieldType);
+            setTdContent(td, pair);
+            setTdContentType(td, pair.getKey());
             Map<String, String> style;
             if (!noStyle && !customStyle.isEmpty()) {
                 style = customStyle.get(oddEvenPrefix + i);
@@ -350,12 +358,34 @@ abstract class AbstractSimpleExcelBuilder {
         return tr;
     }
 
+    private void setTdContent(Td td, Pair<? extends Class, ?> pair) {
+        Class fieldType = pair.getKey();
+        if (fieldType == NullType.class) {
+            return;
+        }
+        if (fieldType == Date.class) {
+            td.setDate((Date) pair.getValue());
+        } else if (fieldType == LocalDateTime.class) {
+            td.setLocalDateTime((LocalDateTime) pair.getValue());
+        } else if (fieldType == LocalDate.class) {
+            td.setLocalDate((LocalDate) pair.getValue());
+        } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
+            td.setFile((File) pair.getValue());
+        } else {
+            td.setContent(String.valueOf(pair.getValue()));
+        }
+    }
+
     private void setTdContentType(Td td, Class fieldType) {
         if (String.class == fieldType) {
             return;
         }
         if (ReflectUtil.isNumber(fieldType)) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
+            return;
+        }
+        if (ReflectUtil.isDate(fieldType)) {
+            td.setTdContentType(ContentTypeEnum.DATE);
             return;
         }
         if (ReflectUtil.isBool(fieldType)) {
@@ -407,32 +437,12 @@ abstract class AbstractSimpleExcelBuilder {
      * @return Field
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-        boolean excelTableExist = Objects.nonNull(excelTable);
-        boolean excludeParent = false;
-        boolean includeAllField = false;
-        boolean ignoreStaticFields = true;
-        String[] globalStyle = null;
-        if (excelTableExist) {
-            setWorkbookWithExcelTableAnnotation(excelTable);
-            excludeParent = excelTable.excludeParent();
-            includeAllField = excelTable.includeAllField();
-            if (!excelTable.defaultValue().isEmpty()) {
-                globalDefaultValue = excelTable.defaultValue();
-            }
-            wrapText = excelTable.wrapText();
-            titleSeparator = excelTable.titleSeparator();
-            ignoreStaticFields = excelTable.ignoreStaticFields();
-            titleRowHeight = excelTable.titleRowHeight();
-            rowHeight = excelTable.rowHeight();
-            globalStyle = excelTable.style();
-        }
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);
-        if (ignoreStaticFields) {
-            preElectionFields = preElectionFields.stream()
-                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                    .collect(Collectors.toList());
-        }
+        GlobalSetting globalSetting = new GlobalSetting();
+        setGlobalSetting(classFieldContainer, globalSetting);
+
+        setWorkbookWithExcelTableAnnotation(globalSetting);
+
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting);
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         List<Field> sortedFields = preElectionFields.stream()
                 .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
@@ -446,18 +456,18 @@ abstract class AbstractSimpleExcelBuilder {
         formats = new HashMap<>(sortedFields.size());
         formatsStyleMap = new HashMap<>();
         List<String> titles = new ArrayList<>(sortedFields.size());
-        boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
+
         boolean needToAddTitle = Objects.isNull(this.titles);
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyle);
+        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyle != null ? globalStyle : globalSetting.getGlobalStyle());
         this.setOddEvenStyle(globalStyleMap);
         for (int i = 0, size = sortedFields.size(); i < size; i++) {
             Field field = sortedFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            setCustomStyle(i, globalStyleMap.get("cell"));
-            setCustomStyle(i, globalStyleMap.get("title"));
+            setCustomStyle(field, i, globalStyleMap.get("cell"));
+            setCustomStyle(field, i, globalStyleMap.get("title"));
             if (excelColumn != null) {
                 if (needToAddTitle) {
-                    if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
+                    if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
                         titles.add(field.getName());
                     } else {
                         titles.add(excelColumn.title());
@@ -470,14 +480,18 @@ abstract class AbstractSimpleExcelBuilder {
                     customWidthMap.put(i, excelColumn.width());
                 }
                 if (!noStyle && excelColumn.style().length > 0) {
-                    setCustomStyle(i, excelColumn.style());
+                    setCustomStyle(field, i, excelColumn.style());
                 }
-                if (StringUtil.isNotBlank(excelColumn.decimalFormat())) {
+                if (!excelColumn.format().isEmpty()) {
+                    formats.put(i, excelColumn.format());
+                } else if (!excelColumn.decimalFormat().isEmpty()) {
                     formats.put(i, excelColumn.decimalFormat());
+                } else if (!excelColumn.dateFormatPattern().isEmpty()) {
+                    formats.put(i, excelColumn.dateFormatPattern());
                 }
             } else {
                 if (needToAddTitle) {
-                    if (useFieldNameAsTitle) {
+                    if (globalSetting.isUseFieldNameAsTitle()) {
                         titles.add(field.getName());
                     } else {
                         titles.add(null);
@@ -496,10 +510,60 @@ abstract class AbstractSimpleExcelBuilder {
         return sortedFields;
     }
 
-    private Map<String, String> getGlobalStyleMap(String[] globalStyle) {
+    private void setGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+        ClassFieldContainer parentContainer = classFieldContainer.getParent();
+        if (parentContainer != null) {
+            setGlobalSetting(parentContainer, globalSetting);
+        }
+        if (classFieldContainer.getClazz() == Object.class) {
+            return;
+        }
+        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
+        if (excelTable == null) {
+            return;
+        }
+        if (!excelTable.sheetName().isEmpty()) {
+            globalSetting.setSheetName(excelTable.sheetName());
+        }
+        if (excelTable.workbookType() != WorkbookType.SXLSX) {
+            globalSetting.setWorkbookType(excelTable.workbookType());
+        }
+        if (excelTable.excludeParent()) {
+            globalSetting.setExcludeParent(true);
+        }
+        if (!excelTable.includeAllField()) {
+            globalSetting.setIncludeAllField(false);
+        }
+        if (!excelTable.defaultValue().isEmpty()) {
+            globalSetting.setDefaultValue(excelTable.defaultValue());
+        }
+        if (!excelTable.wrapText()) {
+            globalSetting.setWrapText(false);
+        }
+        if (!excelTable.titleSeparator().equals(Constants.ARROW)) {
+            globalSetting.setTitleSeparator(excelTable.titleSeparator());
+        }
+        if (!excelTable.ignoreStaticFields()) {
+            globalSetting.setIgnoreStaticFields(false);
+        }
+        if (excelTable.titleRowHeight() != -1) {
+            globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
+        }
+        if (excelTable.rowHeight() != -1) {
+            globalSetting.setRowHeight(excelTable.rowHeight());
+        }
+        if (excelTable.style().length != 0) {
+            globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
+        }
+        if (excelTable.useFieldNameAsTitle()) {
+            globalSetting.setUseFieldNameAsTitle(true);
+        }
+    }
+
+    private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
         Map<String, String> globalStyleMap = new HashMap<>();
         if (globalStyle != null) {
-            Arrays.stream(globalStyle).forEach(style -> {
+            globalStyle.forEach(style -> {
                 String[] splits = style.split(Constants.ARROW);
                 if (splits.length == 1) {
                     globalStyleMap.put("cell", style);
@@ -522,23 +586,23 @@ abstract class AbstractSimpleExcelBuilder {
         }
     }
 
-    private void setCustomStyle(int i, String... styles) {
+    private void setCustomStyle(Field field, int index, String... styles) {
         for (String style : styles) {
             if (StringUtil.isBlank(style)) {
                 continue;
             }
             if (StringUtil.isBlank(style)) {
-                throw new IllegalArgumentException("Illegal style");
+                throw new IllegalArgumentException("Illegal style,field:" + field.getName());
             }
             String[] splits = style.split(Constants.ARROW);
             if (splits.length == 1) {
                 // 发现未设置样式归属，则设置为全局样式，清除其他样式
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, i);
-                customStyle.put("cell&" + i, styleMap);
+                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, index);
+                customStyle.put("cell&" + index, styleMap);
                 break;
             } else {
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, i);
-                customStyle.put(splits[0] + "&" + i, styleMap);
+                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, index);
+                customStyle.put(splits[0] + "&" + index, styleMap);
             }
         }
     }
@@ -553,7 +617,7 @@ abstract class AbstractSimpleExcelBuilder {
         return styleMap;
     }
 
-    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {
+    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
         if (Objects.nonNull(fieldDisplayOrder) && !fieldDisplayOrder.isEmpty()) {
             this.selfAdaption();
             return fieldDisplayOrder.stream()
@@ -561,19 +625,25 @@ abstract class AbstractSimpleExcelBuilder {
                     .collect(Collectors.toList());
         }
         List<Field> preElectionFields;
-        if (includeAllField) {
-            if (excludeParent) {
+        if (globalSetting.isIncludeAllField()) {
+            if (globalSetting.isExcludeParent()) {
                 preElectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preElectionFields = classFieldContainer.getFields();
             }
-            return preElectionFields;
-        }
-        if (excludeParent) {
-            preElectionFields = classFieldContainer.getDeclaredFields().stream()
-                    .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
         } else {
-            preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            if (globalSetting.isExcludeParent()) {
+                preElectionFields = classFieldContainer.getDeclaredFields().stream()
+                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
+                        .collect(Collectors.toList());
+            } else {
+                preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            }
+        }
+        if (globalSetting.isIgnoreStaticFields()) {
+            preElectionFields = preElectionFields.stream()
+                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                    .collect(Collectors.toList());
         }
         return preElectionFields;
     }
@@ -581,18 +651,23 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 设置workbook
      *
-     * @param excelTable excelTable
+     * @param globalSetting globalSetting
      */
-    private void setWorkbookWithExcelTableAnnotation(ExcelTable excelTable) {
+    private void setWorkbookWithExcelTableAnnotation(GlobalSetting globalSetting) {
         if (workbookType == null) {
-            this.workbookType = excelTable.workbookType();
+            this.workbookType = globalSetting.getWorkbookType();
         }
         if (StringUtil.isBlank(this.sheetName)) {
-            String sheetName = excelTable.sheetName();
+            String sheetName = globalSetting.getSheetName();
             if (StringUtil.isNotBlank(sheetName)) {
                 this.sheetName = sheetName;
             }
         }
+        globalDefaultValue = globalSetting.getDefaultValue();
+        titleRowHeight = globalSetting.getTitleRowHeight();
+        rowHeight = globalSetting.getRowHeight();
+        wrapText = globalSetting.isWrapText();
+        titleSeparator = globalSetting.getTitleSeparator();
     }
 
     /**
@@ -620,7 +695,7 @@ abstract class AbstractSimpleExcelBuilder {
     protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data);
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, AllConverter.class);
                     if (value.getValue() != null) {
                         return value;
                     }

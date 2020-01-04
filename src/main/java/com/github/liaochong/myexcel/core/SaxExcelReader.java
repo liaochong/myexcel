@@ -78,13 +78,21 @@ public class SaxExcelReader<T> {
         return new SaxExcelReader<>(clazz);
     }
 
-    public SaxExcelReader<T> sheet(Integer... indexs) {
+    public SaxExcelReader<T> sheet(Integer sheetIndex) {
+        return sheets(sheetIndex);
+    }
+
+    public SaxExcelReader<T> sheet(String sheetName) {
+        return sheets(sheetName);
+    }
+
+    public SaxExcelReader<T> sheets(Integer... sheetIndexs) {
         this.readConfig.sheetIndexs.clear();
-        this.readConfig.sheetIndexs.addAll(Arrays.asList(indexs));
+        this.readConfig.sheetIndexs.addAll(Arrays.asList(sheetIndexs));
         return this;
     }
 
-    public SaxExcelReader<T> sheet(String... sheetNames) {
+    public SaxExcelReader<T> sheets(String... sheetNames) {
         this.readConfig.sheetNames.clear();
         this.readConfig.sheetNames.addAll(Arrays.asList(sheetNames));
         return this;
@@ -168,7 +176,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (IOException e) {
-            throw new SaxReadException("Fail to read file", e);
+            throw new SaxReadException("Fail to read file:" + file.getName(), e);
         }
     }
 
@@ -178,7 +186,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (Exception e) {
-            throw new SaxReadException("Fail to read file", e);
+            throw new SaxReadException("Fail to read file:" + file.getName(), e);
         }
     }
 
@@ -188,7 +196,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (Throwable throwable) {
-            throw new ExcelReadException("Fail to read file", throwable);
+            throw new ExcelReadException("Fail to read file:" + file.getName(), throwable);
         }
     }
 

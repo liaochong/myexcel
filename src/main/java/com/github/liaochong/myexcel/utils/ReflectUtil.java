@@ -23,8 +23,11 @@ import lombok.experimental.UtilityClass;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +79,7 @@ public final class ReflectUtil {
             }
             Field f = fieldMap.get(index);
             if (Objects.nonNull(f)) {
-                throw new IllegalStateException("Index cannot be repeated. Please check it.");
+                throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
             }
             field.setAccessible(true);
             fieldMap.put(index, field);
@@ -107,7 +110,7 @@ public final class ReflectUtil {
             }
             Field f = fieldMap.get(title);
             if (f != null) {
-                throw new IllegalStateException("Title cannot be repeated. Please check it.");
+                throw new IllegalStateException("Title cannot be repeated: " + title + ". Please check it.");
             }
             field.setAccessible(true);
             fieldMap.put(title, field);
@@ -161,6 +164,10 @@ public final class ReflectUtil {
 
     public static boolean isBool(Class clazz) {
         return clazz == boolean.class || clazz == Boolean.class;
+    }
+
+    public static boolean isDate(Class clazz) {
+        return clazz == Date.class || clazz == LocalDate.class || clazz == LocalDateTime.class;
     }
 
     public static int sortFields(Field field1, Field field2) {
