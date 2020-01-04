@@ -110,7 +110,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     protected void convert(String value, int rowNum, int colNum, Field field) {
-        if (field == null) {
+        if (value == null || field == null) {
             return;
         }
         context.reset(obj, field, value, rowNum, colNum);
