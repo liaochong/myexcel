@@ -176,7 +176,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (IOException e) {
-            throw new SaxReadException("Fail to read file", e);
+            throw new SaxReadException("Fail to read file:" + file.getName(), e);
         }
     }
 
@@ -186,7 +186,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (Exception e) {
-            throw new SaxReadException("Fail to read file", e);
+            throw new SaxReadException("Fail to read file:" + file.getName(), e);
         }
     }
 
@@ -196,7 +196,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (Throwable throwable) {
-            throw new ExcelReadException("Fail to read file", throwable);
+            throw new ExcelReadException("Fail to read file:" + file.getName(), throwable);
         }
     }
 
