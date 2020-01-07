@@ -69,7 +69,7 @@ public final class AttachmentExportUtil {
                 fileName += suffix;
             }
             response.setCharacterEncoding(CharEncoding.UTF_8);
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8).replace("+", "%20"));
             workbook.write(response.getOutputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -117,7 +117,7 @@ public final class AttachmentExportUtil {
             }
             response.setCharacterEncoding(CharEncoding.UTF_8);
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8).replace("+", "%20"));
             fs.writeFilesystem(response.getOutputStream());
         } catch (IOException | InvalidFormatException | GeneralSecurityException e) {
             throw new RuntimeException(e);
@@ -145,7 +145,7 @@ public final class AttachmentExportUtil {
         try {
             response.setCharacterEncoding(CharEncoding.UTF_8);
             response.setContentType("application/octet-stream");
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8).replace("+", "%20"));
             response.getOutputStream().write(Files.readAllBytes(path));
         } catch (IOException e) {
             throw new RuntimeException(e);

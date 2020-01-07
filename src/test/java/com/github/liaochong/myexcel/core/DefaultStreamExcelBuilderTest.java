@@ -38,12 +38,12 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             list.add(obj);
         }
         List<String> titles = new ArrayList<>();
-        titles.add("1");
+        titles.add("1->1.1");
         titles.add("2");
         titles.add("3");
         titles.add("4");
 
-        Workbook workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
+        Workbook workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).titles(titles).build(list);
 //        workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
         FileExportUtil.export(workbook, new File(TEST_DIR + "map_build.xlsx"));
     }
