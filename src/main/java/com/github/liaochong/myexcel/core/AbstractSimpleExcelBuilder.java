@@ -123,7 +123,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 标题分离器
      */
-    protected String titleSeparator;
+    protected String titleSeparator = Constants.ARROW;
     /**
      * 自定义样式
      */
