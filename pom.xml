@@ -27,6 +27,7 @@
         <lombok.version>1.18.10</lombok.version>
         <slf4j-api.version>1.7.26</slf4j-api.version>
         <beetl.version>2.9.9</beetl.version>
+        <velocity.version>1.7</velocity.version>
         <freemarker.version>2.3.23</freemarker.version>
         <groovy-templates.version>2.4.13</groovy-templates.version>
         <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
@@ -68,6 +69,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>${velocity.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf</artifactId>
             <version>${thymeleaf.version}</version>
@@ -84,6 +91,12 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>${javax.servlet-api.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.7.2</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
