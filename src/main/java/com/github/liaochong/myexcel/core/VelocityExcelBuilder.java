@@ -24,7 +24,6 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * velocity的excel创建者
@@ -62,7 +61,7 @@ public class VelocityExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> data, Writer out) throws Exception {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         VelocityContext context = new VelocityContext(data);
         template.merge(context, out);
     }

@@ -25,7 +25,6 @@ import org.apache.commons.codec.CharEncoding;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * freemarker的excel创建者
@@ -67,7 +66,7 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> data, Writer out) throws Exception {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         template.process(data, out);
     }
 

@@ -25,7 +25,6 @@ import org.beetl.core.resource.ClasspathResourceLoader;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * beetl excel创建者
@@ -63,7 +62,7 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> data, Writer out) {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         template.binding(data);
         template.renderTo(out);
     }

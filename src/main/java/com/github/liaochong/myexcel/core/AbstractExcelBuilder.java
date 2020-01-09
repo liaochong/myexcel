@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * excel创建者接口
@@ -89,6 +90,10 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to build excel", e);
         }
+    }
+
+    protected <T> void checkTemplate(T template) {
+        Objects.requireNonNull(template, "The template cannot be null. Please set the template first.");
     }
 
     /**
