@@ -68,7 +68,7 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         Writable output = template.make(renderData);
         output.writeTo(out);
     }

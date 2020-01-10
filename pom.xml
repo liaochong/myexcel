@@ -31,6 +31,7 @@
         <freemarker.version>2.3.23</freemarker.version>
         <groovy-templates.version>2.4.13</groovy-templates.version>
         <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
+        <enjoy.version>4.8</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     </properties>
 
@@ -85,6 +86,11 @@
             <artifactId>groovy-templates</artifactId>
             <version>${groovy-templates.version}</version>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>enjoy</artifactId>
+            <version>${enjoy.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
