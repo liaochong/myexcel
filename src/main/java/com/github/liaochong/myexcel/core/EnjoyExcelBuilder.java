@@ -28,19 +28,19 @@ import java.util.Map;
  */
 public class EnjoyExcelBuilder extends AbstractExcelBuilder {
 
-    private static Engine engine;
+    private static final Engine ENGINE;
 
     private Template template;
 
     static {
-        engine = Engine.create("EnjoyExcelBuilderEngine");
-        engine.setToClassPathSourceFactory();
+        ENGINE = Engine.create("EnjoyExcelBuilderEngine");
+        ENGINE.setToClassPathSourceFactory();
         Engine.setFastMode(true);
     }
 
     @Override
     public ExcelBuilder template(String path) {
-        template = engine.getTemplate(path);
+        template = ENGINE.getTemplate(path);
         return this;
     }
 
