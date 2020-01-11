@@ -91,6 +91,7 @@
             <groupId>com.jfinal</groupId>
             <artifactId>enjoy</artifactId>
             <version>${enjoy.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
