@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -43,10 +42,6 @@ public class VelocityExcelBuilder extends AbstractExcelBuilder {
     }
 
     private Template template;
-
-    public VelocityExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
 
     /**
      * 设置模板信息

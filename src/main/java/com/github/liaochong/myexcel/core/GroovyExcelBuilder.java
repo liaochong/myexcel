@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import groovy.lang.Writable;
 import groovy.text.Template;
@@ -45,10 +44,6 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
     }
 
     private Template template;
-
-    public GroovyExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
 
     @Override
     public ExcelBuilder template(String path) {

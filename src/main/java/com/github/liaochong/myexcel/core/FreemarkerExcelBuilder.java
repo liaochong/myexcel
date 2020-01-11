@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -44,10 +43,6 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
     }
 
     private Template template;
-
-    public FreemarkerExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
 
     /**
      * 设置模板信息

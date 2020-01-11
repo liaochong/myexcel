@@ -39,6 +39,10 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
+    AbstractExcelBuilder() {
+        widthStrategy(WidthStrategy.AUTO_WIDTH);
+    }
+
     @Override
     public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         htmlToExcelFactory.workbookType(workbookType);
