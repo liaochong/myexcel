@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -24,7 +23,6 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * velocity的excel创建者
@@ -45,10 +43,6 @@ public class VelocityExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
-    public VelocityExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
-
     /**
      * 设置模板信息
      *
@@ -62,7 +56,7 @@ public class VelocityExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> data, Writer out) throws Exception {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         VelocityContext context = new VelocityContext(data);
         template.merge(context, out);
     }

@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -45,10 +44,6 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
         classLoaderTemplateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
         classLoaderTemplateResolver.setCacheable(true);
         TEMPLATE_ENGINE.setTemplateResolver(classLoaderTemplateResolver);
-    }
-
-    public ThymeleafExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
     }
 
     @Override

@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -25,7 +24,6 @@ import org.apache.commons.codec.CharEncoding;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * freemarker的excel创建者
@@ -46,10 +44,6 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
-    public FreemarkerExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
-
     /**
      * 设置模板信息
      *
@@ -67,7 +61,7 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> data, Writer out) throws Exception {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         template.process(data, out);
     }
 

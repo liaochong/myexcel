@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import groovy.lang.Writable;
 import groovy.text.Template;
@@ -46,10 +45,6 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
-    public GroovyExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
-
     @Override
     public ExcelBuilder template(String path) {
         Objects.requireNonNull(path);
@@ -68,7 +63,7 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         Writable output = template.make(renderData);
         output.writeTo(out);
     }

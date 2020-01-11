@@ -15,7 +15,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.commons.codec.CharEncoding;
 import org.beetl.core.Configuration;
 import org.beetl.core.GroupTemplate;
@@ -25,7 +24,6 @@ import org.beetl.core.resource.ClasspathResourceLoader;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * beetl excel创建者
@@ -51,10 +49,6 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
-    public BeetlExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
-    }
-
     @Override
     public ExcelBuilder template(String path) {
         template = GROUP_TEMPLATE.getTemplate(path);
@@ -63,7 +57,7 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
     @Override
     protected <T> void render(Map<String, T> data, Writer out) {
-        Objects.requireNonNull(template, "The template cannot be empty. Please set the template first.");
+        checkTemplate(template);
         template.binding(data);
         template.renderTo(out);
     }
