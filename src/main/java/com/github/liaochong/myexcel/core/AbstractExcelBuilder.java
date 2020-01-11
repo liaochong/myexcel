@@ -40,7 +40,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
     AbstractExcelBuilder() {
-        widthStrategy(WidthStrategy.AUTO_WIDTH);
+        widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
     }
 
     @Override
