@@ -32,6 +32,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,20 +69,12 @@ public final class AttachmentExportUtil {
             if (!fileName.endsWith(suffix)) {
                 fileName += suffix;
             }
-            response.setCharacterEncoding(CharEncoding.UTF_8);
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            setAttachmentConfig(fileName, response);
             workbook.write(response.getOutputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            if (workbook instanceof SXSSFWorkbook) {
-                ((SXSSFWorkbook) workbook).dispose();
-            }
-            try {
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            clear(workbook);
         }
     }
 
@@ -115,22 +108,25 @@ public final class AttachmentExportUtil {
             if (!fileName.endsWith(suffix)) {
                 fileName += suffix;
             }
-            response.setCharacterEncoding(CharEncoding.UTF_8);
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            setAttachmentConfig(fileName, response);
             fs.writeFilesystem(response.getOutputStream());
         } catch (IOException | InvalidFormatException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         } finally {
-            if (workbook instanceof SXSSFWorkbook) {
-                ((SXSSFWorkbook) workbook).dispose();
-            }
-            try {
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            clear(workbook);
             TempFileOperator.deleteTempFile(path);
+        }
+    }
+
+    private static void clear(Workbook workbook) {
+        if (workbook instanceof SXSSFWorkbook) {
+            ((SXSSFWorkbook) workbook).dispose();
+        }
+        try {
+            workbook.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -143,14 +139,18 @@ public final class AttachmentExportUtil {
      */
     public static void export(Path path, String fileName, HttpServletResponse response) {
         try {
-            response.setCharacterEncoding(CharEncoding.UTF_8);
             response.setContentType("application/octet-stream");
-            response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8));
+            setAttachmentConfig(fileName, response);
             response.getOutputStream().write(Files.readAllBytes(path));
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             TempFileOperator.deleteTempFile(path);
         }
+    }
+
+    private static void setAttachmentConfig(String fileName, HttpServletResponse response) throws UnsupportedEncodingException {
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8).replace("+", "%20"));
     }
 }

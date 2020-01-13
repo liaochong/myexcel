@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>3.3.0.RELEASE</version>
+    <version>3.3.2</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -31,6 +31,7 @@
         <freemarker.version>2.3.23</freemarker.version>
         <groovy-templates.version>2.4.13</groovy-templates.version>
         <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
+        <enjoy.version>4.8</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     </properties>
 
@@ -87,16 +88,16 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>enjoy</artifactId>
+            <version>${enjoy.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>${javax.servlet-api.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>4.7.2</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
