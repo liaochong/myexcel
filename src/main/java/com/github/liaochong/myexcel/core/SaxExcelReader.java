@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.cache.StringsCache;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
@@ -31,7 +32,6 @@ import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.model.SharedStrings;
@@ -241,27 +241,32 @@ public class SaxExcelReader<T> {
      */
     private void process(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
         long startTime = System.currentTimeMillis();
-        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage);
-        XSSFReader xssfReader = new XSSFReader(xlsxPackage);
-        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-        if (!readConfig.sheetNames.isEmpty()) {
-            while (iter.hasNext()) {
-                try (InputStream stream = iter.next()) {
-                    if (readConfig.sheetNames.contains(iter.getSheetName())) {
-                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+        StringsCache stringsCache = new StringsCache();
+        try {
+            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
+            XSSFReader xssfReader = new XSSFReader(xlsxPackage);
+            XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+            if (!readConfig.sheetNames.isEmpty()) {
+                while (iter.hasNext()) {
+                    try (InputStream stream = iter.next()) {
+                        if (readConfig.sheetNames.contains(iter.getSheetName())) {
+                            processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+                        }
+                    }
+                }
+            } else {
+                int index = 0;
+                while (iter.hasNext()) {
+                    try (InputStream stream = iter.next()) {
+                        if (readConfig.sheetIndexs.contains(index)) {
+                            processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+                        }
+                        ++index;
                     }
                 }
             }
-        } else {
-            int index = 0;
-            while (iter.hasNext()) {
-                try (InputStream stream = iter.next()) {
-                    if (readConfig.sheetIndexs.contains(index)) {
-                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
-                    }
-                    ++index;
-                }
-            }
+        } finally {
+            stringsCache.clearAll();
         }
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
