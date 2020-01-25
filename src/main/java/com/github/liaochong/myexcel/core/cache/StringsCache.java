@@ -71,16 +71,18 @@ public class StringsCache implements Cache<Integer, String> {
     public void cache(Integer key, String value) {
         cacheValues.add(value);
         if ((key + 1) % MAX_SIZE_PATH == 0) {
-            if (numberOfCacheFile != 1) {
-                writeToFile();
-            }
             if (activeIndex == 0) {
                 activeCache.put(0, cacheValues);
             }
-            boolean isLast = activeIndex == numberOfCacheFile - 1;
+            if (numberOfCacheFile == 1) {
+                cacheValues = null;
+                return;
+            }
+            writeToFile();
+            boolean isLastButOne = activeIndex == numberOfCacheFile - 2;
             activeIndex++;
-            if (isLast) {
-                cacheValues = new ArrayList<>(totalCount - numberOfCacheFile * MAX_SIZE_PATH);
+            if (isLastButOne) {
+                cacheValues = new ArrayList<>(totalCount - (numberOfCacheFile - 1) * MAX_SIZE_PATH);
             } else {
                 cacheValues = new ArrayList<>(MAX_SIZE_PATH);
             }
@@ -113,7 +115,11 @@ public class StringsCache implements Cache<Integer, String> {
     }
 
     public void finished() {
-        if (cacheValues.isEmpty()) {
+        if (cacheValues == null || cacheValues.isEmpty()) {
+            return;
+        }
+        if (numberOfCacheFile == 1) {
+            activeCache.put(0, cacheValues);
             return;
         }
         writeToFile();

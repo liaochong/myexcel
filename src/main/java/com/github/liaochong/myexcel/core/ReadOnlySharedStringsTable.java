@@ -19,7 +19,6 @@ import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackagePart;
 import org.apache.poi.ss.usermodel.RichTextString;
-import org.apache.poi.util.Removal;
 import org.apache.poi.xssf.model.SharedStrings;
 import org.apache.poi.xssf.usermodel.XSSFRelation;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
