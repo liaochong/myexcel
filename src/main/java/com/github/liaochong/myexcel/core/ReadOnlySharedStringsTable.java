@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
 
@@ -65,17 +64,21 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
 
     private int stringIndex;
 
+    private final boolean rapidity;
+
+    private String[] strings;
+
     /**
-     * Calls {{@link #ReadOnlySharedStringsTable(OPCPackage, boolean, StringsCache)}} with
+     * Calls {{@link #ReadOnlySharedStringsTable(OPCPackage, boolean, StringsCache, boolean)}} with
      * a value of <code>true</code> for including phonetic runs
      *
      * @param pkg The {@link OPCPackage} to use as basis for the shared-strings table.
      * @throws IOException  If reading the data from the package fails.
      * @throws SAXException if parsing the XML data fails.
      */
-    public ReadOnlySharedStringsTable(OPCPackage pkg, StringsCache stringsCache)
+    public ReadOnlySharedStringsTable(OPCPackage pkg, StringsCache stringsCache, boolean rapidity)
             throws IOException, SAXException {
-        this(pkg, true, stringsCache);
+        this(pkg, true, stringsCache, rapidity);
     }
 
     /**
@@ -85,10 +88,11 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
      * @throws SAXException if parsing the XML data fails.
      * @since POI 3.14-Beta3
      */
-    public ReadOnlySharedStringsTable(OPCPackage pkg, boolean includePhoneticRuns, StringsCache stringsCache)
+    public ReadOnlySharedStringsTable(OPCPackage pkg, boolean includePhoneticRuns, StringsCache stringsCache, boolean rapidity)
             throws IOException, SAXException {
         this.includePhoneticRuns = includePhoneticRuns;
         this.stringsCache = stringsCache;
+        this.rapidity = rapidity;
         ArrayList<PackagePart> parts =
                 pkg.getPartsByContentType(XSSFRelation.SHARED_STRINGS.getContentType());
 
@@ -149,7 +153,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
 
     @Override
     public RichTextString getItemAt(int idx) {
-        return new XSSFRichTextString(stringsCache.get(idx));
+        return new XSSFRichTextString(rapidity ? strings[idx] : stringsCache.get(idx));
     }
 
     //// ContentHandler methods ////
@@ -174,7 +178,11 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
             if (uniqueCount != null) {
                 this.uniqueCount = Integer.parseInt(uniqueCount);
             }
-            stringsCache.init(this.uniqueCount);
+            if (rapidity) {
+                this.strings = new String[this.uniqueCount];
+            } else {
+                stringsCache.init(this.uniqueCount);
+            }
             characters = new StringBuilder(64);
         } else if ("si".equals(localName)) {
             characters.setLength(0);
@@ -196,7 +204,11 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
         }
 
         if ("si".equals(localName)) {
-            stringsCache.cache(stringIndex++, characters.toString());
+            if (rapidity) {
+                strings[stringIndex++] = characters.toString();
+            } else {
+                stringsCache.cache(stringIndex++, characters.toString());
+            }
         } else if ("t".equals(localName)) {
             tIsOpen = false;
         } else if ("rPh".equals(localName)) {

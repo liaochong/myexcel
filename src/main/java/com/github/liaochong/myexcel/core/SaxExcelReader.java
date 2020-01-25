@@ -116,6 +116,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> rapidity() {
+        this.readConfig.rapidity = true;
+        return this;
+    }
+
     public SaxExcelReader<T> exceptionally(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         this.readConfig.exceptionFunction = exceptionFunction;
         return this;
@@ -243,7 +248,7 @@ public class SaxExcelReader<T> {
         long startTime = System.currentTimeMillis();
         StringsCache stringsCache = new StringsCache();
         try {
-            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
+            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache, this.readConfig.rapidity);
             XSSFReader xssfReader = new XSSFReader(xlsxPackage);
             XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
             if (!readConfig.sheetNames.isEmpty()) {
@@ -321,6 +326,10 @@ public class SaxExcelReader<T> {
         BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
         String charset = "UTF-8";
+        /**
+         * Adopt speed mode
+         */
+        boolean rapidity = false;
 
         Function<String, String> trim = v -> {
             if (v == null) {
