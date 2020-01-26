@@ -123,12 +123,14 @@ public class StringsCache implements Cache<Integer, String> {
         }
         int remainder = totalCount - (numberOfCacheFile - 1) * MAX_SIZE_PATH;
         if (remainder == MAX_SIZE_PATH) {
+            cacheValues = null;
             return;
         }
         String[] temp = new String[remainder];
         System.arraycopy(cacheValues, 0, temp, 0, remainder);
         cacheValues = temp;
         writeToFile();
+        cacheValues = null;
     }
 
     private void writeToFile() {
