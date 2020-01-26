@@ -42,10 +42,9 @@ public class TempFileOperator {
 
     private static Path templateDir;
 
-
     static {
         try {
-            templateDir = Paths.get(new File("").getCanonicalPath() + "/myexcel");
+            templateDir = Files.createDirectory(Paths.get(Paths.get(new File("").getCanonicalPath()) + "/myexcel"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
