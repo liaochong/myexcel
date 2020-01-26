@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Only for xlsx strings cache
@@ -47,60 +49,60 @@ public class StringsCache implements Cache<Integer, String> {
 
     private List<Path> cacheFiles = new ArrayList<>();
 
-    private LinkedHashMap<Integer, List<String>> activeCache = new LinkedHashMap<Integer, List<String>>(MAX_PATH, 0.75F, true) {
+    private LinkedHashMap<Integer, String[]> activeCache = new LinkedHashMap<Integer, String[]>(MAX_PATH, 0.75F, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry eldest) {
             return size() > MAX_PATH;
         }
     };
 
-    private List<String> cacheValues = new ArrayList<>(MAX_SIZE_PATH);
+    private String[] cacheValues;
 
     private int totalCount;
 
-    private int activeIndex;
-
     private int numberOfCacheFile;
+
+    private boolean first = true;
 
     public void init(int totalCount) {
         this.totalCount = totalCount;
         this.numberOfCacheFile = totalCount == MAX_SIZE_PATH ? 1 : totalCount / MAX_SIZE_PATH + 1;
+        if (totalCount > MAX_SIZE_PATH) {
+            cacheValues = new String[MAX_SIZE_PATH];
+        } else {
+            cacheValues = new String[totalCount];
+        }
     }
 
     @Override
     public void cache(Integer key, String value) {
-        cacheValues.add(value);
+        cacheValues[key - (key / MAX_SIZE_PATH * MAX_SIZE_PATH)] = value;
         if ((key + 1) % MAX_SIZE_PATH == 0) {
-            if (activeIndex == 0) {
-                activeCache.put(0, cacheValues);
-            }
             if (numberOfCacheFile == 1) {
-                cacheValues = null;
                 return;
             }
-            writeToFile();
-            boolean isLastButOne = activeIndex == numberOfCacheFile - 2;
-            activeIndex++;
-            if (isLastButOne) {
-                cacheValues = new ArrayList<>(totalCount - (numberOfCacheFile - 1) * MAX_SIZE_PATH);
-            } else {
-                cacheValues = new ArrayList<>(MAX_SIZE_PATH);
+            if (first) {
+                String[] preCache = new String[MAX_SIZE_PATH];
+                System.arraycopy(cacheValues, 0, preCache, 0, MAX_SIZE_PATH);
+                activeCache.put(0, preCache);
+                first = false;
             }
+            writeToFile();
         }
     }
 
     @Override
     public String get(Integer key) {
         int route = key / MAX_SIZE_PATH;
-        List<String> strings = activeCache.get(route);
+        String[] strings = activeCache.get(route);
         if (strings == null) {
             strings = this.getStrings(route);
             activeCache.put(route, strings);
         }
-        return strings.get(key - (route * MAX_SIZE_PATH));
+        return strings[key - (route * MAX_SIZE_PATH)];
     }
 
-    private List<String> getStrings(int route) {
+    private String[] getStrings(int route) {
         Path file = cacheFiles.get(route);
         try (FileInputStream fis = new FileInputStream(file.toFile());
              FileChannel fc = fis.getChannel()) {
@@ -108,20 +110,24 @@ public class StringsCache implements Cache<Integer, String> {
             byte[] bb = new byte[(int) fc.size()];
             mbb.get(bb);
             String result = new String(bb, StandardCharsets.UTF_8);
-            return Arrays.asList(result.split(LINE_SEPARATOR));
+            return result.split(LINE_SEPARATOR);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void finished() {
-        if (cacheValues == null || cacheValues.isEmpty()) {
-            return;
-        }
         if (numberOfCacheFile == 1) {
             activeCache.put(0, cacheValues);
             return;
         }
+        int remainder = totalCount - (numberOfCacheFile - 1) * MAX_SIZE_PATH;
+        if (remainder == MAX_SIZE_PATH) {
+            return;
+        }
+        String[] temp = new String[remainder];
+        System.arraycopy(cacheValues, 0, temp, 0, remainder);
+        cacheValues = temp;
         writeToFile();
     }
 
@@ -129,7 +135,8 @@ public class StringsCache implements Cache<Integer, String> {
         Path file = TempFileOperator.createTempFile("s_c", ".data");
         cacheFiles.add(file);
         try {
-            Files.write(file, cacheValues, StandardOpenOption.WRITE);
+            String content = Arrays.stream(cacheValues).filter(Objects::nonNull).collect(Collectors.joining(LINE_SEPARATOR));
+            Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
