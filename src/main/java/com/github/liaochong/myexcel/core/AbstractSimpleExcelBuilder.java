@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
@@ -523,46 +524,87 @@ abstract class AbstractSimpleExcelBuilder {
         if (classFieldContainer.getClazz() == Object.class) {
             return;
         }
-        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-        if (excelTable == null) {
-            return;
+        ExcelModel excelModel = classFieldContainer.getClazz().getAnnotation(ExcelModel.class);
+        if (excelModel == null) {
+            ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
+            if (excelTable == null) {
+                return;
+            }
+            if (!excelTable.sheetName().isEmpty()) {
+                globalSetting.setSheetName(excelTable.sheetName());
+            }
+            if (excelTable.workbookType() != WorkbookType.SXLSX) {
+                globalSetting.setWorkbookType(excelTable.workbookType());
+            }
+            if (excelTable.excludeParent()) {
+                globalSetting.setExcludeParent(true);
+            }
+            if (!excelTable.includeAllField()) {
+                globalSetting.setIncludeAllField(false);
+            }
+            if (!excelTable.defaultValue().isEmpty()) {
+                globalSetting.setDefaultValue(excelTable.defaultValue());
+            }
+            if (!excelTable.wrapText()) {
+                globalSetting.setWrapText(false);
+            }
+            if (!excelTable.titleSeparator().equals(Constants.ARROW)) {
+                globalSetting.setTitleSeparator(excelTable.titleSeparator());
+            }
+            if (!excelTable.ignoreStaticFields()) {
+                globalSetting.setIgnoreStaticFields(false);
+            }
+            if (excelTable.titleRowHeight() != -1) {
+                globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
+            }
+            if (excelTable.rowHeight() != -1) {
+                globalSetting.setRowHeight(excelTable.rowHeight());
+            }
+            if (excelTable.style().length != 0) {
+                globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
+            }
+            if (excelTable.useFieldNameAsTitle()) {
+                globalSetting.setUseFieldNameAsTitle(true);
+            }
+        } else {
+            if (!excelModel.sheetName().isEmpty()) {
+                globalSetting.setSheetName(excelModel.sheetName());
+            }
+            if (excelModel.workbookType() != WorkbookType.SXLSX) {
+                globalSetting.setWorkbookType(excelModel.workbookType());
+            }
+            if (excelModel.excludeParent()) {
+                globalSetting.setExcludeParent(true);
+            }
+            if (!excelModel.includeAllField()) {
+                globalSetting.setIncludeAllField(false);
+            }
+            if (!excelModel.defaultValue().isEmpty()) {
+                globalSetting.setDefaultValue(excelModel.defaultValue());
+            }
+            if (!excelModel.wrapText()) {
+                globalSetting.setWrapText(false);
+            }
+            if (!excelModel.titleSeparator().equals(Constants.ARROW)) {
+                globalSetting.setTitleSeparator(excelModel.titleSeparator());
+            }
+            if (!excelModel.ignoreStaticFields()) {
+                globalSetting.setIgnoreStaticFields(false);
+            }
+            if (excelModel.titleRowHeight() != -1) {
+                globalSetting.setTitleRowHeight(excelModel.titleRowHeight());
+            }
+            if (excelModel.rowHeight() != -1) {
+                globalSetting.setRowHeight(excelModel.rowHeight());
+            }
+            if (excelModel.style().length != 0) {
+                globalSetting.getGlobalStyle().addAll(Arrays.asList(excelModel.style()));
+            }
+            if (excelModel.useFieldNameAsTitle()) {
+                globalSetting.setUseFieldNameAsTitle(true);
+            }
         }
-        if (!excelTable.sheetName().isEmpty()) {
-            globalSetting.setSheetName(excelTable.sheetName());
-        }
-        if (excelTable.workbookType() != WorkbookType.SXLSX) {
-            globalSetting.setWorkbookType(excelTable.workbookType());
-        }
-        if (excelTable.excludeParent()) {
-            globalSetting.setExcludeParent(true);
-        }
-        if (!excelTable.includeAllField()) {
-            globalSetting.setIncludeAllField(false);
-        }
-        if (!excelTable.defaultValue().isEmpty()) {
-            globalSetting.setDefaultValue(excelTable.defaultValue());
-        }
-        if (!excelTable.wrapText()) {
-            globalSetting.setWrapText(false);
-        }
-        if (!excelTable.titleSeparator().equals(Constants.ARROW)) {
-            globalSetting.setTitleSeparator(excelTable.titleSeparator());
-        }
-        if (!excelTable.ignoreStaticFields()) {
-            globalSetting.setIgnoreStaticFields(false);
-        }
-        if (excelTable.titleRowHeight() != -1) {
-            globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
-        }
-        if (excelTable.rowHeight() != -1) {
-            globalSetting.setRowHeight(excelTable.rowHeight());
-        }
-        if (excelTable.style().length != 0) {
-            globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
-        }
-        if (excelTable.useFieldNameAsTitle()) {
-            globalSetting.setUseFieldNameAsTitle(true);
-        }
+        globalDefaultValue = globalSetting.getDefaultValue();
     }
 
     private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
@@ -668,7 +710,6 @@ abstract class AbstractSimpleExcelBuilder {
                 this.sheetName = sheetName;
             }
         }
-        globalDefaultValue = globalSetting.getDefaultValue();
         titleRowHeight = globalSetting.getTitleRowHeight();
         rowHeight = globalSetting.getRowHeight();
         wrapText = globalSetting.isWrapText();

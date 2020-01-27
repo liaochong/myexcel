@@ -15,7 +15,7 @@
 package com.github.liaochong.myexcel.core.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
+import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -28,7 +28,7 @@ import java.math.BigDecimal;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@ExcelTable(sheetName = "人员信息")
+@ExcelModel(sheetName = "人员信息")
 public class WidthPeople {
     @ExcelColumn(title = "姓名", index = 0, style = {"even->color:red;font-weight:bold;width:10px", "odd->color:yellow",
             "title->color:blue;font-weight:bold;font-size:16"})
