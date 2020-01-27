@@ -117,6 +117,9 @@ public class StringsCache implements Cache<Integer, String> {
     }
 
     public void finished() {
+        if (numberOfCacheFile == 0) {
+            return;
+        }
         if (numberOfCacheFile == 1) {
             activeCache.put(0, cacheValues);
             return;
