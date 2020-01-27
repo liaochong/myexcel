@@ -178,6 +178,9 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
             if (uniqueCount != null) {
                 this.uniqueCount = Integer.parseInt(uniqueCount);
             }
+            if (this.uniqueCount == 0) {
+                return;
+            }
             if (rapidity) {
                 this.strings = new String[this.uniqueCount];
             } else {
