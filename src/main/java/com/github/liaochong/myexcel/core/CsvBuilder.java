@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.Pair;
-import com.github.liaochong.myexcel.core.container.ParallelContainer;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.CsvBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -32,13 +31,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * CSV文件构建器
@@ -152,22 +149,24 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
      * @return 结果集
      */
     private List<List<?>> getRenderContent(List<T> data) {
-        List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            List<?> resolvedDataList = this.getRenderContent(data.get(index), fields);
-            return new ParallelContainer<>(index, resolvedDataList);
-        }).collect(Collectors.toCollection(LinkedList::new));
-        data.clear();
-
-        // 重排序
-        return resolvedDataContainers.stream()
-                .sorted(Comparator.comparing(ParallelContainer::getIndex))
-                .map(ParallelContainer<List<Pair<? extends Class, ?>>>::getData).collect(Collectors.toCollection(LinkedList::new));
+        List<List<?>> result = new LinkedList<>();
+        for (T datum : data) {
+            List<Pair<? extends Class, ?>> resolvedDataList = this.getRenderContent(datum, fields);
+            List<?> values = resolvedDataList.stream().map(Pair::getValue).collect(Collectors.toList());
+            result.add(values);
+        }
+        return result;
     }
 
     private void writeToCsv(List<List<?>> data) {
         if (titles != null) {
-            data.add(0, titles);
-            titles = null;
+            synchronized (this) {
+                if (titles == null) {
+                    return;
+                }
+                data.add(0, titles);
+                titles = null;
+            }
         }
         List<String> content = data.stream().map(d -> {
             return d.stream().map(v -> {
