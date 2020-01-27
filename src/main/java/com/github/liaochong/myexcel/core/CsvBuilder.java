@@ -75,7 +75,7 @@ public class CsvBuilder<T> implements Closeable {
     /**
      * 文件路径
      */
-    private Csv csv;
+    private volatile Csv csv;
 
     private CsvBuilder() {
     }
@@ -84,8 +84,6 @@ public class CsvBuilder<T> implements Closeable {
         CsvBuilder<T> csvBuilder = new CsvBuilder<>();
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
         csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
-        Path csvTemp = TempFileOperator.createTempFile("d_t_c", Constants.CSV);
-        csvBuilder.csv = new Csv(csvTemp);
         return csvBuilder;
     }
 
@@ -100,26 +98,28 @@ public class CsvBuilder<T> implements Closeable {
     }
 
     public Csv build(List<T> beans) {
-        return this.build(beans, csv);
+        return this.doWrite(beans);
     }
 
     public void append(List<T> beans) {
-        this.build(beans, csv);
+        this.doWrite(beans);
     }
 
     public Csv build() {
         return csv;
     }
 
-    private Csv build(List<T> beans, Csv csv) {
+    private Csv doWrite(List<T> beans) {
         try {
             if (beans == null || beans.isEmpty()) {
                 return csv;
             }
-            List<List<?>> contents = getRenderContent(beans, fields);
-            this.writeToCsv(contents, csv);
+            List<List<?>> contents = getRenderContent(beans);
+            this.writeToCsv(contents);
         } catch (Exception e) {
-            TempFileOperator.deleteTempFile(csv.getFilePath());
+            if (csv != null) {
+                TempFileOperator.deleteTempFile(csv.getFilePath());
+            }
             throw new CsvBuildException("Build csv failure", e);
         }
         return csv;
@@ -207,13 +207,12 @@ public class CsvBuilder<T> implements Closeable {
     /**
      * 获取需要被渲染的内容
      *
-     * @param data         数据集合
-     * @param sortedFields 排序字段
+     * @param data 数据集合
      * @return 结果集
      */
-    private List<List<?>> getRenderContent(List<T> data, List<Field> sortedFields) {
+    private List<List<?>> getRenderContent(List<T> data) {
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            List<?> resolvedDataList = this.getRenderContent(data.get(index), sortedFields);
+            List<?> resolvedDataList = this.getRenderContent(data.get(index));
             return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toCollection(LinkedList::new));
         data.clear();
@@ -227,12 +226,11 @@ public class CsvBuilder<T> implements Closeable {
     /**
      * 获取需要被渲染的内容
      *
-     * @param data         数据集合
-     * @param sortedFields 排序字段
+     * @param data 数据集合
      * @return 结果集
      */
-    private List<?> getRenderContent(T data, List<Field> sortedFields) {
-        return sortedFields.stream()
+    private List<?> getRenderContent(T data) {
+        return fields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, CsvConverter.class);
                     if (value.getValue() != null) {
@@ -251,7 +249,7 @@ public class CsvBuilder<T> implements Closeable {
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
-    private void writeToCsv(List<List<?>> data, Csv csv) {
+    private void writeToCsv(List<List<?>> data) {
         if (titles != null) {
             data.add(0, titles);
             titles = null;
@@ -271,10 +269,16 @@ public class CsvBuilder<T> implements Closeable {
             }).collect(Collectors.joining(Constants.COMMA));
         }).collect(Collectors.toCollection(LinkedList::new));
 
-        try {
-            Files.write(csv.getFilePath(), content, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        synchronized (this) {
+            try {
+                if (csv == null) {
+                    Path csvTemp = TempFileOperator.createTempFile("d_t_c", Constants.CSV);
+                    csv = new Csv(csvTemp);
+                }
+                Files.write(csv.getFilePath(), content, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
