@@ -443,11 +443,7 @@ abstract class AbstractSimpleExcelBuilder {
         setWorkbookWithExcelTableAnnotation(globalSetting);
 
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting);
-        List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
-        List<Field> sortedFields = preElectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
-                .sorted(ReflectUtil::sortFields)
-                .collect(Collectors.toList());
+        List<Field> sortedFields = this.getGroupFields(preElectionFields, groups);
         // 初始化配置容器
         defaultValueMap = new HashMap<>(sortedFields.size());
         if (customWidthMap == null) {
@@ -510,7 +506,16 @@ abstract class AbstractSimpleExcelBuilder {
         return sortedFields;
     }
 
-    private void setGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+    protected List<Field> getGroupFields(List<Field> preElectionFields, Class<?>[] groups) {
+        List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
+        return preElectionFields.stream()
+                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
+                .sorted(ReflectUtil::sortFields)
+                .collect(Collectors.toList());
+    }
+
+
+    protected void setGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (parentContainer != null) {
             setGlobalSetting(parentContainer, globalSetting);
@@ -617,7 +622,7 @@ abstract class AbstractSimpleExcelBuilder {
         return styleMap;
     }
 
-    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+    protected List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
         if (Objects.nonNull(fieldDisplayOrder) && !fieldDisplayOrder.isEmpty()) {
             this.selfAdaption();
             return fieldDisplayOrder.stream()

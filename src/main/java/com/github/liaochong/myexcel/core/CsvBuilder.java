@@ -15,13 +15,9 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
-import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.container.ParallelContainer;
-import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.CsvBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -31,20 +27,15 @@ import com.github.liaochong.myexcel.utils.TempFileOperator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -55,21 +46,11 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
-public class CsvBuilder<T> implements Closeable {
+public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeable {
 
     private static final Pattern PATTERN_QUOTES_PREMISE = Pattern.compile("[,\"]+");
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("\"");
-
-    private String globalDefaultValue;
-    /**
-     * 默认值集合
-     */
-    private Map<Field, String> defaultValueMap;
-    /**
-     * 标题
-     */
-    private List<String> titles;
 
     private List<Field> fields;
     /**
@@ -126,26 +107,10 @@ public class CsvBuilder<T> implements Closeable {
     }
 
     private List<Field> getFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-        boolean excelTableExist = Objects.nonNull(excelTable);
-        boolean excludeParent = false;
-        boolean includeAllField = false;
-        boolean ignoreStaticFields = true;
-        if (excelTableExist) {
-            excludeParent = excelTable.excludeParent();
-            includeAllField = excelTable.includeAllField();
-            if (!excelTable.defaultValue().isEmpty()) {
-                globalDefaultValue = excelTable.defaultValue();
-            }
-            ignoreStaticFields = excelTable.ignoreStaticFields();
-        }
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, excludeParent, includeAllField);
-        if (ignoreStaticFields) {
-            preElectionFields = preElectionFields.stream()
-                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                    .collect(Collectors.toList());
-        }
-        boolean useFieldNameAsTitle = excelTableExist && excelTable.useFieldNameAsTitle();
+        GlobalSetting globalSetting = new GlobalSetting();
+        setGlobalSetting(classFieldContainer, globalSetting);
+
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting);
         List<Field> sortedFields = getGroupFields(preElectionFields, groups);
         List<String> titles = new ArrayList<>(preElectionFields.size());
         defaultValueMap = new HashMap<>(preElectionFields.size());
@@ -154,7 +119,7 @@ public class CsvBuilder<T> implements Closeable {
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
             if (excelColumn != null) {
                 if (needToAddTitle) {
-                    if (useFieldNameAsTitle && excelColumn.title().isEmpty()) {
+                    if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
                         titles.add(field.getName());
                     } else {
                         titles.add(excelColumn.title());
@@ -165,7 +130,7 @@ public class CsvBuilder<T> implements Closeable {
                 }
             } else {
                 if (needToAddTitle) {
-                    if (useFieldNameAsTitle) {
+                    if (globalSetting.isUseFieldNameAsTitle()) {
                         titles.add(field.getName());
                     } else {
                         titles.add(null);
@@ -180,30 +145,6 @@ public class CsvBuilder<T> implements Closeable {
         return sortedFields;
     }
 
-    private List<Field> getGroupFields(List<Field> preElectionFields, Class<?>[] groups) {
-        List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
-        return preElectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
-                .sorted(ReflectUtil::sortFields)
-                .collect(Collectors.toList());
-    }
-
-    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, boolean excludeParent, boolean includeAllField) {
-        if (includeAllField) {
-            if (excludeParent) {
-                return classFieldContainer.getDeclaredFields();
-            } else {
-                return classFieldContainer.getFields();
-            }
-        }
-        if (excludeParent) {
-            return classFieldContainer.getDeclaredFields().stream()
-                    .filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());
-        } else {
-            return classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-        }
-    }
-
     /**
      * 获取需要被渲染的内容
      *
@@ -212,7 +153,7 @@ public class CsvBuilder<T> implements Closeable {
      */
     private List<List<?>> getRenderContent(List<T> data) {
         List<ParallelContainer> resolvedDataContainers = IntStream.range(0, data.size()).parallel().mapToObj(index -> {
-            List<?> resolvedDataList = this.getRenderContent(data.get(index));
+            List<?> resolvedDataList = this.getRenderContent(data.get(index), fields);
             return new ParallelContainer<>(index, resolvedDataList);
         }).collect(Collectors.toCollection(LinkedList::new));
         data.clear();
@@ -221,32 +162,6 @@ public class CsvBuilder<T> implements Closeable {
         return resolvedDataContainers.stream()
                 .sorted(Comparator.comparing(ParallelContainer::getIndex))
                 .map(ParallelContainer<List<Pair<? extends Class, ?>>>::getData).collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    /**
-     * 获取需要被渲染的内容
-     *
-     * @param data 数据集合
-     * @return 结果集
-     */
-    private List<?> getRenderContent(T data) {
-        return fields.stream()
-                .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, CsvConverter.class);
-                    if (value.getValue() != null) {
-                        return value;
-                    }
-                    String defaultValue = defaultValueMap.get(field);
-                    if (defaultValue != null) {
-                        return Pair.of(field.getType(), defaultValue);
-                    }
-                    if (globalDefaultValue != null) {
-                        return Pair.of(field.getType(), globalDefaultValue);
-                    }
-                    return value;
-                })
-                .map(Pair::getValue)
-                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     private void writeToCsv(List<List<?>> data) {
