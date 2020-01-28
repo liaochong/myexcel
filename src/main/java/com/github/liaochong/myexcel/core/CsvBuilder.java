@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.exception.CsvBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
+import lombok.NonNull;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -62,11 +64,22 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
         CsvBuilder<T> csvBuilder = new CsvBuilder<>();
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
         csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
+        csvBuilder.isMapBuild = clazz == Map.class;
         return csvBuilder;
     }
 
     public CsvBuilder<T> groups(Class<?>... groups) {
         fields = this.getGroupFields(fields, groups);
+        return this;
+    }
+
+    public CsvBuilder<T> fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+        this.fieldDisplayOrder = fieldDisplayOrder;
+        return this;
+    }
+
+    public CsvBuilder<T> titles(@NonNull List<String> titles) {
+        this.titles = titles;
         return this;
     }
 
@@ -135,9 +148,11 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
                 }
             }
         }
-        boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
-        if (hasTitle) {
-            this.titles = titles;
+        if (this.titles == null) {
+            boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
+            if (hasTitle) {
+                this.titles = titles;
+            }
         }
         return sortedFields;
     }
@@ -148,10 +163,11 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
      * @param data 数据集合
      * @return 结果集
      */
+    @SuppressWarnings("unchecked")
     private List<List<?>> getRenderContent(List<T> data) {
         List<List<?>> result = new LinkedList<>();
         for (T datum : data) {
-            List<Pair<? extends Class, ?>> resolvedDataList = this.getRenderContent(datum, fields);
+            List<Pair<? extends Class, ?>> resolvedDataList = isMapBuild ? this.assemblingMapContents((Map<String, Object>) datum) : this.getRenderContent(datum, fields);
             List<?> values = resolvedDataList.stream().map(Pair::getValue).collect(Collectors.toList());
             result.add(values);
         }

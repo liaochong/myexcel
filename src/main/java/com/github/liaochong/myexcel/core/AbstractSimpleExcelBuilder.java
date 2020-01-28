@@ -163,6 +163,10 @@ abstract class AbstractSimpleExcelBuilder {
      * 全局样式
      */
     protected Set<String> globalStyle;
+    /**
+     * 是否为Map类型导出
+     */
+    protected boolean isMapBuild;
 
     /**
      * 创建table
@@ -496,10 +500,11 @@ abstract class AbstractSimpleExcelBuilder {
                 }
             }
         }
-
-        boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
-        if (hasTitle) {
-            this.titles = titles;
+        if (this.titles == null) {
+            boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
+            if (hasTitle) {
+                this.titles = titles;
+            }
         }
         if (!customWidthMap.isEmpty()) {
             this.widthStrategy = WidthStrategy.CUSTOM_WIDTH;
@@ -604,7 +609,9 @@ abstract class AbstractSimpleExcelBuilder {
                 globalSetting.setUseFieldNameAsTitle(true);
             }
         }
-        globalDefaultValue = globalSetting.getDefaultValue();
+        if (globalSetting.getDefaultValue() != null) {
+            globalDefaultValue = globalSetting.getDefaultValue();
+        }
     }
 
     private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
@@ -755,6 +762,24 @@ abstract class AbstractSimpleExcelBuilder {
                     return value;
                 })
                 .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    protected List<Pair<? extends Class, ?>> assemblingMapContents(Map<String, Object> data) {
+        if (data == null || data.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Pair<? extends Class, ?>> contents = new ArrayList<>(data.size());
+        if (fieldDisplayOrder == null) {
+            data.forEach((k, v) -> {
+                contents.add(Pair.of(v == null ? String.class : v.getClass(), v));
+            });
+        } else {
+            for (String fieldName : fieldDisplayOrder) {
+                Object val = data.get(fieldName);
+                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
+            }
+        }
+        return contents;
     }
 
     /**

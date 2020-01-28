@@ -29,9 +29,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,10 +87,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * 等待队列
      */
     private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
-    /**
-     * 是否为Map类型导出
-     */
-    private boolean isMapBuild;
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, null);
@@ -318,18 +312,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         }
         Tr tr = this.createTr(contents);
         htmlToExcelStreamFactory.append(tr);
-    }
-
-    private List<Pair<? extends Class, ?>> assemblingMapContents(Map<String, Object> data) {
-        if (data == null || data.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Pair<? extends Class, ?>> contents = new ArrayList<>(data.size());
-        for (String fieldName : fieldDisplayOrder) {
-            Object val = data.get(fieldName);
-            contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
-        }
-        return contents;
     }
 
     @Override
