@@ -150,11 +150,9 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
                 }
             }
         }
-        if (this.titles == null) {
-            boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
-            if (hasTitle) {
-                this.titles = titles;
-            }
+        boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
+        if (hasTitle) {
+            this.titles = titles;
         }
         return sortedFields;
     }

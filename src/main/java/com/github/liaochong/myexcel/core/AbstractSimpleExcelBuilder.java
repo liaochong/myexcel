@@ -500,11 +500,9 @@ abstract class AbstractSimpleExcelBuilder {
                 }
             }
         }
-        if (this.titles == null) {
-            boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
-            if (hasTitle) {
-                this.titles = titles;
-            }
+        boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
+        if (hasTitle) {
+            this.titles = titles;
         }
         if (!customWidthMap.isEmpty()) {
             this.widthStrategy = WidthStrategy.CUSTOM_WIDTH;
