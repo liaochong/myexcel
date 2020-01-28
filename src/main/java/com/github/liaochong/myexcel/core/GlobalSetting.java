@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -29,10 +30,16 @@ import java.util.Set;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class GlobalSetting {
-
+    /**
+     * The name of the sheet to be built
+     */
     String sheetName;
+    /**
+     * The type of workbook to be built
+     */
+    WorkbookType workbookType;
 
-    WorkbookType workbookType = WorkbookType.SXLSX;
+    WidthStrategy widthStrategy;
 
     boolean excludeParent = false;
 

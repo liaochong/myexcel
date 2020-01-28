@@ -1,6 +1,7 @@
 package com.github.liaochong.myexcel.core.annotation;
 
 import com.github.liaochong.myexcel.core.WorkbookType;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -38,6 +39,13 @@ public @interface ExcelModel {
      * @return WorkbookType
      */
     WorkbookType workbookType() default WorkbookType.SXLSX;
+
+    /**
+     * 宽度策略
+     *
+     * @return WidthStrategy
+     */
+    WidthStrategy widthStrategy() default WidthStrategy.NO_AUTO;
 
     /**
      * sheeName

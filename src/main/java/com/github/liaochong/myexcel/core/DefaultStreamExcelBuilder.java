@@ -96,8 +96,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         this.dataType = dataType;
         this.workbook = workbook;
         this.noStyle = true;
-        this.widthStrategy = WidthStrategy.NO_AUTO;
-        this.workbookType = WorkbookType.SXLSX;
+        globalSetting.setWorkbookType(WorkbookType.SXLSX);
+        globalSetting.setWidthStrategy(WidthStrategy.NO_AUTO);
         this.isMapBuild = dataType == Map.class;
     }
 
@@ -153,7 +153,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
-        this.sheetName = sheetName;
+        globalSetting.setSheetName(sheetName);
         return this;
     }
 
@@ -166,7 +166,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
         }
-        this.workbookType = workbookType;
+        globalSetting.setWorkbookType(workbookType);
         return this;
     }
 
@@ -181,13 +181,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
-        this.widthStrategy = widthStrategy;
+        globalSetting.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
     public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        this.widthStrategy = AutoWidthStrategy.map(autoWidthStrategy);
+        globalSetting.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
 
@@ -214,6 +214,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
+    @Deprecated
     @Override
     public DefaultStreamExcelBuilder<T> hasStyle() {
         this.noStyle = false;
@@ -247,8 +248,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> globalStyle(String... styles) {
-        globalStyle = Arrays.stream(styles).collect(Collectors.toSet());
-        this.hasStyle();
+        globalSetting.setGlobalStyle(Arrays.stream(styles).collect(Collectors.toSet()));
         return this;
     }
 
@@ -265,9 +265,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         }
 
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
-        htmlToExcelStreamFactory.widthStrategy(widthStrategy);
+        htmlToExcelStreamFactory.widthStrategy(globalSetting.getWidthStrategy());
         if (workbook == null) {
-            htmlToExcelStreamFactory.workbookType(workbookType);
+            htmlToExcelStreamFactory.workbookType(globalSetting.getWorkbookType());
         }
         this.initStyleMap();
         Table table = this.createTable();
