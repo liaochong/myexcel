@@ -62,9 +62,11 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
 
     public static <T> CsvBuilder<T> of(Class<T> clazz) {
         CsvBuilder<T> csvBuilder = new CsvBuilder<>();
-        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-        csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
         csvBuilder.isMapBuild = clazz == Map.class;
+        if (!csvBuilder.isMapBuild) {
+            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
+            csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
+        }
         return csvBuilder;
     }
 
