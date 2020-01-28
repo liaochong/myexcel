@@ -16,7 +16,6 @@
 package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
@@ -178,10 +177,6 @@ public class HtmlTableParser {
 
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
             td.setStyle(StyleUtil.mixStyle(trStyle, StyleUtil.parseStyle(tdElement)));
-            // 自动识别是否为自定义宽度
-            if (!parseConfig.isCustomWidth() && td.getStyle().containsKey("width")) {
-                parseConfig.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
-            }
 
             String colSpan = tdElement.attr(TableTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));

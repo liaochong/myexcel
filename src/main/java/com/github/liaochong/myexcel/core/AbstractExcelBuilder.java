@@ -46,6 +46,9 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     @Override
     public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
         htmlToExcelFactory.workbookType(workbookType);
+        if (WorkbookType.isSxlsx(workbookType)) {
+            widthStrategy(WidthStrategy.NO_AUTO);
+        }
         return this;
     }
 
