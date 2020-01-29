@@ -28,7 +28,7 @@ import java.util.Date;
  * @version 1.0
  */
 @Data
-@ExcelModel(sheetName = "人员信息", rowHeight = 50, titleRowHeight = 80)
+@ExcelModel(sheetName = "人员信息", rowHeight = 50, titleRowHeight = 80, decimalFormat = "#,000.0000")
 public class Person {
 
     @ExcelColumn(title = "基本信息->姓名", index = 0)

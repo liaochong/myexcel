@@ -109,4 +109,18 @@ public @interface ExcelModel {
      * @return 样式
      */
     String[] style() default {};
+
+    /**
+     * 时间格式化
+     *
+     * @return 时间格式化
+     */
+    String dateFormat() default "yyyy-MM-dd HH:mm:ss";
+
+    /**
+     * 数值格式化
+     *
+     * @return 数值格式化
+     */
+    String decimalFormat() default "";
 }

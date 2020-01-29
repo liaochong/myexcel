@@ -438,7 +438,7 @@ abstract class AbstractSimpleExcelBuilder {
                 if (widths == null && excelColumn.width() > 0) {
                     customWidthMap.put(i, excelColumn.width());
                 }
-                if (!noStyle && excelColumn.style().length > 0) {
+                if (excelColumn.style().length > 0) {
                     setCustomStyle(field, i, excelColumn.style());
                 }
                 if (!excelColumn.format().isEmpty()) {
@@ -447,6 +447,12 @@ abstract class AbstractSimpleExcelBuilder {
                     formats.put(i, excelColumn.decimalFormat());
                 } else if (!excelColumn.dateFormatPattern().isEmpty()) {
                     formats.put(i, excelColumn.dateFormatPattern());
+                } else if (ReflectUtil.isDate(field.getType())) {
+                    formats.put(i, globalSetting.getDateFormat());
+                } else if (ReflectUtil.isNumber(field.getType())) {
+                    if (globalSetting.getDecimalFormat() != null) {
+                        formats.put(i, globalSetting.getDecimalFormat());
+                    }
                 }
             } else {
                 if (globalSetting.isUseFieldNameAsTitle()) {
@@ -460,8 +466,10 @@ abstract class AbstractSimpleExcelBuilder {
         if (!customWidthMap.isEmpty()) {
             globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
         }
-        if (!customStyle.isEmpty() || !globalStyleMap.isEmpty()) {
-            this.noStyle = false;
+        if (!noStyle) {
+            if (customStyle.isEmpty() && globalStyleMap.isEmpty()) {
+                noStyle = true;
+            }
         }
         return buildFields;
     }
@@ -571,6 +579,10 @@ abstract class AbstractSimpleExcelBuilder {
             if (excelModel.useFieldNameAsTitle()) {
                 globalSetting.setUseFieldNameAsTitle(true);
             }
+            if (!excelModel.decimalFormat().isEmpty()) {
+                globalSetting.setDecimalFormat(excelModel.decimalFormat());
+            }
+            globalSetting.setDateFormat(excelModel.dateFormat());
         }
     }
 

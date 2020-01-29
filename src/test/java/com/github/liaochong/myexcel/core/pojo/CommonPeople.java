@@ -33,6 +33,9 @@ public class CommonPeople extends Person {
     @ExcelColumn(title = "当前日期", format = "yyyy/MM/dd", index = 5)
     LocalDate localDate;
 
-    @ExcelColumn(title = "当前时间", format = "yyyy/MM/dd HH:mm:ss", index = 6)
+    @ExcelColumn(title = "当前时间", index = 6)
     LocalDateTime localDateTime;
+
+    @ExcelColumn(title = "小猫数目", index = 7)
+    Long cats;
 }

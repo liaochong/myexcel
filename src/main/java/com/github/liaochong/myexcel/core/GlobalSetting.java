@@ -60,4 +60,8 @@ class GlobalSetting {
     Set<String> globalStyle = new HashSet<>();
 
     boolean useFieldNameAsTitle = false;
+
+    String dateFormat;
+
+    String decimalFormat;
 }
