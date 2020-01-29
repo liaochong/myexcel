@@ -359,13 +359,14 @@ abstract class AbstractSimpleExcelBuilder {
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
         String oddEvenPrefix = isOddRow ? "odd&" : "even&";
         isOddRow = !isOddRow;
+        boolean useCustomStyle = !noStyle && !customStyle.isEmpty();
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
             Pair<? extends Class, ?> pair = contents.get(i);
             setTdContent(td, pair);
             setTdContentType(td, pair.getKey());
             Map<String, String> style;
-            if (!noStyle && !customStyle.isEmpty()) {
+            if (useCustomStyle) {
                 style = customStyle.get(oddEvenPrefix + i);
                 if (style == null) {
                     style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
