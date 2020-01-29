@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
@@ -24,6 +25,7 @@ import com.github.liaochong.myexcel.core.converter.writer.DropDownListWriteConve
 import com.github.liaochong.myexcel.core.converter.writer.ImageWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.LinkWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MappingWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.OriginalWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
@@ -43,6 +45,10 @@ public class WriteConverterContext {
     private static final Pair<? extends Class, Object> NULL_PAIR = Pair.of(NullType.class, null);
 
     private static final List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
+
+    private static final WeakCache<Field, WriteConverter> CONVERTER_CACHE = new WeakCache<>();
+
+    private static final OriginalWriteConverter ORIGINAL_WRITE_CONVERTER = new OriginalWriteConverter();
 
     static {
         WRITE_CONVERTER_CONTAINER.add(Pair.of(CsvConverter.class, new DateTimeWriteConverter()));
@@ -66,10 +72,15 @@ public class WriteConverterContext {
         if (result == null) {
             return NULL_PAIR;
         }
-        Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
-                .filter(pair -> (pair.getKey() == converterType || pair.getKey() == AllConverter.class) && pair.getValue().support(field, result))
-                .map(Pair::getValue)
-                .findFirst();
-        return writeConverterOptional.isPresent() ? writeConverterOptional.get().convert(field, result) : Pair.of(field.getType(), result);
+        WriteConverter writeConverter = CONVERTER_CACHE.get(field);
+        if (writeConverter == null) {
+            Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
+                    .filter(pair -> (pair.getKey() == converterType || pair.getKey() == AllConverter.class) && pair.getValue().support(field, result))
+                    .map(Pair::getValue)
+                    .findFirst();
+            writeConverter = writeConverterOptional.isPresent() ? writeConverterOptional.get() : ORIGINAL_WRITE_CONVERTER;
+            CONVERTER_CACHE.cache(field, writeConverter);
+        }
+        return writeConverter.convert(field, result);
     }
 }
