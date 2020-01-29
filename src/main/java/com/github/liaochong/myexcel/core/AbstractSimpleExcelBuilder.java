@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
 import com.github.liaochong.myexcel.core.constant.ImageFile;
 import com.github.liaochong.myexcel.core.constant.LinkEmail;
@@ -692,13 +693,15 @@ abstract class AbstractSimpleExcelBuilder {
      *
      * @param data         数据集合
      * @param sortedFields 排序字段
+     * @param csv          是否是csv构建
      * @param <T>          泛型
      * @return 结果集
      */
-    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
+    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields, boolean csv) {
+        Class converterClass = csv ? CsvConverter.class : AllConverter.class;
         return sortedFields.stream()
                 .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, AllConverter.class);
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, converterClass);
                     if (value.getValue() != null) {
                         return value;
                     }
