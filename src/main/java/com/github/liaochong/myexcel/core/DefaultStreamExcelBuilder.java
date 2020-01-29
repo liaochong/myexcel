@@ -214,7 +214,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    @Deprecated
     @Override
     public DefaultStreamExcelBuilder<T> hasStyle() {
         this.noStyle = false;

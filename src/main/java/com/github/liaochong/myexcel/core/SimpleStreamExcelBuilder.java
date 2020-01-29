@@ -47,11 +47,10 @@ interface SimpleStreamExcelBuilder<T> extends Closeable {
     SimpleStreamExcelBuilder start();
 
     /**
-     * 使用默认样式，已过时，无需主动设置
+     * 使用默认样式
      *
      * @return SimpleStreamExcelBuilder
      */
-    @Deprecated
     SimpleStreamExcelBuilder hasStyle();
 
     /**
