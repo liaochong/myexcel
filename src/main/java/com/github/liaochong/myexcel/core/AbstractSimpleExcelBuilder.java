@@ -18,6 +18,7 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
+import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.Constants;
@@ -135,6 +136,78 @@ abstract class AbstractSimpleExcelBuilder {
      * 全局设置
      */
     protected GlobalSetting globalSetting = new GlobalSetting();
+
+    /**
+     * Core methods for obtaining export related fields, styles, etc
+     *
+     * @param classFieldContainer classFieldContainer
+     * @param groups              分组
+     * @return Field
+     */
+    protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
+        setGlobalSetting(classFieldContainer);
+
+        initBuildConfig();
+
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
+        List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
+        // 初始化标题容器
+        List<String> titles = new ArrayList<>(buildFields.size());
+
+        Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
+        this.setOddEvenStyle(globalStyleMap);
+        for (int i = 0, size = buildFields.size(); i < size; i++) {
+            Field field = buildFields.get(i);
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            setCustomStyle(field, i, globalStyleMap.get("cell"));
+            setCustomStyle(field, i, globalStyleMap.get("title"));
+            if (excelColumn != null) {
+                if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
+                    titles.add(field.getName());
+                } else {
+                    titles.add(excelColumn.title());
+                }
+                if (!excelColumn.defaultValue().isEmpty()) {
+                    defaultValueMap.put(field, excelColumn.defaultValue());
+                }
+                if (widths == null && excelColumn.width() > 0) {
+                    customWidthMap.put(i, excelColumn.width());
+                }
+                if (excelColumn.style().length > 0) {
+                    setCustomStyle(field, i, excelColumn.style());
+                }
+                if (!excelColumn.format().isEmpty()) {
+                    formats.put(i, excelColumn.format());
+                } else if (!excelColumn.decimalFormat().isEmpty()) {
+                    formats.put(i, excelColumn.decimalFormat());
+                } else if (!excelColumn.dateFormatPattern().isEmpty()) {
+                    formats.put(i, excelColumn.dateFormatPattern());
+                } else if (ReflectUtil.isDate(field.getType())) {
+                    formats.put(i, globalSetting.getDateFormat());
+                } else if (ReflectUtil.isNumber(field.getType())) {
+                    if (globalSetting.getDecimalFormat() != null) {
+                        formats.put(i, globalSetting.getDecimalFormat());
+                    }
+                }
+            } else {
+                if (globalSetting.isUseFieldNameAsTitle()) {
+                    titles.add(field.getName());
+                } else {
+                    titles.add(null);
+                }
+            }
+        }
+        setTitles(titles);
+        if (!customWidthMap.isEmpty()) {
+            globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
+        }
+        if (!noStyle) {
+            if (customStyle.isEmpty() && globalStyleMap.isEmpty()) {
+                noStyle = true;
+            }
+        }
+        return buildFields;
+    }
 
     /**
      * 创建table
@@ -402,78 +475,6 @@ abstract class AbstractSimpleExcelBuilder {
         }
     }
 
-    /**
-     * 获取排序后字段并设置标题、workbookType等
-     *
-     * @param classFieldContainer classFieldContainer
-     * @param groups              分组
-     * @return Field
-     */
-    protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        setGlobalSetting(classFieldContainer);
-
-        initBuildConfig();
-
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
-        List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
-        // 初始化标题容器
-        List<String> titles = new ArrayList<>(buildFields.size());
-
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
-        this.setOddEvenStyle(globalStyleMap);
-        for (int i = 0, size = buildFields.size(); i < size; i++) {
-            Field field = buildFields.get(i);
-            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            setCustomStyle(field, i, globalStyleMap.get("cell"));
-            setCustomStyle(field, i, globalStyleMap.get("title"));
-            if (excelColumn != null) {
-                if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
-                    titles.add(field.getName());
-                } else {
-                    titles.add(excelColumn.title());
-                }
-                if (!excelColumn.defaultValue().isEmpty()) {
-                    defaultValueMap.put(field, excelColumn.defaultValue());
-                }
-                if (widths == null && excelColumn.width() > 0) {
-                    customWidthMap.put(i, excelColumn.width());
-                }
-                if (excelColumn.style().length > 0) {
-                    setCustomStyle(field, i, excelColumn.style());
-                }
-                if (!excelColumn.format().isEmpty()) {
-                    formats.put(i, excelColumn.format());
-                } else if (!excelColumn.decimalFormat().isEmpty()) {
-                    formats.put(i, excelColumn.decimalFormat());
-                } else if (!excelColumn.dateFormatPattern().isEmpty()) {
-                    formats.put(i, excelColumn.dateFormatPattern());
-                } else if (ReflectUtil.isDate(field.getType())) {
-                    formats.put(i, globalSetting.getDateFormat());
-                } else if (ReflectUtil.isNumber(field.getType())) {
-                    if (globalSetting.getDecimalFormat() != null) {
-                        formats.put(i, globalSetting.getDecimalFormat());
-                    }
-                }
-            } else {
-                if (globalSetting.isUseFieldNameAsTitle()) {
-                    titles.add(field.getName());
-                } else {
-                    titles.add(null);
-                }
-            }
-        }
-        setTitles(titles);
-        if (!customWidthMap.isEmpty()) {
-            globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
-        }
-        if (!noStyle) {
-            if (customStyle.isEmpty() && globalStyleMap.isEmpty()) {
-                noStyle = true;
-            }
-        }
-        return buildFields;
-    }
-
     protected void setTitles(List<String> titles) {
         if (this.titles == null) {
             boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
@@ -486,7 +487,7 @@ abstract class AbstractSimpleExcelBuilder {
     protected List<Field> getGroupFields(List<Field> preElectionFields, Class<?>[] groups) {
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         return preElectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
+                .filter(field -> (!field.isAnnotationPresent(ExcludeColumn.class) && !field.isAnnotationPresent(IgnoreColumn.class)) && ReflectUtil.isFieldSelected(selectedGroupList, field))
                 .sorted(ReflectUtil::sortFields)
                 .collect(Collectors.toList());
     }

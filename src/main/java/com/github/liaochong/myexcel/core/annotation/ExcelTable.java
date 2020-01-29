@@ -24,7 +24,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 已过时，请使用ExcelModel代替
+ * Used for export modeling, obsolete, use {@link ExcelModel} instead
+ * <p>
+ * Will be removed in version 4.0
  *
  * @author liaochong
  * @version 1.0
