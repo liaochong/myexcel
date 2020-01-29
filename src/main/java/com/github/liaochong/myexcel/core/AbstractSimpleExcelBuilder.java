@@ -97,11 +97,11 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 默认值集合
      */
-    protected Map<Field, String> defaultValueMap;
+    protected Map<Field, String> defaultValueMap = new HashMap<>();
     /**
      * 自定义宽度
      */
-    protected Map<Integer, Integer> customWidthMap;
+    protected Map<Integer, Integer> customWidthMap = new HashMap<>();
     /**
      * 标题层级
      */
@@ -127,7 +127,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 格式样式Map
      */
-    private Map<String, Map<String, String>> formatsStyleMap;
+    private Map<String, Map<String, String>> formatsStyleMap = new HashMap<>();
     /**
      * 是否为Map类型导出
      */
@@ -146,8 +146,6 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         setGlobalSetting(classFieldContainer);
-
-        initBuildConfig();
 
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
         List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
@@ -673,18 +671,6 @@ abstract class AbstractSimpleExcelBuilder {
                     .collect(Collectors.toList());
         }
         return preElectionFields;
-    }
-
-    /**
-     * 初始化构建基本参数
-     */
-    private void initBuildConfig() {
-        defaultValueMap = new HashMap<>();
-        if (customWidthMap == null) {
-            customWidthMap = new HashMap<>();
-        }
-        formats = new HashMap<>();
-        formatsStyleMap = new HashMap<>();
     }
 
     /**
