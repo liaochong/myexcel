@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
@@ -30,8 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +61,7 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
         csvBuilder.isMapBuild = clazz == Map.class;
         if (!csvBuilder.isMapBuild) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-            csvBuilder.fields = csvBuilder.getFields(classFieldContainer);
+            csvBuilder.fields = csvBuilder.getFilteredFields(classFieldContainer);
         }
         return csvBuilder;
     }
@@ -115,36 +112,6 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
             throw new CsvBuildException("Build csv failure", e);
         }
         return csv;
-    }
-
-    private List<Field> getFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        setGlobalSetting(classFieldContainer);
-
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
-        List<Field> sortedFields = getGroupFields(preElectionFields, groups);
-        List<String> titles = new ArrayList<>(preElectionFields.size());
-        defaultValueMap = new HashMap<>(preElectionFields.size());
-        for (Field field : sortedFields) {
-            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            if (excelColumn != null) {
-                if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
-                    titles.add(field.getName());
-                } else {
-                    titles.add(excelColumn.title());
-                }
-                if (!excelColumn.defaultValue().isEmpty()) {
-                    defaultValueMap.put(field, excelColumn.defaultValue());
-                }
-            } else {
-                if (globalSetting.isUseFieldNameAsTitle()) {
-                    titles.add(field.getName());
-                } else {
-                    titles.add(null);
-                }
-            }
-        }
-        setTitles(titles);
-        return sortedFields;
     }
 
     /**
