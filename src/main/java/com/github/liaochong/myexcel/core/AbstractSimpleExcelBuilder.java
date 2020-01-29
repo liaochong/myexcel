@@ -200,11 +200,6 @@ abstract class AbstractSimpleExcelBuilder {
         if (!customWidthMap.isEmpty()) {
             globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
         }
-        if (!noStyle) {
-            if (customStyle.isEmpty() && globalStyleMap.isEmpty()) {
-                noStyle = true;
-            }
-        }
         return buildFields;
     }
 
@@ -332,11 +327,8 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     private Map<String, String> getDefaultThStyle() {
-        Map<String, String> thStyle;
-        if (noStyle) {
-            thStyle = Collections.emptyMap();
-        } else {
-            thStyle = new HashMap<>(7);
+        if (!noStyle && customStyle.isEmpty()) {
+            Map<String, String> thStyle = new HashMap<>(7);
             thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
             thStyle.put(FontStyle.FONT_SIZE, "14");
             thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
@@ -344,8 +336,9 @@ abstract class AbstractSimpleExcelBuilder {
             thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
             thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
             thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
+            return thStyle;
         }
-        return thStyle;
+        return Collections.emptyMap();
     }
 
     /**
@@ -739,9 +732,7 @@ abstract class AbstractSimpleExcelBuilder {
      * 初始化单元格样式
      */
     protected void initStyleMap() {
-        if (noStyle) {
-            commonTdStyle = evenTdStyle = linkCommonStyle = linkEvenStyle = Collections.emptyMap();
-        } else {
+        if (!noStyle && customStyle.isEmpty()) {
             if (commonTdStyle == null) {
                 commonTdStyle = new HashMap<>(3);
                 commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
@@ -763,6 +754,8 @@ abstract class AbstractSimpleExcelBuilder {
 
             linkEvenStyle = new HashMap<>(linkCommonStyle);
             linkEvenStyle.putAll(evenTdStyle);
+        } else {
+            commonTdStyle = evenTdStyle = linkCommonStyle = linkEvenStyle = Collections.emptyMap();
         }
     }
 }

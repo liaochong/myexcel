@@ -95,6 +95,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     private DefaultStreamExcelBuilder(Class<T> dataType, Workbook workbook) {
         this.dataType = dataType;
         this.workbook = workbook;
+        this.noStyle = true;
         globalSetting.setWorkbookType(WorkbookType.SXLSX);
         globalSetting.setWidthStrategy(WidthStrategy.NO_AUTO);
         this.isMapBuild = dataType == Map.class;
