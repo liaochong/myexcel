@@ -14,11 +14,13 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -38,22 +40,19 @@ public class DateTimeWriteConverter implements WriteConverter {
     private static final WeakCache<String, ThreadLocal<SimpleDateFormat>> SIMPLE_DATE_FORMAT_WEAK_CACHE = new WeakCache<>();
 
     @Override
-    public boolean support(Field field, Object fieldVal) {
-        Class<?> fieldType = field.getType();
-        boolean validType = fieldType == LocalDateTime.class || fieldType == LocalDate.class || fieldType == Date.class;
-        if (!validType) {
-            return false;
-        }
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && (!excelColumn.format().isEmpty() || !excelColumn.dateFormatPattern().isEmpty());
+    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
+        return ReflectUtil.isDate(field.getType());
     }
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
+    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
         Class<?> fieldType = field.getType();
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
         // 时间格式化
-        String dateFormatPattern = excelColumn.format().isEmpty() ? excelColumn.dateFormatPattern() : excelColumn.format();
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        String dateFormatPattern = mapping.getFormat();
+        if (dateFormatPattern.isEmpty()) {
+            dateFormatPattern = convertContext.getGlobalSetting().getDateFormat();
+        }
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);

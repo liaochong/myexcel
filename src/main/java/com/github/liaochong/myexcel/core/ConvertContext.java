@@ -12,29 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.writer;
+package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.ConvertContext;
-import com.github.liaochong.myexcel.core.container.Pair;
-import com.github.liaochong.myexcel.core.converter.WriteConverter;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
- * 原始类型转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class OriginalWriteConverter implements WriteConverter {
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@AllArgsConstructor
+public class ConvertContext {
 
-    @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
-        return Pair.of(field.getType(), fieldVal);
-    }
+    GlobalSetting globalSetting;
 
-    @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
-        return true;
-    }
+    Map<Field, ExcelColumnMapping> excelColumnMappingMap;
 }

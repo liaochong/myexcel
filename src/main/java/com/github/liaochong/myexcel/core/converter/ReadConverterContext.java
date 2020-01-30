@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.ReadContext;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
@@ -107,7 +108,7 @@ public class ReadConverterContext {
         try {
             ExcelColumn excelColumn = context.getField().getAnnotation(ExcelColumn.class);
             if (excelColumn != null && !excelColumn.mapping().isEmpty()) {
-                Properties properties = PropertyUtil.getReverseProperties(excelColumn);
+                Properties properties = PropertyUtil.getReverseProperties(ExcelColumnMapping.mapping(excelColumn));
                 String mappingVal = properties.getProperty(context.getVal());
                 if (mappingVal != null) {
                     context.setVal(mappingVal);

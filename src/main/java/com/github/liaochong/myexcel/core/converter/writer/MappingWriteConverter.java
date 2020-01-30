@@ -14,7 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
@@ -32,20 +33,20 @@ public class MappingWriteConverter implements WriteConverter {
     private WeakCache<String, Pair<Class, Object>> mappingCache = new WeakCache<>();
 
     @Override
-    public boolean support(Field field, Object fieldVal) {
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && !excelColumn.mapping().isEmpty();
+    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        return mapping != null && !mapping.getMapping().isEmpty();
     }
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        String cacheKey = excelColumn.mapping() + "->" + fieldVal;
+    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
+        ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
+        String cacheKey = excelColumnMapping.getMapping() + "->" + fieldVal;
         Pair<Class, Object> mapping = mappingCache.get(cacheKey);
         if (mapping != null) {
             return mapping;
         }
-        Properties properties = PropertyUtil.getProperties(excelColumn);
+        Properties properties = PropertyUtil.getProperties(excelColumnMapping);
         String property = properties.getProperty(fieldVal.toString());
         if (property == null) {
             return Pair.of(field.getType(), fieldVal);

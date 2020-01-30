@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.container.Pair;
 
 import java.lang.reflect.Field;
@@ -28,19 +29,21 @@ public interface WriteConverter {
     /**
      * 转换
      *
-     * @param field    字段
-     * @param fieldVal 字段对应的值
+     * @param field          字段
+     * @param fieldVal       字段对应的值
+     * @param convertContext 转换上下文
      * @return T
      */
-    Pair<Class, Object> convert(Field field, Object fieldVal);
+    Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext);
 
     /**
      * 是否支持转换
      *
-     * @param field    字段
-     * @param fieldVal 字段值
+     * @param field          字段
+     * @param fieldVal       字段值
+     * @param convertContext 转换上下文
      * @return true/false
      */
-    boolean support(Field field, Object fieldVal);
+    boolean support(Field field, Object fieldVal, ConvertContext convertContext);
 
 }

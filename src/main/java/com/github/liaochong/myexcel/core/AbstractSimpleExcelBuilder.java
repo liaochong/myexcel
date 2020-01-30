@@ -137,6 +137,14 @@ abstract class AbstractSimpleExcelBuilder {
      * 全局设置
      */
     protected GlobalSetting globalSetting = new GlobalSetting();
+    /**
+     * ExcelColumn映射
+     */
+    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
+    /**
+     * 转换上下文
+     */
+    private ConvertContext convertContext = new ConvertContext(globalSetting, excelColumnMappingMap);
 
     /**
      * Core methods for obtaining export related fields, styles, etc
@@ -188,6 +196,8 @@ abstract class AbstractSimpleExcelBuilder {
                         formats.put(i, globalSetting.getDecimalFormat());
                     }
                 }
+                ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
+                excelColumnMappingMap.put(field, mapping);
             } else {
                 if (globalSetting.isUseFieldNameAsTitle()) {
                     titles.add(field.getName());
@@ -695,7 +705,7 @@ abstract class AbstractSimpleExcelBuilder {
         Class converterClass = csv ? CsvConverter.class : AllConverter.class;
         return sortedFields.stream()
                 .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, converterClass);
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, converterClass, convertContext);
                     if (value.getValue() != null) {
                         return value;
                     }

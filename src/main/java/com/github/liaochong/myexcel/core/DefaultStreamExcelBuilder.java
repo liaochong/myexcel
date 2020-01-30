@@ -247,6 +247,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> globalStyle(String... styles) {
+        this.noStyle = false;
         globalSetting.setGlobalStyle(Arrays.stream(styles).collect(Collectors.toSet()));
         return this;
     }
