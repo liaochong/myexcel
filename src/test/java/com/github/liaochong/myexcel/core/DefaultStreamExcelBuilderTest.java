@@ -2,6 +2,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CustomStylePeople;
+import com.github.liaochong.myexcel.core.pojo.Formula;
 import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
 import com.github.liaochong.myexcel.core.pojo.WidthPeople;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
@@ -209,6 +210,17 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         }
     }
 
+    @Test
+    void formulaBuild() throws Exception {
+        try (DefaultStreamExcelBuilder<Formula> excelBuilder = DefaultStreamExcelBuilder.of(Formula.class)
+                .fixedTitles()
+                .start()) {
+            formulaData(excelBuilder, 100);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_DIR + "formula_build.xlsx"));
+        }
+    }
+
     private void data(DefaultStreamExcelBuilder<CommonPeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
@@ -266,6 +278,13 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             oddEvenStylePeople.setDance(odd ? true : false);
             oddEvenStylePeople.setMoney(odd ? oddMoney : evenMoney);
             excelBuilder.append(oddEvenStylePeople);
+        }
+    }
+
+    private void formulaData(DefaultStreamExcelBuilder<Formula> excelBuilder, int size) {
+        for (int i = 0; i < 100; i++) {
+            Formula formula = new Formula();
+            excelBuilder.append(formula);
         }
     }
 }
