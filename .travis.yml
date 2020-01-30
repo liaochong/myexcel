@@ -6,7 +6,7 @@ jdk:
   - openjdk11
 
 before_script:
-- ./mvnw install -q -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
+  - ./mvnw install -q -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
 
 script: ./mvnw install -q -Dmaven.test.redirectTestOutputToFile=true
 

@@ -51,9 +51,8 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     @Test
     void commonBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
-//                .workbookType(WorkbookType.XLS)
                 .fixedTitles()
-                .globalStyle("background-color:red;", "title->background-color:green;")
+                .globalStyle("background-color:red;", "title->background-color:yellow;")
                 .start()) {
             data(excelBuilder, 100);
             Workbook workbook = excelBuilder.build();
@@ -65,6 +64,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void hasStyleBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
+                .hasStyle()
                 .start()) {
             data(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
@@ -177,6 +177,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void evenOddBuild() throws Exception {
         try (DefaultStreamExcelBuilder<OddEvenStylePeople> excelBuilder = DefaultStreamExcelBuilder.of(OddEvenStylePeople.class)
                 .fixedTitles()
+                .hasStyle()
                 .start()) {
             oddEvenData(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();

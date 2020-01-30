@@ -18,16 +18,16 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Data
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExcelColumnMapping {
+public final class ExcelColumnMapping {
 
     /**
      * 列标题
