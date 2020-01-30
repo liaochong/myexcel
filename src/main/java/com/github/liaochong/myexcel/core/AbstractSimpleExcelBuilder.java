@@ -76,6 +76,10 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected List<String> fieldDisplayOrder;
     /**
+     * 已排序字段
+     */
+    protected List<Field> filteredFields = Collections.emptyList();
+    /**
      * 一般单元格样式
      */
     protected Map<String, String> commonTdStyle;
@@ -375,6 +379,9 @@ abstract class AbstractSimpleExcelBuilder {
             Pair<? extends Class, ?> pair = contents.get(i);
             setTdContent(td, pair);
             setTdContentType(td, pair.getKey());
+
+            this.setFormula(i, td);
+
             Map<String, String> style;
             if (useCustomStyle) {
                 style = customStyle.get(oddEvenPrefix + i);
@@ -405,6 +412,17 @@ abstract class AbstractSimpleExcelBuilder {
         }
         tr.setTdList(tdList);
         return tr;
+    }
+
+    private void setFormula(int i, Td td) {
+        Field field = filteredFields.get(i);
+        if (field == null) {
+            return;
+        }
+        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
+        if (excelColumnMapping != null && excelColumnMapping.isFormula()) {
+            td.setFormula(true);
+        }
     }
 
     private void setTdContent(Td td, Pair<? extends Class, ?> pair) {

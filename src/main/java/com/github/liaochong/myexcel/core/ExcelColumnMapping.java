@@ -89,6 +89,11 @@ public final class ExcelColumnMapping {
      */
     FileType fileType;
 
+    /**
+     * 是否为公式
+     */
+    boolean formula;
+
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
         result.title = excelColumn.title();
@@ -111,6 +116,7 @@ public final class ExcelColumnMapping {
         result.linkType = excelColumn.linkType();
         result.mapping = excelColumn.mapping();
         result.fileType = excelColumn.fileType();
+        result.formula = excelColumn.formula();
         return result;
     }
 }
