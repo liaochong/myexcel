@@ -68,7 +68,7 @@ public class WriteConverterContext {
         }
     }
 
-    public static Pair<? extends Class, Object> convert(Field field, Object object, Class converterType, ConvertContext convertContext) {
+    public static Pair<? extends Class, Object> convert(Field field, Object object, ConvertContext convertContext) {
         Object result = ReflectUtil.getFieldValue(object, field);
         if (result == null) {
             return NULL_PAIR;
@@ -76,7 +76,7 @@ public class WriteConverterContext {
         WriteConverter writeConverter = CONVERTER_CACHE.get(field);
         if (writeConverter == null) {
             Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
-                    .filter(pair -> (pair.getKey() == converterType || pair.getKey() == AllConverter.class) && pair.getValue().support(field, result, convertContext))
+                    .filter(pair -> (pair.getKey() == convertContext.getConverterType() || pair.getKey() == AllConverter.class) && pair.getValue().support(field, result, convertContext))
                     .map(Pair::getValue)
                     .findFirst();
             writeConverter = writeConverterOptional.isPresent() ? writeConverterOptional.get() : ORIGINAL_WRITE_CONVERTER;

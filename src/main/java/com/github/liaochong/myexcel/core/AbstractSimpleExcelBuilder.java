@@ -702,10 +702,10 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 结果集
      */
     protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields, boolean csv) {
-        Class converterClass = csv ? CsvConverter.class : AllConverter.class;
+        convertContext.setConverterType(csv ? CsvConverter.class : AllConverter.class);
         return sortedFields.stream()
                 .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, converterClass, convertContext);
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);
                     if (value.getValue() != null) {
                         return value;
                     }

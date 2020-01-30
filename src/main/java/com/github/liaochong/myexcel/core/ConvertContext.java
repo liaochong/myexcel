@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
@@ -28,10 +27,18 @@ import java.util.Map;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
 public class ConvertContext {
 
     GlobalSetting globalSetting;
 
     Map<Field, ExcelColumnMapping> excelColumnMappingMap;
+    /**
+     * csv or excel
+     */
+    Class converterType;
+
+    public ConvertContext(GlobalSetting globalSetting, Map<Field, ExcelColumnMapping> excelColumnMappingMap) {
+        this.globalSetting = globalSetting;
+        this.excelColumnMappingMap = excelColumnMappingMap;
+    }
 }
