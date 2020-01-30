@@ -415,10 +415,10 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     private void setFormula(int i, Td td) {
-        Field field = filteredFields.get(i);
-        if (field == null) {
+        if (filteredFields.isEmpty()) {
             return;
         }
+        Field field = filteredFields.get(i);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.isFormula()) {
             td.setFormula(true);
