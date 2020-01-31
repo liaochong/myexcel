@@ -118,6 +118,13 @@ public @interface ExcelModel {
     String dateFormat() default "";
 
     /**
+     * 时间格式化
+     *
+     * @return 时间格式化
+     */
+    String dateTimeFormat() default "";
+
+    /**
      * 数值格式化
      *
      * @return 数值格式化

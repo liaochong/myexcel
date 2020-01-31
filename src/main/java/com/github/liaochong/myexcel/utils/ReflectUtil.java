@@ -173,7 +173,7 @@ public final class ReflectUtil {
     }
 
     public static boolean isDate(Class clazz) {
-        return clazz == Date.class || clazz == LocalDate.class || clazz == LocalDateTime.class;
+        return clazz == Date.class || clazz == LocalDateTime.class || clazz == LocalDate.class;
     }
 
     public static int sortFields(Field field1, Field field2) {

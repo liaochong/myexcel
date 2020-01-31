@@ -193,8 +193,10 @@ abstract class AbstractSimpleExcelBuilder {
                     formats.put(i, excelColumn.decimalFormat());
                 } else if (!excelColumn.dateFormatPattern().isEmpty()) {
                     formats.put(i, excelColumn.dateFormatPattern());
-                } else if (ReflectUtil.isDate(field.getType())) {
+                } else if (field.getType() == LocalDate.class) {
                     formats.put(i, globalSetting.getDateFormat());
+                } else if (ReflectUtil.isDate(field.getType())) {
+                    formats.put(i, globalSetting.getDateTimeFormat());
                 } else if (ReflectUtil.isNumber(field.getType())) {
                     if (globalSetting.getDecimalFormat() != null) {
                         formats.put(i, globalSetting.getDecimalFormat());
@@ -606,6 +608,9 @@ abstract class AbstractSimpleExcelBuilder {
             }
             if (!excelModel.dateFormat().isEmpty()) {
                 globalSetting.setDateFormat(excelModel.dateFormat());
+            }
+            if (!excelModel.dateTimeFormat().isEmpty()) {
+                globalSetting.setDateTimeFormat(excelModel.dateTimeFormat());
             }
         }
     }

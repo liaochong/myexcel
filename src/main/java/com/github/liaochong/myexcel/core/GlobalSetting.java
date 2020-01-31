@@ -61,7 +61,9 @@ public class GlobalSetting {
 
     boolean useFieldNameAsTitle = false;
 
-    String dateFormat = "yyyy-MM-dd HH:mm:ss";
+    String dateFormat = "yyyy-MM-dd";
+
+    String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 
     String decimalFormat;
 }
