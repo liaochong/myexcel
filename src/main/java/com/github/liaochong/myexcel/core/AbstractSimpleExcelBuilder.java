@@ -604,7 +604,9 @@ abstract class AbstractSimpleExcelBuilder {
             if (!excelModel.decimalFormat().isEmpty()) {
                 globalSetting.setDecimalFormat(excelModel.decimalFormat());
             }
-            globalSetting.setDateFormat(excelModel.dateFormat());
+            if (!excelModel.dateFormat().isEmpty()) {
+                globalSetting.setDateFormat(excelModel.dateFormat());
+            }
         }
     }
 
