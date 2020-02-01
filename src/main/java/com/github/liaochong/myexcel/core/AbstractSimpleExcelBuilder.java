@@ -569,7 +569,7 @@ abstract class AbstractSimpleExcelBuilder {
                 globalSetting.setDefaultValue(excelModel.defaultValue());
             }
             globalSetting.setWrapText(excelModel.wrapText());
-            if (!excelModel.titleSeparator().equals(Constants.ARROW)) {
+            if (!excelModel.titleSeparator().isEmpty()) {
                 globalSetting.setTitleSeparator(excelModel.titleSeparator());
             }
             globalSetting.setIgnoreStaticFields(excelModel.ignoreStaticFields());
