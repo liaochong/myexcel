@@ -49,10 +49,7 @@ public class DateTimeWriteConverter implements WriteConverter {
         Class<?> fieldType = field.getType();
         // 时间格式化
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
-        String dateFormatPattern = mapping.getFormat();
-        if (dateFormatPattern.isEmpty()) {
-            dateFormatPattern = convertContext.getGlobalSetting().getDateFormat();
-        }
+        String dateFormatPattern = getDateFormatPattern(convertContext, mapping);
         if (fieldType == LocalDateTime.class) {
             LocalDateTime localDateTime = (LocalDateTime) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
@@ -64,6 +61,17 @@ public class DateTimeWriteConverter implements WriteConverter {
         }
         SimpleDateFormat simpleDateFormat = this.getSimpleDateFormat(dateFormatPattern);
         return Pair.of(String.class, simpleDateFormat.format((Date) fieldVal));
+    }
+
+    private String getDateFormatPattern(ConvertContext convertContext, ExcelColumnMapping mapping) {
+        if (mapping == null) {
+            return convertContext.getGlobalSetting().getDateFormat();
+        }
+        String dateFormatPattern = mapping.getFormat();
+        if (dateFormatPattern.isEmpty()) {
+            dateFormatPattern = convertContext.getGlobalSetting().getDateFormat();
+        }
+        return dateFormatPattern;
     }
 
     /**
