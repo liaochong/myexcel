@@ -98,7 +98,7 @@ public @interface ExcelTable {
      *
      * @return 分离器
      */
-    String titleSeparator() default "->";
+    String titleSeparator() default "";
 
     /**
      * 标题行高度

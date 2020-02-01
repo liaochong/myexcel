@@ -30,6 +30,14 @@ import java.util.Set;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GlobalSetting {
+
+    boolean fixedSheetName;
+
+    boolean fixedWorkbookType;
+
+    boolean fixedWidthStrategy;
+
+    boolean fixedGlobalStyle;
     /**
      * The name of the sheet to be built
      */
@@ -37,7 +45,7 @@ public class GlobalSetting {
     /**
      * The type of workbook to be built
      */
-    WorkbookType workbookType;
+    WorkbookType workbookType = WorkbookType.SXLSX;
 
     WidthStrategy widthStrategy;
 
@@ -57,7 +65,7 @@ public class GlobalSetting {
 
     int rowHeight;
 
-    Set<String> globalStyle = new HashSet<>();
+    Set<String> globalStyle;
 
     boolean useFieldNameAsTitle = false;
 
@@ -66,4 +74,11 @@ public class GlobalSetting {
     String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 
     String decimalFormat;
+
+    public Set<String> getGlobalStyle() {
+        if (globalStyle == null) {
+            globalStyle = new HashSet<>();
+        }
+        return globalStyle;
+    }
 }

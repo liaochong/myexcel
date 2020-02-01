@@ -24,7 +24,6 @@ import lombok.NonNull;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,7 +46,6 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("\"");
 
-    private List<Field> fields;
     /**
      * 文件路径
      */
@@ -61,13 +59,13 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
         csvBuilder.isMapBuild = clazz == Map.class;
         if (!csvBuilder.isMapBuild) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(clazz);
-            csvBuilder.fields = csvBuilder.getFilteredFields(classFieldContainer);
+            csvBuilder.filteredFields = csvBuilder.getFilteredFields(classFieldContainer);
         }
         return csvBuilder;
     }
 
     public CsvBuilder<T> groups(Class<?>... groups) {
-        fields = this.getGroupFields(fields, groups);
+        filteredFields = this.getGroupFields(filteredFields, groups);
         return this;
     }
 
@@ -124,7 +122,7 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
     private List<List<?>> getRenderContent(List<T> data) {
         List<List<?>> result = new LinkedList<>();
         for (T datum : data) {
-            List<Pair<? extends Class, ?>> resolvedDataList = isMapBuild ? this.assemblingMapContents((Map<String, Object>) datum) : this.getRenderContent(datum, fields, true);
+            List<Pair<? extends Class, ?>> resolvedDataList = isMapBuild ? this.assemblingMapContents((Map<String, Object>) datum) : this.getRenderContent(datum, filteredFields, true);
             List<?> values = resolvedDataList.stream().map(Pair::getValue).collect(Collectors.toList());
             result.add(values);
         }

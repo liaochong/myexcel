@@ -148,6 +148,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
+        globalSetting.setFixedSheetName(true);
         globalSetting.setSheetName(sheetName);
         return this;
     }
@@ -161,6 +162,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
         }
+        globalSetting.setFixedWorkbookType(true);
         globalSetting.setWorkbookType(workbookType);
         return this;
     }
@@ -176,12 +178,14 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
+        globalSetting.setFixedWidthStrategy(true);
         globalSetting.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
     public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+        globalSetting.setFixedWidthStrategy(true);
         globalSetting.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
@@ -243,6 +247,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public DefaultStreamExcelBuilder<T> globalStyle(String... styles) {
         this.noStyle = false;
+        globalSetting.setFixedGlobalStyle(true);
         globalSetting.setGlobalStyle(Arrays.stream(styles).collect(Collectors.toSet()));
         return this;
     }

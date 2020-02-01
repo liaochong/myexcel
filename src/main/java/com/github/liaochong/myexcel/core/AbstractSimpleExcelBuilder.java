@@ -530,78 +530,61 @@ abstract class AbstractSimpleExcelBuilder {
             if (excelTable == null) {
                 return;
             }
-            if (!excelTable.sheetName().isEmpty() && globalSetting.getSheetName() == null) {
+            if (!excelTable.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
                 globalSetting.setSheetName(excelTable.sheetName());
             }
-            if (excelTable.workbookType() != WorkbookType.SXLSX && globalSetting.getWorkbookType() == null) {
+            if (!globalSetting.isFixedWorkbookType()) {
                 globalSetting.setWorkbookType(excelTable.workbookType());
             }
-            if (excelTable.excludeParent()) {
-                globalSetting.setExcludeParent(true);
-            }
-            if (!excelTable.includeAllField()) {
-                globalSetting.setIncludeAllField(false);
-            }
+            globalSetting.setExcludeParent(excelTable.excludeParent());
+            globalSetting.setIncludeAllField(excelTable.includeAllField());
             if (!excelTable.defaultValue().isEmpty()) {
                 globalSetting.setDefaultValue(excelTable.defaultValue());
             }
-            if (!excelTable.wrapText()) {
-                globalSetting.setWrapText(false);
-            }
-            if (!excelTable.titleSeparator().equals(Constants.ARROW)) {
+            globalSetting.setWrapText(excelTable.wrapText());
+            if (!excelTable.titleSeparator().isEmpty()) {
                 globalSetting.setTitleSeparator(excelTable.titleSeparator());
             }
-            if (!excelTable.ignoreStaticFields()) {
-                globalSetting.setIgnoreStaticFields(false);
-            }
+            globalSetting.setIgnoreStaticFields(excelTable.ignoreStaticFields());
             if (excelTable.titleRowHeight() != -1) {
                 globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
             }
             if (excelTable.rowHeight() != -1) {
                 globalSetting.setRowHeight(excelTable.rowHeight());
             }
-            if (excelTable.style().length != 0 && globalSetting.getGlobalStyle().isEmpty()) {
+            if (excelTable.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
                 globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
             }
-            if (excelTable.useFieldNameAsTitle()) {
-                globalSetting.setUseFieldNameAsTitle(true);
-            }
+            globalSetting.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
         } else {
-            if (!excelModel.sheetName().isEmpty() && globalSetting.getSheetName() == null) {
+            if (!excelModel.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
                 globalSetting.setSheetName(excelModel.sheetName());
             }
-            if (excelModel.workbookType() != WorkbookType.SXLSX && globalSetting.getWorkbookType() == null) {
+            if (!globalSetting.isFixedWorkbookType()) {
                 globalSetting.setWorkbookType(excelModel.workbookType());
             }
-            if (excelModel.excludeParent()) {
-                globalSetting.setExcludeParent(true);
-            }
-            if (!excelModel.includeAllField()) {
-                globalSetting.setIncludeAllField(false);
-            }
+            globalSetting.setExcludeParent(excelModel.excludeParent());
+            globalSetting.setIncludeAllField(excelModel.includeAllField());
             if (!excelModel.defaultValue().isEmpty()) {
                 globalSetting.setDefaultValue(excelModel.defaultValue());
             }
-            if (!excelModel.wrapText()) {
-                globalSetting.setWrapText(false);
-            }
+            globalSetting.setWrapText(excelModel.wrapText());
             if (!excelModel.titleSeparator().equals(Constants.ARROW)) {
                 globalSetting.setTitleSeparator(excelModel.titleSeparator());
             }
-            if (!excelModel.ignoreStaticFields()) {
-                globalSetting.setIgnoreStaticFields(false);
-            }
+            globalSetting.setIgnoreStaticFields(excelModel.ignoreStaticFields());
             if (excelModel.titleRowHeight() != -1) {
                 globalSetting.setTitleRowHeight(excelModel.titleRowHeight());
             }
             if (excelModel.rowHeight() != -1) {
                 globalSetting.setRowHeight(excelModel.rowHeight());
             }
-            if (excelModel.style().length != 0 && globalSetting.getGlobalStyle().isEmpty()) {
+            if (excelModel.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
                 globalSetting.getGlobalStyle().addAll(Arrays.asList(excelModel.style()));
             }
-            if (excelModel.useFieldNameAsTitle()) {
-                globalSetting.setUseFieldNameAsTitle(true);
+            globalSetting.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
+            if (!globalSetting.isFixedWidthStrategy()) {
+                globalSetting.setWidthStrategy(excelModel.widthStrategy());
             }
             if (!excelModel.decimalFormat().isEmpty()) {
                 globalSetting.setDecimalFormat(excelModel.decimalFormat());
