@@ -72,7 +72,9 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
      * Calls {{@link #ReadOnlySharedStringsTable(OPCPackage, boolean, StringsCache, boolean)}} with
      * a value of <code>true</code> for including phonetic runs
      *
-     * @param pkg The {@link OPCPackage} to use as basis for the shared-strings table.
+     * @param pkg          The {@link OPCPackage} to use as basis for the shared-strings table.
+     * @param stringsCache stringsCache
+     * @param rapidity     rapidity
      * @throws IOException  If reading the data from the package fails.
      * @throws SAXException if parsing the XML data fails.
      */
@@ -84,6 +86,8 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
     /**
      * @param pkg                 The {@link OPCPackage} to use as basis for the shared-strings table.
      * @param includePhoneticRuns whether or not to concatenate phoneticRuns onto the shared string
+     * @param stringsCache        stringsCache
+     * @param rapidity            rapidity
      * @throws IOException  If reading the data from the package fails.
      * @throws SAXException if parsing the XML data fails.
      * @since POI 3.14-Beta3
