@@ -68,21 +68,27 @@ public final class ReflectUtil {
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
         if (fields.isEmpty()) {
-            throw new IllegalStateException("There is no field with @ExcelColumn");
-        }
-        fieldMap = new HashMap<>(fields.size());
-        for (Field field : fields) {
-            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            int index = excelColumn.index();
-            if (index < 0) {
-                continue;
+            // If no field contains an ExcelColumn annotation, all fields are read in the default order
+            List<Field> allFields = classFieldContainer.getFields();
+            fieldMap = new HashMap<>(allFields.size());
+            for (int i = 0, size = allFields.size(); i < size; i++) {
+                fieldMap.put(i, allFields.get(i));
             }
-            Field f = fieldMap.get(index);
-            if (Objects.nonNull(f)) {
-                throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
+        } else {
+            fieldMap = new HashMap<>(fields.size());
+            for (Field field : fields) {
+                ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                int index = excelColumn.index();
+                if (index < 0) {
+                    continue;
+                }
+                Field f = fieldMap.get(index);
+                if (Objects.nonNull(f)) {
+                    throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
+                }
+                field.setAccessible(true);
+                fieldMap.put(index, field);
             }
-            field.setAccessible(true);
-            fieldMap.put(index, field);
         }
         FIELD_CACHE.cache(dataType, fieldMap);
         return fieldMap;
@@ -167,7 +173,7 @@ public final class ReflectUtil {
     }
 
     public static boolean isDate(Class clazz) {
-        return clazz == Date.class || clazz == LocalDate.class || clazz == LocalDateTime.class;
+        return clazz == Date.class || clazz == LocalDateTime.class || clazz == LocalDate.class;
     }
 
     public static int sortFields(Field field1, Field field2) {

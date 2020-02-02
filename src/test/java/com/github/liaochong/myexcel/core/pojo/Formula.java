@@ -16,30 +16,16 @@ package com.github.liaochong.myexcel.core.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelModel;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@ExcelModel(sheetName = "人员信息", style = {"even->color:red;width:100px"})
-public class OddEvenStylePeople {
+@ExcelModel(sheetName = "测试")
+public class Formula {
 
-    @ExcelColumn(title = "姓名")
-    String name;
+    Integer counter = 100;
 
-    @ExcelColumn(title = "年龄")
-    Integer age;
-
-    @ExcelColumn(title = "是否会跳舞")
-    boolean dance;
-
-    @ExcelColumn(title = "金钱", decimalFormat = "#,000.00")
-    BigDecimal money;
+    @ExcelColumn(formula = true)
+    String sum = "SUM(A1:A100)";
 }

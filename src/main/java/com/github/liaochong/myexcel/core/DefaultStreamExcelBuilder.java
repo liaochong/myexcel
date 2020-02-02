@@ -27,11 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +42,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder<T> {
-    /**
-     * 已排序字段
-     */
-    private List<Field> filteredFields;
     /**
      * 设置需要渲染的数据的类类型
      */
@@ -89,10 +82,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * 等待队列
      */
     private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
-    /**
-     * 是否为Map类型导出
-     */
-    private boolean isMapBuild;
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, null);
@@ -102,8 +91,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         this.dataType = dataType;
         this.workbook = workbook;
         this.noStyle = true;
-        this.widthStrategy = WidthStrategy.NO_AUTO;
-        this.workbookType = WorkbookType.SXLSX;
+        globalSetting.setWorkbookType(WorkbookType.SXLSX);
+        globalSetting.setWidthStrategy(WidthStrategy.NO_AUTO);
         this.isMapBuild = dataType == Map.class;
     }
 
@@ -159,7 +148,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
-        this.sheetName = sheetName;
+        globalSetting.setFixedSheetName(true);
+        globalSetting.setSheetName(sheetName);
         return this;
     }
 
@@ -172,7 +162,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
         }
-        this.workbookType = workbookType;
+        globalSetting.setFixedWorkbookType(true);
+        globalSetting.setWorkbookType(workbookType);
         return this;
     }
 
@@ -187,13 +178,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
-        this.widthStrategy = widthStrategy;
+        globalSetting.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
     public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        this.widthStrategy = AutoWidthStrategy.map(autoWidthStrategy);
+        globalSetting.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
 
@@ -253,8 +244,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> globalStyle(String... styles) {
-        globalStyle = Arrays.stream(styles).collect(Collectors.toSet());
-        this.hasStyle();
+        this.noStyle = false;
+        globalSetting.setFixedGlobalStyle(true);
+        globalSetting.setGlobalStyle(Arrays.stream(styles).collect(Collectors.toSet()));
         return this;
     }
 
@@ -271,9 +263,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         }
 
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
-        htmlToExcelStreamFactory.widthStrategy(widthStrategy);
+        htmlToExcelStreamFactory.widthStrategy(globalSetting.getWidthStrategy());
         if (workbook == null) {
-            htmlToExcelStreamFactory.workbookType(workbookType);
+            htmlToExcelStreamFactory.workbookType(globalSetting.getWorkbookType());
         }
         this.initStyleMap();
         Table table = this.createTable();
@@ -314,22 +306,10 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (isMapBuild) {
             contents = assemblingMapContents((Map<String, Object>) data);
         } else {
-            contents = getRenderContent(data, filteredFields);
+            contents = getRenderContent(data, filteredFields, false);
         }
         Tr tr = this.createTr(contents);
         htmlToExcelStreamFactory.append(tr);
-    }
-
-    private List<Pair<? extends Class, ?>> assemblingMapContents(Map<String, Object> data) {
-        if (data == null || data.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Pair<? extends Class, ?>> contents = new ArrayList<>(data.size());
-        for (String fieldName : fieldDisplayOrder) {
-            Object val = data.get(fieldName);
-            contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
-        }
-        return contents;
     }
 
     @Override

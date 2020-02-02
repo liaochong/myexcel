@@ -14,7 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.constant.LinkEmail;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 import com.github.liaochong.myexcel.core.constant.LinkUrl;
@@ -32,8 +33,9 @@ import java.lang.reflect.Field;
 public class LinkWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
-        LinkType linkType = field.getAnnotation(ExcelColumn.class).linkType();
+    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        LinkType linkType = mapping.getLinkType();
         switch (linkType) {
             case URL:
                 return Pair.of(LinkUrl.class, fieldVal);
@@ -45,8 +47,8 @@ public class LinkWriteConverter implements WriteConverter {
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal) {
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && !LinkType.NONE.equals(excelColumn.linkType());
+    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        return mapping != null && !LinkType.NONE.equals(mapping.getLinkType());
     }
 }

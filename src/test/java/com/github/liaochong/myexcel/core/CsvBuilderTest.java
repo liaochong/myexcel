@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liaochong
@@ -20,6 +23,22 @@ class CsvBuilderTest extends BasicTest {
     @BeforeAll
     static void before() throws Exception {
         Files.deleteIfExists(Paths.get(TEST_DIR + "common.csv"));
+    }
+
+    @Test
+    void mapBuild() {
+        List<Map> maps = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", "name" + i);
+            map.put("age", i);
+            maps.add(map);
+        }
+        List<String> titles = new ArrayList<>();
+        titles.add("姓名");
+        titles.add("年龄");
+        Csv csv = CsvBuilder.of(Map.class).titles(titles).build(maps);
+        csv.write(Paths.get(TEST_DIR + "map.csv"));
     }
 
     @Test

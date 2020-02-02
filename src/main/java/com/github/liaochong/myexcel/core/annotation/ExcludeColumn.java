@@ -22,11 +22,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Used to exclude a field, obsolete, please use {@link IgnoreColumn} instead
+ * <p>
+ * Will be removed in version 4.0
+ *
  * @author liaochong
  * @version 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 @Documented
+@Deprecated
 public @interface ExcludeColumn {
 }

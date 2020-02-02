@@ -1,18 +1,3 @@
-/*
- * Copyright 2017 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.github.liaochong.myexcel.core.annotation;
 
 import com.github.liaochong.myexcel.core.WorkbookType;
@@ -25,19 +10,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used for export modeling, obsolete, use {@link ExcelModel} instead
- * <p>
- * Will be removed in version 4.0
+ * 替换ExcelTable
  *
  * @author liaochong
  * @version 1.0
  */
-@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-public @interface ExcelTable {
-
+public @interface ExcelModel {
     /**
      * 创建的excel包含所有字段
      *
@@ -121,4 +102,25 @@ public @interface ExcelTable {
      * @return 样式
      */
     String[] style() default {};
+
+    /**
+     * 时间格式化
+     *
+     * @return 时间格式化
+     */
+    String dateFormat() default "";
+
+    /**
+     * 时间格式化
+     *
+     * @return 时间格式化
+     */
+    String dateTimeFormat() default "";
+
+    /**
+     * 数值格式化
+     *
+     * @return 数值格式化
+     */
+    String decimalFormat() default "";
 }

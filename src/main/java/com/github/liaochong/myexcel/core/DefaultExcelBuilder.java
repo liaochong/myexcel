@@ -38,8 +38,8 @@ public class DefaultExcelBuilder<T> implements Closeable {
     private DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
-        streamExcelBuilder.hasStyle();
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
+        streamExcelBuilder.hasStyle();
         this.streamExcelBuilder = streamExcelBuilder;
     }
 

@@ -15,7 +15,7 @@
 package com.github.liaochong.myexcel.core.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
+import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -29,7 +29,7 @@ import java.util.Date;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@ExcelTable(sheetName = "人员信息")
+@ExcelModel(sheetName = "人员信息")
 public class CsvPeople {
 
     @ExcelColumn(title = "姓名", index = 0)
