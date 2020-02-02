@@ -1,7 +1,7 @@
 package com.github.liaochong.myexcel.core.annotation;
 
 import com.github.liaochong.myexcel.core.WorkbookType;
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
+import com.github.liaochong.myexcel.core.constant.Constants;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -39,13 +39,6 @@ public @interface ExcelModel {
      * @return WorkbookType
      */
     WorkbookType workbookType() default WorkbookType.SXLSX;
-
-    /**
-     * 宽度策略
-     *
-     * @return WidthStrategy
-     */
-    WidthStrategy widthStrategy() default WidthStrategy.NO_AUTO;
 
     /**
      * sheeName
@@ -87,7 +80,7 @@ public @interface ExcelModel {
      *
      * @return 分离器
      */
-    String titleSeparator() default "->";
+    String titleSeparator() default Constants.ARROW;
 
     /**
      * 标题行高度

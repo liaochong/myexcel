@@ -193,14 +193,6 @@ abstract class AbstractSimpleExcelBuilder {
                     formats.put(i, excelColumn.decimalFormat());
                 } else if (!excelColumn.dateFormatPattern().isEmpty()) {
                     formats.put(i, excelColumn.dateFormatPattern());
-                } else if (field.getType() == LocalDate.class) {
-                    formats.put(i, globalSetting.getDateFormat());
-                } else if (ReflectUtil.isDate(field.getType())) {
-                    formats.put(i, globalSetting.getDateTimeFormat());
-                } else if (ReflectUtil.isNumber(field.getType())) {
-                    if (globalSetting.getDecimalFormat() != null) {
-                        formats.put(i, globalSetting.getDecimalFormat());
-                    }
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
                 excelColumnMappingMap.put(field, mapping);
@@ -211,12 +203,28 @@ abstract class AbstractSimpleExcelBuilder {
                     titles.add(null);
                 }
             }
+            setGlobalFormat(i, field);
         }
         setTitles(titles);
         if (!customWidthMap.isEmpty()) {
             globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
         }
         return buildFields;
+    }
+
+    private void setGlobalFormat(int i, Field field) {
+        if (formats.get(i) != null) {
+            return;
+        }
+        if (field.getType() == LocalDate.class) {
+            formats.put(i, globalSetting.getDateFormat());
+        } else if (ReflectUtil.isDate(field.getType())) {
+            formats.put(i, globalSetting.getDateTimeFormat());
+        } else if (ReflectUtil.isNumber(field.getType())) {
+            if (globalSetting.getDecimalFormat() != null) {
+                formats.put(i, globalSetting.getDecimalFormat());
+            }
+        }
     }
 
     /**
@@ -583,9 +591,6 @@ abstract class AbstractSimpleExcelBuilder {
                 globalSetting.getGlobalStyle().addAll(Arrays.asList(excelModel.style()));
             }
             globalSetting.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
-            if (!globalSetting.isFixedWidthStrategy()) {
-                globalSetting.setWidthStrategy(excelModel.widthStrategy());
-            }
             if (!excelModel.decimalFormat().isEmpty()) {
                 globalSetting.setDecimalFormat(excelModel.decimalFormat());
             }

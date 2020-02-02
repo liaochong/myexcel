@@ -178,14 +178,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
-        globalSetting.setFixedWidthStrategy(true);
         globalSetting.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
     public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        globalSetting.setFixedWidthStrategy(true);
         globalSetting.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
