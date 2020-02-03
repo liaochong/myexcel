@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 
 import java.lang.reflect.Field;
@@ -28,7 +29,7 @@ import java.math.BigDecimal;
 public class BigDecimalReadConverter extends AbstractReadConverter<BigDecimal> {
 
     @Override
-    public BigDecimal doConvert(String v, Field field) {
+    public BigDecimal doConvert(String v, Field field, ConvertContext convertContext) {
         v = RegexpUtil.removeComma(v);
         return new BigDecimal(v);
     }

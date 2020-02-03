@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.Converter;
 
 import java.lang.reflect.Field;
@@ -27,7 +28,7 @@ import java.lang.reflect.Field;
 public class StringReadConverter implements Converter<String, String> {
 
     @Override
-    public String convert(String obj, Field field) {
+    public String convert(String obj, Field field, ConvertContext convertContext) {
         return obj;
     }
 }

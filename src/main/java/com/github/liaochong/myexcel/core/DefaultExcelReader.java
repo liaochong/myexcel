@@ -14,9 +14,12 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
+import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
@@ -87,6 +90,15 @@ public class DefaultExcelReader<T> {
 
     private String sheetName;
 
+    private GlobalSetting globalSetting = new GlobalSetting();
+
+    /**
+     * ExcelColumn映射
+     */
+    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
+
+    private ConvertContext convertContext = new ConvertContext(globalSetting, excelColumnMappingMap);
+
     private Function<String, String> trim = v -> {
         if (v == null) {
             return v;
@@ -96,6 +108,21 @@ public class DefaultExcelReader<T> {
 
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
+        // 全局配置获取
+        if (dataType != Map.class) {
+            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+            GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
+
+            List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            fields.forEach(field -> {
+                ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                if (excelColumn == null) {
+                    return;
+                }
+                ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
+                excelColumnMappingMap.put(field, mapping);
+            });
+        }
     }
 
     public static <T> DefaultExcelReader<T> of(@NonNull Class<T> clazz) {
@@ -417,7 +444,7 @@ public class DefaultExcelReader<T> {
             }
             content = trim.apply(content);
             context.reset(obj, field, content, row.getRowNum(), index);
-            ReadConverterContext.convert(obj, context, exceptionFunction);
+            ReadConverterContext.convert(obj, context, convertContext, exceptionFunction);
         });
         return obj;
     }

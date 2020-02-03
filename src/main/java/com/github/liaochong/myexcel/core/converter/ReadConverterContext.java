@@ -14,9 +14,9 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.ReadContext;
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
@@ -99,22 +99,22 @@ public class ReadConverterContext {
         return this;
     }
 
-    public static void convert(Object obj, ReadContext context, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+    public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         Converter<String, ?> converter = READ_CONVERTERS.get(context.getField().getType());
         if (converter == null) {
             throw new IllegalStateException("No suitable type converter was found.");
         }
         Object value = null;
         try {
-            ExcelColumn excelColumn = context.getField().getAnnotation(ExcelColumn.class);
-            if (excelColumn != null && !excelColumn.mapping().isEmpty()) {
-                Properties properties = PropertyUtil.getReverseProperties(ExcelColumnMapping.mapping(excelColumn));
+            ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(context.getField());
+            if (mapping != null && !mapping.getMapping().isEmpty()) {
+                Properties properties = PropertyUtil.getReverseProperties(mapping);
                 String mappingVal = properties.getProperty(context.getVal());
                 if (mappingVal != null) {
                     context.setVal(mappingVal);
                 }
             }
-            value = converter.convert(context.getVal(), context.getField());
+            value = converter.convert(context.getVal(), context.getField(), convertContext);
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, context);
             if (!toContinue) {

@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
+
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -30,7 +32,7 @@ import java.util.TimeZone;
 public class LocalDateReadConverter extends AbstractReadConverter<LocalDate> {
 
     @Override
-    public LocalDate doConvert(String v, Field field) {
+    public LocalDate doConvert(String v, Field field, ConvertContext convertContext) {
         if (isDateNumber(v)) {
             final long time = Long.parseLong(v);
             LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
@@ -43,7 +45,7 @@ public class LocalDateReadConverter extends AbstractReadConverter<LocalDate> {
                     .getDefault().toZoneId());
             return localDateTime.toLocalDate();
         }
-        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(field);
+        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(field, convertContext);
         return LocalDate.parse(v, dateTimeFormatter);
     }
 }

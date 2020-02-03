@@ -14,7 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.Converter;
@@ -23,6 +24,7 @@ import com.github.liaochong.myexcel.utils.StringUtil;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -51,12 +53,10 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      */
     private static final Pattern PATTERN_DATE_DECIMAL = Pattern.compile("[0-9]+\\.*[0-9]*");
 
-    protected static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
     private static final LocalDateTime START_LOCAL_DATE_TIME = LocalDateTime.of(1900, 1, 1, 0, 0, 0);
 
     @Override
-    public R convert(String obj, Field field) {
+    public R convert(String obj, Field field, ConvertContext convertContext) {
         if (StringUtil.isBlank(obj)) {
             return null;
         }
@@ -70,18 +70,19 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
                 }
             }
         }
-        return doConvert(trimContent, field);
+        return doConvert(trimContent, field, convertContext);
     }
 
 
     /**
      * 把输入参数进行处理后，转换。
      *
-     * @param v     待转换值
-     * @param field 待转换值所属字段
+     * @param v              待转换值
+     * @param field          待转换值所属字段
+     * @param convertContext 转换上下文
      * @return 目标值
      */
-    protected abstract R doConvert(String v, Field field);
+    protected abstract R doConvert(String v, Field field, ConvertContext convertContext);
 
 
     /**
@@ -90,17 +91,12 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      * @param field 待转换值所属字段
      * @return 时间格式
      */
-    protected String getDateFormatPattern(Field field) {
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        if (excelColumn != null) {
-            if (!excelColumn.format().isEmpty()) {
-                return excelColumn.format();
-            }
-            if (!excelColumn.dateFormatPattern().isEmpty()) {
-                return excelColumn.dateFormatPattern();
-            }
+    protected String getDateFormatPattern(Field field, ConvertContext convertContext) {
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        if (mapping == null) {
+            return field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
         }
-        return DEFAULT_DATE_FORMAT;
+        return mapping.getFormat();
     }
 
     /**
@@ -129,8 +125,8 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
      * @param field 字段
      * @return DateTimeFormatter
      */
-    protected DateTimeFormatter getDateFormatFormatter(Field field) {
-        String dateFormatPattern = getDateFormatPattern(field);
+    protected DateTimeFormatter getDateFormatFormatter(Field field, ConvertContext convertContext) {
+        String dateFormatPattern = getDateFormatPattern(field, convertContext);
         DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER_WEAK_CACHE.get(dateFormatPattern);
         if (Objects.isNull(dateTimeFormatter)) {
             dateTimeFormatter = DateTimeFormatter.ofPattern(dateFormatPattern);

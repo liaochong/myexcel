@@ -15,8 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelModel;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
@@ -41,6 +39,7 @@ import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
@@ -158,7 +157,7 @@ abstract class AbstractSimpleExcelBuilder {
      * @return Field
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        setGlobalSetting(classFieldContainer);
+        GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
 
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
         List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
@@ -521,86 +520,6 @@ abstract class AbstractSimpleExcelBuilder {
                 .filter(field -> (!field.isAnnotationPresent(ExcludeColumn.class) && !field.isAnnotationPresent(IgnoreColumn.class)) && ReflectUtil.isFieldSelected(selectedGroupList, field))
                 .sorted(ReflectUtil::sortFields)
                 .collect(Collectors.toList());
-    }
-
-
-    protected void setGlobalSetting(ClassFieldContainer classFieldContainer) {
-        ClassFieldContainer parentContainer = classFieldContainer.getParent();
-        if (parentContainer != null) {
-            setGlobalSetting(parentContainer);
-        }
-        if (classFieldContainer.getClazz() == Object.class) {
-            return;
-        }
-        ExcelModel excelModel = classFieldContainer.getClazz().getAnnotation(ExcelModel.class);
-        if (excelModel == null) {
-            ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-            if (excelTable == null) {
-                return;
-            }
-            if (!excelTable.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
-                globalSetting.setSheetName(excelTable.sheetName());
-            }
-            if (!globalSetting.isFixedWorkbookType()) {
-                globalSetting.setWorkbookType(excelTable.workbookType());
-            }
-            globalSetting.setExcludeParent(excelTable.excludeParent());
-            globalSetting.setIncludeAllField(excelTable.includeAllField());
-            if (!excelTable.defaultValue().isEmpty()) {
-                globalSetting.setDefaultValue(excelTable.defaultValue());
-            }
-            globalSetting.setWrapText(excelTable.wrapText());
-            if (!excelTable.titleSeparator().isEmpty()) {
-                globalSetting.setTitleSeparator(excelTable.titleSeparator());
-            }
-            globalSetting.setIgnoreStaticFields(excelTable.ignoreStaticFields());
-            if (excelTable.titleRowHeight() != -1) {
-                globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
-            }
-            if (excelTable.rowHeight() != -1) {
-                globalSetting.setRowHeight(excelTable.rowHeight());
-            }
-            if (excelTable.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
-                globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
-            }
-            globalSetting.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
-        } else {
-            if (!excelModel.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
-                globalSetting.setSheetName(excelModel.sheetName());
-            }
-            if (!globalSetting.isFixedWorkbookType()) {
-                globalSetting.setWorkbookType(excelModel.workbookType());
-            }
-            globalSetting.setExcludeParent(excelModel.excludeParent());
-            globalSetting.setIncludeAllField(excelModel.includeAllField());
-            if (!excelModel.defaultValue().isEmpty()) {
-                globalSetting.setDefaultValue(excelModel.defaultValue());
-            }
-            globalSetting.setWrapText(excelModel.wrapText());
-            if (!excelModel.titleSeparator().isEmpty()) {
-                globalSetting.setTitleSeparator(excelModel.titleSeparator());
-            }
-            globalSetting.setIgnoreStaticFields(excelModel.ignoreStaticFields());
-            if (excelModel.titleRowHeight() != -1) {
-                globalSetting.setTitleRowHeight(excelModel.titleRowHeight());
-            }
-            if (excelModel.rowHeight() != -1) {
-                globalSetting.setRowHeight(excelModel.rowHeight());
-            }
-            if (excelModel.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
-                globalSetting.getGlobalStyle().addAll(Arrays.asList(excelModel.style()));
-            }
-            globalSetting.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
-            if (!excelModel.decimalFormat().isEmpty()) {
-                globalSetting.setDecimalFormat(excelModel.decimalFormat());
-            }
-            if (!excelModel.dateFormat().isEmpty()) {
-                globalSetting.setDateFormat(excelModel.dateFormat());
-            }
-            if (!excelModel.dateTimeFormat().isEmpty()) {
-                globalSetting.setDateTimeFormat(excelModel.dateTimeFormat());
-            }
-        }
     }
 
     private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
