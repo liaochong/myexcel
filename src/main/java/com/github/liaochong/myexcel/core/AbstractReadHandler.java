@@ -15,7 +15,10 @@
 package com.github.liaochong.myexcel.core;
 
 
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -65,6 +68,15 @@ abstract class AbstractReadHandler<T> {
 
     private ReadContext<T> context = new ReadContext<>();
 
+    private GlobalSetting globalSetting = new GlobalSetting();
+
+    /**
+     * ExcelColumn映射
+     */
+    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
+
+    private ConvertContext convertContext = new ConvertContext(globalSetting, excelColumnMappingMap);
+
     protected void init(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
@@ -79,6 +91,21 @@ abstract class AbstractReadHandler<T> {
         this.readConfig = readConfig;
         if (fieldMap.isEmpty()) {
             addTitleConsumer = this::addTitles;
+        }
+        // 全局配置获取
+        if (dataType != Map.class) {
+            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+            GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
+
+            List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            fields.forEach(field -> {
+                ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                if (excelColumn == null) {
+                    return;
+                }
+                ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
+                excelColumnMappingMap.put(field, mapping);
+            });
         }
     }
 
@@ -114,7 +141,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         context.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(obj, context, exceptionFunction);
+        ReadConverterContext.convert(obj, context, convertContext, exceptionFunction);
     }
 
     private void addTitles(String formattedValue, int rowNum, int thisCol) {

@@ -18,7 +18,6 @@ import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
-import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -42,7 +41,7 @@ public class DateTimeWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
-        return CsvConverter.class == convertContext.getConverterType() && ReflectUtil.isDate(field.getType());
+        return ReflectUtil.isDate(field.getType());
     }
 
     @Override

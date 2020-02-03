@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.constant.Constants;
 
 import java.lang.reflect.Field;
@@ -28,7 +29,7 @@ import java.util.Objects;
 public class BoolReadConverter extends AbstractReadConverter<Boolean> {
 
     @Override
-    public Boolean doConvert(String v, Field field) {
+    public Boolean doConvert(String v, Field field, ConvertContext convertContext) {
         if (Objects.equals(Constants.ONE, v) || v.equalsIgnoreCase(Constants.TRUE)) {
             return Boolean.TRUE;
         }
