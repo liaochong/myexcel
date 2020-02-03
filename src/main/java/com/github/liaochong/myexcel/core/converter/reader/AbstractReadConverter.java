@@ -88,7 +88,8 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
     /**
      * 取得DateFormatPattern
      *
-     * @param field 待转换值所属字段
+     * @param field          待转换值所属字段
+     * @param convertContext 转换上下文
      * @return 时间格式
      */
     protected String getDateFormatPattern(Field field, ConvertContext convertContext) {
@@ -126,7 +127,8 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
     /**
      * 获取DateTimeFormatter
      *
-     * @param field 字段
+     * @param field          字段
+     * @param convertContext 转换上下文
      * @return DateTimeFormatter
      */
     protected DateTimeFormatter getDateFormatFormatter(Field field, ConvertContext convertContext) {
