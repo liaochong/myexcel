@@ -96,7 +96,11 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
         if (mapping == null) {
             return field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
         }
-        return mapping.getFormat();
+        String format = mapping.getFormat();
+        if (!format.isEmpty()) {
+            return format;
+        }
+        return field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
     }
 
     /**
