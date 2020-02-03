@@ -105,5 +105,5 @@ public class GlobalSetting {
     /**
      * 数值类全局格式化
      */
-    String decimalFormat;
+    String decimalFormat = "";
 }
