@@ -21,9 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -59,12 +57,12 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             int lineIndex = 0;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                Row row = new Row(lineIndex);
+                newRow(lineIndex);
                 if (lineIndex == 0 && line.length() >= 1 && line.charAt(0) == '\uFEFF') {
                     line = line.substring(1);
                 }
-                this.process(line, row);
-                this.initFieldMap(lineIndex);
+                this.process(line);
+                this.initFieldMap();
                 lineIndex++;
             }
             log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
@@ -76,9 +74,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void process(String line, Row row) {
-        obj = newInstance.get();
+    private void process(String line) {
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
@@ -97,18 +93,10 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
                 content = readConfig.getTrim().apply(content);
-                this.addTitleConsumer.accept(content, row.getRowNum(), i);
-                if (!rowFilter.test(row)) {
-                    continue;
-                }
-                if (isMapType) {
-                    ((Map<Cell, String>) obj).put(new Cell(row.getRowNum(), i), content);
-                    continue;
-                }
-                Field field = fieldMap.get(i);
-                convert(content, row.getRowNum(), i, field);
+                this.addTitleConsumer.accept(content, i);
+                handleField(i, content);
             }
         }
-        handleResult(row);
+        handleResult();
     }
 }

@@ -19,9 +19,7 @@ import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 
 /**
  * sax处理
@@ -31,8 +29,6 @@ import java.util.Map;
  */
 @Slf4j
 class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
-
-    private Row currentRow;
 
     private int count;
 
@@ -45,18 +41,16 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void startRow(int rowNum) {
-        currentRow = new Row(rowNum);
-        obj = newInstance.get();
+        newRow(rowNum);
     }
 
     @Override
     public void endRow(int rowNum) {
-        this.initFieldMap(rowNum);
-        handleResult(currentRow);
+        this.initFieldMap();
+        handleResult();
         count++;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
@@ -65,16 +59,8 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
         }
         int thisCol = (new CellReference(cellReference)).getCol();
         formattedValue = readConfig.getTrim().apply(formattedValue);
-        this.addTitleConsumer.accept(formattedValue, currentRow.getRowNum(), thisCol);
-        if (!rowFilter.test(currentRow)) {
-            return;
-        }
-        if (isMapType) {
-            ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisCol), formattedValue);
-            return;
-        }
-        Field field = fieldMap.get(thisCol);
-        convert(formattedValue, currentRow.getRowNum(), thisCol, field);
+        this.addTitleConsumer.accept(formattedValue, thisCol);
+        handleField(thisCol, formattedValue);
     }
 
     @Override

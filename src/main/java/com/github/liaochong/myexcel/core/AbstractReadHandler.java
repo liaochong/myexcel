@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -39,32 +39,28 @@ import java.util.function.Supplier;
  */
 abstract class AbstractReadHandler<T> {
 
-    protected boolean isMapType;
+    private Map<Integer, Field> fieldMap;
 
-    protected Map<Integer, Field> fieldMap;
-
-    private Class<T> dataType;
-
-    protected Predicate<Row> rowFilter;
-
-    protected List<T> result;
-
-    protected T obj;
+    private T obj;
 
     protected Map<String, Integer> titles = new HashMap<>();
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
-    protected AddTitleConsumer<String, Integer, Integer> addTitleConsumer = (v, rowNum, colNum) -> {
+    protected BiConsumer<String, Integer> addTitleConsumer = (v, colNum) -> {
     };
 
     private ReadContext<T> context = new ReadContext<>();
 
     private ConvertContext convertContext;
 
-    protected Supplier<T> newInstance;
+    private Row currentRow;
 
-    protected Consumer<T> resultHandler;
+    private Supplier<T> newInstance;
+
+    private BiConsumer<Integer, String> fieldHandler;
+
+    private Consumer<T> resultHandler;
 
     public AbstractReadHandler(boolean isCsvRead) {
         convertContext = new ConvertContext(isCsvRead);
@@ -74,12 +70,10 @@ abstract class AbstractReadHandler<T> {
     protected void init(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
-        this.result = result;
-        dataType = readConfig.getDataType();
+        Class<T> dataType = readConfig.getDataType();
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        rowFilter = readConfig.getRowFilter();
         this.readConfig = readConfig;
-        isMapType = dataType == Map.class;
+        boolean isMapType = dataType == Map.class;
         if (isMapType) {
             newInstance = () -> (T) new LinkedHashMap<Cell, String>();
         } else {
@@ -95,7 +89,7 @@ abstract class AbstractReadHandler<T> {
             addTitleConsumer = this::addTitles;
         }
         // 全局配置获取
-        if (dataType != Map.class) {
+        if (!isMapType) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
 
@@ -119,15 +113,23 @@ abstract class AbstractReadHandler<T> {
                 }
             };
         } else {
-            resultHandler = v -> result.add(v);
+            resultHandler = result::add;
+        }
+        if (isMapType) {
+            fieldHandler = (colNum, content) -> ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
+        } else {
+            fieldHandler = (colNum, content) -> {
+                Field field = fieldMap.get(colNum);
+                convert(content, currentRow.getRowNum(), colNum, field);
+            };
         }
     }
 
-    protected void initFieldMap(int rowNum) {
-        if (rowNum != 0 || !fieldMap.isEmpty()) {
+    protected void initFieldMap() {
+        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
             return;
         }
-        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(dataType);
+        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
         fieldMap = new HashMap<>(titleFieldMap.size());
         titles.forEach((k, v) -> {
             fieldMap.put(v, titleFieldMap.get(k));
@@ -142,13 +144,31 @@ abstract class AbstractReadHandler<T> {
         ReadConverterContext.convert(obj, context, convertContext, readConfig.getExceptionFunction());
     }
 
-    private void addTitles(String formattedValue, int rowNum, int thisCol) {
-        if (rowNum == 0) {
+    private void addTitles(String formattedValue, int thisCol) {
+        if (currentRow != null && currentRow.getRowNum() == 0) {
             titles.put(formattedValue, thisCol);
         }
     }
 
-    protected void handleResult(Row currentRow) {
+    protected void newRow(int rowNum) {
+        currentRow = new Row(rowNum);
+        obj = newInstance.get();
+    }
+
+    protected void setRecordAsNull() {
+        obj = null;
+    }
+
+    protected void handleField(Integer colNum, String content) {
+        if (currentRow == null || obj == null || colNum < 0) {
+            return;
+        }
+        if (readConfig.getRowFilter().test(currentRow)) {
+            fieldHandler.accept(colNum, content);
+        }
+    }
+
+    protected void handleResult() {
         if (!readConfig.getRowFilter().test(currentRow)) {
             return;
         }
