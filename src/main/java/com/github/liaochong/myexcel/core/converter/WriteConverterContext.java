@@ -47,7 +47,9 @@ public class WriteConverterContext {
 
     private static final List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
-    private static final WeakCache<Field, WriteConverter> CONVERTER_CACHE = new WeakCache<>();
+    private static final WeakCache<Field, WriteConverter> EXCEL_CONVERTER_CACHE = new WeakCache<>();
+
+    private static final WeakCache<Field, WriteConverter> CSV_CONVERTER_CACHE = new WeakCache<>();
 
     private static final OriginalWriteConverter ORIGINAL_WRITE_CONVERTER = new OriginalWriteConverter();
 
@@ -73,14 +75,18 @@ public class WriteConverterContext {
         if (result == null) {
             return NULL_PAIR;
         }
-        WriteConverter writeConverter = CONVERTER_CACHE.get(field);
+        WriteConverter writeConverter = convertContext.isConvertCsv() ? CSV_CONVERTER_CACHE.get(field) : EXCEL_CONVERTER_CACHE.get(field);
         if (writeConverter == null) {
             Optional<WriteConverter> writeConverterOptional = WRITE_CONVERTER_CONTAINER.stream()
                     .filter(pair -> (pair.getKey() == convertContext.getConverterType() || pair.getKey() == AllConverter.class) && pair.getValue().support(field, result, convertContext))
                     .map(Pair::getValue)
                     .findFirst();
             writeConverter = writeConverterOptional.isPresent() ? writeConverterOptional.get() : ORIGINAL_WRITE_CONVERTER;
-            CONVERTER_CACHE.cache(field, writeConverter);
+            if (convertContext.isConvertCsv()) {
+                CSV_CONVERTER_CACHE.cache(field, writeConverter);
+            } else {
+                EXCEL_CONVERTER_CACHE.cache(field, writeConverter);
+            }
         }
         return writeConverter.convert(field, result, convertContext);
     }

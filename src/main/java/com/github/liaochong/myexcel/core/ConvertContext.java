@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -37,8 +38,15 @@ public class ConvertContext {
      */
     Class converterType;
 
+    boolean isConvertCsv;
+
     public ConvertContext(GlobalSetting globalSetting, Map<Field, ExcelColumnMapping> excelColumnMappingMap) {
         this.globalSetting = globalSetting;
         this.excelColumnMappingMap = excelColumnMappingMap;
+    }
+
+    public void setConverterType(Class converterType) {
+        this.converterType = converterType;
+        this.isConvertCsv = CsvConverter.class == converterType;
     }
 }
