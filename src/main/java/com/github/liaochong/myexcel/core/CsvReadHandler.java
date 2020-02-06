@@ -109,21 +109,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 convert(content, row.getRowNum(), i, field);
             }
         }
-        if (!rowFilter.test(row)) {
-            return;
-        }
-        if (!beanFilter.test(obj)) {
-            return;
-        }
-        if (consumer != null) {
-            consumer.accept(obj);
-        } else if (function != null) {
-            Boolean noStop = function.apply(obj);
-            if (!noStop) {
-                throw new StopReadException();
-            }
-        } else {
-            result.add(obj);
-        }
+        handleResult(row);
     }
 }

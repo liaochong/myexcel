@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
@@ -292,22 +291,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 return;
             }
             this.initFieldMap(currentRow.getRowNum());
-            if (!rowFilter.test(currentRow)) {
-                return;
-            }
-            if (!beanFilter.test(obj)) {
-                return;
-            }
-            if (consumer != null) {
-                consumer.accept(obj);
-            } else if (function != null) {
-                Boolean noStop = function.apply(obj);
-                if (!noStop) {
-                    throw new StopReadException();
-                }
-            } else {
-                result.add(obj);
-            }
+            handleResult(currentRow);
         }
     }
 }

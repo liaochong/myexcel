@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
@@ -53,23 +52,8 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void endRow(int rowNum) {
         this.initFieldMap(rowNum);
-        if (!rowFilter.test(currentRow)) {
-            return;
-        }
-        if (!beanFilter.test(obj)) {
-            return;
-        }
+        handleResult(currentRow);
         count++;
-        if (consumer != null) {
-            consumer.accept(obj);
-        } else if (function != null) {
-            Boolean noStop = function.apply(obj);
-            if (!noStop) {
-                throw new StopReadException();
-            }
-        } else {
-            result.add(obj);
-        }
     }
 
     @SuppressWarnings("unchecked")

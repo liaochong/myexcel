@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
@@ -26,9 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -44,23 +43,15 @@ abstract class AbstractReadHandler<T> {
 
     protected Map<Integer, Field> fieldMap;
 
-    protected Class<T> dataType;
-
-    protected Consumer<T> consumer;
-
-    protected Function<T, Boolean> function;
+    private Class<T> dataType;
 
     protected Predicate<Row> rowFilter;
-
-    protected Predicate<T> beanFilter;
 
     protected List<T> result;
 
     protected T obj;
 
     protected Map<String, Integer> titles = new HashMap<>();
-
-    protected BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
@@ -73,6 +64,8 @@ abstract class AbstractReadHandler<T> {
 
     protected Supplier<T> newInstance;
 
+    protected Consumer<T> resultHandler;
+
     public AbstractReadHandler(boolean isCsvRead) {
         convertContext = new ConvertContext(isCsvRead);
     }
@@ -84,11 +77,7 @@ abstract class AbstractReadHandler<T> {
         this.result = result;
         dataType = readConfig.getDataType();
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        consumer = readConfig.getConsumer();
-        function = readConfig.getFunction();
         rowFilter = readConfig.getRowFilter();
-        beanFilter = readConfig.getBeanFilter();
-        exceptionFunction = readConfig.getExceptionFunction();
         this.readConfig = readConfig;
         isMapType = dataType == Map.class;
         if (isMapType) {
@@ -120,6 +109,18 @@ abstract class AbstractReadHandler<T> {
                 convertContext.getExcelColumnMappingMap().put(field, mapping);
             });
         }
+        if (readConfig.getConsumer() != null) {
+            resultHandler = v -> readConfig.getConsumer().accept(v);
+        } else if (readConfig.getFunction() != null) {
+            resultHandler = v -> {
+                Boolean noStop = readConfig.getFunction().apply(v);
+                if (!noStop) {
+                    throw new StopReadException();
+                }
+            };
+        } else {
+            resultHandler = v -> result.add(v);
+        }
     }
 
     protected void initFieldMap(int rowNum) {
@@ -138,12 +139,22 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         context.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(obj, context, convertContext, exceptionFunction);
+        ReadConverterContext.convert(obj, context, convertContext, readConfig.getExceptionFunction());
     }
 
     private void addTitles(String formattedValue, int rowNum, int thisCol) {
         if (rowNum == 0) {
             titles.put(formattedValue, thisCol);
         }
+    }
+
+    protected void handleResult(Row currentRow) {
+        if (!readConfig.getRowFilter().test(currentRow)) {
+            return;
+        }
+        if (!readConfig.getBeanFilter().test(obj)) {
+            return;
+        }
+        resultHandler.accept(obj);
     }
 }
