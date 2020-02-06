@@ -30,6 +30,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * 读取抽象
@@ -68,15 +69,15 @@ abstract class AbstractReadHandler<T> {
 
     private ReadContext<T> context = new ReadContext<>();
 
-    private GlobalSetting globalSetting = new GlobalSetting();
+    private ConvertContext convertContext;
 
-    /**
-     * ExcelColumn映射
-     */
-    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
+    protected Supplier<T> newInstance;
 
-    private ConvertContext convertContext = new ConvertContext(globalSetting, excelColumnMappingMap);
+    public AbstractReadHandler(boolean isCsvRead) {
+        convertContext = new ConvertContext(isCsvRead);
+    }
 
+    @SuppressWarnings("unchecked")
     protected void init(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
@@ -89,13 +90,25 @@ abstract class AbstractReadHandler<T> {
         beanFilter = readConfig.getBeanFilter();
         exceptionFunction = readConfig.getExceptionFunction();
         this.readConfig = readConfig;
+        isMapType = dataType == Map.class;
+        if (isMapType) {
+            newInstance = () -> (T) new LinkedHashMap<Cell, String>();
+        } else {
+            newInstance = () -> {
+                try {
+                    return dataType.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
         if (fieldMap.isEmpty()) {
             addTitleConsumer = this::addTitles;
         }
         // 全局配置获取
         if (dataType != Map.class) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
+            GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
 
             List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             fields.forEach(field -> {
@@ -104,24 +117,8 @@ abstract class AbstractReadHandler<T> {
                     return;
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                excelColumnMappingMap.put(field, mapping);
+                convertContext.getExcelColumnMappingMap().put(field, mapping);
             });
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    T newInstance(Class<T> clazz) {
-        if (isMapType) {
-            return (T) new LinkedHashMap<Cell, String>();
-        }
-        if (clazz == Map.class) {
-            isMapType = true;
-            return (T) new LinkedHashMap<Cell, String>();
-        }
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 

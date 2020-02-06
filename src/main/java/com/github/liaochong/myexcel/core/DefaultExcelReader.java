@@ -90,14 +90,7 @@ public class DefaultExcelReader<T> {
 
     private String sheetName;
 
-    private GlobalSetting globalSetting = new GlobalSetting();
-
-    /**
-     * ExcelColumn映射
-     */
-    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
-
-    private ConvertContext convertContext = new ConvertContext(globalSetting, excelColumnMappingMap);
+    private ConvertContext convertContext = new ConvertContext(false);
 
     private Function<String, String> trim = v -> {
         if (v == null) {
@@ -111,7 +104,7 @@ public class DefaultExcelReader<T> {
         // 全局配置获取
         if (dataType != Map.class) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
+            GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
 
             List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             fields.forEach(field -> {
@@ -120,7 +113,7 @@ public class DefaultExcelReader<T> {
                     return;
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                excelColumnMappingMap.put(field, mapping);
+                convertContext.getExcelColumnMappingMap().put(field, mapping);
             });
         }
     }

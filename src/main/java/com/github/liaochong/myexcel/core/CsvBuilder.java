@@ -52,6 +52,7 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
     private volatile Csv csv;
 
     private CsvBuilder() {
+        super(true);
     }
 
     public static <T> CsvBuilder<T> of(Class<T> clazz) {

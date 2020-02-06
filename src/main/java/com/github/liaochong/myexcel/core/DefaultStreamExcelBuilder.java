@@ -88,6 +88,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     private DefaultStreamExcelBuilder(Class<T> dataType, Workbook workbook) {
+        super(false);
         this.dataType = dataType;
         this.workbook = workbook;
         this.noStyle = true;

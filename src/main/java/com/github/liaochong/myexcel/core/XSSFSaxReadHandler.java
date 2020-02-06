@@ -40,13 +40,14 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     public XSSFSaxReadHandler(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
+        super(false);
         this.init(result, readConfig);
     }
 
     @Override
     public void startRow(int rowNum) {
         currentRow = new Row(rowNum);
-        obj = this.newInstance(dataType);
+        obj = newInstance.get();
     }
 
     @Override

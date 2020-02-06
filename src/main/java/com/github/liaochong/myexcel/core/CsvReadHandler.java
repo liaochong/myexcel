@@ -44,6 +44,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
+        super(true);
         this.is = is;
         this.charset = readConfig.getCharset();
         this.init(result, readConfig);
@@ -77,7 +78,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     @SuppressWarnings("unchecked")
     private void process(String line, Row row) {
-        obj = this.newInstance(dataType);
+        obj = newInstance.get();
         if (line != null) {
             String[] strArr = PATTERN_SPLIT.split(line, -1);
             for (int i = 0, size = strArr.length; i < size; i++) {
