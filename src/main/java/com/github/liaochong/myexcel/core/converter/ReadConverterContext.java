@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core.converter;
 import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.ReadContext;
+import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
@@ -30,6 +31,7 @@ import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.utils.PropertyUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -51,6 +53,10 @@ import java.util.function.BiFunction;
 public class ReadConverterContext {
 
     private static final Map<Class<?>, Converter<String, ?>> READ_CONVERTERS = new HashMap<>();
+
+    private static final WeakCache<Field, Properties> MAPPING_CACHE = new WeakCache<>();
+
+    private static final Properties EMPTY_PROPERTIES = new Properties();
 
     static {
         BoolReadConverter boolReadConverter = new BoolReadConverter();
@@ -106,13 +112,19 @@ public class ReadConverterContext {
         }
         Object value = null;
         try {
-            ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(context.getField());
-            if (mapping != null && !mapping.getMapping().isEmpty()) {
-                Properties properties = PropertyUtil.getReverseProperties(mapping);
-                String mappingVal = properties.getProperty(context.getVal());
-                if (mappingVal != null) {
-                    context.setVal(mappingVal);
+            Properties properties = MAPPING_CACHE.get(context.getField());
+            if (properties == null) {
+                ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(context.getField());
+                if (mapping != null && !mapping.getMapping().isEmpty()) {
+                    properties = PropertyUtil.getReverseProperties(mapping);
+                } else {
+                    properties = EMPTY_PROPERTIES;
                 }
+                MAPPING_CACHE.cache(context.getField(), properties);
+            }
+            String mappingVal = properties.getProperty(context.getVal());
+            if (mappingVal != null) {
+                context.setVal(mappingVal);
             }
             value = converter.convert(context.getVal(), context.getField(), convertContext);
         } catch (Exception e) {

@@ -156,7 +156,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void addTitles(String formattedValue, int thisCol) {
-        if (currentRow != null && currentRow.getRowNum() == 0) {
+        if (currentRow.getRowNum() == 0) {
             titles.put(formattedValue, thisCol);
         }
     }
@@ -171,7 +171,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     protected void handleField(Integer colNum, String content) {
-        if (currentRow == null || obj == null || colNum < 0) {
+        if (obj == null || colNum < 0) {
             return;
         }
         content = readConfig.getTrim().apply(content);
