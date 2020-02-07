@@ -47,7 +47,7 @@ abstract class AbstractReadHandler<T> {
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
-    protected BiConsumer<String, Integer> addTitleConsumer = (v, colNum) -> {
+    private BiConsumer<String, Integer> addTitleConsumer = (v, colNum) -> {
     };
 
     private ReadContext<T> context = new ReadContext<>();
@@ -62,47 +62,25 @@ abstract class AbstractReadHandler<T> {
 
     private Consumer<T> resultHandler;
 
-    public AbstractReadHandler(boolean isCsvRead) {
-        convertContext = new ConvertContext(isCsvRead);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void init(
-            List<T> result,
-            SaxExcelReader.ReadConfig<T> readConfig) {
+    public AbstractReadHandler(boolean readCsv,
+                               List<T> result,
+                               SaxExcelReader.ReadConfig<T> readConfig) {
+        convertContext = new ConvertContext(readCsv);
         Class<T> dataType = readConfig.getDataType();
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
         boolean isMapType = dataType == Map.class;
-        if (isMapType) {
-            newInstance = () -> (T) new LinkedHashMap<Cell, String>();
-        } else {
-            newInstance = () -> {
-                try {
-                    return dataType.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            };
-        }
         if (fieldMap.isEmpty()) {
             addTitleConsumer = this::addTitles;
         }
+        setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
-        if (!isMapType) {
-            ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
+        setGlobalSetting(dataType, isMapType);
+        setResultHandlerFunction(result, readConfig);
+        setFieldHandlerFunction(isMapType);
+    }
 
-            List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-            fields.forEach(field -> {
-                ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                if (excelColumn == null) {
-                    return;
-                }
-                ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                convertContext.getExcelColumnMappingMap().put(field, mapping);
-            });
-        }
+    private void setResultHandlerFunction(List<T> result, SaxExcelReader.ReadConfig<T> readConfig) {
         if (readConfig.getConsumer() != null) {
             resultHandler = v -> readConfig.getConsumer().accept(v);
         } else if (readConfig.getFunction() != null) {
@@ -115,6 +93,43 @@ abstract class AbstractReadHandler<T> {
         } else {
             resultHandler = result::add;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setNewInstanceFunction(Class<T> dataType, boolean isMapType) {
+        if (isMapType) {
+            newInstance = () -> (T) new LinkedHashMap<Cell, String>();
+        } else {
+            newInstance = () -> {
+                try {
+                    return dataType.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
+    }
+
+    private void setGlobalSetting(Class<T> dataType, boolean isMapType) {
+        if (isMapType) {
+            return;
+        }
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+        GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
+
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        fields.forEach(field -> {
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            if (excelColumn == null) {
+                return;
+            }
+            ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
+            convertContext.getExcelColumnMappingMap().put(field, mapping);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setFieldHandlerFunction(boolean isMapType) {
         if (isMapType) {
             fieldHandler = (colNum, content) -> ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
         } else {
@@ -123,17 +138,6 @@ abstract class AbstractReadHandler<T> {
                 convert(content, currentRow.getRowNum(), colNum, field);
             };
         }
-    }
-
-    protected void initFieldMap() {
-        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
-            return;
-        }
-        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
-        fieldMap = new HashMap<>(titleFieldMap.size());
-        titles.forEach((k, v) -> {
-            fieldMap.put(v, titleFieldMap.get(k));
-        });
     }
 
     protected void convert(String value, int rowNum, int colNum, Field field) {
@@ -163,12 +167,15 @@ abstract class AbstractReadHandler<T> {
         if (currentRow == null || obj == null || colNum < 0) {
             return;
         }
+        readConfig.getTrim().apply(content);
+        this.addTitleConsumer.accept(content, colNum);
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
         }
     }
 
     protected void handleResult() {
+        this.initFieldMap();
         if (!readConfig.getRowFilter().test(currentRow)) {
             return;
         }
@@ -176,5 +183,16 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         resultHandler.accept(obj);
+    }
+
+    private void initFieldMap() {
+        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
+            return;
+        }
+        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
+        fieldMap = new HashMap<>(titleFieldMap.size());
+        titles.forEach((k, v) -> {
+            fieldMap.put(v, titleFieldMap.get(k));
+        });
     }
 }

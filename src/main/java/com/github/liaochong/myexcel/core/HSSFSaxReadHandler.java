@@ -101,10 +101,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     public HSSFSaxReadHandler(InputStream inputStream,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
-        super(false);
+        super(false, result, readConfig);
         this.fs = new POIFSFileSystem(inputStream);
         this.sheetIndexs = readConfig.getSheetIndexs();
-        this.init(result, readConfig);
     }
 
     public void process() throws IOException {
@@ -253,8 +252,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisColumn = mc.getColumn();
             thisStr = null;
         }
-        thisStr = readConfig.getTrim().apply(thisStr);
-        this.addTitleConsumer.accept(thisStr, thisColumn);
 
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
@@ -274,7 +271,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 this.titles.clear();
                 return;
             }
-            this.initFieldMap();
             handleResult();
         }
     }

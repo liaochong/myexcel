@@ -35,8 +35,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     public XSSFSaxReadHandler(
             List<T> result,
             SaxExcelReader.ReadConfig<T> readConfig) {
-        super(false);
-        this.init(result, readConfig);
+        super(false, result, readConfig);
     }
 
     @Override
@@ -46,7 +45,6 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void endRow(int rowNum) {
-        this.initFieldMap();
         handleResult();
         count++;
     }
@@ -58,8 +56,6 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
             return;
         }
         int thisCol = (new CellReference(cellReference)).getCol();
-        formattedValue = readConfig.getTrim().apply(formattedValue);
-        this.addTitleConsumer.accept(formattedValue, thisCol);
         handleField(thisCol, formattedValue);
     }
 

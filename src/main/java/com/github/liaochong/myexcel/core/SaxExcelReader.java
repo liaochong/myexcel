@@ -307,7 +307,7 @@ public class SaxExcelReader<T> {
     @Getter
     @Setter
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class ReadConfig<T> {
+    public static final class ReadConfig<T> {
 
         Class<T> dataType;
 

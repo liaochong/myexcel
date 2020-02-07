@@ -42,10 +42,9 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
-        super(true);
+        super(true, result, readConfig);
         this.is = is;
         this.charset = readConfig.getCharset();
-        this.init(result, readConfig);
     }
 
     public void read() {
@@ -62,7 +61,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                     line = line.substring(1);
                 }
                 this.process(line);
-                this.initFieldMap();
                 lineIndex++;
             }
             log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
@@ -92,8 +90,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                 if (content != null) {
                     content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
                 }
-                content = readConfig.getTrim().apply(content);
-                this.addTitleConsumer.accept(content, i);
                 handleField(i, content);
             }
         }
