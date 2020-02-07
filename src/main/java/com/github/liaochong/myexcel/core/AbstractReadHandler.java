@@ -58,7 +58,7 @@ abstract class AbstractReadHandler<T> {
      */
     private final Row currentRow = new Row(-1);
 
-    private Supplier<T> newInstance;
+    private Supplier<T> getInstanceHandler;
 
     private BiConsumer<Integer, String> fieldHandler;
 
@@ -80,10 +80,10 @@ abstract class AbstractReadHandler<T> {
             addTitleConsumer = this::addTitles;
             readWithTitle = true;
         }
-        setNewInstanceFunction(dataType, isMapType);
+        setResultHandlerFunction(result, readConfig);
+        setGetInstanceFunction(dataType, isMapType);
         // 全局配置获取
         setGlobalSetting(dataType, isMapType);
-        setResultHandlerFunction(result, readConfig);
         setFieldHandlerFunction(isMapType);
     }
 
@@ -99,21 +99,37 @@ abstract class AbstractReadHandler<T> {
             };
         } else {
             resultHandler = result::add;
+            if (readConfig.isSingleton()) {
+                readConfig.setSingleton(false);
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void setNewInstanceFunction(Class<T> dataType, boolean isMapType) {
+    private void setGetInstanceFunction(Class<T> dataType, boolean isMapType) {
         if (isMapType) {
-            newInstance = () -> (T) new LinkedHashMap<Cell, String>();
+            getInstanceHandler = () -> (T) new LinkedHashMap<Cell, String>();
         } else {
-            newInstance = () -> {
-                try {
-                    return dataType.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            };
+            if (readConfig.isSingleton()) {
+                getInstanceHandler = () -> {
+                    if (obj != null) {
+                        return obj;
+                    }
+                    try {
+                        return dataType.newInstance();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+            } else {
+                getInstanceHandler = () -> {
+                    try {
+                        return dataType.newInstance();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+            }
         }
     }
 
@@ -163,7 +179,7 @@ abstract class AbstractReadHandler<T> {
 
     protected void newRow(int rowNum) {
         currentRow.setRowNum(rowNum);
-        obj = newInstance.get();
+        obj = getInstanceHandler.get();
     }
 
     protected void setRecordAsNull() {
