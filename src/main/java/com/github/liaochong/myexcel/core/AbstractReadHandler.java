@@ -53,14 +53,20 @@ abstract class AbstractReadHandler<T> {
     private ReadContext<T> context = new ReadContext<>();
 
     private ConvertContext convertContext;
-
-    private Row currentRow;
+    /**
+     * Row object currently being processed
+     */
+    private final Row currentRow = new Row(-1);
 
     private Supplier<T> newInstance;
 
     private BiConsumer<Integer, String> fieldHandler;
 
     private Consumer<T> resultHandler;
+    /**
+     * Whether to use title for import
+     */
+    private boolean readWithTitle;
 
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
@@ -72,6 +78,7 @@ abstract class AbstractReadHandler<T> {
         boolean isMapType = dataType == Map.class;
         if (fieldMap.isEmpty()) {
             addTitleConsumer = this::addTitles;
+            readWithTitle = true;
         }
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
@@ -155,7 +162,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     protected void newRow(int rowNum) {
-        currentRow = new Row(rowNum);
+        currentRow.setRowNum(rowNum);
         obj = newInstance.get();
     }
 
@@ -167,7 +174,7 @@ abstract class AbstractReadHandler<T> {
         if (currentRow == null || obj == null || colNum < 0) {
             return;
         }
-        readConfig.getTrim().apply(content);
+        content = readConfig.getTrim().apply(content);
         this.addTitleConsumer.accept(content, colNum);
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
@@ -180,6 +187,9 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         if (!readConfig.getBeanFilter().test(obj)) {
+            return;
+        }
+        if (readWithTitle && currentRow.getRowNum() == 0) {
             return;
         }
         resultHandler.accept(obj);

@@ -118,7 +118,7 @@ public class ReadConverterContext {
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, context);
             if (!toContinue) {
-                throw new ExcelReadException("Failed to convert content，Field:" + context.getField().getName() + ",Content:" + context.getVal() + ",RowNum:" + context.getRowNum(), e);
+                throw new ExcelReadException("Failed to convert content,field:[" + context.getField().getName() + "],content:[" + context.getVal() + "],rowNum:[" + context.getRowNum() + "]", e);
             }
         }
         if (value == null) {
