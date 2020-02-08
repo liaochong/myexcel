@@ -76,7 +76,7 @@ abstract class AbstractReadHandler<T> {
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
         boolean isMapType = dataType == Map.class;
-        if (fieldMap.isEmpty()) {
+        if (!isMapType && fieldMap.isEmpty()) {
             addTitleConsumer = this::addTitles;
             readWithTitle = true;
         }
