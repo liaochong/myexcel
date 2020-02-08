@@ -121,11 +121,6 @@ public class SaxExcelReader<T> {
         return this;
     }
 
-    public SaxExcelReader<T> singleton() {
-        this.readConfig.singleton = true;
-        return this;
-    }
-
     public SaxExcelReader<T> exceptionally(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         this.readConfig.exceptionFunction = exceptionFunction;
         return this;
@@ -335,8 +330,6 @@ public class SaxExcelReader<T> {
          * Adopt speed mode
          */
         boolean rapidity = false;
-
-        boolean singleton = false;
 
         Function<String, String> trim = v -> {
             if (v == null) {
