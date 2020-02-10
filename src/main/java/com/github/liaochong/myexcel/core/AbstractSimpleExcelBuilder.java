@@ -17,10 +17,8 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
-import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
 import com.github.liaochong.myexcel.core.constant.ImageFile;
 import com.github.liaochong.myexcel.core.constant.LinkEmail;
@@ -137,17 +135,20 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected boolean isMapBuild;
     /**
-     * 全局设置
-     */
-    protected GlobalSetting globalSetting = new GlobalSetting();
-    /**
-     * ExcelColumn映射
-     */
-    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
-    /**
      * 转换上下文
      */
-    private ConvertContext convertContext = new ConvertContext(globalSetting, excelColumnMappingMap);
+    private ConvertContext convertContext;
+
+    protected GlobalSetting globalSetting;
+
+    private Map<Field, ExcelColumnMapping> excelColumnMappingMap;
+
+
+    public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
+        convertContext = new ConvertContext(isCsvBuild);
+        globalSetting = convertContext.getGlobalSetting();
+        excelColumnMappingMap = convertContext.getExcelColumnMappingMap();
+    }
 
     /**
      * Core methods for obtaining export related fields, styles, etc
@@ -634,7 +635,6 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 结果集
      */
     protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields, boolean csv) {
-        convertContext.setConverterType(csv ? CsvConverter.class : AllConverter.class);
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);

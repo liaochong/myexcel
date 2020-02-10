@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
-import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
@@ -40,7 +39,7 @@ public class BigDecimalWriteConverter implements WriteConverter {
 
     @Override
     public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
-        if (convertContext.getConverterType() == AllConverter.class) {
+        if (!convertContext.isConvertCsv()) {
             return Pair.of(Double.class, ((BigDecimal) fieldVal).toPlainString());
         }
         ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
