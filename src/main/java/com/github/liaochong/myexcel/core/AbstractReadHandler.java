@@ -190,6 +190,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         if (readWithTitle && currentRow.getRowNum() == 0) {
+            readWithTitle = false;
             return;
         }
         resultHandler.accept(obj);
