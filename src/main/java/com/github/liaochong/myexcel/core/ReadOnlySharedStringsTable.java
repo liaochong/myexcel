@@ -182,6 +182,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
             if (uniqueCount != null) {
                 this.uniqueCount = Integer.parseInt(uniqueCount);
             }
+            characters = new StringBuilder(64);
             if (this.uniqueCount == 0) {
                 return;
             }
@@ -190,7 +191,6 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
             } else {
                 stringsCache.init(this.uniqueCount);
             }
-            characters = new StringBuilder(64);
         } else if ("si".equals(localName)) {
             characters.setLength(0);
         } else if ("t".equals(localName)) {
