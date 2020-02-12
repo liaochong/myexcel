@@ -63,7 +63,6 @@ public class StringsCache implements Cache<Integer, String> {
     private int index;
 
     public void init(int totalCount) {
-        this.totalCount = totalCount;
         if (totalCount > MAX_SIZE_PATH) {
             cacheValues = new String[MAX_SIZE_PATH];
         } else {
@@ -74,6 +73,7 @@ public class StringsCache implements Cache<Integer, String> {
     @Override
     public void cache(Integer key, String value) {
         cacheValues[key - (key / MAX_SIZE_PATH * MAX_SIZE_PATH)] = value;
+        totalCount++;
         if ((key + 1) % MAX_SIZE_PATH == 0) {
             if (index == 0) {
                 String[] preCache = new String[MAX_SIZE_PATH];
