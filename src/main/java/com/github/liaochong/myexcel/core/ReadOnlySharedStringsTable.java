@@ -176,7 +176,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
                 this.uniqueCount = Integer.parseInt(uniqueCount);
             }
             characters = new StringBuilder(64);
-            stringsCache.init(this.count);
+            stringsCache.init(this.uniqueCount > 0 ? this.uniqueCount : this.count);
         } else if ("si".equals(localName)) {
             characters.setLength(0);
         } else if ("t".equals(localName)) {
