@@ -181,7 +181,7 @@ abstract class AbstractSimpleExcelBuilder {
                 if (!excelColumn.defaultValue().isEmpty()) {
                     defaultValueMap.put(field, excelColumn.defaultValue());
                 }
-                if (widths == null && excelColumn.width() > 0) {
+                if (widths == null && excelColumn.width() > -1) {
                     customWidthMap.put(i, excelColumn.width());
                 }
                 if (excelColumn.style().length > 0) {
