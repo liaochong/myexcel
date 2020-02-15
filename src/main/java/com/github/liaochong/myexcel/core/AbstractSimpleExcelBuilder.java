@@ -630,11 +630,10 @@ abstract class AbstractSimpleExcelBuilder {
      *
      * @param data         数据集合
      * @param sortedFields 排序字段
-     * @param csv          是否是csv构建
      * @param <T>          泛型
      * @return 结果集
      */
-    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields, boolean csv) {
+    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);

@@ -307,7 +307,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (isMapBuild) {
             contents = assemblingMapContents((Map<String, Object>) data);
         } else {
-            contents = getRenderContent(data, filteredFields, false);
+            contents = getRenderContent(data, filteredFields);
         }
         Tr tr = this.createTr(contents);
         htmlToExcelStreamFactory.append(tr);
