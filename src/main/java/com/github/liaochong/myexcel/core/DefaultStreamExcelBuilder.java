@@ -29,7 +29,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -195,14 +194,14 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> widths(int... widths) {
-        if (widths.length == 0) {
-            return this;
+        for (int i = 0; i < widths.length; i++) {
+            customWidthMap.put(i, widths[i]);
         }
-        this.widths = new HashMap<>(widths.length);
-        for (int i = 0, size = widths.length; i < size; i++) {
-            this.widths.put(i, widths[i]);
-        }
-        customWidthMap = this.widths;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> width(int columnIndex, int width) {
+        customWidthMap.put(columnIndex, width);
         return this;
     }
 

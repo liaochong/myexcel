@@ -120,8 +120,6 @@ abstract class AbstractSimpleExcelBuilder {
      * 无样式
      */
     protected boolean noStyle;
-
-    protected Map<Integer, Integer> widths;
     /**
      * 格式化
      */
@@ -167,6 +165,7 @@ abstract class AbstractSimpleExcelBuilder {
 
         Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
         this.setOddEvenStyle(globalStyleMap);
+        boolean fixedWidths = !customWidthMap.isEmpty();
         for (int i = 0, size = buildFields.size(); i < size; i++) {
             Field field = buildFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
@@ -181,7 +180,7 @@ abstract class AbstractSimpleExcelBuilder {
                 if (!excelColumn.defaultValue().isEmpty()) {
                     defaultValueMap.put(field, excelColumn.defaultValue());
                 }
-                if (widths == null && excelColumn.width() > -1) {
+                if (!fixedWidths && excelColumn.width() > -1) {
                     customWidthMap.put(i, excelColumn.width());
                 }
                 if (excelColumn.style().length > 0) {
