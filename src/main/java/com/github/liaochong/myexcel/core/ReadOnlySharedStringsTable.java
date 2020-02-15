@@ -41,8 +41,10 @@ import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
  * @version 1.0
  */
 public class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings {
-
-    protected final boolean includePhoneticRuns;
+    /**
+     * whether or not to concatenate phoneticRuns onto the shared string
+     */
+    private final boolean includePhoneticRuns = true;
 
     /**
      * An integer representing the total count of strings in the workbook. This count does not
@@ -55,7 +57,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
      * A string is unique even if it is a copy of another string, but has different formatting applied
      * at the character level.
      */
-    protected int uniqueCount;
+    private int uniqueCount;
 
     /**
      * The shared strings table.
@@ -64,31 +66,16 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
 
     private int stringIndex;
 
+
     /**
-     * Calls {{@link #ReadOnlySharedStringsTable(OPCPackage, boolean, StringsCache)}} with
-     * a value of <code>true</code> for including phonetic runs
-     *
      * @param pkg          The {@link OPCPackage} to use as basis for the shared-strings table.
      * @param stringsCache stringsCache
      * @throws IOException  If reading the data from the package fails.
      * @throws SAXException if parsing the XML data fails.
+     * @since POI 3.14-Beta3
      */
     public ReadOnlySharedStringsTable(OPCPackage pkg, StringsCache stringsCache)
             throws IOException, SAXException {
-        this(pkg, true, stringsCache);
-    }
-
-    /**
-     * @param pkg                 The {@link OPCPackage} to use as basis for the shared-strings table.
-     * @param includePhoneticRuns whether or not to concatenate phoneticRuns onto the shared string
-     * @param stringsCache        stringsCache
-     * @throws IOException  If reading the data from the package fails.
-     * @throws SAXException if parsing the XML data fails.
-     * @since POI 3.14-Beta3
-     */
-    public ReadOnlySharedStringsTable(OPCPackage pkg, boolean includePhoneticRuns, StringsCache stringsCache)
-            throws IOException, SAXException {
-        this.includePhoneticRuns = includePhoneticRuns;
         this.stringsCache = stringsCache;
         ArrayList<PackagePart> parts =
                 pkg.getPartsByContentType(XSSFRelation.SHARED_STRINGS.getContentType());
