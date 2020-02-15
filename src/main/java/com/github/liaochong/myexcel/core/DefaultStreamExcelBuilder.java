@@ -205,6 +205,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
+    public DefaultStreamExcelBuilder<T> hideColumns(int... columnIndexs) {
+        for (int columnIndex : columnIndexs) {
+            width(columnIndex, 0);
+        }
+        return this;
+    }
+
     @Override
     public DefaultStreamExcelBuilder<T> threadPool(ExecutorService executorService) {
         this.executorService = executorService;
