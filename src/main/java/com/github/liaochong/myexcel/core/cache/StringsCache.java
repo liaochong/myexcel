@@ -63,6 +63,9 @@ public class StringsCache implements Cache<Integer, String> {
     private int index;
 
     public void init(int stringCount) {
+        if (stringCount == 0) {
+            return;
+        }
         cacheValues = new String[stringCount > MAX_SIZE_PATH ? MAX_SIZE_PATH : stringCount];
     }
 
