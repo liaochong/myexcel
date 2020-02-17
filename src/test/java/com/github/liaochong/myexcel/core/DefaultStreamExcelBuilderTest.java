@@ -53,6 +53,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void commonBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
+                .hideColumns(0, 1)
                 .globalStyle("background-color:red;", "title->background-color:yellow;")
                 .start()) {
             data(excelBuilder, 100);
