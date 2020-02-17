@@ -129,6 +129,16 @@ public class DefaultExcelBuilder<T> implements Closeable {
         return this;
     }
 
+    public DefaultExcelBuilder<T> width(int columnIndex, int width) {
+        streamExcelBuilder.width(columnIndex, width);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> hideColumns(int... columnIndexs) {
+        streamExcelBuilder.hideColumns(columnIndexs);
+        return this;
+    }
+
     public DefaultExcelBuilder<T> groups(Class<?>... groups) {
         streamExcelBuilder.groups(groups);
         return this;
