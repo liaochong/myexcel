@@ -641,10 +641,10 @@ abstract class AbstractSimpleExcelBuilder {
                     }
                     String defaultValue = defaultValueMap.get(field);
                     if (defaultValue != null) {
-                        return Pair.of(field.getType(), defaultValue);
+                        return Pair.of(String.class, defaultValue);
                     }
                     if (globalSetting.getDefaultValue() != null) {
-                        return Pair.of(field.getType(), globalSetting.getDefaultValue());
+                        return Pair.of(String.class, globalSetting.getDefaultValue());
                     }
                     return value;
                 })
