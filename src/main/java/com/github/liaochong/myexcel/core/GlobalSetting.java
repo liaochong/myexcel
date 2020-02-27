@@ -106,4 +106,11 @@ public class GlobalSetting {
      * 数值类全局格式化
      */
     String decimalFormat = "";
+
+    boolean computeAutoWidth;
+
+    public void setWidthStrategy(WidthStrategy widthStrategy) {
+        this.widthStrategy = widthStrategy;
+        this.computeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
+    }
 }

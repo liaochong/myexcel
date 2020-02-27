@@ -371,9 +371,7 @@ abstract class AbstractSimpleExcelBuilder {
         if (contents.isEmpty()) {
             return tr;
         }
-        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(globalSetting.getWidthStrategy());
-        boolean isCustomWidth = WidthStrategy.isCustomWidth(globalSetting.getWidthStrategy());
-        tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
+        tr.setColWidthMap(new HashMap<>());
         Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
         String oddEvenPrefix = isOddRow ? "odd&" : "even&";
@@ -396,7 +394,7 @@ abstract class AbstractSimpleExcelBuilder {
             } else {
                 style = ContentTypeEnum.isLink(td.getTdContentType()) ? linkStyle : tdStyle;
             }
-            if (isComputeAutoWidth) {
+            if (globalSetting.isComputeAutoWidth()) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
             if (formats.get(i) != null) {

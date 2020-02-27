@@ -534,9 +534,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param maxColIndex    最大列索引
      */
     protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet, int maxColIndex) {
-        if (WidthStrategy.isNoAuto(widthStrategy)) {
-            return;
-        }
         if (WidthStrategy.isAutoWidth(widthStrategy)) {
             if (sheet instanceof SXSSFSheet) {
                 throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
