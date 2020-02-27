@@ -165,7 +165,6 @@ abstract class AbstractSimpleExcelBuilder {
 
         Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
         this.setOddEvenStyle(globalStyleMap);
-        boolean fixedWidths = !customWidthMap.isEmpty();
         for (int i = 0, size = buildFields.size(); i < size; i++) {
             Field field = buildFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
@@ -180,8 +179,8 @@ abstract class AbstractSimpleExcelBuilder {
                 if (!excelColumn.defaultValue().isEmpty()) {
                     defaultValueMap.put(field, excelColumn.defaultValue());
                 }
-                if (!fixedWidths && excelColumn.width() > -1) {
-                    customWidthMap.put(i, excelColumn.width());
+                if (excelColumn.width() > -1) {
+                    customWidthMap.putIfAbsent(i, excelColumn.width());
                 }
                 if (excelColumn.style().length > 0) {
                     setCustomStyle(field, i, excelColumn.style());
@@ -205,9 +204,6 @@ abstract class AbstractSimpleExcelBuilder {
             setGlobalFormat(i, field);
         }
         setTitles(titles);
-        if (!customWidthMap.isEmpty()) {
-            globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
-        }
         return buildFields;
     }
 
@@ -416,9 +412,7 @@ abstract class AbstractSimpleExcelBuilder {
             td.setStyle(style);
             return td;
         }).collect(Collectors.toList());
-        if (isCustomWidth) {
-            tr.setColWidthMap(customWidthMap);
-        }
+        customWidthMap.forEach(tr.getColWidthMap()::put);
         tr.setTdList(tdList);
         return tr;
     }
@@ -573,7 +567,6 @@ abstract class AbstractSimpleExcelBuilder {
         Map<String, String> styleMap = StyleUtil.parseStyle(splits[splitIndex]);
         String width = styleMap.get("width");
         if (width != null) {
-            globalSetting.setWidthStrategy(WidthStrategy.CUSTOM_WIDTH);
             customWidthMap.put(fieldIndex, TdUtil.getValue(width));
         }
         return styleMap;

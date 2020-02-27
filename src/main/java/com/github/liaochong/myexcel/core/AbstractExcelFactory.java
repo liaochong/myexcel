@@ -544,7 +544,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             for (int i = 0; i <= maxColIndex; i++) {
                 sheet.autoSizeColumn(i);
             }
-            return;
         }
         colMaxWidthMap.forEach((key, value) -> {
             int contentLength = value << 1;
