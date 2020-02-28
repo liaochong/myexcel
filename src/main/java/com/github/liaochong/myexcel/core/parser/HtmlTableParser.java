@@ -252,6 +252,15 @@ public class HtmlTableParser {
             td.setTdContentType(ContentTypeEnum.IMAGE);
             return;
         }
+        Elements links = tdElement.getElementsByTag(TableTag.a.name());
+        if (links != null && !links.isEmpty()) {
+            Element a = links.get(0);
+            td.setContent(a.text());
+            String href = a.attr("href").trim();
+            td.setLink(href);
+            td.setTdContentType(href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL);
+            return;
+        }
         String tdContent = LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
         td.setContent(tdContent);
         if (StringUtil.isBlank(tdContent)) {
@@ -346,6 +355,10 @@ public class HtmlTableParser {
         /**
          * img
          */
-        img;
+        img,
+        /**
+         * a
+         */
+        a;
     }
 }
