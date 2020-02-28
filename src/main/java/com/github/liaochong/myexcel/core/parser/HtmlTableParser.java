@@ -231,13 +231,12 @@ public class HtmlTableParser {
                 } else {
                     colWidthMap.put(td.getCol(), width);
                 }
-            } else if (parseConfig.isCustomWidth()) {
-                String widthStr = td.getStyle().get("width");
-                if (widthStr != null) {
-                    int width = TdUtil.getValue(widthStr);
-                    if (width > 0) {
-                        colWidthMap.put(td.getCol(), width);
-                    }
+            }
+            String widthStr = td.getStyle().get("width");
+            if (widthStr != null) {
+                int width = TdUtil.getValue(widthStr);
+                if (width > 0) {
+                    colWidthMap.put(td.getCol(), width);
                 }
             }
         }

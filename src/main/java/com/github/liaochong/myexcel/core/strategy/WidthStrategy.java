@@ -40,6 +40,7 @@ public enum WidthStrategy {
     /**
      * 自定义宽度
      */
+    @Deprecated
     CUSTOM_WIDTH;
 
     public static boolean isNoAuto(WidthStrategy widthStrategy) {
