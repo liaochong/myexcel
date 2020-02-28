@@ -104,9 +104,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private FreezePane[] freezePanes;
     /**
-     * 自动宽度策略
+     * 自动宽度策略，默认无宽度策略
      */
-    protected WidthStrategy widthStrategy = WidthStrategy.CUSTOM_WIDTH;
+    protected WidthStrategy widthStrategy = WidthStrategy.NO_AUTO;
     /**
      * 暂存单元格，由后续行认领
      */

@@ -37,18 +37,16 @@ public enum AutoWidthStrategy {
     /**
      * 自定义宽度
      */
+    @Deprecated
     CUSTOM_WIDTH;
 
     public static WidthStrategy map(AutoWidthStrategy autoWidthStrategy) {
-        if (autoWidthStrategy == NO_AUTO) {
-            return WidthStrategy.NO_AUTO;
+        if (autoWidthStrategy == COMPUTE_AUTO_WIDTH) {
+            return WidthStrategy.COMPUTE_AUTO_WIDTH;
         }
         if (autoWidthStrategy == AUTO_WIDTH) {
             return WidthStrategy.AUTO_WIDTH;
         }
-        if (autoWidthStrategy == COMPUTE_AUTO_WIDTH) {
-            return WidthStrategy.COMPUTE_AUTO_WIDTH;
-        }
-        return WidthStrategy.CUSTOM_WIDTH;
+        return WidthStrategy.NO_AUTO;
     }
 }

@@ -54,8 +54,4 @@ public enum WidthStrategy {
     public static boolean isComputeAutoWidth(WidthStrategy widthStrategy) {
         return Objects.equals(widthStrategy, COMPUTE_AUTO_WIDTH);
     }
-
-    public static boolean isCustomWidth(WidthStrategy widthStrategy) {
-        return Objects.equals(widthStrategy, CUSTOM_WIDTH);
-    }
 }
