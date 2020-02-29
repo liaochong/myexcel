@@ -35,11 +35,15 @@ import java.util.Map;
 @Slf4j
 public class DefaultExcelBuilder<T> implements Closeable {
 
+    private static final String STYLE_COMMON_TD = "border-top-style:thin;border-right-style:thin;border-bottom-style:thin;border-left-style:thin;";
+
     private DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
         streamExcelBuilder.hasStyle();
+        streamExcelBuilder.globalStyle("even->" + STYLE_COMMON_TD,
+                "odd->" + STYLE_COMMON_TD + "background-color:#f6f8fa;");
         this.streamExcelBuilder = streamExcelBuilder;
     }
 

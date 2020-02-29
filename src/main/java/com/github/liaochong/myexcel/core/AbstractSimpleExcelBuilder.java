@@ -32,11 +32,9 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
-import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
-import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
@@ -77,21 +75,25 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected List<Field> filteredFields = Collections.emptyList();
     /**
+     * 全局样式映射
+     */
+    protected Map<String, String> globalStyleMap;
+    /**
      * 一般单元格样式
      */
-    protected Map<String, String> commonTdStyle;
+    protected Map<String, String> commonTdStyle = Collections.emptyMap();
     /**
      * 偶数行单元格样式
      */
-    protected Map<String, String> evenTdStyle;
+    protected Map<String, String> evenTdStyle = Collections.emptyMap();
     /**
      * 超链接公共样式
      */
-    protected Map<String, String> linkCommonStyle;
+    protected Map<String, String> linkCommonStyle = Collections.emptyMap();
     /**
      * 超链接偶数行样式
      */
-    protected Map<String, String> linkEvenStyle;
+    protected Map<String, String> linkEvenStyle = Collections.emptyMap();
     /**
      * 标题
      */
@@ -157,14 +159,13 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
+        this.parseGlobalStyle();
 
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
         List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
         // 初始化标题容器
         List<String> titles = new ArrayList<>(buildFields.size());
 
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalSetting.getGlobalStyle());
-        this.setOddEvenStyle(globalStyleMap);
         for (int i = 0, size = buildFields.size(); i < size; i++) {
             Field field = buildFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
@@ -205,6 +206,18 @@ abstract class AbstractSimpleExcelBuilder {
         }
         setTitles(titles);
         return buildFields;
+    }
+
+    protected void parseGlobalStyle() {
+        this.setGlobalStyleMap(globalSetting.getGlobalStyle());
+        this.setOddEvenStyle(globalStyleMap);
+
+        linkCommonStyle = new HashMap<>(commonTdStyle);
+        linkCommonStyle.put(FontStyle.FONT_COLOR, "blue");
+        linkCommonStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
+
+        linkEvenStyle = new HashMap<>(linkCommonStyle);
+        linkEvenStyle.putAll(evenTdStyle);
     }
 
     private void setGlobalFormat(int i, Field field) {
@@ -514,19 +527,20 @@ abstract class AbstractSimpleExcelBuilder {
                 .collect(Collectors.toList());
     }
 
-    private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
-        Map<String, String> globalStyleMap = new HashMap<>();
-        if (globalStyle != null) {
-            globalStyle.forEach(style -> {
-                String[] splits = style.split(Constants.ARROW);
-                if (splits.length == 1) {
-                    globalStyleMap.put("cell", style);
-                } else {
-                    globalStyleMap.put(splits[0], style);
-                }
-            });
+    private void setGlobalStyleMap(Set<String> globalStyle) {
+        if (globalStyle == null) {
+            globalStyleMap = Collections.emptyMap();
+            return;
         }
-        return globalStyleMap;
+        globalStyleMap = new HashMap<>();
+        globalStyle.forEach(style -> {
+            String[] splits = style.split(Constants.ARROW);
+            if (splits.length == 1) {
+                globalStyleMap.put("cell", style);
+            } else {
+                globalStyleMap.put(splits[0], style);
+            }
+        });
     }
 
     private void setOddEvenStyle(Map<String, String> globalStyleMap) {
@@ -658,36 +672,5 @@ abstract class AbstractSimpleExcelBuilder {
             }
         }
         return contents;
-    }
-
-    /**
-     * 初始化单元格样式
-     */
-    protected void initStyleMap() {
-        if (!noStyle && customStyle.isEmpty()) {
-            if (commonTdStyle == null) {
-                commonTdStyle = new HashMap<>(3);
-                commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-                commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-                commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-                commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-                if (globalSetting.isWrapText()) {
-                    commonTdStyle.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
-                }
-            }
-            if (evenTdStyle == null) {
-                evenTdStyle = new HashMap<>(4);
-                evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
-                evenTdStyle.putAll(commonTdStyle);
-            }
-            linkCommonStyle = new HashMap<>(commonTdStyle);
-            linkCommonStyle.put(FontStyle.FONT_COLOR, "blue");
-            linkCommonStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
-
-            linkEvenStyle = new HashMap<>(linkCommonStyle);
-            linkEvenStyle.putAll(evenTdStyle);
-        } else {
-            commonTdStyle = evenTdStyle = linkCommonStyle = linkEvenStyle = Collections.emptyMap();
-        }
     }
 }

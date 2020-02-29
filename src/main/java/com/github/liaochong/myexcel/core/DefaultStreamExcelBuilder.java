@@ -264,17 +264,17 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     @Override
     public DefaultStreamExcelBuilder<T> start() {
-        if (!isMapBuild) {
+        if (isMapBuild) {
+            this.parseGlobalStyle();
+        } else {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
-
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles);
         htmlToExcelStreamFactory.widthStrategy(globalSetting.getWidthStrategy());
         if (workbook == null) {
             htmlToExcelStreamFactory.workbookType(globalSetting.getWorkbookType());
         }
-        this.initStyleMap();
         Table table = this.createTable();
         htmlToExcelStreamFactory.start(table, workbook);
 
