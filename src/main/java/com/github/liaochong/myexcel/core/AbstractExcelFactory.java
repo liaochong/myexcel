@@ -342,7 +342,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             anchor.setCol1(td.getCol());
             anchor.setRow1(td.getRow());
             Picture pict = drawing.createPicture(anchor, pictureIdx);
-            pict.resize();
+            pict.resize(1, 1);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
