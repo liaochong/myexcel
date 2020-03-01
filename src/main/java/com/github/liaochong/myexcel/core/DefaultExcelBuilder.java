@@ -37,12 +37,14 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     private static final String STYLE_COMMON_TD = "border-top-style:thin;border-right-style:thin;border-bottom-style:thin;border-left-style:thin;";
 
+    private static final String STYLE_TITLE = "font-weight:bold;font-size:14;text-align:center;vertical-align:middle;";
+
     private DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
         streamExcelBuilder.hasStyle();
-        streamExcelBuilder.globalStyle("even->" + STYLE_COMMON_TD,
+        streamExcelBuilder.globalStyle("title->" + STYLE_COMMON_TD + STYLE_TITLE, "even->" + STYLE_COMMON_TD,
                 "odd->" + STYLE_COMMON_TD + "background-color:#f6f8fa;");
         this.streamExcelBuilder = streamExcelBuilder;
     }

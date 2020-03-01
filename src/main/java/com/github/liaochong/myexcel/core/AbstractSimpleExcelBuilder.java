@@ -32,9 +32,7 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
-import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.FontStyle;
-import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
@@ -331,7 +329,6 @@ abstract class AbstractSimpleExcelBuilder {
             });
         }
 
-        Map<String, String> thStyle = getDefaultThStyle();
         Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
         List<Tr> trs = new ArrayList<>();
         boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(globalSetting.getWidthStrategy());
@@ -356,21 +353,6 @@ abstract class AbstractSimpleExcelBuilder {
             trs.add(tr);
         });
         return trs;
-    }
-
-    private Map<String, String> getDefaultThStyle() {
-        if (!noStyle && customStyle.isEmpty()) {
-            Map<String, String> thStyle = new HashMap<>(7);
-            thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
-            thStyle.put(FontStyle.FONT_SIZE, "14");
-            thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
-            thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-            thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-            thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-            thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-            return thStyle;
-        }
-        return Collections.emptyMap();
     }
 
     /**
