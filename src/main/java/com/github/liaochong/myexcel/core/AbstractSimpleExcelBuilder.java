@@ -167,8 +167,7 @@ abstract class AbstractSimpleExcelBuilder {
         for (int i = 0, size = buildFields.size(); i < size; i++) {
             Field field = buildFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            setCustomStyle(field, i, globalStyleMap.get("cell"));
-            setCustomStyle(field, i, globalStyleMap.get("title"));
+            setCustomStyle(field, i, globalStyleMap.get("cell"), globalStyleMap.get("title"));
             if (excelColumn != null) {
                 if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
                     titles.add(field.getName());
@@ -337,12 +336,9 @@ abstract class AbstractSimpleExcelBuilder {
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
-                        // 自定义样式存在时采用自定义样式
-                        if (!noStyle && !customStyle.isEmpty()) {
+                        if (!noStyle) {
                             Map<String, String> style = customStyle.getOrDefault("title&" + td.getCol(), Collections.emptyMap());
                             td.setStyle(style);
-                        } else {
-                            td.setStyle(thStyle);
                         }
                         if (isComputeAutoWidth) {
                             tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
@@ -371,7 +367,6 @@ abstract class AbstractSimpleExcelBuilder {
         Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
         String oddEvenPrefix = isOddRow ? "odd&" : "even&";
         isOddRow = !isOddRow;
-        boolean useCustomStyle = !noStyle && !customStyle.isEmpty();
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
             Pair<? extends Class, ?> pair = contents.get(i);
@@ -379,15 +374,20 @@ abstract class AbstractSimpleExcelBuilder {
             setTdContentType(td, pair.getKey());
 
             this.setFormula(i, td);
-
-            Map<String, String> style;
-            if (useCustomStyle) {
+            Map<String, String> style = Collections.emptyMap();
+            if (!noStyle) {
                 style = customStyle.get(oddEvenPrefix + i);
-                if (style == null) {
-                    style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
+                Map<String, String> cellStyleMap = customStyle.get("cell&" + i);
+                if (cellStyleMap != null) {
+                    if (style == null) {
+                        style = cellStyleMap;
+                    } else {
+                        style.putAll(cellStyleMap);
+                    }
                 }
-            } else {
-                style = ContentTypeEnum.isLink(td.getTdContentType()) ? linkStyle : tdStyle;
+                if (style == null) {
+                    style = ContentTypeEnum.isLink(td.getTdContentType()) ? linkStyle : tdStyle;
+                }
             }
             if (globalSetting.isComputeAutoWidth()) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
@@ -518,9 +518,14 @@ abstract class AbstractSimpleExcelBuilder {
         globalStyle.forEach(style -> {
             String[] splits = style.split(Constants.ARROW);
             if (splits.length == 1) {
-                globalStyleMap.put("cell", style);
+                globalStyleMap.putIfAbsent("cell", style);
+                return;
+            }
+            boolean appoint = splits[0].contains("&");
+            if (appoint) {
+                customStyle.put(splits[0], StyleUtil.parseStyle(splits[1]));
             } else {
-                globalStyleMap.put(splits[0], style);
+                globalStyleMap.putIfAbsent(splits[0], style);
             }
         });
     }
@@ -547,13 +552,21 @@ abstract class AbstractSimpleExcelBuilder {
             String[] splits = style.split(Constants.ARROW);
             if (splits.length == 1) {
                 // 发现未设置样式归属，则设置为全局样式，清除其他样式
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, index);
-                customStyle.put("cell&" + index, styleMap);
-                break;
+                setCustomStyle("cell", index, 0, splits);
             } else {
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, index);
-                customStyle.put(splits[0] + "&" + index, styleMap);
+                setCustomStyle(splits[0], index, 1, splits);
             }
+        }
+    }
+
+    private void setCustomStyle(String prefix, int fieldIndex, int splitIndex, String[] splits) {
+        Map<String, String> styleMap = setWidthStrategyAndWidth(splits, splitIndex, fieldIndex);
+        String stylePrefix = prefix + "&" + fieldIndex;
+        Map<String, String> parentStyleMap = customStyle.get(stylePrefix);
+        if (parentStyleMap == null) {
+            customStyle.put(stylePrefix, styleMap);
+        } else {
+            parentStyleMap.putAll(styleMap);
         }
     }
 

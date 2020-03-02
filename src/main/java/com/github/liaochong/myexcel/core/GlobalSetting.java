@@ -39,10 +39,6 @@ public class GlobalSetting {
      */
     boolean fixedWorkbookType;
     /**
-     * 方法设定时固定-全局样式，注解对应属性将无法变更
-     */
-    boolean fixedGlobalStyle;
-    /**
      * The name of the sheet to be built
      */
     String sheetName;
