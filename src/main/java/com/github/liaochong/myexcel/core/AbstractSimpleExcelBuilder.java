@@ -327,7 +327,7 @@ abstract class AbstractSimpleExcelBuilder {
                 });
             });
         }
-
+        Map<String, String> thStyle = globalStyleMap.get("title") != null ? StyleUtil.parseStyle(globalStyleMap.get("title")) : Collections.emptyMap();
         Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
         List<Tr> trs = new ArrayList<>();
         boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(globalSetting.getWidthStrategy());
@@ -337,7 +337,7 @@ abstract class AbstractSimpleExcelBuilder {
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
                         if (!noStyle) {
-                            Map<String, String> style = customStyle.getOrDefault("title&" + td.getCol(), Collections.emptyMap());
+                            Map<String, String> style = customStyle.getOrDefault("title&" + td.getCol(), thStyle);
                             td.setStyle(style);
                         }
                         if (isComputeAutoWidth) {

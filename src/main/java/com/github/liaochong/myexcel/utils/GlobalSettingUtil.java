@@ -63,7 +63,7 @@ public final class GlobalSettingUtil {
             if (excelTable.rowHeight() != -1) {
                 globalSetting.setRowHeight(excelTable.rowHeight());
             }
-            if (excelTable.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
+            if (excelTable.style().length != 0) {
                 globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
             }
             globalSetting.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
@@ -90,7 +90,7 @@ public final class GlobalSettingUtil {
             if (excelModel.rowHeight() != -1) {
                 globalSetting.setRowHeight(excelModel.rowHeight());
             }
-            if (excelModel.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
+            if (excelModel.style().length != 0) {
                 globalSetting.getGlobalStyle().addAll(Arrays.asList(excelModel.style()));
             }
             globalSetting.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
