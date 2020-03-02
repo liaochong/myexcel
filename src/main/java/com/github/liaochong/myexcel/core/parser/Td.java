@@ -23,6 +23,7 @@ import lombok.experimental.FieldDefaults;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -64,7 +65,7 @@ public class Td {
     /**
      * 单元格样式
      */
-    Map<String, String> style;
+    Map<String, String> style = Collections.emptyMap();
     /**
      * 公式
      */
