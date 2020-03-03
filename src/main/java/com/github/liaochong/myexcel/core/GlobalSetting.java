@@ -31,10 +31,6 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GlobalSetting {
     /**
-     * 方法设定时固定-sheet名称，注解对应属性将无法变更
-     */
-    boolean fixedSheetName;
-    /**
      * 方法设定时固定-工作簿类型，注解对应属性将无法变更
      */
     boolean fixedWorkbookType;

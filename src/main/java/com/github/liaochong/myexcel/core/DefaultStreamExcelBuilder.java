@@ -148,7 +148,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
-        globalSetting.setFixedSheetName(true);
         globalSetting.setSheetName(sheetName);
         return this;
     }

@@ -41,7 +41,7 @@ public final class GlobalSettingUtil {
             if (excelTable == null) {
                 return;
             }
-            if (!excelTable.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
+            if (!excelTable.sheetName().isEmpty()) {
                 globalSetting.setSheetName(excelTable.sheetName());
             }
             if (!globalSetting.isFixedWorkbookType()) {
@@ -68,7 +68,7 @@ public final class GlobalSettingUtil {
             }
             globalSetting.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
         } else {
-            if (!excelModel.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
+            if (!excelModel.sheetName().isEmpty()) {
                 globalSetting.setSheetName(excelModel.sheetName());
             }
             if (!globalSetting.isFixedWorkbookType()) {
