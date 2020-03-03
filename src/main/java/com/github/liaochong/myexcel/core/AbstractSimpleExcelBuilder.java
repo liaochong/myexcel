@@ -167,7 +167,7 @@ abstract class AbstractSimpleExcelBuilder {
         for (int i = 0, size = buildFields.size(); i < size; i++) {
             Field field = buildFields.get(i);
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            setCustomStyle(field, i, globalStyleMap.get("cell"), globalStyleMap.get("title"));
+            setCustomStyle(field, i, globalStyleMap.get("title"), globalStyleMap.get("even"), globalStyleMap.get("odd"), globalStyleMap.get("cell"));
             if (excelColumn != null) {
                 if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
                     titles.add(field.getName());
@@ -206,7 +206,7 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     protected void parseGlobalStyle() {
-        this.setGlobalStyleMap(globalSetting.getGlobalStyle());
+        this.setGlobalStyleMap(globalSetting.getStyle());
         this.setOddEvenStyle(globalStyleMap);
 
         linkCommonStyle = new HashMap<>(commonTdStyle);

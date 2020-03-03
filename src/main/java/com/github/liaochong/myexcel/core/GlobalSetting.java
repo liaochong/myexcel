@@ -31,10 +31,6 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GlobalSetting {
     /**
-     * 方法设定时固定-工作簿类型，注解对应属性将无法变更
-     */
-    boolean fixedWorkbookType;
-    /**
      * The name of the sheet to be built
      */
     String sheetName;
@@ -81,7 +77,7 @@ public class GlobalSetting {
     /**
      * 全局样式
      */
-    Set<String> globalStyle = new HashSet<>();
+    Set<String> style = new HashSet<>();
     /**
      * 是否使用字段名称作为标题，当{@link com.github.liaochong.myexcel.core.annotation.ExcelColumn}设定了title，则覆盖
      */
