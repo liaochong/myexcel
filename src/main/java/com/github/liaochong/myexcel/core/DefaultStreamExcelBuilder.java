@@ -266,6 +266,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     public DefaultStreamExcelBuilder<T> start() {
         if (isMapBuild) {
             this.parseGlobalStyle();
+            this.noStyle = customStyle.isEmpty();
         } else {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);

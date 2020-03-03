@@ -202,6 +202,7 @@ abstract class AbstractSimpleExcelBuilder {
             setGlobalFormat(i, field);
         }
         setTitles(titles);
+        noStyle = customStyle.isEmpty();
         return buildFields;
     }
 
