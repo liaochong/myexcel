@@ -147,11 +147,12 @@ public final class StyleParser {
         String stylePrefix = prefix + "&" + fieldIndex;
         Map<String, String> parentStyleMap = customStyle.get(stylePrefix);
         if (parentStyleMap == null || parentStyleMap.isEmpty()) {
-            customStyle.put(stylePrefix, styleMap);
+            parentStyleMap = new HashMap<>(styleMap);
+            customStyle.put(stylePrefix, parentStyleMap);
         } else {
             parentStyleMap.putAll(styleMap);
         }
-        setWidth(fieldIndex, customStyle.get(stylePrefix));
+        setWidth(fieldIndex, parentStyleMap);
     }
 
     public Map<String, String> getTitleStyle(String styleKey) {
@@ -172,6 +173,7 @@ public final class StyleParser {
             if (style == null || style.isEmpty()) {
                 style = cellStyleMap;
             } else {
+                style = new HashMap<>(style);
                 style.putAll(cellStyleMap);
             }
         }
