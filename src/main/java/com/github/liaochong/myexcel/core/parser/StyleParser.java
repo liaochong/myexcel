@@ -19,7 +19,7 @@ import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
-import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -31,7 +31,6 @@ import java.util.Set;
  * @author liaochong
  * @version 1.0
  */
-@Getter
 public final class StyleParser {
     /**
      * 标题样式
@@ -67,14 +66,26 @@ public final class StyleParser {
     /**
      * 自定义宽度
      */
-    protected Map<Integer, Integer> customWidthMap;
+    @Setter
+    private Map<Integer, Integer> customWidthMap;
     /**
      * 是否为奇数行
      */
-    protected boolean isOddRow = true;
+    private boolean isOddRow = true;
+    /**
+     * 无样式
+     */
+    @Setter
+    private boolean noStyle;
 
-    private StyleParser(Set<String> styles, Map<Integer, Integer> customWidthMap) {
+    public StyleParser(Map<Integer, Integer> customWidthMap) {
         this.customWidthMap = customWidthMap;
+    }
+
+    public void parse(Set<String> styles) {
+        if (noStyle) {
+            return;
+        }
         Map<String, String> styleMap = new HashMap<>();
         styles.forEach(style -> {
             String[] splits = style.split(Constants.ARROW);
@@ -114,11 +125,10 @@ public final class StyleParser {
         }
     }
 
-    public static StyleParser of(Set<String> styles, Map<Integer, Integer> customWidthMap) {
-        return new StyleParser(styles, customWidthMap);
-    }
-
     public void setColumnStyle(Field field, int fieldIndex, String... columnStyles) {
+        if (noStyle) {
+            return;
+        }
         setCustomStyle("title", fieldIndex, titleTdStyle);
         setCustomStyle("even", fieldIndex, evenTdStyle);
         setCustomStyle("odd", fieldIndex, commonTdStyle);
@@ -156,6 +166,9 @@ public final class StyleParser {
     }
 
     public Map<String, String> getTitleStyle(String styleKey) {
+        if (noStyle) {
+            return Collections.emptyMap();
+        }
         return customStyle.getOrDefault(styleKey, titleTdStyle);
     }
 
@@ -163,27 +176,33 @@ public final class StyleParser {
         isOddRow = !isOddRow;
     }
 
-    public Map<String, String> getCellStyle(int fieldIndex, ContentTypeEnum contentType) {
-        Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
-        Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
-        String oddEvenPrefix = isOddRow ? "odd&" : "even&";
-        Map<String, String> style = customStyle.get(oddEvenPrefix + fieldIndex);
-        Map<String, String> cellStyleMap = customStyle.get("cell&" + fieldIndex);
-        if (cellStyleMap != null) {
-            if (style == null || style.isEmpty()) {
-                style = cellStyleMap;
-            } else {
-                style = new HashMap<>(style);
-                style.putAll(cellStyleMap);
+    public Map<String, String> getCellStyle(int fieldIndex, ContentTypeEnum contentType, String format) {
+        Map<String, String> style = Collections.emptyMap();
+        if (!noStyle) {
+            Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
+            Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
+            String oddEvenPrefix = isOddRow ? "odd&" : "even&";
+            style = customStyle.get(oddEvenPrefix + fieldIndex);
+            Map<String, String> cellStyleMap = customStyle.get("cell&" + fieldIndex);
+            if (cellStyleMap != null) {
+                if (style == null || style.isEmpty()) {
+                    style = cellStyleMap;
+                } else {
+                    style = new HashMap<>(style);
+                    style.putAll(cellStyleMap);
+                }
+            }
+            if (style == null) {
+                style = ContentTypeEnum.isLink(contentType) ? linkStyle : tdStyle;
             }
         }
-        if (style == null) {
-            style = ContentTypeEnum.isLink(contentType) ? linkStyle : tdStyle;
+        if (format != null) {
+            style = this.getFormatStyle(format, fieldIndex, style);
         }
         return style;
     }
 
-    public Map<String, String> getFormatStyle(String format, int fieldIndex, Map<String, String> style) {
+    private Map<String, String> getFormatStyle(String format, int fieldIndex, Map<String, String> style) {
         Map<String, String> formatStyle = formatsStyleMap.get(format + "_" + fieldIndex + "_" + (isOddRow ? "odd&" : "even&"));
         if (formatStyle == null) {
             formatStyle = new HashMap<>(style);

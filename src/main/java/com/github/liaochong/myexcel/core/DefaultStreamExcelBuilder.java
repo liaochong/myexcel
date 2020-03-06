@@ -169,7 +169,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * @return DefaultStreamExcelBuilder
      */
     public DefaultStreamExcelBuilder<T> noStyle() {
-        this.noStyle = true;
+        this.styleParser.setNoStyle(true);
         return this;
     }
 
@@ -216,7 +216,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     @Override
     public DefaultStreamExcelBuilder<T> hasStyle() {
-        this.noStyle = false;
+        this.styleParser.setNoStyle(false);
         return this;
     }
 
@@ -252,7 +252,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> style(String... styles) {
-        this.noStyle = false;
+        this.styleParser.setNoStyle(false);
         globalSetting.setStyle(Arrays.stream(styles).collect(Collectors.toSet()));
         return this;
     }

@@ -87,10 +87,6 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected int titleLevel = 0;
     /**
-     * 无样式
-     */
-    protected boolean noStyle;
-    /**
      * 格式化
      */
     private Map<Integer, String> formats = new HashMap<>();
@@ -107,7 +103,7 @@ abstract class AbstractSimpleExcelBuilder {
 
     private Map<Field, ExcelColumnMapping> excelColumnMappingMap;
 
-    protected StyleParser styleParser;
+    protected StyleParser styleParser = new StyleParser(customWidthMap);
 
 
     public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
@@ -174,7 +170,7 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     protected void parseGlobalStyle() {
-        styleParser = StyleParser.of(globalSetting.getStyle(), customWidthMap);
+        styleParser.parse(globalSetting.getStyle());
     }
 
     private void setGlobalFormat(int i, Field field) {
@@ -295,9 +291,7 @@ abstract class AbstractSimpleExcelBuilder {
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
-                        if (!noStyle) {
-                            td.setStyle(styleParser.getTitleStyle("title&" + td.getCol()));
-                        }
+                        td.setStyle(styleParser.getTitleStyle("title&" + td.getCol()));
                         if (isComputeAutoWidth) {
                             tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
                         }
@@ -329,17 +323,10 @@ abstract class AbstractSimpleExcelBuilder {
             setTdContentType(td, pair.getKey());
 
             this.setFormula(i, td);
-            Map<String, String> style = Collections.emptyMap();
-            if (!noStyle) {
-                style = styleParser.getCellStyle(i, td.getTdContentType());
-            }
             if (globalSetting.isComputeAutoWidth()) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
-            if (formats.get(i) != null) {
-                String format = formats.get(i);
-                style = styleParser.getFormatStyle(format, i, style);
-            }
+            Map<String, String> style = styleParser.getCellStyle(i, td.getTdContentType(), formats.get(i));
             td.setStyle(style);
             return td;
         }).collect(Collectors.toList());
