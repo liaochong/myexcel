@@ -78,6 +78,10 @@ public class Td {
      * 文件
      */
     File file;
+    /**
+     * 格式化
+     */
+    String format;
 
     /**
      * 时间是常用对象，特殊化

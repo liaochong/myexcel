@@ -291,7 +291,6 @@ abstract class AbstractSimpleExcelBuilder {
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
-                        td.setStyle(styleParser.getTitleStyle("title&" + td.getCol()));
                         if (isComputeAutoWidth) {
                             tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
                         }
@@ -315,19 +314,17 @@ abstract class AbstractSimpleExcelBuilder {
             return tr;
         }
         tr.setColWidthMap(new HashMap<>());
-        styleParser.toggle();
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
             Pair<? extends Class, ?> pair = contents.get(i);
             setTdContent(td, pair);
             setTdContentType(td, pair.getKey());
+            td.setFormat(formats.get(i));
 
             this.setFormula(i, td);
             if (globalSetting.isComputeAutoWidth()) {
                 tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
             }
-            Map<String, String> style = styleParser.getCellStyle(i, td.getTdContentType(), formats.get(i));
-            td.setStyle(style);
             return td;
         }).collect(Collectors.toList());
         customWidthMap.forEach(tr.getColWidthMap()::put);
