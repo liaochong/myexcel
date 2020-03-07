@@ -32,7 +32,7 @@ import java.util.Set;
  * <p>
  * title样式仅支持title
  * <p>
- * cell样式规则，继承关系：globalCommonStyle(globalEvenStyle)->globalLinkStyle(globalLinkEvenStyle)->globalCellStyle,
+ * cell样式规则，继承关系：globalCommonStyle(globalEvenStyle)->globalLinkStyle->globalCellStyle,
  * 如存在相同样式，子样式覆盖父样式
  *
  * @author liaochong
@@ -52,17 +52,13 @@ public final class StyleParser {
      */
     private Map<String, String> globalEvenStyle = Collections.emptyMap();
     /**
-     * 全局超链接样式
-     */
-    private Map<String, String> globalLinkStyle;
-    /**
-     * 全局超链接奇数行样式
-     */
-    private Map<String, String> globalLinkEvenStyle;
-    /**
      * 全局单元格样式
      */
-    private Map<String, String> globalCellStyle;
+    private Map<String, String> globalCellStyle = Collections.emptyMap();
+    /**
+     * 全局超链接样式
+     */
+    private Map<String, String> globalLinkStyle = Collections.emptyMap();
     /**
      * 各个列样式
      */
@@ -103,7 +99,7 @@ public final class StyleParser {
         styles.forEach(style -> {
             String[] splits = style.split(Constants.ARROW);
             if (splits.length == 1) {
-                styleMap.putIfAbsent("cell", style);
+                styleMap.putIfAbsent("cell", "cell->" + style);
                 return;
             }
             boolean appoint = splits[0].contains("&");
@@ -113,29 +109,24 @@ public final class StyleParser {
                 styleMap.putIfAbsent(splits[0], style);
             }
         });
-        String titleStyle = styleMap.get("title");
-        if (titleStyle != null) {
-            globalTitleStyle = StyleUtil.parseStyle(titleStyle.split(Constants.ARROW)[1]);
-        }
-        String oddStyle = styleMap.get("odd");
-        if (oddStyle != null) {
-            globalCommonStyle = StyleUtil.parseStyle(oddStyle.split(Constants.ARROW)[1]);
-        }
-        String evenStyle = styleMap.get("even");
-        if (evenStyle != null) {
-            globalEvenStyle = StyleUtil.parseStyle(evenStyle.split(Constants.ARROW)[1]);
-        }
-        globalLinkStyle = new HashMap<>(globalCommonStyle);
-        globalLinkStyle.put(FontStyle.FONT_COLOR, "blue");
-        globalLinkStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
+        globalTitleStyle = parseStyle(styleMap, "title");
+        globalCommonStyle = parseStyle(styleMap, "odd");
+        globalEvenStyle = parseStyle(styleMap, "even");
+        globalCellStyle = parseStyle(styleMap, "cell");
 
-        globalLinkEvenStyle = new HashMap<>(globalLinkStyle);
-        globalLinkEvenStyle.putAll(globalEvenStyle);
-
-        String cellStyle = styleMap.get("cell");
-        if (cellStyle != null) {
-            this.globalCellStyle = StyleUtil.parseStyle(cellStyle.split(Constants.ARROW)[1]);
+        String linkStyle = styleMap.get("link");
+        if (linkStyle != null) {
+            globalLinkStyle = StyleUtil.parseStyle(linkStyle.split(Constants.ARROW)[1]);
+        } else {
+            globalLinkStyle = new HashMap<>();
+            globalLinkStyle.putIfAbsent(FontStyle.FONT_COLOR, "blue");
+            globalLinkStyle.putIfAbsent(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
         }
+    }
+
+    private Map<String, String> parseStyle(Map<String, String> styleMap, String prefix) {
+        String style = styleMap.get(prefix);
+        return style == null ? Collections.emptyMap() : StyleUtil.parseStyle(style.split(Constants.ARROW)[1]);
     }
 
     public void setColumnStyle(Field field, int fieldIndex, String... columnStyles) {
@@ -192,10 +183,7 @@ public final class StyleParser {
     public Map<String, String> getCellStyle(int fieldIndex, ContentTypeEnum contentType, String format) {
         Map<String, String> style = Collections.emptyMap();
         if (!noStyle) {
-            Map<String, String> tdStyle = isOddRow ? globalCommonStyle : globalEvenStyle;
-            Map<String, String> linkStyle = isOddRow ? globalLinkStyle : globalLinkEvenStyle;
-            String oddEvenPrefix = isOddRow ? "odd&" : "even&";
-            style = eachColumnStyle.get(oddEvenPrefix + fieldIndex);
+            style = eachColumnStyle.get(isOddRow ? "odd&" : "even&" + fieldIndex);
             Map<String, String> cellStyleMap = eachColumnStyle.get("cell&" + fieldIndex);
             if (cellStyleMap != null) {
                 if (style == null || style.isEmpty()) {
@@ -206,7 +194,11 @@ public final class StyleParser {
                 }
             }
             if (style == null) {
-                style = ContentTypeEnum.isLink(contentType) ? linkStyle : tdStyle;
+                style = isOddRow ? globalCommonStyle : globalEvenStyle;
+            }
+            if (ContentTypeEnum.isLink(contentType)) {
+                style = new HashMap<>(style);
+                style.putAll(globalLinkStyle);
             }
         }
         if (format != null) {
