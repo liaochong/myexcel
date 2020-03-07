@@ -183,7 +183,7 @@ public final class StyleParser {
     public Map<String, String> getCellStyle(int fieldIndex, ContentTypeEnum contentType, String format) {
         Map<String, String> style = Collections.emptyMap();
         if (!noStyle) {
-            style = eachColumnStyle.get(isOddRow ? "odd&" : "even&" + fieldIndex);
+            style = eachColumnStyle.get((isOddRow ? "odd&" : "even&") + fieldIndex);
             Map<String, String> cellStyleMap = eachColumnStyle.get("cell&" + fieldIndex);
             if (cellStyleMap != null) {
                 if (style == null || style.isEmpty()) {
