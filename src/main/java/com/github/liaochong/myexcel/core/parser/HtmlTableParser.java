@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
@@ -60,8 +61,11 @@ public class HtmlTableParser {
 
     private String html;
 
-    private HtmlTableParser() {
+    private Map<String, String> defaultLinkStyle = new HashMap<>();
 
+    private HtmlTableParser() {
+        defaultLinkStyle.put(FontStyle.FONT_COLOR, "blue");
+        defaultLinkStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
     }
 
     public static HtmlTableParser of(File htmlFile) {
@@ -176,7 +180,11 @@ public class HtmlTableParser {
             this.setTdContent(tdElement, td);
 
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
-            td.setStyle(StyleUtil.mixStyle(trStyle, StyleUtil.parseStyle(tdElement)));
+            Map<String, String> tdStyle = StyleUtil.parseStyle(tdElement);
+            if (tdStyle.isEmpty() && ContentTypeEnum.isLink(td.getTdContentType())) {
+                tdStyle = defaultLinkStyle;
+            }
+            td.setStyle(StyleUtil.mixStyle(trStyle, tdStyle));
 
             String colSpan = tdElement.attr(TableTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));

@@ -119,8 +119,8 @@ public final class StyleParser {
             globalLinkStyle = StyleUtil.parseStyle(linkStyle.split(Constants.ARROW)[1]);
         } else {
             globalLinkStyle = new HashMap<>();
-            globalLinkStyle.putIfAbsent(FontStyle.FONT_COLOR, "blue");
-            globalLinkStyle.putIfAbsent(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
+            globalLinkStyle.put(FontStyle.FONT_COLOR, "blue");
+            globalLinkStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
         }
     }
 
