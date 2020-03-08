@@ -32,7 +32,7 @@ import java.util.Set;
  * <p>
  * title样式仅支持title
  * <p>
- * cell样式规则，继承关系：globalCommonStyle(globalEvenStyle)->globalLinkStyle->globalCellStyle,
+ * cell样式规则，继承关系：globalCommonStyle(globalEvenStyle)-globalCellStyle,
  * 如存在相同样式，子样式覆盖父样式
  *
  * @author liaochong
