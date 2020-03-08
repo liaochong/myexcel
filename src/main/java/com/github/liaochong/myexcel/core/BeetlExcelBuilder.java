@@ -51,11 +51,6 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
     }
 
     @Override
-    public ExcelBuilder template(String path) {
-        return classpathTemplate(path);
-    }
-
-    @Override
     public ExcelBuilder fileTemplate(String dirPath, String fileName) {
         doSetTemplate(dirPath, () -> this.doGetGroupTemplate(dirPath), fileName);
         return this;

@@ -99,6 +99,12 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         Objects.requireNonNull(template, "The template cannot be null. Please set the template first.");
     }
 
+    @Deprecated
+    @Override
+    public ExcelBuilder template(String path) {
+        return classpathTemplate(path);
+    }
+
     @Override
     public ExcelBuilder fileTemplate(String dirPath, String fileName) {
         throw new UnsupportedOperationException();

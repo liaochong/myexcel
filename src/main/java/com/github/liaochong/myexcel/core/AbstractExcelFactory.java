@@ -500,9 +500,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
-        if (WidthStrategy.isNoAuto(widthStrategy) || WidthStrategy.isAutoWidth(widthStrategy)) {
-            return Collections.emptyMap();
-        }
         if (useDefaultStyle) {
             // 使用默认样式，需要重新修正加粗的标题自适应宽度
             trList.parallelStream().forEach(tr -> {

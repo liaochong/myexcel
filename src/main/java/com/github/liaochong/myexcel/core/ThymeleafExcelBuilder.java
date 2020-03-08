@@ -58,11 +58,6 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
     }
 
     @Override
-    public ExcelBuilder template(String path) {
-        return classpathTemplate(path);
-    }
-
-    @Override
     public ExcelBuilder fileTemplate(String dirPath, String fileName) {
         if (!fileName.endsWith(Constants.HTML_SUFFIX)) {
             throw new IllegalArgumentException("ThymeleafExcelBuilder only supports files suffixed with .html");

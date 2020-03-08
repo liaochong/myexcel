@@ -42,11 +42,6 @@ public class EnjoyExcelBuilder extends AbstractExcelBuilder {
     }
 
     @Override
-    public ExcelBuilder template(String path) {
-        return classpathTemplate(path);
-    }
-
-    @Override
     public ExcelBuilder fileTemplate(String dirPath, String fileName) {
         doSetEngine(dirPath, () -> doGetEngine(dirPath), fileName);
         return this;

@@ -50,11 +50,6 @@ public class VelocityExcelBuilder extends AbstractExcelBuilder {
     }
 
     @Override
-    public ExcelBuilder template(String path) {
-        return classpathTemplate(path);
-    }
-
-    @Override
     protected <T> void render(Map<String, T> data, Writer out) throws Exception {
         checkTemplate(template);
         VelocityContext context = new VelocityContext(data);
