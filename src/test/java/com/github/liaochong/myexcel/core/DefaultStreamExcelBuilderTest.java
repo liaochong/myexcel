@@ -18,8 +18,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author liaochong
@@ -44,7 +46,10 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         titles.add("3");
         titles.add("4");
 
-        Workbook workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).titles(titles).build(list);
+        Workbook workbook = DefaultExcelBuilder.of(Map.class)
+                .style("cell&1->background-color:red;", "title&2->color:green;font-weight:bold;background-color:yellow;")
+                .width(1, 20)
+                .fieldDisplayOrder(titles).titles(titles).build(list);
 //        workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
         FileExportUtil.export(workbook, new File(TEST_DIR + "map_build.xlsx"));
     }
@@ -53,24 +58,12 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void commonBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
-                .hideColumns(0, 1)
-                .globalStyle("background-color:red;", "title->background-color:yellow;")
+//                .hideColumns(0, 1)
+//                .globalStyle("background-color:red;", "title->background-color:yellow;")
                 .start()) {
-            data(excelBuilder, 100);
+            data(excelBuilder, 5000);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_DIR + "common_build.xlsx"));
-        }
-    }
-
-    @Test
-    void hasStyleBuild() throws Exception {
-        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
-                .fixedTitles()
-                .hasStyle()
-                .start()) {
-            data(excelBuilder, 10000);
-            Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "has_style_build.xlsx"));
         }
     }
 
@@ -155,9 +148,8 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void bigBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
-                .widths(15, 20, 25, 30)
                 .start()) {
-            data(excelBuilder, 1200000);
+            data(excelBuilder, 65500);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_DIR + "big_build.xlsx"));
         }
@@ -167,7 +159,6 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void customStyleBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CustomStylePeople> excelBuilder = DefaultStreamExcelBuilder.of(CustomStylePeople.class)
                 .fixedTitles()
-                .hasStyle()
                 .start()) {
             customStyleData(excelBuilder, 1000);
             Workbook workbook = excelBuilder.build();
@@ -179,7 +170,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void evenOddBuild() throws Exception {
         try (DefaultStreamExcelBuilder<OddEvenStylePeople> excelBuilder = DefaultStreamExcelBuilder.of(OddEvenStylePeople.class)
                 .fixedTitles()
-                .hasStyle()
+                .style("cell&1->color:green;")
                 .start()) {
             oddEvenData(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
@@ -225,19 +216,25 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     private void data(DefaultStreamExcelBuilder<CommonPeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
+        List<CompletableFuture> futures = new LinkedList<>();
         for (int i = 0; i < size; i++) {
-            CommonPeople commonPeople = new CommonPeople();
-            boolean odd = i % 2 == 0;
-            commonPeople.setName(odd ? "张三" : "李四");
-            commonPeople.setAge(odd ? 18 : 24);
-            commonPeople.setDance(odd ? true : false);
-            commonPeople.setMoney(odd ? oddMoney : evenMoney);
-            commonPeople.setBirthday(new Date());
-            commonPeople.setLocalDate(LocalDate.now());
-            commonPeople.setLocalDateTime(LocalDateTime.now());
-            commonPeople.setCats(100L);
-            excelBuilder.append(commonPeople);
+            int index = i;
+            CompletableFuture future = CompletableFuture.runAsync(() -> {
+                CommonPeople commonPeople = new CommonPeople();
+                boolean odd = index % 2 == 0;
+                commonPeople.setName(odd ? "张三" : "李四");
+                commonPeople.setAge(odd ? 18 : 24);
+                commonPeople.setDance(odd ? true : false);
+                commonPeople.setMoney(odd ? oddMoney : evenMoney);
+                commonPeople.setBirthday(new Date());
+                commonPeople.setLocalDate(LocalDate.now());
+                commonPeople.setLocalDateTime(LocalDateTime.now());
+                commonPeople.setCats(100L);
+                excelBuilder.append(commonPeople);
+            });
+            futures.add(future);
         }
+        futures.forEach(CompletableFuture::join);
     }
 
     private void customStyleData(DefaultStreamExcelBuilder<CustomStylePeople> excelBuilder, int size) {

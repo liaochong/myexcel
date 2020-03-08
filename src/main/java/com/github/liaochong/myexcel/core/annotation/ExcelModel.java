@@ -38,7 +38,7 @@ public @interface ExcelModel {
      *
      * @return WorkbookType
      */
-    WorkbookType workbookType() default WorkbookType.SXLSX;
+    WorkbookType workbookType() default WorkbookType.NONE;
 
     /**
      * sheeName

@@ -28,7 +28,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author liaochong
@@ -46,8 +45,7 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
     private Template template;
 
     @Override
-    public ExcelBuilder template(String path) {
-        Objects.requireNonNull(path);
+    public ExcelBuilder classpathTemplate(String path) {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
@@ -58,6 +56,11 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
         } catch (ClassNotFoundException | IOException e) {
             throw ExcelBuildException.of("Failed to get groovy template", e);
         }
+    }
+
+    @Override
+    public ExcelBuilder template(String path) {
+        return classpathTemplate(path);
     }
 
 

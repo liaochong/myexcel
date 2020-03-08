@@ -31,18 +31,6 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GlobalSetting {
     /**
-     * 方法设定时固定-sheet名称，注解对应属性将无法变更
-     */
-    boolean fixedSheetName;
-    /**
-     * 方法设定时固定-工作簿类型，注解对应属性将无法变更
-     */
-    boolean fixedWorkbookType;
-    /**
-     * 方法设定时固定-全局样式，注解对应属性将无法变更
-     */
-    boolean fixedGlobalStyle;
-    /**
      * The name of the sheet to be built
      */
     String sheetName;
@@ -89,7 +77,7 @@ public class GlobalSetting {
     /**
      * 全局样式
      */
-    Set<String> globalStyle = new HashSet<>();
+    Set<String> style = new HashSet<>();
     /**
      * 是否使用字段名称作为标题，当{@link com.github.liaochong.myexcel.core.annotation.ExcelColumn}设定了title，则覆盖
      */
@@ -106,4 +94,11 @@ public class GlobalSetting {
      * 数值类全局格式化
      */
     String decimalFormat = "";
+
+    boolean computeAutoWidth;
+
+    public void setWidthStrategy(WidthStrategy widthStrategy) {
+        this.widthStrategy = widthStrategy;
+        this.computeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
+    }
 }

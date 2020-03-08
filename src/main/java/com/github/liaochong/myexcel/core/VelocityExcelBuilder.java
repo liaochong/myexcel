@@ -43,13 +43,8 @@ public class VelocityExcelBuilder extends AbstractExcelBuilder {
 
     private Template template;
 
-    /**
-     * 设置模板信息
-     *
-     * @param path 模板路径，相对路径
-     */
     @Override
-    public ExcelBuilder template(String path) {
+    public ExcelBuilder classpathTemplate(String path) {
         template = Velocity.getTemplate(path);
         return this;
     }

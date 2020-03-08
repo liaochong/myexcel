@@ -18,7 +18,10 @@ import com.jfinal.template.Engine;
 import com.jfinal.template.Template;
 
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * jfinal enjoy
@@ -28,25 +31,50 @@ import java.util.Map;
  */
 public class EnjoyExcelBuilder extends AbstractExcelBuilder {
 
-    private static final Engine ENGINE;
+    private static final Map<String, Engine> CFG_MAP = new HashMap<>();
 
     private Template template;
 
-    static {
-        ENGINE = Engine.create("EnjoyExcelBuilderEngine");
-        ENGINE.setToClassPathSourceFactory();
-        Engine.setFastMode(true);
+    @Override
+    public ExcelBuilder classpathTemplate(String path) {
+        doSetEngine(CLASSPATH, () -> doGetEngine(CLASSPATH), path);
+        return this;
     }
 
     @Override
-    public ExcelBuilder template(String path) {
-        template = ENGINE.getTemplate(path);
+    public ExcelBuilder fileTemplate(String dirPath, String fileName) {
+        doSetEngine(dirPath, () -> doGetEngine(dirPath), fileName);
         return this;
+    }
+
+    private void doSetEngine(String dirPath, Supplier<Engine> supplier, String fileName) {
+        Engine engine = CFG_MAP.get(dirPath);
+        if (engine == null) {
+            engine = supplier.get();
+        }
+        template = engine.getTemplate(fileName);
     }
 
     @Override
     protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
         checkTemplate(template);
         template.render(renderData, out);
+    }
+
+    private synchronized Engine doGetEngine(String dirPath) {
+        Engine engine = CFG_MAP.get(dirPath);
+        if (engine != null) {
+            return engine;
+        }
+        engine = Engine.create("myexcel_" + dirPath);
+        Engine.setFastMode(true);
+        if (Objects.equals(dirPath, CLASSPATH)) {
+            engine.setBaseTemplatePath(null);
+            engine.setToClassPathSourceFactory();
+        } else {
+            engine.setBaseTemplatePath(dirPath);
+        }
+        CFG_MAP.put(dirPath, engine);
+        return engine;
     }
 }

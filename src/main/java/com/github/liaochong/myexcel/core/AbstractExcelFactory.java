@@ -104,9 +104,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private FreezePane[] freezePanes;
     /**
-     * 自动宽度策略
+     * 自动宽度策略，默认无宽度策略
      */
-    protected WidthStrategy widthStrategy = WidthStrategy.CUSTOM_WIDTH;
+    protected WidthStrategy widthStrategy = WidthStrategy.NO_AUTO;
     /**
      * 暂存单元格，由后续行认领
      */
@@ -500,9 +500,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @return colMaxWidthMap
      */
     protected Map<Integer, Integer> getColMaxWidthMap(List<Tr> trList) {
-        if (WidthStrategy.isNoAuto(widthStrategy) || WidthStrategy.isAutoWidth(widthStrategy)) {
-            return Collections.emptyMap();
-        }
         if (useDefaultStyle) {
             // 使用默认样式，需要重新修正加粗的标题自适应宽度
             trList.parallelStream().forEach(tr -> {
@@ -534,9 +531,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param maxColIndex    最大列索引
      */
     protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet, int maxColIndex) {
-        if (WidthStrategy.isNoAuto(widthStrategy)) {
-            return;
-        }
         if (WidthStrategy.isAutoWidth(widthStrategy)) {
             if (sheet instanceof SXSSFSheet) {
                 throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
@@ -544,7 +538,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             for (int i = 0; i <= maxColIndex; i++) {
                 sheet.autoSizeColumn(i);
             }
-            return;
         }
         colMaxWidthMap.forEach((key, value) -> {
             int contentLength = value << 1;

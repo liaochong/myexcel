@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.GlobalSetting;
+import com.github.liaochong.myexcel.core.WorkbookType;
 import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
@@ -41,10 +42,10 @@ public final class GlobalSettingUtil {
             if (excelTable == null) {
                 return;
             }
-            if (!excelTable.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
+            if (!excelTable.sheetName().isEmpty()) {
                 globalSetting.setSheetName(excelTable.sheetName());
             }
-            if (!globalSetting.isFixedWorkbookType()) {
+            if (!WorkbookType.isNone(excelTable.workbookType())) {
                 globalSetting.setWorkbookType(excelTable.workbookType());
             }
             globalSetting.setExcludeParent(excelTable.excludeParent());
@@ -63,15 +64,15 @@ public final class GlobalSettingUtil {
             if (excelTable.rowHeight() != -1) {
                 globalSetting.setRowHeight(excelTable.rowHeight());
             }
-            if (excelTable.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
-                globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
+            if (excelTable.style().length != 0) {
+                globalSetting.getStyle().addAll(Arrays.asList(excelTable.style()));
             }
             globalSetting.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
         } else {
-            if (!excelModel.sheetName().isEmpty() && !globalSetting.isFixedSheetName()) {
+            if (!excelModel.sheetName().isEmpty()) {
                 globalSetting.setSheetName(excelModel.sheetName());
             }
-            if (!globalSetting.isFixedWorkbookType()) {
+            if (!WorkbookType.isNone(excelModel.workbookType())) {
                 globalSetting.setWorkbookType(excelModel.workbookType());
             }
             globalSetting.setExcludeParent(excelModel.excludeParent());
@@ -90,8 +91,8 @@ public final class GlobalSettingUtil {
             if (excelModel.rowHeight() != -1) {
                 globalSetting.setRowHeight(excelModel.rowHeight());
             }
-            if (excelModel.style().length != 0 && !globalSetting.isFixedGlobalStyle()) {
-                globalSetting.getGlobalStyle().addAll(Arrays.asList(excelModel.style()));
+            if (excelModel.style().length != 0) {
+                globalSetting.getStyle().addAll(Arrays.asList(excelModel.style()));
             }
             globalSetting.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
             if (!excelModel.decimalFormat().isEmpty()) {

@@ -40,6 +40,7 @@ public enum WidthStrategy {
     /**
      * 自定义宽度
      */
+    @Deprecated
     CUSTOM_WIDTH;
 
     public static boolean isNoAuto(WidthStrategy widthStrategy) {
@@ -52,9 +53,5 @@ public enum WidthStrategy {
 
     public static boolean isComputeAutoWidth(WidthStrategy widthStrategy) {
         return Objects.equals(widthStrategy, COMPUTE_AUTO_WIDTH);
-    }
-
-    public static boolean isCustomWidth(WidthStrategy widthStrategy) {
-        return Objects.equals(widthStrategy, CUSTOM_WIDTH);
     }
 }

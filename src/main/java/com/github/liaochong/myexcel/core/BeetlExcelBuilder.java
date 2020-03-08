@@ -15,15 +15,22 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import org.apache.commons.codec.CharEncoding;
 import org.beetl.core.Configuration;
 import org.beetl.core.GroupTemplate;
+import org.beetl.core.ResourceLoader;
 import org.beetl.core.Template;
 import org.beetl.core.resource.ClasspathResourceLoader;
+import org.beetl.core.resource.FileResourceLoader;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * beetl excel创建者
@@ -33,25 +40,19 @@ import java.util.Map;
  */
 public class BeetlExcelBuilder extends AbstractExcelBuilder {
 
-    private static final GroupTemplate GROUP_TEMPLATE;
-
-    static {
-        ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader();
-        Configuration cfg;
-        try {
-            cfg = Configuration.defaultConfiguration();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        cfg.setCharset(CharEncoding.UTF_8);
-        GROUP_TEMPLATE = new GroupTemplate(resourceLoader, cfg);
-    }
+    private static final Map<String, GroupTemplate> CFG_MAP = new HashMap<>();
 
     private Template template;
 
     @Override
-    public ExcelBuilder template(String path) {
-        template = GROUP_TEMPLATE.getTemplate(path);
+    public ExcelBuilder classpathTemplate(String path) {
+        doSetTemplate(CLASSPATH, () -> this.doGetGroupTemplate(CLASSPATH), path);
+        return this;
+    }
+
+    @Override
+    public ExcelBuilder fileTemplate(String dirPath, String fileName) {
+        doSetTemplate(dirPath, () -> this.doGetGroupTemplate(dirPath), fileName);
         return this;
     }
 
@@ -60,5 +61,36 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
         checkTemplate(template);
         template.binding(data);
         template.renderTo(out);
+    }
+
+    private void doSetTemplate(String dirPath, Supplier<GroupTemplate> supplier, String fileName) {
+        GroupTemplate groupTemplate = CFG_MAP.get(dirPath);
+        if (groupTemplate == null) {
+            groupTemplate = supplier.get();
+        }
+        template = groupTemplate.getTemplate(fileName);
+    }
+
+    private synchronized GroupTemplate doGetGroupTemplate(String dirPath) {
+        GroupTemplate groupTemplate = CFG_MAP.get(dirPath);
+        if (groupTemplate != null) {
+            return groupTemplate;
+        }
+        ResourceLoader resourceLoader;
+        if (Objects.equals(dirPath, CLASSPATH)) {
+            resourceLoader = new ClasspathResourceLoader();
+        } else {
+            resourceLoader = new FileResourceLoader(dirPath, StandardCharsets.UTF_8.name());
+        }
+        Configuration cfg;
+        try {
+            cfg = Configuration.defaultConfiguration();
+        } catch (IOException e) {
+            throw new ExcelBuildException("Set Beetl configuration failure", e);
+        }
+        cfg.setCharset(CharEncoding.UTF_8);
+        groupTemplate = new GroupTemplate(resourceLoader, cfg);
+        CFG_MAP.put(dirPath, groupTemplate);
+        return groupTemplate;
     }
 }

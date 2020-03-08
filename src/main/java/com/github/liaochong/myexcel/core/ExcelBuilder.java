@@ -71,12 +71,30 @@ public interface ExcelBuilder extends Closeable {
     ExcelBuilder freezePanes(FreezePane... freezePanes);
 
     /**
-     * 设置模板
+     * 设置模板，过期，使用classTemplate代替
      *
      * @param path 模板路径
      * @return ExcelBuilder
      */
+    @Deprecated
     ExcelBuilder template(String path);
+
+    /**
+     * 类路径模板
+     *
+     * @param path 类路径
+     * @return ExcelBuilder
+     */
+    ExcelBuilder classpathTemplate(String path);
+
+    /**
+     * 文件路径模板
+     *
+     * @param dirPath  文件夹路径
+     * @param fileName 模板名称
+     * @return ExcelBuilder
+     */
+    ExcelBuilder fileTemplate(String dirPath, String fileName);
 
     /**
      * 构建

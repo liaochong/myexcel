@@ -90,8 +90,8 @@ public final class StyleUtil {
         }
         // 相加的两倍，防止扩容。
         Map<String, String> result = new HashMap<>((targetStyle.size() + originStyle.size()) * 2);
-        targetStyle.forEach(result::put);
         originStyle.forEach(result::putIfAbsent);
+        targetStyle.forEach(result::put);
         return result;
     }
 }

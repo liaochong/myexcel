@@ -37,6 +37,8 @@ import java.util.Objects;
 @Slf4j
 public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
+    protected static final String CLASSPATH = "classpath";
+
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
     AbstractExcelBuilder() {
@@ -95,6 +97,17 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected <T> void checkTemplate(T template) {
         Objects.requireNonNull(template, "The template cannot be null. Please set the template first.");
+    }
+
+    @Deprecated
+    @Override
+    public ExcelBuilder template(String path) {
+        return classpathTemplate(path);
+    }
+
+    @Override
+    public ExcelBuilder fileTemplate(String dirPath, String fileName) {
+        throw new UnsupportedOperationException();
     }
 
     /**
