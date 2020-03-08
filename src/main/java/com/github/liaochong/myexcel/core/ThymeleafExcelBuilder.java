@@ -22,6 +22,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
 
+import java.io.File;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -65,6 +66,9 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
     public ExcelBuilder fileTemplate(String dirPath, String fileName) {
         if (!fileName.endsWith(Constants.HTML_SUFFIX)) {
             throw new IllegalArgumentException("ThymeleafExcelBuilder only supports files suffixed with .html");
+        }
+        if (!dirPath.endsWith("/")) {
+            dirPath = dirPath + File.separator;
         }
         filePath = fileName;
         doSetEngine(dirPath);

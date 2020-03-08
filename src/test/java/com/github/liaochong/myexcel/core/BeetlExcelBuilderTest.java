@@ -29,29 +29,27 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-class FreemarkerExcelBuilderTest extends BasicTest {
+public class BeetlExcelBuilderTest extends BasicTest {
 
     @Test
-    public void test() throws Exception {
-        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
-            Map<String, Object> dataMap = this.getDataMap();
-            Workbook workbook = excelBuilder.classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);
-            FileExportUtil.export(workbook, new File(TEST_DIR + "freemarker_build.xlsx"));
-        }
+    public void build() throws Exception {
+        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
+        Workbook workbook = excelBuilder.classpathTemplate("/templates/beetlToExcelExample.btl").build(getDataMap());
+        FileExportUtil.export(workbook, new File(TEST_DIR + "beetl_build.xlsx"));
     }
 
     @Test
-    public void fileTest() throws Exception {
-        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
-            Map<String, Object> dataMap = this.getDataMap();
-            Workbook workbook = excelBuilder.fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "freemarkerToExcelExample.ftl").build(dataMap);
-            FileExportUtil.export(workbook, new File(TEST_DIR + "freemarker_file_build.xlsx"));
-        }
+    public void fileBuild() throws Exception {
+        ExcelBuilder excelBuilder = new BeetlExcelBuilder();
+        Workbook workbook = excelBuilder
+                .fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "beetlToExcelExample.btl")
+                .build(getDataMap());
+        FileExportUtil.export(workbook, new File(TEST_DIR + "beetl_file_build.xlsx"));
     }
 
     private Map<String, Object> getDataMap() {
         Map<String, Object> dataMap = new HashMap<>();
-        dataMap.put("sheetName", "freemarker_excel_example");
+        dataMap.put("sheetName", "beetl_excel_example");
 
         List<String> titles = new ArrayList<>();
         titles.add("Category");

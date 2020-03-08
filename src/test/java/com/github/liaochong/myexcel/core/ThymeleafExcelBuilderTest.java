@@ -20,30 +20,26 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class EnjoyExcelBuilderTest extends BasicTest {
+public class ThymeleafExcelBuilderTest extends BasicTest {
 
     @Test
     public void build() throws Exception {
-        ExcelBuilder excelBuilder = new EnjoyExcelBuilder();
-        Map<String, String> params = new HashMap<>();
-        params.put("sheetName", "xxxx");
-        Workbook workbook = excelBuilder.classpathTemplate("/templates/enjoyToExcelExample.ey").build(params);
-        FileExportUtil.export(workbook, new File(TEST_DIR + "enjoy_build.xlsx"));
+        ExcelBuilder excelBuilder = new ThymeleafExcelBuilder();
+        Workbook workbook = excelBuilder.classpathTemplate("/templates/thymeleafToExcelExample.html").build(new HashMap<>());
+        FileExportUtil.export(workbook, new File(TEST_DIR + "thymeleaf_build.xlsx"));
     }
 
     @Test
     public void fileBuild() throws Exception {
-        ExcelBuilder excelBuilder = new EnjoyExcelBuilder();
-        Map<String, String> params = new HashMap<>();
-        params.put("sheetName", "xxxx");
-        Workbook workbook = excelBuilder.fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "enjoyToExcelExample.ey").build(params);
-        FileExportUtil.export(workbook, new File(TEST_DIR + "enjoy_file_build.xlsx"));
+        ExcelBuilder excelBuilder = new ThymeleafExcelBuilder();
+        Workbook workbook = excelBuilder
+                .fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "thymeleafToExcelExample.html")
+                .build(new HashMap<>());
+        FileExportUtil.export(workbook, new File(TEST_DIR + "thymeleaf_file_build.xlsx"));
     }
-
 }
