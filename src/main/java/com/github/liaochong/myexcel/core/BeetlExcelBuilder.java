@@ -77,6 +77,10 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
     }
 
     private synchronized GroupTemplate doGetGroupTemplate(String dirPath) {
+        GroupTemplate groupTemplate = CFG_MAP.get(dirPath);
+        if (groupTemplate != null) {
+            return groupTemplate;
+        }
         ResourceLoader resourceLoader;
         if (Objects.equals(dirPath, CLASSPATH)) {
             resourceLoader = new ClasspathResourceLoader();
@@ -90,7 +94,7 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
             throw new ExcelBuildException("Set Beetl configuration failure", e);
         }
         cfg.setCharset(CharEncoding.UTF_8);
-        GroupTemplate groupTemplate = new GroupTemplate(resourceLoader, cfg);
+        groupTemplate = new GroupTemplate(resourceLoader, cfg);
         CFG_MAP.put(dirPath, groupTemplate);
         return groupTemplate;
     }

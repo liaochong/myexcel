@@ -90,7 +90,11 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
     }
 
     private synchronized TemplateEngine doGetEngine(String dirPath) {
-        TemplateEngine templateEngine = new TemplateEngine();
+        TemplateEngine templateEngine = CFG_MAP.get(dirPath);
+        if (templateEngine != null) {
+            return templateEngine;
+        }
+        templateEngine = new TemplateEngine();
         TemplateResolver templateResolver;
         if (Objects.equals(dirPath, CLASSPATH)) {
             templateResolver = new ClassLoaderTemplateResolver();

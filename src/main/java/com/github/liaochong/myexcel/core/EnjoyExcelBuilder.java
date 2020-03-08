@@ -67,7 +67,11 @@ public class EnjoyExcelBuilder extends AbstractExcelBuilder {
     }
 
     private synchronized Engine doGetEngine(String dirPath) {
-        Engine engine = Engine.create("myexcel_" + dirPath);
+        Engine engine = CFG_MAP.get(dirPath);
+        if (engine != null) {
+            return engine;
+        }
+        engine = Engine.create("myexcel_" + dirPath);
         Engine.setFastMode(true);
         if (Objects.equals(dirPath, CLASSPATH)) {
             engine.setBaseTemplatePath(null);
