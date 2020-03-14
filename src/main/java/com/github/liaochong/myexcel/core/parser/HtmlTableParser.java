@@ -243,7 +243,7 @@ public class HtmlTableParser {
             String widthStr = td.getStyle().get("width");
             if (widthStr != null) {
                 int width = TdUtil.getValue(widthStr);
-                if (width > 0) {
+                if (width >= 0) {
                     colWidthMap.put(td.getCol(), width);
                 }
             }
