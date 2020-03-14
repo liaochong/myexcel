@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
@@ -319,6 +320,16 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         htmlToExcelStreamFactory.append(tr);
     }
 
+    public <E> void append(AbstractExcelBuilder excelBuilder, String templateFile, Map<String, E> renderData) {
+        excelBuilder.classpathTemplate(templateFile);
+        this.doAppend(excelBuilder, renderData);
+    }
+
+    public <E> void append(AbstractExcelBuilder excelBuilder, String templateDir, String templateFile, Map<String, E> renderData) {
+        excelBuilder.fileTemplate(templateDir, templateFile);
+        this.doAppend(excelBuilder, renderData);
+    }
+
     @Override
     public Workbook build() {
         return htmlToExcelStreamFactory.build();
@@ -351,5 +362,15 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     public void clear() {
         htmlToExcelStreamFactory.clear();
+    }
+
+    private <E> void doAppend(AbstractExcelBuilder excelBuilder, Map<String, E> renderData) {
+        List<Table> tables = excelBuilder.render(renderData, new ParseConfig(globalSetting.getWidthStrategy()));
+        if (tables == null || tables.isEmpty()) {
+            return;
+        }
+        for (Table table : tables) {
+            table.getTrList().forEach(htmlToExcelStreamFactory::append);
+        }
     }
 }

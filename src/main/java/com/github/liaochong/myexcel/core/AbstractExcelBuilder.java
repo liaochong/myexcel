@@ -15,6 +15,9 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
+import com.github.liaochong.myexcel.core.parser.ParseConfig;
+import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
@@ -25,6 +28,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -119,6 +123,22 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
      * @throws Exception 异常
      */
     protected abstract <T> void render(Map<String, T> renderData, Writer out) throws Exception;
+
+    /**
+     * 模板引擎渲染，返回渲染后的数据
+     *
+     * @param renderData 渲染数据
+     * @param <T>        被渲染数据类型
+     * @return 输出流，who create who close;
+     */
+    <T> List<Table> render(Map<String, T> renderData, ParseConfig parseConfig) {
+        try (Writer out = new StringWriter()) {
+            render(renderData, out);
+            return HtmlTableParser.of(out.toString()).getAllTable(parseConfig);
+        } catch (Exception e) {
+            throw ExcelBuildException.of("Failed to build excel", e);
+        }
+    }
 
     @Override
     public void close() throws IOException {

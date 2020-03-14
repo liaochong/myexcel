@@ -224,6 +224,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void setTdStyle(Tr tr) {
+        if (tr.isFromTemplate()) {
+            return;
+        }
         styleParser.toggle();
         for (int i = 0, size = tr.getTdList().size(); i < size; i++) {
             Td td = tr.getTdList().get(i);
