@@ -19,7 +19,7 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
+import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -82,7 +82,7 @@ abstract class AbstractReadHandler<T> {
         }
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
-        setGlobalSetting(dataType, isMapType);
+        setConfiguration(dataType, isMapType);
         setResultHandlerFunction(result, readConfig);
         setFieldHandlerFunction(isMapType);
     }
@@ -117,12 +117,12 @@ abstract class AbstractReadHandler<T> {
         }
     }
 
-    private void setGlobalSetting(Class<T> dataType, boolean isMapType) {
+    private void setConfiguration(Class<T> dataType, boolean isMapType) {
         if (isMapType) {
             return;
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
+        ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.getConfiguration());
 
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
         fields.forEach(field -> {

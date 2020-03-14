@@ -29,7 +29,7 @@ import java.util.Set;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GlobalSetting {
+public class Configuration {
     /**
      * The name of the sheet to be built
      */

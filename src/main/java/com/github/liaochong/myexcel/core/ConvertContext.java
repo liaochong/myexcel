@@ -34,7 +34,7 @@ public class ConvertContext {
     /**
      * {@link com.github.liaochong.myexcel.core.annotation.ExcelModel} setting
      */
-    GlobalSetting globalSetting = new GlobalSetting();
+    Configuration configuration = new Configuration();
 
     /**
      * {@link com.github.liaochong.myexcel.core.annotation.ExcelColumn} mapping
