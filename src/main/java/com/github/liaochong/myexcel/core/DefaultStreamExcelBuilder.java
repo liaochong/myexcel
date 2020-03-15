@@ -336,12 +336,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public <E> void append(String templateFilePath, Map<String, E> renderData) {
         excelBuilder.classpathTemplate(templateFilePath);
-        this.doAppend(excelBuilder, renderData);
+        this.doAppend(renderData);
     }
 
     public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
         excelBuilder.fileTemplate(templateDir, templateFileName);
-        this.doAppend(excelBuilder, renderData);
+        this.doAppend(renderData);
     }
 
     @Override
@@ -378,7 +378,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         htmlToExcelStreamFactory.clear();
     }
 
-    private <E> void doAppend(AbstractExcelBuilder excelBuilder, Map<String, E> renderData) {
+    private <E> void doAppend(Map<String, E> renderData) {
         List<Table> tables = excelBuilder.render(renderData, new ParseConfig(configuration.getWidthStrategy()));
         if (tables == null || tables.isEmpty()) {
             return;
