@@ -314,15 +314,14 @@ abstract class AbstractSimpleExcelBuilder {
             return tr;
         }
         tr.setColWidthMap(new HashMap<>());
-        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
-            Td td = new Td(0, i);
-            Pair<? extends Class, ?> pair = contents.get(i);
+        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(index -> {
+            Td td = new Td(0, index);
+            Pair<? extends Class, ?> pair = contents.get(index);
             this.setTdContent(td, pair);
             this.setTdContentType(td, pair.getKey());
-            td.setFormat(formats.get(i));
-
-            this.setFormula(i, td);
-            this.setTdWidth(tr, i, td);
+            td.setFormat(formats.get(index));
+            this.setFormula(index, td);
+            this.setTdWidth(tr.getColWidthMap(), td);
             return td;
         }).collect(Collectors.toList());
         customWidthMap.forEach(tr.getColWidthMap()::put);
@@ -330,17 +329,17 @@ abstract class AbstractSimpleExcelBuilder {
         return tr;
     }
 
-    private void setTdWidth(Tr tr, int i, Td td) {
+    private void setTdWidth(Map<Integer, Integer> colWidthMap, Td td) {
         if (!configuration.isComputeAutoWidth()) {
             return;
         }
         if (td.getFormat() == null) {
-            tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+            colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getContent()));
         } else {
             if (td.getContent() != null && td.getFormat().length() > td.getContent().length()) {
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getFormat()));
+                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat()));
             } else if (td.getDate() != null || td.getLocalDate() != null || td.getLocalDateTime() != null) {
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getFormat(), -0.15));
+                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat(), -0.15));
             }
         }
     }
