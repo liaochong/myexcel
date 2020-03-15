@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
+import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +83,10 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * 等待队列
      */
     private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
+    /**
+     * 模板构建器
+     */
+    private AbstractExcelBuilder excelBuilder;
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, null);
@@ -258,6 +263,15 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
+    public DefaultStreamExcelBuilder<T> templateExcelBuilder(Class<? extends AbstractExcelBuilder> excelBuilderClass) {
+        try {
+            excelBuilder = excelBuilderClass.newInstance();
+        } catch (Exception e) {
+            throw new ExcelBuildException("Instance template excel builder failure", e);
+        }
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作
      *
@@ -320,13 +334,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         htmlToExcelStreamFactory.append(tr);
     }
 
-    public <E> void append(AbstractExcelBuilder excelBuilder, String templateFile, Map<String, E> renderData) {
-        excelBuilder.classpathTemplate(templateFile);
+    public <E> void append(String templateFilePath, Map<String, E> renderData) {
+        excelBuilder.classpathTemplate(templateFilePath);
         this.doAppend(excelBuilder, renderData);
     }
 
-    public <E> void append(AbstractExcelBuilder excelBuilder, String templateDir, String templateFile, Map<String, E> renderData) {
-        excelBuilder.fileTemplate(templateDir, templateFile);
+    public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
+        excelBuilder.fileTemplate(templateDir, templateFileName);
         this.doAppend(excelBuilder, renderData);
     }
 
