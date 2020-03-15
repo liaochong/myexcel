@@ -317,19 +317,32 @@ abstract class AbstractSimpleExcelBuilder {
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
             Td td = new Td(0, i);
             Pair<? extends Class, ?> pair = contents.get(i);
-            setTdContent(td, pair);
-            setTdContentType(td, pair.getKey());
+            this.setTdContent(td, pair);
+            this.setTdContentType(td, pair.getKey());
             td.setFormat(formats.get(i));
 
             this.setFormula(i, td);
-            if (configuration.isComputeAutoWidth()) {
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
-            }
+            this.setTdWidth(tr, i, td);
             return td;
         }).collect(Collectors.toList());
         customWidthMap.forEach(tr.getColWidthMap()::put);
         tr.setTdList(tdList);
         return tr;
+    }
+
+    private void setTdWidth(Tr tr, int i, Td td) {
+        if (!configuration.isComputeAutoWidth()) {
+            return;
+        }
+        if (td.getFormat() == null) {
+            tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
+        } else {
+            if (td.getContent() != null && td.getFormat().length() > td.getContent().length()) {
+                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getFormat()));
+            } else if (td.getDate() != null || td.getLocalDate() != null || td.getLocalDateTime() != null) {
+                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getFormat(), -0.15));
+            }
+        }
     }
 
     private void setFormula(int i, Td td) {
