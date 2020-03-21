@@ -14,11 +14,14 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import java.io.File;
+
 /**
  * @author liaochong
  * @version 1.0
  */
 public class BasicTest {
 
-    public static final String TEST_DIR = "/Users/liaochong/";
+    public static final String TEST_DIR = new File("myexcel").getAbsolutePath() + File.separator;
+    public static final String TEST_RESOURCES_DIR = new File("src/test/resources").getAbsolutePath() + File.separator;
 }

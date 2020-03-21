@@ -42,7 +42,7 @@ public class EnjoyExcelBuilderTest extends BasicTest {
         ExcelBuilder excelBuilder = new EnjoyExcelBuilder();
         Map<String, String> params = new HashMap<>();
         params.put("sheetName", "xxxx");
-        Workbook workbook = excelBuilder.fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "enjoyToExcelExample.ey").build(params);
+        Workbook workbook = excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates", "enjoyToExcelExample.ey").build(params);
         FileExportUtil.export(workbook, new File(TEST_DIR + "enjoy_file_build.xlsx"));
     }
 
