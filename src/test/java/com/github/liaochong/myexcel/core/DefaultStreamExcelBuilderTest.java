@@ -51,7 +51,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .width(1, 20)
                 .fieldDisplayOrder(titles).titles(titles).build(list);
 //        workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
-        FileExportUtil.export(workbook, new File(TEST_DIR + "map_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "map_build.xlsx"));
     }
 
     @Test
@@ -63,7 +63,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 5000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "common_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
         }
     }
 
@@ -75,7 +75,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "custom_width_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "custom_width_build.xlsx"));
         }
     }
 
@@ -94,7 +94,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                     .fixedTitles()
                     .start();
             data(excelBuilder, 10000);
-            FileExportUtil.export(workbook, new File(TEST_DIR + "continue_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "continue_build.xlsx"));
         } catch (Throwable e) {
             if (excelBuilder != null) {
                 excelBuilder.clear();
@@ -151,7 +151,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 65500);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "big_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "big_build.xlsx"));
         }
     }
 
@@ -162,7 +162,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             customStyleData(excelBuilder, 1000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "custom_style_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "custom_style_build.xlsx"));
         }
     }
 
@@ -174,7 +174,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             oddEvenData(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "odd_even_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "odd_even_build.xlsx"));
         }
     }
 
@@ -187,7 +187,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "group_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "group_build.xlsx"));
         }
     }
 
@@ -198,7 +198,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             widthEvenData(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "width_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "width_build.xlsx"));
         }
     }
 
@@ -209,7 +209,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             formulaData(excelBuilder, 100);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "formula_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "formula_build.xlsx"));
         }
     }
 

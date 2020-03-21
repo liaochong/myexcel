@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 /**
  * @author liaochong
@@ -22,6 +23,7 @@ import java.io.File;
  */
 public class BasicTest {
 
-    public static final String TEST_DIR = new File("myexcel").getAbsolutePath() + File.separator;
-    public static final String TEST_RESOURCES_DIR = new File("src/test/resources").getAbsolutePath() + File.separator;
+    public static final String TEST_OUTPUT_DIR = new File("myexcel").getAbsolutePath() + File.separator;
+    public static final String TEST_RESOURCES_DIR = Paths.get("src","test","resources").toFile()
+                                                         .getAbsolutePath() + File.separator;
 }

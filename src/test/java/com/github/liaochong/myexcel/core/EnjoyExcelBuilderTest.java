@@ -34,7 +34,7 @@ public class EnjoyExcelBuilderTest extends BasicTest {
         Map<String, String> params = new HashMap<>();
         params.put("sheetName", "xxxx");
         Workbook workbook = excelBuilder.classpathTemplate("/templates/enjoyToExcelExample.ey").build(params);
-        FileExportUtil.export(workbook, new File(TEST_DIR + "enjoy_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "enjoy_build.xlsx"));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class EnjoyExcelBuilderTest extends BasicTest {
         Map<String, String> params = new HashMap<>();
         params.put("sheetName", "xxxx");
         Workbook workbook = excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates", "enjoyToExcelExample.ey").build(params);
-        FileExportUtil.export(workbook, new File(TEST_DIR + "enjoy_file_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "enjoy_file_build.xlsx"));
     }
 
 }
