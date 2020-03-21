@@ -70,6 +70,7 @@ public abstract class AbstractTemplateHandler<T, E> implements TemplateHandler {
      * @param <F>        被渲染数据类型
      * @return 输出流，who create who close;
      */
+    @Override
     public <F> List<Table> render(Map<String, F> renderData, ParseConfig parseConfig) throws Exception {
         String template = render(renderData);
         return HtmlTableParser.of(template).getAllTable(parseConfig);
