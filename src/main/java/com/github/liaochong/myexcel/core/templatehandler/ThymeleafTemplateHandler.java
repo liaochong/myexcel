@@ -69,12 +69,12 @@ public class ThymeleafTemplateHandler extends AbstractTemplateHandler<TemplateEn
     protected void setTemplateEngine(String dirPath, Supplier<TemplateEngine> supplier, String fileName) {
         templateEngine = CFG_MAP.get(dirPath);
         if (templateEngine == null) {
-            templateEngine = getConfiguration(dirPath);
+            templateEngine = getTemplateEngineSupplier(dirPath);
         }
     }
 
     @Override
-    protected TemplateEngine getConfiguration(String dirPath) {
+    protected TemplateEngine getTemplateEngineSupplier(String dirPath) {
         synchronized (ThymeleafTemplateHandler.class) {
             TemplateEngine templateEngine = CFG_MAP.get(dirPath);
             if (templateEngine != null) {

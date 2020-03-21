@@ -56,7 +56,7 @@ public class VelocityTemplateHandler extends AbstractTemplateHandler<Template, T
     }
 
     @Override
-    protected Template getConfiguration(String dirPath) {
+    protected Template getTemplateEngineSupplier(String dirPath) {
         return null;
     }
 

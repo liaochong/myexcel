@@ -41,7 +41,7 @@ public class EnjoyTemplateHandler extends AbstractTemplateHandler<Engine, Templa
     }
 
     @Override
-    protected Engine getConfiguration(String dirPath) {
+    protected Engine getTemplateEngineSupplier(String dirPath) {
         synchronized (EnjoyTemplateHandler.class) {
             Engine engine = CFG_MAP.get(dirPath);
             if (engine != null) {

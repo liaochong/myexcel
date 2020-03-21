@@ -67,7 +67,7 @@ public class GroovyTemplateHandler extends AbstractTemplateHandler<Template, Tem
     }
 
     @Override
-    protected Template getConfiguration(String dirPath) {
+    protected Template getTemplateEngineSupplier(String dirPath) {
         return null;
     }
 

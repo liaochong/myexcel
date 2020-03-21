@@ -50,7 +50,7 @@ public class FreemarkerTemplateHandler extends AbstractTemplateHandler<Configura
     }
 
     @Override
-    protected Configuration getConfiguration(String dirPath) {
+    protected Configuration getTemplateEngineSupplier(String dirPath) {
         synchronized (FreemarkerTemplateHandler.class) {
             Configuration configuration = CFG_MAP.get(dirPath);
             if (configuration != null) {

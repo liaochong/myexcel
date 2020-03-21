@@ -49,7 +49,7 @@ public class BeetlTemplateHandler extends AbstractTemplateHandler<GroupTemplate,
     }
 
     @Override
-    protected GroupTemplate getConfiguration(String dirPath) {
+    protected GroupTemplate getTemplateEngineSupplier(String dirPath) {
         synchronized (BeetlTemplateHandler.class) {
             GroupTemplate groupTemplate = CFG_MAP.get(dirPath);
             if (groupTemplate != null) {

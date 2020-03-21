@@ -11,9 +11,6 @@ import java.util.Map;
  * @version 1.0
  */
 public interface TemplateHandler {
-
-    String CLASSPATH = "classpath";
-
     /**
      * 类路径模板
      *
@@ -37,7 +34,6 @@ public interface TemplateHandler {
      * @param renderData 被渲染的数据
      * @param <E>        被渲染数据类型
      * @return 模板字符流
-     * @throws Exception
      */
     <E> String render(Map<String, E> renderData);
 
