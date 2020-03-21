@@ -33,10 +33,7 @@ public class EnjoyTemplateHandler extends AbstractTemplateHandler<Engine, Templa
 
     @Override
     protected void setTemplateEngine(String dirPath, Supplier<Engine> supplier, String fileName) {
-        Engine engine = CFG_MAP.get(dirPath);
-        if (engine == null) {
-            engine = supplier.get();
-        }
+        Engine engine = CFG_MAP.getOrDefault(dirPath, supplier.get());
         templateEngine = engine.getTemplate(fileName);
     }
 

@@ -66,14 +66,12 @@ public abstract class AbstractTemplateHandler<T, E> implements TemplateHandler {
 
     @Override
     public <F> String render(Map<String, F> renderData) {
-        String template;
         try (Writer out = new StringWriter()) {
             render(renderData, out);
-            template = out.toString();
+            return out.toString();
         } catch (Exception e) {
             throw ExcelBuildException.of("Failed to render template", e);
         }
-        return template;
     }
 
     protected abstract <F> void render(Map<String, F> renderData, Writer out) throws Exception;

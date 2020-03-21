@@ -38,10 +38,7 @@ public class FreemarkerTemplateHandler extends AbstractTemplateHandler<Configura
 
     @Override
     protected void setTemplateEngine(String dirPath, Supplier<Configuration> supplier, String fileName) {
-        Configuration configuration = CFG_MAP.get(dirPath);
-        if (configuration == null) {
-            configuration = supplier.get();
-        }
+        Configuration configuration = CFG_MAP.getOrDefault(dirPath, supplier.get());
         try {
             templateEngine = configuration.getTemplate(fileName);
         } catch (IOException e) {

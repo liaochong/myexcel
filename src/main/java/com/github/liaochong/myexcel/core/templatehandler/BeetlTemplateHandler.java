@@ -41,10 +41,7 @@ public class BeetlTemplateHandler extends AbstractTemplateHandler<GroupTemplate,
 
     @Override
     protected void setTemplateEngine(String dirPath, Supplier<GroupTemplate> supplier, String fileName) {
-        GroupTemplate groupTemplate = CFG_MAP.get(dirPath);
-        if (groupTemplate == null) {
-            groupTemplate = supplier.get();
-        }
+        GroupTemplate groupTemplate = CFG_MAP.getOrDefault(dirPath, supplier.get());
         templateEngine = groupTemplate.getTemplate(fileName);
     }
 
