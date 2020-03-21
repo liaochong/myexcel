@@ -15,19 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.exception.ExcelBuildException;
-import groovy.lang.Writable;
-import groovy.text.Template;
-import groovy.text.markup.MarkupTemplateEngine;
-import groovy.text.markup.TemplateConfiguration;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import com.github.liaochong.myexcel.core.templatehandler.GroovyTemplateHandler;
 
 /**
  * @author liaochong
@@ -35,39 +23,7 @@ import java.util.Map;
  */
 public class GroovyExcelBuilder extends AbstractExcelBuilder {
 
-    private static final MarkupTemplateEngine ENGINE;
-
-    static {
-        TemplateConfiguration config = new TemplateConfiguration();
-        ENGINE = new MarkupTemplateEngine(config);
-    }
-
-    private Template template;
-
-    @Override
-    public ExcelBuilder classpathTemplate(String path) {
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-             Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-            template = ENGINE.createTemplate(reader);
-            return this;
-        } catch (ClassNotFoundException | IOException e) {
-            throw ExcelBuildException.of("Failed to get groovy template", e);
-        }
-    }
-
-    @Override
-    public ExcelBuilder template(String path) {
-        return classpathTemplate(path);
-    }
-
-
-    @Override
-    protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
-        checkTemplate(template);
-        Writable output = template.make(renderData);
-        output.writeTo(out);
+    public GroovyExcelBuilder() {
+        super(GroovyTemplateHandler.class);
     }
 }

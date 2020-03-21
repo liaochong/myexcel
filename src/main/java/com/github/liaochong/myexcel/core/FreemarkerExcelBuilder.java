@@ -15,19 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.exception.ExcelBuildException;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateExceptionHandler;
-import org.apache.commons.codec.CharEncoding;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Supplier;
+import com.github.liaochong.myexcel.core.templatehandler.FreemarkerTemplateHandler;
 
 /**
  * freemarker的excel创建者
@@ -36,59 +24,7 @@ import java.util.function.Supplier;
  * @version 1.0
  */
 public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
-
-    private static final Map<String, Configuration> CFG_MAP = new HashMap<>();
-
-    private Template template;
-
-    @Override
-    public ExcelBuilder classpathTemplate(String path) {
-        doSetTemplate(CLASSPATH, () -> this.doGetConfiguration(CLASSPATH), path);
-        return this;
-    }
-
-    @Override
-    public ExcelBuilder fileTemplate(String dirPath, String fileName) {
-        doSetTemplate(dirPath, () -> this.doGetConfiguration(dirPath), fileName);
-        return this;
-    }
-
-    private void doSetTemplate(String dirPath, Supplier<Configuration> supplier, String fileName) {
-        Configuration configuration = CFG_MAP.get(dirPath);
-        if (configuration == null) {
-            configuration = supplier.get();
-        }
-        try {
-            template = configuration.getTemplate(fileName);
-        } catch (IOException e) {
-            throw ExcelBuildException.of("Failed to get freemarker template", e);
-        }
-    }
-
-    @Override
-    protected <T> void render(Map<String, T> data, Writer out) throws Exception {
-        checkTemplate(template);
-        template.process(data, out);
-    }
-
-    private synchronized Configuration doGetConfiguration(String dirPath) {
-        Configuration configuration = CFG_MAP.get(dirPath);
-        if (configuration != null) {
-            return configuration;
-        }
-        configuration = new Configuration(Configuration.VERSION_2_3_23);
-        configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        configuration.setDefaultEncoding(CharEncoding.UTF_8);
-        try {
-            if (Objects.equals(dirPath, CLASSPATH)) {
-                configuration.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), "/");
-            } else {
-                configuration.setDirectoryForTemplateLoading(new File(dirPath));
-            }
-        } catch (IOException e) {
-            throw new ExcelBuildException("Set Freemarker directory failure", e);
-        }
-        CFG_MAP.put(dirPath, configuration);
-        return configuration;
+    public FreemarkerExcelBuilder() {
+        super(FreemarkerTemplateHandler.class);
     }
 }

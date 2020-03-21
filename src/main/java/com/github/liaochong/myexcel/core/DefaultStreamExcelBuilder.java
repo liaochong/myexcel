@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
+import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
@@ -84,9 +85,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
     /**
-     * 模板构建器
+     * 模板处理器
      */
-    private AbstractExcelBuilder excelBuilder;
+    private TemplateHandler templateHandler;
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, null);
@@ -263,9 +264,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> templateExcelBuilder(Class<? extends AbstractExcelBuilder> excelBuilderClass) {
+    public DefaultStreamExcelBuilder<T> templateHandler(Class<? extends TemplateHandler> templateHandlerClass) {
         try {
-            excelBuilder = excelBuilderClass.newInstance();
+            templateHandler = templateHandlerClass.newInstance();
         } catch (Exception e) {
             throw new ExcelBuildException("Instance template excel builder failure", e);
         }
@@ -335,12 +336,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public <E> void append(String templateFilePath, Map<String, E> renderData) {
-        excelBuilder.classpathTemplate(templateFilePath);
+        templateHandler.classpathTemplate(templateFilePath);
         this.doAppend(renderData);
     }
 
     public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
-        excelBuilder.fileTemplate(templateDir, templateFileName);
+        templateHandler.fileTemplate(templateDir, templateFileName);
         this.doAppend(renderData);
     }
 
@@ -379,7 +380,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     private <E> void doAppend(Map<String, E> renderData) {
-        List<Table> tables = excelBuilder.render(renderData, new ParseConfig(configuration.getWidthStrategy()));
+        List<Table> tables;
+        try {
+            tables = templateHandler.render(renderData, new ParseConfig(configuration.getWidthStrategy()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (tables == null || tables.isEmpty()) {
             return;
         }
