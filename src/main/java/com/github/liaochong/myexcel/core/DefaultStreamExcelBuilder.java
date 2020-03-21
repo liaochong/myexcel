@@ -23,7 +23,6 @@ import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
-import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -265,11 +264,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> templateHandler(Class<? extends TemplateHandler> templateHandlerClass) {
-        try {
-            templateHandler = templateHandlerClass.newInstance();
-        } catch (Exception e) {
-            throw new ExcelBuildException("Instance template excel builder failure", e);
-        }
+        templateHandler = ReflectUtil.newInstance(templateHandlerClass);
         return this;
     }
 

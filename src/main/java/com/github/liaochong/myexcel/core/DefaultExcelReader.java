@@ -416,12 +416,7 @@ public class DefaultExcelReader<T> {
     }
 
     private T instanceObj(Map<Integer, Field> fieldMap, DataFormatter formatter, Row row) {
-        T obj;
-        try {
-            obj = dataType.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        T obj = ReflectUtil.newInstance(dataType);
         fieldMap.forEach((index, field) -> {
             if (field.getType() == InputStream.class) {
                 convertPicture(row, obj, index, field);

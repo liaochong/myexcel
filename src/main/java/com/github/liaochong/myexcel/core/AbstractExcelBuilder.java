@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -41,11 +42,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     AbstractExcelBuilder(Class<? extends TemplateHandler> templateHandlerClass) {
         widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
-        try {
-            this.templateHandler = templateHandlerClass.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        this.templateHandler = ReflectUtil.newInstance(templateHandlerClass);
     }
 
     @Override

@@ -107,13 +107,7 @@ abstract class AbstractReadHandler<T> {
         if (isMapType) {
             newInstance = () -> (T) new LinkedHashMap<Cell, String>();
         } else {
-            newInstance = () -> {
-                try {
-                    return dataType.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            };
+            newInstance = () -> ReflectUtil.newInstance(dataType);
         }
     }
 
