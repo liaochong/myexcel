@@ -40,8 +40,7 @@ import java.util.stream.Collectors;
  */
 public class StringsCache implements Cache<Integer, String> {
 
-    private static final String LINE_SEPARATOR = java.security.AccessController.doPrivileged(
-            new sun.security.action.GetPropertyAction("line.separator"));
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private static final int MAX_SIZE_PATH = 1000;
 
