@@ -91,7 +91,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         try {
             return HtmlToExcelFactory.readHtml(template, htmlToExcelFactory).build();
         } catch (Exception e) {
-            throw new ExcelBuildException("Parse html failure", e);
+            throw new ExcelBuildException("Build excel failure", e);
         }
     }
 
