@@ -30,22 +30,27 @@ public final class MyExcelConfiguration {
 
     private static Path temporaryFileDirectory;
 
-    static {
-        try {
-            temporaryFileDirectory = Paths.get(Paths.get(new File("").getCanonicalPath()) + "/myexcel");
-            if (!temporaryFileDirectory.toFile().exists()) {
-                temporaryFileDirectory = Files.createDirectory(temporaryFileDirectory);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static void setTemporaryFileDirectory(Path temporaryFileDirectory) {
         MyExcelConfiguration.temporaryFileDirectory = temporaryFileDirectory;
     }
 
     public static Path temporaryFileDirectory() {
-        return temporaryFileDirectory;
+        if (temporaryFileDirectory != null) {
+            return temporaryFileDirectory;
+        }
+        synchronized (MyExcelConfiguration.class) {
+            if (temporaryFileDirectory != null) {
+                return temporaryFileDirectory;
+            }
+            try {
+                temporaryFileDirectory = Paths.get(Paths.get(new File("").getCanonicalPath()) + "/myexcel");
+                if (!temporaryFileDirectory.toFile().exists()) {
+                    temporaryFileDirectory = Files.createDirectory(temporaryFileDirectory);
+                }
+                return temporaryFileDirectory;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
