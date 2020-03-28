@@ -19,7 +19,6 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
-import org.thymeleaf.templateresolver.TemplateResolver;
 
 import java.io.File;
 import java.io.Writer;
@@ -78,17 +77,18 @@ public class ThymeleafTemplateHandler extends AbstractTemplateHandler<TemplateEn
                 return templateEngine;
             }
             templateEngine = new TemplateEngine();
-            TemplateResolver templateResolver;
             if (Objects.equals(dirPath, CLASSPATH)) {
-                templateResolver = new ClassLoaderTemplateResolver();
+                ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
                 templateResolver.setCacheable(true);
+                templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                templateEngine.setTemplateResolver(templateResolver);
             } else {
-                templateResolver = new FileTemplateResolver();
+                FileTemplateResolver templateResolver = new FileTemplateResolver();
                 templateResolver.setPrefix(dirPath);
                 templateResolver.setCacheable(false);
+                templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                templateEngine.setTemplateResolver(templateResolver);
             }
-            templateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            templateEngine.setTemplateResolver(templateResolver);
             CFG_MAP.put(dirPath, templateEngine);
             return templateEngine;
         }
