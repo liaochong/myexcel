@@ -36,7 +36,7 @@ class FreemarkerExcelBuilderTest extends BasicTest {
         try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
             Map<String, Object> dataMap = this.getDataMap();
             Workbook workbook = excelBuilder.classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);
-            FileExportUtil.export(workbook, new File(TEST_DIR + "freemarker_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_build.xlsx"));
         }
     }
 
@@ -44,8 +44,8 @@ class FreemarkerExcelBuilderTest extends BasicTest {
     public void fileTest() throws Exception {
         try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
             Map<String, Object> dataMap = this.getDataMap();
-            Workbook workbook = excelBuilder.fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "freemarkerToExcelExample.ftl").build(dataMap);
-            FileExportUtil.export(workbook, new File(TEST_DIR + "freemarker_file_build.xlsx"));
+            Workbook workbook = excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates", "freemarkerToExcelExample.ftl").build(dataMap);
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_file_build.xlsx"));
         }
     }
 

@@ -35,16 +35,16 @@ public class BeetlExcelBuilderTest extends BasicTest {
     public void build() throws Exception {
         ExcelBuilder excelBuilder = new BeetlExcelBuilder();
         Workbook workbook = excelBuilder.classpathTemplate("/templates/beetlToExcelExample.btl").build(getDataMap());
-        FileExportUtil.export(workbook, new File(TEST_DIR + "beetl_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "beetl_build.xlsx"));
     }
 
     @Test
     public void fileBuild() throws Exception {
         ExcelBuilder excelBuilder = new BeetlExcelBuilder();
         Workbook workbook = excelBuilder
-                .fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "beetlToExcelExample.btl")
+                .fileTemplate(TEST_RESOURCES_DIR + "templates", "beetlToExcelExample.btl")
                 .build(getDataMap());
-        FileExportUtil.export(workbook, new File(TEST_DIR + "beetl_file_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "beetl_file_build.xlsx"));
     }
 
     private Map<String, Object> getDataMap() {

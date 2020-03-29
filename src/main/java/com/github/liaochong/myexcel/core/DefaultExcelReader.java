@@ -19,7 +19,7 @@ import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
-import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
+import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import lombok.NonNull;
@@ -104,7 +104,7 @@ public class DefaultExcelReader<T> {
         // 全局配置获取
         if (dataType != Map.class) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            GlobalSettingUtil.setGlobalSetting(classFieldContainer, convertContext.getGlobalSetting());
+            ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.getConfiguration());
 
             List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             fields.forEach(field -> {
@@ -416,12 +416,7 @@ public class DefaultExcelReader<T> {
     }
 
     private T instanceObj(Map<Integer, Field> fieldMap, DataFormatter formatter, Row row) {
-        T obj;
-        try {
-            obj = dataType.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        T obj = ReflectUtil.newInstance(dataType);
         fieldMap.forEach((index, field) -> {
             if (field.getType() == InputStream.class) {
                 convertPicture(row, obj, index, field);

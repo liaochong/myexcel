@@ -16,11 +16,13 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
+import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +83,10 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * 等待队列
      */
     private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
+    /**
+     * 模板处理器
+     */
+    private TemplateHandler templateHandler;
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, null);
@@ -90,7 +96,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         super(false);
         this.dataType = dataType;
         this.workbook = workbook;
-        globalSetting.setWidthStrategy(WidthStrategy.NO_AUTO);
+        configuration.setWidthStrategy(WidthStrategy.NO_AUTO);
         this.isMapBuild = dataType == Map.class;
     }
 
@@ -146,7 +152,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
-        globalSetting.setSheetName(sheetName);
+        configuration.setSheetName(sheetName);
         return this;
     }
 
@@ -159,7 +165,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
         }
-        globalSetting.setWorkbookType(workbookType);
+        configuration.setWorkbookType(workbookType);
         return this;
     }
 
@@ -174,13 +180,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
-        globalSetting.setWidthStrategy(widthStrategy);
+        configuration.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
     public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
-        globalSetting.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
+        configuration.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
 
@@ -253,7 +259,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public DefaultStreamExcelBuilder<T> style(String... styles) {
         this.styleParser.setNoStyle(false);
-        globalSetting.setStyle(Arrays.stream(styles).collect(Collectors.toSet()));
+        configuration.setStyle(Arrays.stream(styles).collect(Collectors.toSet()));
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> templateHandler(Class<? extends TemplateHandler> templateHandlerClass) {
+        templateHandler = ReflectUtil.newInstance(templateHandlerClass);
         return this;
     }
 
@@ -271,9 +282,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles, styleParser);
-        htmlToExcelStreamFactory.widthStrategy(globalSetting.getWidthStrategy());
+        htmlToExcelStreamFactory.widthStrategy(configuration.getWidthStrategy());
         if (workbook == null) {
-            htmlToExcelStreamFactory.workbookType(globalSetting.getWorkbookType());
+            htmlToExcelStreamFactory.workbookType(configuration.getWorkbookType());
         }
         Table table = this.createTable();
         htmlToExcelStreamFactory.start(table, workbook);
@@ -319,6 +330,16 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         htmlToExcelStreamFactory.append(tr);
     }
 
+    public <E> void append(String templateFilePath, Map<String, E> renderData) {
+        templateHandler.classpathTemplate(templateFilePath);
+        this.doAppend(renderData);
+    }
+
+    public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
+        templateHandler.fileTemplate(templateDir, templateFileName);
+        this.doAppend(renderData);
+    }
+
     @Override
     public Workbook build() {
         return htmlToExcelStreamFactory.build();
@@ -351,5 +372,20 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     public void clear() {
         htmlToExcelStreamFactory.clear();
+    }
+
+    private <E> void doAppend(Map<String, E> renderData) {
+        List<Table> tables;
+        try {
+            tables = templateHandler.render(renderData, new ParseConfig(configuration.getWidthStrategy()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (tables == null || tables.isEmpty()) {
+            return;
+        }
+        for (Table table : tables) {
+            table.getTrList().forEach(htmlToExcelStreamFactory::append);
+        }
     }
 }

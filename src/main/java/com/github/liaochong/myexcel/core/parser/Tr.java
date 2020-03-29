@@ -51,9 +51,19 @@ public class Tr {
      * 行高度
      */
     int height;
+    /**
+     * 是否来源于模板
+     */
+    boolean fromTemplate;
 
     public Tr(int index, int height) {
         this.index = index;
         this.height = height;
+    }
+
+    public Tr(int index, int height, boolean fromTemplate) {
+        this.index = index;
+        this.height = height;
+        this.fromTemplate = fromTemplate;
     }
 }

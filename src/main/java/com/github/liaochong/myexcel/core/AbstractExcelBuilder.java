@@ -17,16 +17,15 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
+import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * excel创建者接口
@@ -37,12 +36,13 @@ import java.util.Objects;
 @Slf4j
 public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
-    protected static final String CLASSPATH = "classpath";
+    protected TemplateHandler templateHandler;
 
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
-    AbstractExcelBuilder() {
+    AbstractExcelBuilder(Class<? extends TemplateHandler> templateHandlerClass) {
         widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
+        this.templateHandler = ReflectUtil.newInstance(templateHandlerClass);
     }
 
     @Override
@@ -87,16 +87,18 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
      */
     @Override
     public <T> Workbook build(Map<String, T> data) {
-        try (Writer out = new StringWriter()) {
-            render(data, out);
-            return HtmlToExcelFactory.readHtml(out.toString(), htmlToExcelFactory).build();
+        String template = templateHandler.render(data);
+        try {
+            return HtmlToExcelFactory.readHtml(template, htmlToExcelFactory).build();
         } catch (Exception e) {
-            throw ExcelBuildException.of("Failed to build excel", e);
+            throw new ExcelBuildException("Build excel failure", e);
         }
     }
 
-    protected <T> void checkTemplate(T template) {
-        Objects.requireNonNull(template, "The template cannot be null. Please set the template first.");
+    @Override
+    public ExcelBuilder classpathTemplate(String path) {
+        templateHandler.classpathTemplate(path);
+        return this;
     }
 
     @Deprecated
@@ -107,18 +109,9 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     @Override
     public ExcelBuilder fileTemplate(String dirPath, String fileName) {
-        throw new UnsupportedOperationException();
+        templateHandler.fileTemplate(dirPath, fileName);
+        return this;
     }
-
-    /**
-     * 模板引擎渲染
-     *
-     * @param renderData 渲染数据
-     * @param out        输出流，who create who close;
-     * @param <T>        被渲染数据类型
-     * @throws Exception 异常
-     */
-    protected abstract <T> void render(Map<String, T> renderData, Writer out) throws Exception;
 
     @Override
     public void close() throws IOException {

@@ -31,15 +31,15 @@ public class ThymeleafExcelBuilderTest extends BasicTest {
     public void build() throws Exception {
         ExcelBuilder excelBuilder = new ThymeleafExcelBuilder();
         Workbook workbook = excelBuilder.classpathTemplate("/templates/thymeleafToExcelExample.html").build(new HashMap<>());
-        FileExportUtil.export(workbook, new File(TEST_DIR + "thymeleaf_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "thymeleaf_build.xlsx"));
     }
 
     @Test
     public void fileBuild() throws Exception {
         ExcelBuilder excelBuilder = new ThymeleafExcelBuilder();
         Workbook workbook = excelBuilder
-                .fileTemplate("/Users/liaochong/Develop/Intellij Idea/Workspace/Git/myexcel/src/test/resources/templates", "thymeleafToExcelExample.html")
+                .fileTemplate(TEST_RESOURCES_DIR + "templates", "thymeleafToExcelExample.html")
                 .build(new HashMap<>());
-        FileExportUtil.export(workbook, new File(TEST_DIR + "thymeleaf_file_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "thymeleaf_file_build.xlsx"));
     }
 }

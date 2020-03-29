@@ -33,7 +33,7 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
-import com.github.liaochong.myexcel.utils.GlobalSettingUtil;
+import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -99,7 +99,7 @@ abstract class AbstractSimpleExcelBuilder {
      */
     private ConvertContext convertContext;
 
-    protected GlobalSetting globalSetting;
+    protected Configuration configuration;
 
     private Map<Field, ExcelColumnMapping> excelColumnMappingMap;
 
@@ -108,7 +108,7 @@ abstract class AbstractSimpleExcelBuilder {
 
     public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
         convertContext = new ConvertContext(isCsvBuild);
-        globalSetting = convertContext.getGlobalSetting();
+        configuration = convertContext.getConfiguration();
         excelColumnMappingMap = convertContext.getExcelColumnMappingMap();
     }
 
@@ -120,7 +120,7 @@ abstract class AbstractSimpleExcelBuilder {
      * @return Field
      */
     protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        GlobalSettingUtil.setGlobalSetting(classFieldContainer, globalSetting);
+        ConfigurationUtil.parseConfiguration(classFieldContainer, configuration);
         this.parseGlobalStyle();
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
         List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
@@ -132,7 +132,7 @@ abstract class AbstractSimpleExcelBuilder {
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
             String[] columnStyles = null;
             if (excelColumn != null) {
-                if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
+                if (configuration.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
                     titles.add(field.getName());
                 } else {
                     titles.add(excelColumn.title());
@@ -156,7 +156,7 @@ abstract class AbstractSimpleExcelBuilder {
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
                 excelColumnMappingMap.put(field, mapping);
             } else {
-                if (globalSetting.isUseFieldNameAsTitle()) {
+                if (configuration.isUseFieldNameAsTitle()) {
                     titles.add(field.getName());
                 } else {
                     titles.add(null);
@@ -170,7 +170,7 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     protected void parseGlobalStyle() {
-        styleParser.parse(globalSetting.getStyle());
+        styleParser.parse(configuration.getStyle());
     }
 
     private void setGlobalFormat(int i, Field field) {
@@ -178,12 +178,12 @@ abstract class AbstractSimpleExcelBuilder {
             return;
         }
         if (field.getType() == LocalDate.class) {
-            formats.put(i, globalSetting.getDateFormat());
+            formats.put(i, configuration.getDateFormat());
         } else if (ReflectUtil.isDate(field.getType())) {
-            formats.put(i, globalSetting.getDateTimeFormat());
+            formats.put(i, configuration.getDateTimeFormat());
         } else if (ReflectUtil.isNumber(field.getType())) {
-            if (globalSetting.getDecimalFormat() != null) {
-                formats.put(i, globalSetting.getDecimalFormat());
+            if (configuration.getDecimalFormat() != null) {
+                formats.put(i, configuration.getDecimalFormat());
             }
         }
     }
@@ -195,7 +195,7 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected Table createTable() {
         Table table = new Table();
-        table.setCaption(globalSetting.getSheetName());
+        table.setCaption(configuration.getSheetName());
         table.setTrList(new LinkedList<>());
         return table;
     }
@@ -217,7 +217,7 @@ abstract class AbstractSimpleExcelBuilder {
                 continue;
             }
             List<Td> tds = new ArrayList<>();
-            String[] multiTitles = title.split(globalSetting.getTitleSeparator());
+            String[] multiTitles = title.split(configuration.getTitleSeparator());
             if (multiTitles.length > titleLevel) {
                 titleLevel = multiTitles.length;
             }
@@ -285,9 +285,9 @@ abstract class AbstractSimpleExcelBuilder {
         }
         Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
         List<Tr> trs = new ArrayList<>();
-        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(globalSetting.getWidthStrategy());
+        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(configuration.getWidthStrategy());
         rowTds.forEach((k, v) -> {
-            Tr tr = new Tr(k, globalSetting.getTitleRowHeight());
+            Tr tr = new Tr(k, configuration.getTitleRowHeight());
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
@@ -309,27 +309,39 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 内容行
      */
     protected Tr createTr(List<Pair<? extends Class, ?>> contents) {
-        Tr tr = new Tr(0, globalSetting.getRowHeight());
+        Tr tr = new Tr(0, configuration.getRowHeight());
         if (contents.isEmpty()) {
             return tr;
         }
         tr.setColWidthMap(new HashMap<>());
-        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
-            Td td = new Td(0, i);
-            Pair<? extends Class, ?> pair = contents.get(i);
-            setTdContent(td, pair);
-            setTdContentType(td, pair.getKey());
-            td.setFormat(formats.get(i));
-
-            this.setFormula(i, td);
-            if (globalSetting.isComputeAutoWidth()) {
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
-            }
+        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(index -> {
+            Td td = new Td(0, index);
+            Pair<? extends Class, ?> pair = contents.get(index);
+            this.setTdContent(td, pair);
+            this.setTdContentType(td, pair.getKey());
+            td.setFormat(formats.get(index));
+            this.setFormula(index, td);
+            this.setTdWidth(tr.getColWidthMap(), td);
             return td;
         }).collect(Collectors.toList());
         customWidthMap.forEach(tr.getColWidthMap()::put);
         tr.setTdList(tdList);
         return tr;
+    }
+
+    private void setTdWidth(Map<Integer, Integer> colWidthMap, Td td) {
+        if (!configuration.isComputeAutoWidth()) {
+            return;
+        }
+        if (td.getFormat() == null) {
+            colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getContent()));
+        } else {
+            if (td.getContent() != null && td.getFormat().length() > td.getContent().length()) {
+                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat()));
+            } else if (td.getDate() != null || td.getLocalDate() != null || td.getLocalDateTime() != null) {
+                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat(), -0.15));
+            }
+        }
     }
 
     private void setFormula(int i, Td td) {
@@ -439,14 +451,14 @@ abstract class AbstractSimpleExcelBuilder {
                     .collect(Collectors.toList());
         }
         List<Field> preElectionFields;
-        if (globalSetting.isIncludeAllField()) {
-            if (globalSetting.isExcludeParent()) {
+        if (configuration.isIncludeAllField()) {
+            if (configuration.isExcludeParent()) {
                 preElectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preElectionFields = classFieldContainer.getFields();
             }
         } else {
-            if (globalSetting.isExcludeParent()) {
+            if (configuration.isExcludeParent()) {
                 preElectionFields = classFieldContainer.getDeclaredFields().stream()
                         .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
                         .collect(Collectors.toList());
@@ -454,7 +466,7 @@ abstract class AbstractSimpleExcelBuilder {
                 preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             }
         }
-        if (globalSetting.isIgnoreStaticFields()) {
+        if (configuration.isIgnoreStaticFields()) {
             preElectionFields = preElectionFields.stream()
                     .filter(field -> !Modifier.isStatic(field.getModifiers()))
                     .collect(Collectors.toList());
@@ -495,8 +507,8 @@ abstract class AbstractSimpleExcelBuilder {
                     if (defaultValue != null) {
                         return Pair.of(String.class, defaultValue);
                     }
-                    if (globalSetting.getDefaultValue() != null) {
-                        return Pair.of(String.class, globalSetting.getDefaultValue());
+                    if (configuration.getDefaultValue() != null) {
+                        return Pair.of(String.class, configuration.getDefaultValue());
                     }
                     return value;
                 })

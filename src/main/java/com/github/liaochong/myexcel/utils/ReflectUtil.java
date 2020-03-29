@@ -212,4 +212,12 @@ public final class ReflectUtil {
         List<Class<?>> reservedGroupList = Arrays.stream(groupArr).collect(Collectors.toList());
         return reservedGroupList.stream().anyMatch(selectedGroupList::contains);
     }
+
+    public static <T> T newInstance(Class<T> clazz) {
+        try {
+            return clazz.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

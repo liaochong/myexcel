@@ -65,11 +65,11 @@ public class DateTimeWriteConverter implements WriteConverter {
     private String getDateFormatPattern(ConvertContext convertContext, Field field) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         if (mapping == null) {
-            return field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
+            return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         String dateFormatPattern = mapping.getFormat();
         if (dateFormatPattern.isEmpty()) {
-            dateFormatPattern = field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
+            dateFormatPattern = field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         return dateFormatPattern;
     }

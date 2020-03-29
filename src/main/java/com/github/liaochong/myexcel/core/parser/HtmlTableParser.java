@@ -144,7 +144,7 @@ public class HtmlTableParser {
             }
             Map<String, String> trStyleMap = StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement));
             String height = trStyleMap.get("height");
-            Tr tr = new Tr(index, TdUtil.getValue(height));
+            Tr tr = new Tr(index, TdUtil.getValue(height), true);
             // 行可见性
             tr.setVisibility(!Objects.equals(trStyleMap.get("visibility"), "hidden"));
             this.parseTdOfTr(tr, trElement, trStyleMap, seizeMap);

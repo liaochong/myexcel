@@ -15,14 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import org.apache.commons.codec.CharEncoding;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-
-import java.io.Writer;
-import java.util.Map;
+import com.github.liaochong.myexcel.core.templatehandler.VelocityTemplateHandler;
 
 /**
  * velocity的excel创建者
@@ -32,27 +25,7 @@ import java.util.Map;
  */
 public class VelocityExcelBuilder extends AbstractExcelBuilder {
 
-    static {
-        Velocity.setProperty(Velocity.RESOURCE_LOADER, "classpath");
-        Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        Velocity.setProperty(Velocity.ENCODING_DEFAULT, CharEncoding.UTF_8);
-        Velocity.setProperty(Velocity.INPUT_ENCODING, CharEncoding.UTF_8);
-        Velocity.setProperty(Velocity.OUTPUT_ENCODING, CharEncoding.UTF_8);
-        Velocity.init();
-    }
-
-    private Template template;
-
-    @Override
-    public ExcelBuilder classpathTemplate(String path) {
-        template = Velocity.getTemplate(path);
-        return this;
-    }
-
-    @Override
-    protected <T> void render(Map<String, T> data, Writer out) throws Exception {
-        checkTemplate(template);
-        VelocityContext context = new VelocityContext(data);
-        template.merge(context, out);
+    public VelocityExcelBuilder() {
+        super(VelocityTemplateHandler.class);
     }
 }

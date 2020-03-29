@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
-import com.github.liaochong.myexcel.core.GlobalSetting;
+import com.github.liaochong.myexcel.core.Configuration;
 import com.github.liaochong.myexcel.core.WorkbookType;
 import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
@@ -26,12 +26,12 @@ import java.util.Arrays;
  * @author liaochong
  * @version 1.0
  */
-public final class GlobalSettingUtil {
+public final class ConfigurationUtil {
 
-    public static void setGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+    public static void parseConfiguration(ClassFieldContainer classFieldContainer, Configuration configuration) {
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (parentContainer != null) {
-            setGlobalSetting(parentContainer, globalSetting);
+            parseConfiguration(parentContainer, configuration);
         }
         if (classFieldContainer.getClazz() == Object.class) {
             return;
@@ -43,66 +43,66 @@ public final class GlobalSettingUtil {
                 return;
             }
             if (!excelTable.sheetName().isEmpty()) {
-                globalSetting.setSheetName(excelTable.sheetName());
+                configuration.setSheetName(excelTable.sheetName());
             }
             if (!WorkbookType.isNone(excelTable.workbookType())) {
-                globalSetting.setWorkbookType(excelTable.workbookType());
+                configuration.setWorkbookType(excelTable.workbookType());
             }
-            globalSetting.setExcludeParent(excelTable.excludeParent());
-            globalSetting.setIncludeAllField(excelTable.includeAllField());
+            configuration.setExcludeParent(excelTable.excludeParent());
+            configuration.setIncludeAllField(excelTable.includeAllField());
             if (!excelTable.defaultValue().isEmpty()) {
-                globalSetting.setDefaultValue(excelTable.defaultValue());
+                configuration.setDefaultValue(excelTable.defaultValue());
             }
-            globalSetting.setWrapText(excelTable.wrapText());
+            configuration.setWrapText(excelTable.wrapText());
             if (!excelTable.titleSeparator().isEmpty()) {
-                globalSetting.setTitleSeparator(excelTable.titleSeparator());
+                configuration.setTitleSeparator(excelTable.titleSeparator());
             }
-            globalSetting.setIgnoreStaticFields(excelTable.ignoreStaticFields());
+            configuration.setIgnoreStaticFields(excelTable.ignoreStaticFields());
             if (excelTable.titleRowHeight() != -1) {
-                globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
+                configuration.setTitleRowHeight(excelTable.titleRowHeight());
             }
             if (excelTable.rowHeight() != -1) {
-                globalSetting.setRowHeight(excelTable.rowHeight());
+                configuration.setRowHeight(excelTable.rowHeight());
             }
             if (excelTable.style().length != 0) {
-                globalSetting.getStyle().addAll(Arrays.asList(excelTable.style()));
+                configuration.getStyle().addAll(Arrays.asList(excelTable.style()));
             }
-            globalSetting.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
+            configuration.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
         } else {
             if (!excelModel.sheetName().isEmpty()) {
-                globalSetting.setSheetName(excelModel.sheetName());
+                configuration.setSheetName(excelModel.sheetName());
             }
             if (!WorkbookType.isNone(excelModel.workbookType())) {
-                globalSetting.setWorkbookType(excelModel.workbookType());
+                configuration.setWorkbookType(excelModel.workbookType());
             }
-            globalSetting.setExcludeParent(excelModel.excludeParent());
-            globalSetting.setIncludeAllField(excelModel.includeAllField());
+            configuration.setExcludeParent(excelModel.excludeParent());
+            configuration.setIncludeAllField(excelModel.includeAllField());
             if (!excelModel.defaultValue().isEmpty()) {
-                globalSetting.setDefaultValue(excelModel.defaultValue());
+                configuration.setDefaultValue(excelModel.defaultValue());
             }
-            globalSetting.setWrapText(excelModel.wrapText());
+            configuration.setWrapText(excelModel.wrapText());
             if (!excelModel.titleSeparator().isEmpty()) {
-                globalSetting.setTitleSeparator(excelModel.titleSeparator());
+                configuration.setTitleSeparator(excelModel.titleSeparator());
             }
-            globalSetting.setIgnoreStaticFields(excelModel.ignoreStaticFields());
+            configuration.setIgnoreStaticFields(excelModel.ignoreStaticFields());
             if (excelModel.titleRowHeight() != -1) {
-                globalSetting.setTitleRowHeight(excelModel.titleRowHeight());
+                configuration.setTitleRowHeight(excelModel.titleRowHeight());
             }
             if (excelModel.rowHeight() != -1) {
-                globalSetting.setRowHeight(excelModel.rowHeight());
+                configuration.setRowHeight(excelModel.rowHeight());
             }
             if (excelModel.style().length != 0) {
-                globalSetting.getStyle().addAll(Arrays.asList(excelModel.style()));
+                configuration.getStyle().addAll(Arrays.asList(excelModel.style()));
             }
-            globalSetting.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
+            configuration.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
             if (!excelModel.decimalFormat().isEmpty()) {
-                globalSetting.setDecimalFormat(excelModel.decimalFormat());
+                configuration.setDecimalFormat(excelModel.decimalFormat());
             }
             if (!excelModel.dateFormat().isEmpty()) {
-                globalSetting.setDateFormat(excelModel.dateFormat());
+                configuration.setDateFormat(excelModel.dateFormat());
             }
             if (!excelModel.dateTimeFormat().isEmpty()) {
-                globalSetting.setDateTimeFormat(excelModel.dateTimeFormat());
+                configuration.setDateTimeFormat(excelModel.dateTimeFormat());
             }
         }
     }

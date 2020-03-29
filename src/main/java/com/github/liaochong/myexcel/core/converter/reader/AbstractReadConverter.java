@@ -95,13 +95,13 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
     protected String getDateFormatPattern(Field field, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         if (mapping == null) {
-            return field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
+            return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         String format = mapping.getFormat();
         if (!format.isEmpty()) {
             return format;
         }
-        return field.getType() == LocalDate.class ? convertContext.getGlobalSetting().getDateFormat() : convertContext.getGlobalSetting().getDateTimeFormat();
+        return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
     }
 
     /**

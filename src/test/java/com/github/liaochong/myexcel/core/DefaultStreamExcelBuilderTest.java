@@ -4,7 +4,9 @@ import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CustomStylePeople;
 import com.github.liaochong.myexcel.core.pojo.Formula;
 import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
+import com.github.liaochong.myexcel.core.pojo.Product;
 import com.github.liaochong.myexcel.core.pojo.WidthPeople;
+import com.github.liaochong.myexcel.core.templatehandler.FreemarkerTemplateHandler;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -51,7 +53,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .width(1, 20)
                 .fieldDisplayOrder(titles).titles(titles).build(list);
 //        workbook = DefaultExcelBuilder.of(Map.class).fieldDisplayOrder(titles).build(list);
-        FileExportUtil.export(workbook, new File(TEST_DIR + "map_build.xlsx"));
+        FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "map_build.xlsx"));
     }
 
     @Test
@@ -63,7 +65,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 5000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "common_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
         }
     }
 
@@ -75,7 +77,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "custom_width_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "custom_width_build.xlsx"));
         }
     }
 
@@ -94,7 +96,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                     .fixedTitles()
                     .start();
             data(excelBuilder, 10000);
-            FileExportUtil.export(workbook, new File(TEST_DIR + "continue_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "continue_build.xlsx"));
         } catch (Throwable e) {
             if (excelBuilder != null) {
                 excelBuilder.clear();
@@ -151,7 +153,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 65500);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "big_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "big_build.xlsx"));
         }
     }
 
@@ -162,7 +164,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             customStyleData(excelBuilder, 1000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "custom_style_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "custom_style_build.xlsx"));
         }
     }
 
@@ -174,7 +176,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             oddEvenData(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "odd_even_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "odd_even_build.xlsx"));
         }
     }
 
@@ -187,7 +189,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "group_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "group_build.xlsx"));
         }
     }
 
@@ -198,7 +200,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             widthEvenData(excelBuilder, 10000);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "width_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "width_build.xlsx"));
         }
     }
 
@@ -209,7 +211,20 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             formulaData(excelBuilder, 100);
             Workbook workbook = excelBuilder.build();
-            FileExportUtil.export(workbook, new File(TEST_DIR + "formula_build.xlsx"));
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "formula_build.xlsx"));
+        }
+    }
+
+    @Test
+    void appendTemplateBuild() throws Exception {
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .templateHandler(FreemarkerTemplateHandler.class)
+                .start()) {
+            data(excelBuilder, 100);
+            excelBuilder.append("/templates/freemarkerToExcelExample.ftl", getDataMap());
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "append_template_build.xlsx"));
         }
     }
 
@@ -284,5 +299,33 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             Formula formula = new Formula();
             excelBuilder.append(formula);
         }
+    }
+
+    private Map<String, Object> getDataMap() {
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("sheetName", "freemarker_excel_example");
+
+        List<String> titles = new ArrayList<>();
+        titles.add("Category");
+        titles.add("Product Name");
+        titles.add("Count");
+        dataMap.put("titles", titles);
+
+        List<Product> data = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Product product = new Product();
+            if (i % 2 == 0) {
+                product.setCategory("蔬菜");
+                product.setName("小白菜");
+                product.setCount(100);
+            } else {
+                product.setCategory("电子产品");
+                product.setName("ipad");
+                product.setCount(999);
+            }
+            data.add(product);
+        }
+        dataMap.put("data", data);
+        return dataMap;
     }
 }
