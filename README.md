@@ -43,7 +43,6 @@ https://github.com/liaochong/myexcel/wiki
 > 如本项目对您有所帮助，烦请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，十分感谢您的关注！
 
 <p>
-    <img src="https://github.com/liaochong/myexcel/blob/master/68747470733a2f2f7777772e6c69616f63686f6e672e736974652f696d616765732f616c697061792e6a7067.jpeg
-" height="250"/>
-    <img src="https://github.com/liaochong/myexcel/blob/master/68747470733a2f2f7777772e6c69616f63686f6e672e736974652f696d616765732f77656978696e5f7061792e6a7067.jpeg"  height="250" >
+    <img src="https://github.com/liaochong/myexcel/blob/master/images/alipay.jpeg" height="250"/>
+    <img src="https://github.com/liaochong/myexcel/blob/master/images/wechat.jpeg"  height="250" >
 </p>
