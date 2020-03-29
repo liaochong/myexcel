@@ -22,7 +22,7 @@ class CsvBuilderTest extends BasicTest {
 
     @BeforeAll
     static void before() throws Exception {
-        Files.deleteIfExists(Paths.get(TEST_DIR + "common.csv"));
+        Files.deleteIfExists(Paths.get(TEST_OUTPUT_DIR + "common.csv"));
     }
 
     @Test
@@ -38,19 +38,19 @@ class CsvBuilderTest extends BasicTest {
         titles.add("姓名");
         titles.add("年龄");
         Csv csv = CsvBuilder.of(Map.class).titles(titles).build(maps);
-        csv.write(Paths.get(TEST_DIR + "map.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "map.csv"));
     }
 
     @Test
     void build() {
         Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1));
-        csv.write(Paths.get(TEST_DIR + "common.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "common.csv"));
     }
 
     @Test
     void buildContinued() {
         Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1));
-        csv.write(Paths.get(TEST_DIR + "common.csv"), true);
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "common.csv"), true);
     }
 
     @Test
@@ -60,21 +60,21 @@ class CsvBuilderTest extends BasicTest {
             csvBuilder.append(data(1000));
         }
         Csv csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "append.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "append.csv"));
 
         csvBuilder = CsvBuilder.of(CsvPeople.class).noTitles();
         for (int i = 0; i < 10; i++) {
             csvBuilder.append(data(1000));
         }
         csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "append.csv"), true);
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "append.csv"), true);
 
         csvBuilder = CsvBuilder.of(CsvPeople.class);
         for (int i = 0; i < 10; i++) {
             csvBuilder.append(data(1000));
         }
         csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "append.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "append.csv"));
     }
 
     @Test
@@ -84,7 +84,7 @@ class CsvBuilderTest extends BasicTest {
             csvBuilder.append(data(1000));
         }
         Csv csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "no_titles_append.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "no_titles_append.csv"));
     }
 
     private List<CsvPeople> data(int size) {
