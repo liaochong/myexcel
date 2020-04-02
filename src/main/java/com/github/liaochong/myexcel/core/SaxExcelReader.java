@@ -14,10 +14,12 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.cache.StringsCache;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
+import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -30,7 +32,6 @@ import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.model.SharedStrings;
@@ -40,11 +41,13 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -124,49 +127,79 @@ public class SaxExcelReader<T> {
     }
 
     public List<T> read(@NonNull InputStream fileInputStream) {
-        doReadInputStream(fileInputStream);
+        doRead(fileInputStream);
         return result;
     }
 
     public List<T> read(@NonNull File file) {
-        doReadFile(file);
+        doRead(file);
         return result;
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
         this.readConfig.consumer = consumer;
-        doReadInputStream(fileInputStream);
+        doRead(fileInputStream);
     }
 
     public void readThen(@NonNull File file, Consumer<T> consumer) {
         this.readConfig.consumer = consumer;
-        doReadFile(file);
+        doRead(file);
     }
 
     public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
         this.readConfig.function = function;
-        doReadInputStream(fileInputStream);
+        doRead(fileInputStream);
     }
 
     public void readThen(@NonNull File file, Function<T, Boolean> function) {
         this.readConfig.function = function;
-        doReadFile(file);
+        doRead(file);
     }
 
-    private void doReadFile(@NonNull File file) {
-        String suffix = file.getName().substring(file.getName().lastIndexOf(Constants.SPOT));
-        switch (suffix) {
-            case Constants.XLSX:
-                doReadXlsx(file);
-                break;
-            case Constants.XLS:
-                doReadXls(file);
-                break;
-            case Constants.CSV:
-                doReadCsv(file);
-                break;
-            default:
-                throw new IllegalArgumentException("The file type does not match, and the file suffix must be one of .xlsx,.xls,.csv");
+    private void doRead(InputStream fileInputStream) {
+        Path path = this.convertToFile(fileInputStream);
+        try {
+            doRead(path.toFile());
+        } finally {
+            TempFileOperator.deleteTempFile(path);
+        }
+    }
+
+    private Path convertToFile(InputStream is) {
+        Path tempFile = TempFileOperator.createTempFile("i_t", Constants.XLSX);
+        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
+            byte[] buffer = new byte[8 * 1024];
+            int len;
+            while ((len = is.read(buffer)) > 0) {
+                fos.write(buffer, 0, len);
+            }
+        } catch (IOException e) {
+            TempFileOperator.deleteTempFile(tempFile);
+            throw new SaxReadException("Fail to convert file inputStream to temp file", e);
+        }
+        return tempFile;
+    }
+
+    private void doRead(File file) {
+        FileMagic fm;
+        try (InputStream is = FileMagic.prepareToCheckMagic(new FileInputStream(file))) {
+            fm = FileMagic.valueOf(is);
+        } catch (Throwable throwable) {
+            throw new SaxReadException("Fail to get excel magic", throwable);
+        }
+        try {
+            switch (fm) {
+                case OOXML:
+                    doReadXlsx(file);
+                    break;
+                case OLE2:
+                    doReadXls(file);
+                    break;
+                default:
+                    doReadCsv(file);
+            }
+        } catch (Throwable e) {
+            throw new SaxReadException("Fail to read excel", e);
         }
     }
 
@@ -176,7 +209,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (IOException e) {
-            throw new SaxReadException("Fail to read file:" + file.getName(), e);
+            throw new SaxReadException("Fail to read xls file:" + file.getName(), e);
         }
     }
 
@@ -186,7 +219,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (Exception e) {
-            throw new SaxReadException("Fail to read file:" + file.getName(), e);
+            throw new SaxReadException("Fail to read xlsx file:" + file.getName(), e);
         }
     }
 
@@ -196,53 +229,7 @@ public class SaxExcelReader<T> {
         } catch (StopReadException e) {
             // do nothing
         } catch (Throwable throwable) {
-            throw new ExcelReadException("Fail to read file:" + file.getName(), throwable);
-        }
-    }
-
-    private void doReadXls(@NonNull InputStream fileInputStream) {
-        try {
-            new HSSFSaxReadHandler<>(fileInputStream, result, readConfig).process();
-        } catch (StopReadException e) {
-            // do nothing
-        } catch (IOException e) {
-            throw new SaxReadException("Fail to read file inputStream", e);
-        }
-    }
-
-    private void doReadCsv(@NonNull InputStream fileInputStream) {
-        try {
-            new CsvReadHandler<>(fileInputStream, readConfig, result).read();
-        } catch (StopReadException e3) {
-            // do nothing
-        }
-    }
-
-    @NonNull
-    private InputStream modifyInputStreamTypeIfNotMarkSupported(@NonNull InputStream fileInputStream) {
-        if (fileInputStream.markSupported()) {
-            return fileInputStream;
-        }
-        return new BufferedInputStream(fileInputStream);
-    }
-
-    private void doReadInputStream(@NonNull InputStream fileInputStream) {
-        try (InputStream is = FileMagic.prepareToCheckMagic(fileInputStream);) {
-            FileMagic fm = FileMagic.valueOf(is);
-            switch (fm) {
-                case OLE2:
-                    doReadXls(is);
-                    break;
-                case OOXML:
-                    try (OPCPackage p = OPCPackage.open(is)) {
-                        process(p);
-                    }
-                    break;
-                default:
-                    doReadCsv(is);
-            }
-        } catch (Throwable throwable) {
-            throw new SaxReadException("Fail to read file inputStream", throwable);
+            throw new ExcelReadException("Fail to read csv file:" + file.getName(), throwable);
         }
     }
 
@@ -254,27 +241,32 @@ public class SaxExcelReader<T> {
      */
     private void process(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
         long startTime = System.currentTimeMillis();
-        ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage);
-        XSSFReader xssfReader = new XSSFReader(xlsxPackage);
-        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-        if (!readConfig.sheetNames.isEmpty()) {
-            while (iter.hasNext()) {
-                try (InputStream stream = iter.next()) {
-                    if (readConfig.sheetNames.contains(iter.getSheetName())) {
-                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+        StringsCache stringsCache = new StringsCache();
+        try {
+            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
+            XSSFReader xssfReader = new XSSFReader(xlsxPackage);
+            XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+            if (!readConfig.sheetNames.isEmpty()) {
+                while (iter.hasNext()) {
+                    try (InputStream stream = iter.next()) {
+                        if (readConfig.sheetNames.contains(iter.getSheetName())) {
+                            processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+                        }
+                    }
+                }
+            } else {
+                int index = 0;
+                while (iter.hasNext()) {
+                    try (InputStream stream = iter.next()) {
+                        if (readConfig.sheetIndexs.contains(index)) {
+                            processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+                        }
+                        ++index;
                     }
                 }
             }
-        } else {
-            int index = 0;
-            while (iter.hasNext()) {
-                try (InputStream stream = iter.next()) {
-                    if (readConfig.sheetIndexs.contains(index)) {
-                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
-                    }
-                    ++index;
-                }
-            }
+        } finally {
+            stringsCache.clearAll();
         }
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
@@ -310,7 +302,7 @@ public class SaxExcelReader<T> {
     @Getter
     @Setter
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class ReadConfig<T> {
+    public static final class ReadConfig<T> {
 
         Class<T> dataType;
 

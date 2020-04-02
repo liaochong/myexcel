@@ -15,9 +15,8 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
-import com.github.liaochong.myexcel.core.constant.AllConverter;
+import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
@@ -28,19 +27,15 @@ import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
+import com.github.liaochong.myexcel.core.parser.StyleParser;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
-import com.github.liaochong.myexcel.core.style.BackgroundStyle;
-import com.github.liaochong.myexcel.core.style.BorderStyle;
-import com.github.liaochong.myexcel.core.style.FontStyle;
-import com.github.liaochong.myexcel.core.style.TextAlignStyle;
-import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
-import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
 import javax.lang.model.type.NullType;
@@ -59,7 +54,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -73,95 +67,126 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected List<String> fieldDisplayOrder;
     /**
-     * excel workbook
+     * 已排序字段
      */
-    protected WorkbookType workbookType;
-    /**
-     * 一般单元格样式
-     */
-    protected Map<String, String> commonTdStyle;
-    /**
-     * 偶数行单元格样式
-     */
-    protected Map<String, String> evenTdStyle;
-    /**
-     * 超链接公共样式
-     */
-    protected Map<String, String> linkCommonStyle;
-    /**
-     * 超链接偶数行样式
-     */
-    protected Map<String, String> linkEvenStyle;
+    protected List<Field> filteredFields = Collections.emptyList();
     /**
      * 标题
      */
     protected List<String> titles;
     /**
-     * sheetName
-     */
-    protected String sheetName;
-    /**
-     * 全局默认值
-     */
-    protected String globalDefaultValue;
-    /**
      * 默认值集合
      */
-    protected Map<Field, String> defaultValueMap;
+    protected Map<Field, String> defaultValueMap = new HashMap<>();
     /**
      * 自定义宽度
      */
-    protected Map<Integer, Integer> customWidthMap;
-    /**
-     * 是否自动换行
-     */
-    protected boolean wrapText = true;
+    protected Map<Integer, Integer> customWidthMap = new HashMap<>();
     /**
      * 标题层级
      */
     protected int titleLevel = 0;
     /**
-     * 标题分离器
-     */
-    protected String titleSeparator = Constants.ARROW;
-    /**
-     * 自定义样式
-     */
-    protected Map<String, Map<String, String>> customStyle = new HashMap<>();
-    /**
-     * 是否为奇数行
-     */
-    protected boolean isOddRow = true;
-    /**
-     * 行高
-     */
-    protected int rowHeight;
-    /**
-     * 标题行行高
-     */
-    protected int titleRowHeight;
-    /**
-     * 无样式
-     */
-    protected boolean noStyle;
-    /**
-     * 自动宽度策略
-     */
-    protected WidthStrategy widthStrategy;
-
-    protected Map<Integer, Integer> widths;
-    /**
      * 格式化
      */
     private Map<Integer, String> formats = new HashMap<>();
     /**
-     * 格式样式Map
+     * 是否为Map类型导出
      */
-    private Map<String, Map<String, String>> formatsStyleMap;
+    protected boolean isMapBuild;
     /**
-     * 全局样式
+     * 转换上下文
      */
-    protected Set<String> globalStyle;
+    private ConvertContext convertContext;
+
+    protected Configuration configuration;
+
+    private Map<Field, ExcelColumnMapping> excelColumnMappingMap;
+
+    protected StyleParser styleParser = new StyleParser(customWidthMap);
+
+
+    public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
+        convertContext = new ConvertContext(isCsvBuild);
+        configuration = convertContext.getConfiguration();
+        excelColumnMappingMap = convertContext.getExcelColumnMappingMap();
+    }
+
+    /**
+     * Core methods for obtaining export related fields, styles, etc
+     *
+     * @param classFieldContainer classFieldContainer
+     * @param groups              分组
+     * @return Field
+     */
+    protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
+        ConfigurationUtil.parseConfiguration(classFieldContainer, configuration);
+        this.parseGlobalStyle();
+        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
+        List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
+        // 初始化标题容器
+        List<String> titles = new ArrayList<>(buildFields.size());
+
+        for (int i = 0, size = buildFields.size(); i < size; i++) {
+            Field field = buildFields.get(i);
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            String[] columnStyles = null;
+            if (excelColumn != null) {
+                if (configuration.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
+                    titles.add(field.getName());
+                } else {
+                    titles.add(excelColumn.title());
+                }
+                if (!excelColumn.defaultValue().isEmpty()) {
+                    defaultValueMap.put(field, excelColumn.defaultValue());
+                }
+                if (excelColumn.width() > -1) {
+                    customWidthMap.putIfAbsent(i, excelColumn.width());
+                }
+                if (excelColumn.style().length > 0) {
+                    columnStyles = excelColumn.style();
+                }
+                if (!excelColumn.format().isEmpty()) {
+                    formats.put(i, excelColumn.format());
+                } else if (!excelColumn.decimalFormat().isEmpty()) {
+                    formats.put(i, excelColumn.decimalFormat());
+                } else if (!excelColumn.dateFormatPattern().isEmpty()) {
+                    formats.put(i, excelColumn.dateFormatPattern());
+                }
+                ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
+                excelColumnMappingMap.put(field, mapping);
+            } else {
+                if (configuration.isUseFieldNameAsTitle()) {
+                    titles.add(field.getName());
+                } else {
+                    titles.add(null);
+                }
+            }
+            styleParser.setColumnStyle(field, i, columnStyles);
+            setGlobalFormat(i, field);
+        }
+        setTitles(titles);
+        return buildFields;
+    }
+
+    protected void parseGlobalStyle() {
+        styleParser.parse(configuration.getStyle());
+    }
+
+    private void setGlobalFormat(int i, Field field) {
+        if (formats.get(i) != null) {
+            return;
+        }
+        if (field.getType() == LocalDate.class) {
+            formats.put(i, configuration.getDateFormat());
+        } else if (ReflectUtil.isDate(field.getType())) {
+            formats.put(i, configuration.getDateTimeFormat());
+        } else if (ReflectUtil.isNumber(field.getType())) {
+            if (configuration.getDecimalFormat() != null) {
+                formats.put(i, configuration.getDecimalFormat());
+            }
+        }
+    }
 
     /**
      * 创建table
@@ -170,7 +195,7 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected Table createTable() {
         Table table = new Table();
-        table.setCaption(sheetName);
+        table.setCaption(configuration.getSheetName());
         table.setTrList(new LinkedList<>());
         return table;
     }
@@ -192,7 +217,7 @@ abstract class AbstractSimpleExcelBuilder {
                 continue;
             }
             List<Td> tds = new ArrayList<>();
-            String[] multiTitles = title.split(titleSeparator);
+            String[] multiTitles = title.split(configuration.getTitleSeparator());
             if (multiTitles.length > titleLevel) {
                 titleLevel = multiTitles.length;
             }
@@ -258,23 +283,14 @@ abstract class AbstractSimpleExcelBuilder {
                 });
             });
         }
-
-        Map<String, String> thStyle = getDefaultThStyle();
         Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
         List<Tr> trs = new ArrayList<>();
-        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
+        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(configuration.getWidthStrategy());
         rowTds.forEach((k, v) -> {
-            Tr tr = new Tr(k, titleRowHeight);
+            Tr tr = new Tr(k, configuration.getTitleRowHeight());
             tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
             List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
                     .peek(td -> {
-                        // 自定义样式存在时采用自定义样式
-                        if (!noStyle && !customStyle.isEmpty()) {
-                            Map<String, String> style = customStyle.getOrDefault("title&" + td.getCol(), Collections.emptyMap());
-                            td.setStyle(style);
-                        } else {
-                            td.setStyle(thStyle);
-                        }
                         if (isComputeAutoWidth) {
                             tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
                         }
@@ -286,23 +302,6 @@ abstract class AbstractSimpleExcelBuilder {
         return trs;
     }
 
-    private Map<String, String> getDefaultThStyle() {
-        Map<String, String> thStyle;
-        if (noStyle) {
-            thStyle = Collections.emptyMap();
-        } else {
-            thStyle = new HashMap<>(7);
-            thStyle.put(FontStyle.FONT_WEIGHT, FontStyle.BOLD);
-            thStyle.put(FontStyle.FONT_SIZE, "14");
-            thStyle.put(TextAlignStyle.TEXT_ALIGN, TextAlignStyle.CENTER);
-            thStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-            thStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-            thStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-            thStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-        }
-        return thStyle;
-    }
-
     /**
      * 创建内容行
      *
@@ -310,52 +309,50 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 内容行
      */
     protected Tr createTr(List<Pair<? extends Class, ?>> contents) {
-        Tr tr = new Tr(0, rowHeight);
+        Tr tr = new Tr(0, configuration.getRowHeight());
         if (contents.isEmpty()) {
             return tr;
         }
-        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
-        boolean isCustomWidth = WidthStrategy.isCustomWidth(widthStrategy);
-        tr.setColWidthMap((isComputeAutoWidth || isCustomWidth) ? new HashMap<>(contents.size()) : Collections.emptyMap());
-        Map<String, String> tdStyle = isOddRow ? commonTdStyle : evenTdStyle;
-        Map<String, String> linkStyle = isOddRow ? linkCommonStyle : linkEvenStyle;
-        String oddEvenPrefix = isOddRow ? "odd&" : "even&";
-        isOddRow = !isOddRow;
-        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(i -> {
-            Td td = new Td(0, i);
-            Pair<? extends Class, ?> pair = contents.get(i);
-            setTdContent(td, pair);
-            setTdContentType(td, pair.getKey());
-            Map<String, String> style;
-            if (!noStyle && !customStyle.isEmpty()) {
-                style = customStyle.get(oddEvenPrefix + i);
-                if (style == null) {
-                    style = customStyle.getOrDefault("cell&" + i, Collections.emptyMap());
-                }
-            } else {
-                style = ContentTypeEnum.isLink(td.getTdContentType()) ? linkStyle : tdStyle;
-            }
-            if (isComputeAutoWidth) {
-                tr.getColWidthMap().put(i, TdUtil.getStringWidth(td.getContent()));
-            }
-            if (formats.get(i) != null) {
-                String format = formats.get(i);
-                Map<String, String> formatStyle = formatsStyleMap.get(format + "_" + i + "_" + oddEvenPrefix);
-                if (formatStyle == null) {
-                    formatStyle = new HashMap<>(style);
-                    formatStyle.put("format", format);
-                    formatsStyleMap.put(format + "_" + i, formatStyle);
-                }
-                style = formatStyle;
-            }
-            td.setStyle(style);
+        tr.setColWidthMap(new HashMap<>());
+        List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(index -> {
+            Td td = new Td(0, index);
+            Pair<? extends Class, ?> pair = contents.get(index);
+            this.setTdContent(td, pair);
+            this.setTdContentType(td, pair.getKey());
+            td.setFormat(formats.get(index));
+            this.setFormula(index, td);
+            this.setTdWidth(tr.getColWidthMap(), td);
             return td;
         }).collect(Collectors.toList());
-        if (isCustomWidth) {
-            tr.setColWidthMap(customWidthMap);
-        }
+        customWidthMap.forEach(tr.getColWidthMap()::put);
         tr.setTdList(tdList);
         return tr;
+    }
+
+    private void setTdWidth(Map<Integer, Integer> colWidthMap, Td td) {
+        if (!configuration.isComputeAutoWidth()) {
+            return;
+        }
+        if (td.getFormat() == null) {
+            colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getContent()));
+        } else {
+            if (td.getContent() != null && td.getFormat().length() > td.getContent().length()) {
+                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat()));
+            } else if (td.getDate() != null || td.getLocalDate() != null || td.getLocalDateTime() != null) {
+                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat(), -0.15));
+            }
+        }
+    }
+
+    private void setFormula(int i, Td td) {
+        if (filteredFields.isEmpty()) {
+            return;
+        }
+        Field field = filteredFields.get(i);
+        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
+        if (excelColumnMapping != null && excelColumnMapping.isFormula()) {
+            td.setFormula(true);
+        }
     }
 
     private void setTdContent(Td td, Pair<? extends Class, ?> pair) {
@@ -429,195 +426,24 @@ abstract class AbstractSimpleExcelBuilder {
         }
     }
 
-    /**
-     * 获取排序后字段并设置标题、workbookType等
-     *
-     * @param classFieldContainer classFieldContainer
-     * @param groups              分组
-     * @return Field
-     */
-    protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
-        GlobalSetting globalSetting = new GlobalSetting();
-        setGlobalSetting(classFieldContainer, globalSetting);
+    protected void setTitles(List<String> titles) {
+        if (this.titles == null) {
+            boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
+            if (hasTitle) {
+                this.titles = titles;
+            }
+        }
+    }
 
-        setWorkbookWithExcelTableAnnotation(globalSetting);
-
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer, globalSetting);
+    protected List<Field> getGroupFields(List<Field> preElectionFields, Class<?>[] groups) {
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
-        List<Field> sortedFields = preElectionFields.stream()
-                .filter(field -> !field.isAnnotationPresent(ExcludeColumn.class) && ReflectUtil.isFieldSelected(selectedGroupList, field))
+        return preElectionFields.stream()
+                .filter(field -> (!field.isAnnotationPresent(ExcludeColumn.class) && !field.isAnnotationPresent(IgnoreColumn.class)) && ReflectUtil.isFieldSelected(selectedGroupList, field))
                 .sorted(ReflectUtil::sortFields)
                 .collect(Collectors.toList());
-        // 初始化配置容器
-        defaultValueMap = new HashMap<>(sortedFields.size());
-        if (customWidthMap == null) {
-            customWidthMap = new HashMap<>(sortedFields.size());
-        }
-        formats = new HashMap<>(sortedFields.size());
-        formatsStyleMap = new HashMap<>();
-        List<String> titles = new ArrayList<>(sortedFields.size());
-
-        boolean needToAddTitle = Objects.isNull(this.titles);
-        Map<String, String> globalStyleMap = getGlobalStyleMap(globalStyle != null ? globalStyle : globalSetting.getGlobalStyle());
-        this.setOddEvenStyle(globalStyleMap);
-        for (int i = 0, size = sortedFields.size(); i < size; i++) {
-            Field field = sortedFields.get(i);
-            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-            setCustomStyle(field, i, globalStyleMap.get("cell"));
-            setCustomStyle(field, i, globalStyleMap.get("title"));
-            if (excelColumn != null) {
-                if (needToAddTitle) {
-                    if (globalSetting.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
-                        titles.add(field.getName());
-                    } else {
-                        titles.add(excelColumn.title());
-                    }
-                }
-                if (!excelColumn.defaultValue().isEmpty()) {
-                    defaultValueMap.put(field, excelColumn.defaultValue());
-                }
-                if (widths == null && excelColumn.width() > 0) {
-                    customWidthMap.put(i, excelColumn.width());
-                }
-                if (!noStyle && excelColumn.style().length > 0) {
-                    setCustomStyle(field, i, excelColumn.style());
-                }
-                if (!excelColumn.format().isEmpty()) {
-                    formats.put(i, excelColumn.format());
-                } else if (!excelColumn.decimalFormat().isEmpty()) {
-                    formats.put(i, excelColumn.decimalFormat());
-                } else if (!excelColumn.dateFormatPattern().isEmpty()) {
-                    formats.put(i, excelColumn.dateFormatPattern());
-                }
-            } else {
-                if (needToAddTitle) {
-                    if (globalSetting.isUseFieldNameAsTitle()) {
-                        titles.add(field.getName());
-                    } else {
-                        titles.add(null);
-                    }
-                }
-            }
-        }
-
-        boolean hasTitle = titles.stream().anyMatch(StringUtil::isNotBlank);
-        if (hasTitle) {
-            this.titles = titles;
-        }
-        if (!customWidthMap.isEmpty()) {
-            this.widthStrategy = WidthStrategy.CUSTOM_WIDTH;
-        }
-        return sortedFields;
     }
 
-    private void setGlobalSetting(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
-        ClassFieldContainer parentContainer = classFieldContainer.getParent();
-        if (parentContainer != null) {
-            setGlobalSetting(parentContainer, globalSetting);
-        }
-        if (classFieldContainer.getClazz() == Object.class) {
-            return;
-        }
-        ExcelTable excelTable = classFieldContainer.getClazz().getAnnotation(ExcelTable.class);
-        if (excelTable == null) {
-            return;
-        }
-        if (!excelTable.sheetName().isEmpty()) {
-            globalSetting.setSheetName(excelTable.sheetName());
-        }
-        if (excelTable.workbookType() != WorkbookType.SXLSX) {
-            globalSetting.setWorkbookType(excelTable.workbookType());
-        }
-        if (excelTable.excludeParent()) {
-            globalSetting.setExcludeParent(true);
-        }
-        if (!excelTable.includeAllField()) {
-            globalSetting.setIncludeAllField(false);
-        }
-        if (!excelTable.defaultValue().isEmpty()) {
-            globalSetting.setDefaultValue(excelTable.defaultValue());
-        }
-        if (!excelTable.wrapText()) {
-            globalSetting.setWrapText(false);
-        }
-        if (!excelTable.titleSeparator().equals(Constants.ARROW)) {
-            globalSetting.setTitleSeparator(excelTable.titleSeparator());
-        }
-        if (!excelTable.ignoreStaticFields()) {
-            globalSetting.setIgnoreStaticFields(false);
-        }
-        if (excelTable.titleRowHeight() != -1) {
-            globalSetting.setTitleRowHeight(excelTable.titleRowHeight());
-        }
-        if (excelTable.rowHeight() != -1) {
-            globalSetting.setRowHeight(excelTable.rowHeight());
-        }
-        if (excelTable.style().length != 0) {
-            globalSetting.getGlobalStyle().addAll(Arrays.asList(excelTable.style()));
-        }
-        if (excelTable.useFieldNameAsTitle()) {
-            globalSetting.setUseFieldNameAsTitle(true);
-        }
-    }
-
-    private Map<String, String> getGlobalStyleMap(Set<String> globalStyle) {
-        Map<String, String> globalStyleMap = new HashMap<>();
-        if (globalStyle != null) {
-            globalStyle.forEach(style -> {
-                String[] splits = style.split(Constants.ARROW);
-                if (splits.length == 1) {
-                    globalStyleMap.put("cell", style);
-                } else {
-                    globalStyleMap.put(splits[0], style);
-                }
-            });
-        }
-        return globalStyleMap;
-    }
-
-    private void setOddEvenStyle(Map<String, String> globalStyleMap) {
-        String oddStyle = globalStyleMap.get("odd");
-        if (oddStyle != null) {
-            commonTdStyle = StyleUtil.parseStyle(oddStyle.split(Constants.ARROW)[1]);
-        }
-        String evenStyle = globalStyleMap.get("even");
-        if (evenStyle != null) {
-            evenTdStyle = StyleUtil.parseStyle(evenStyle.split(Constants.ARROW)[1]);
-        }
-    }
-
-    private void setCustomStyle(Field field, int index, String... styles) {
-        for (String style : styles) {
-            if (StringUtil.isBlank(style)) {
-                continue;
-            }
-            if (StringUtil.isBlank(style)) {
-                throw new IllegalArgumentException("Illegal style,field:" + field.getName());
-            }
-            String[] splits = style.split(Constants.ARROW);
-            if (splits.length == 1) {
-                // 发现未设置样式归属，则设置为全局样式，清除其他样式
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 0, index);
-                customStyle.put("cell&" + index, styleMap);
-                break;
-            } else {
-                Map<String, String> styleMap = setWidthStrategyAndWidth(splits, 1, index);
-                customStyle.put(splits[0] + "&" + index, styleMap);
-            }
-        }
-    }
-
-    private Map<String, String> setWidthStrategyAndWidth(String[] splits, int splitIndex, int fieldIndex) {
-        Map<String, String> styleMap = StyleUtil.parseStyle(splits[splitIndex]);
-        String width = styleMap.get("width");
-        if (width != null) {
-            this.widthStrategy = WidthStrategy.CUSTOM_WIDTH;
-            customWidthMap.put(fieldIndex, TdUtil.getValue(width));
-        }
-        return styleMap;
-    }
-
-    private List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer, GlobalSetting globalSetting) {
+    protected List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer) {
         if (Objects.nonNull(fieldDisplayOrder) && !fieldDisplayOrder.isEmpty()) {
             this.selfAdaption();
             return fieldDisplayOrder.stream()
@@ -625,14 +451,14 @@ abstract class AbstractSimpleExcelBuilder {
                     .collect(Collectors.toList());
         }
         List<Field> preElectionFields;
-        if (globalSetting.isIncludeAllField()) {
-            if (globalSetting.isExcludeParent()) {
+        if (configuration.isIncludeAllField()) {
+            if (configuration.isExcludeParent()) {
                 preElectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preElectionFields = classFieldContainer.getFields();
             }
         } else {
-            if (globalSetting.isExcludeParent()) {
+            if (configuration.isExcludeParent()) {
                 preElectionFields = classFieldContainer.getDeclaredFields().stream()
                         .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
                         .collect(Collectors.toList());
@@ -640,34 +466,12 @@ abstract class AbstractSimpleExcelBuilder {
                 preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             }
         }
-        if (globalSetting.isIgnoreStaticFields()) {
+        if (configuration.isIgnoreStaticFields()) {
             preElectionFields = preElectionFields.stream()
                     .filter(field -> !Modifier.isStatic(field.getModifiers()))
                     .collect(Collectors.toList());
         }
         return preElectionFields;
-    }
-
-    /**
-     * 设置workbook
-     *
-     * @param globalSetting globalSetting
-     */
-    private void setWorkbookWithExcelTableAnnotation(GlobalSetting globalSetting) {
-        if (workbookType == null) {
-            this.workbookType = globalSetting.getWorkbookType();
-        }
-        if (StringUtil.isBlank(this.sheetName)) {
-            String sheetName = globalSetting.getSheetName();
-            if (StringUtil.isNotBlank(sheetName)) {
-                this.sheetName = sheetName;
-            }
-        }
-        globalDefaultValue = globalSetting.getDefaultValue();
-        titleRowHeight = globalSetting.getTitleRowHeight();
-        rowHeight = globalSetting.getRowHeight();
-        wrapText = globalSetting.isWrapText();
-        titleSeparator = globalSetting.getTitleSeparator();
     }
 
     /**
@@ -695,50 +499,37 @@ abstract class AbstractSimpleExcelBuilder {
     protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, AllConverter.class);
+                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);
                     if (value.getValue() != null) {
                         return value;
                     }
                     String defaultValue = defaultValueMap.get(field);
                     if (defaultValue != null) {
-                        return Pair.of(field.getType(), defaultValue);
+                        return Pair.of(String.class, defaultValue);
                     }
-                    if (globalDefaultValue != null) {
-                        return Pair.of(field.getType(), globalDefaultValue);
+                    if (configuration.getDefaultValue() != null) {
+                        return Pair.of(String.class, configuration.getDefaultValue());
                     }
                     return value;
                 })
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
-    /**
-     * 初始化单元格样式
-     */
-    protected void initStyleMap() {
-        if (noStyle) {
-            commonTdStyle = evenTdStyle = linkCommonStyle = linkEvenStyle = Collections.emptyMap();
-        } else {
-            if (commonTdStyle == null) {
-                commonTdStyle = new HashMap<>(3);
-                commonTdStyle.put(BorderStyle.BORDER_BOTTOM_STYLE, BorderStyle.THIN);
-                commonTdStyle.put(BorderStyle.BORDER_LEFT_STYLE, BorderStyle.THIN);
-                commonTdStyle.put(BorderStyle.BORDER_RIGHT_STYLE, BorderStyle.THIN);
-                commonTdStyle.put(TextAlignStyle.VERTICAL_ALIGN, TextAlignStyle.MIDDLE);
-                if (wrapText) {
-                    commonTdStyle.put(WordBreakStyle.WORD_BREAK, WordBreakStyle.BREAK_ALL);
-                }
-            }
-            if (evenTdStyle == null) {
-                evenTdStyle = new HashMap<>(4);
-                evenTdStyle.put(BackgroundStyle.BACKGROUND_COLOR, "#f6f8fa");
-                evenTdStyle.putAll(commonTdStyle);
-            }
-            linkCommonStyle = new HashMap<>(commonTdStyle);
-            linkCommonStyle.put(FontStyle.FONT_COLOR, "blue");
-            linkCommonStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
-
-            linkEvenStyle = new HashMap<>(linkCommonStyle);
-            linkEvenStyle.putAll(evenTdStyle);
+    protected List<Pair<? extends Class, ?>> assemblingMapContents(Map<String, Object> data) {
+        if (data == null || data.isEmpty()) {
+            return Collections.emptyList();
         }
+        List<Pair<? extends Class, ?>> contents = new ArrayList<>(data.size());
+        if (fieldDisplayOrder == null) {
+            data.forEach((k, v) -> {
+                contents.add(Pair.of(v == null ? String.class : v.getClass(), v));
+            });
+        } else {
+            for (String fieldName : fieldDisplayOrder) {
+                Object val = data.get(fieldName);
+                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
+            }
+        }
+        return contents;
     }
 }

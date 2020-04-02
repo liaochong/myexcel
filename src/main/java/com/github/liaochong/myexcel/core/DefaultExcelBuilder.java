@@ -35,11 +35,16 @@ import java.util.Map;
 @Slf4j
 public class DefaultExcelBuilder<T> implements Closeable {
 
+    private static final String STYLE_COMMON_TD = "border-top-style:thin;border-right-style:thin;border-bottom-style:thin;border-left-style:thin;";
+
+    private static final String STYLE_TITLE = "font-weight:bold;font-size:14;text-align:center;vertical-align:middle;";
+
     private DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
-        streamExcelBuilder.hasStyle();
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
+        streamExcelBuilder.style("title->" + STYLE_COMMON_TD + STYLE_TITLE, "even->" + STYLE_COMMON_TD,
+                "odd->" + STYLE_COMMON_TD + "background-color:#f6f8fa;");
         this.streamExcelBuilder = streamExcelBuilder;
     }
 
@@ -129,13 +134,28 @@ public class DefaultExcelBuilder<T> implements Closeable {
         return this;
     }
 
+    public DefaultExcelBuilder<T> width(int columnIndex, int width) {
+        streamExcelBuilder.width(columnIndex, width);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> hideColumns(int... columnIndexs) {
+        streamExcelBuilder.hideColumns(columnIndexs);
+        return this;
+    }
+
     public DefaultExcelBuilder<T> groups(Class<?>... groups) {
         streamExcelBuilder.groups(groups);
         return this;
     }
 
+    @Deprecated
     public DefaultExcelBuilder<T> globalStyle(String... styles) {
-        streamExcelBuilder.globalStyle(styles);
+        return style(styles);
+    }
+
+    public DefaultExcelBuilder<T> style(String... styles) {
+        streamExcelBuilder.style(styles);
         return this;
     }
 

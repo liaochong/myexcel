@@ -51,6 +51,7 @@ interface SimpleStreamExcelBuilder<T> extends Closeable {
      *
      * @return SimpleStreamExcelBuilder
      */
+    @Deprecated
     SimpleStreamExcelBuilder hasStyle();
 
     /**

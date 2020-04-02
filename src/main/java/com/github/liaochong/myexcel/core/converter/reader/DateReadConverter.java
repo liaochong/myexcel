@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
+
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,7 +30,7 @@ import java.util.Date;
 public class DateReadConverter extends AbstractReadConverter<Date> {
 
     @Override
-    public Date doConvert(String v, Field field) {
+    public Date doConvert(String v, Field field, ConvertContext convertContext) {
         if (isDateNumber(v)) {
             final long time = Long.parseLong(v);
             return new Date(time);
@@ -37,7 +39,7 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
             final long time = convertExcelNumberDateToMilli(v);
             return new Date(time);
         }
-        String dateFormatPattern = getDateFormatPattern(field);
+        String dateFormatPattern = getDateFormatPattern(field, convertContext);
         SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
         try {
             return sdf.parse(v);

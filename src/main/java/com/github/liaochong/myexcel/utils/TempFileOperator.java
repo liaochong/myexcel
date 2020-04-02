@@ -16,14 +16,13 @@
 package com.github.liaochong.myexcel.utils;
 
 
+import com.github.liaochong.myexcel.core.MyExcelConfiguration;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,17 +39,6 @@ public class TempFileOperator {
 
     private static int createNo;
 
-    private static Path templateDir;
-
-
-    static {
-        try {
-            templateDir = Paths.get(new File("").getCanonicalPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     /**
      * 依据前缀名称创建临时文件
      *
@@ -60,7 +48,7 @@ public class TempFileOperator {
      */
     public static Path createTempFile(String prefix, String suffix) {
         try {
-            return Files.createTempFile(templateDir, getTempFileName(prefix), suffix);
+            return Files.createTempFile(MyExcelConfiguration.temporaryFileDirectory(), getTempFileName(prefix), suffix);
         } catch (IOException e) {
             throw ExcelBuildException.of("Failed to create temp file", e);
         }

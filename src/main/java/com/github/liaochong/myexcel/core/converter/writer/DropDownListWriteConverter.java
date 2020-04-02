@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
 import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
@@ -38,7 +39,7 @@ import java.util.stream.Stream;
 public class DropDownListWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
+    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
         String content;
         if (field.getType() == List.class) {
             List<?> list = ((List<?>) fieldVal);
@@ -69,7 +70,7 @@ public class DropDownListWriteConverter implements WriteConverter {
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal) {
+    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
         return field.getType() == Array.class || field.getType() == List.class;
     }
 }

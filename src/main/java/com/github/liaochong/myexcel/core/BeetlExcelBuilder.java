@@ -15,15 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import org.apache.commons.codec.CharEncoding;
-import org.beetl.core.Configuration;
-import org.beetl.core.GroupTemplate;
-import org.beetl.core.Template;
-import org.beetl.core.resource.ClasspathResourceLoader;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Map;
+import com.github.liaochong.myexcel.core.templatehandler.BeetlTemplateHandler;
 
 /**
  * beetl excel创建者
@@ -32,33 +24,7 @@ import java.util.Map;
  * @version 1.0
  */
 public class BeetlExcelBuilder extends AbstractExcelBuilder {
-
-    private static final GroupTemplate GROUP_TEMPLATE;
-
-    static {
-        ClasspathResourceLoader resourceLoader = new ClasspathResourceLoader();
-        Configuration cfg;
-        try {
-            cfg = Configuration.defaultConfiguration();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        cfg.setCharset(CharEncoding.UTF_8);
-        GROUP_TEMPLATE = new GroupTemplate(resourceLoader, cfg);
-    }
-
-    private Template template;
-
-    @Override
-    public ExcelBuilder template(String path) {
-        template = GROUP_TEMPLATE.getTemplate(path);
-        return this;
-    }
-
-    @Override
-    protected <T> void render(Map<String, T> data, Writer out) {
-        checkTemplate(template);
-        template.binding(data);
-        template.renderTo(out);
+    public BeetlExcelBuilder() {
+        super(BeetlTemplateHandler.class);
     }
 }

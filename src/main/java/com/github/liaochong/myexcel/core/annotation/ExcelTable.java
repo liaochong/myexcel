@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core.annotation;
 
 import com.github.liaochong.myexcel.core.WorkbookType;
+import com.github.liaochong.myexcel.core.constant.Constants;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -24,9 +25,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Used for export modeling, obsolete, use {@link ExcelModel} instead
+ * <p>
+ * Will be removed in version 4.0
+ *
  * @author liaochong
  * @version 1.0
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
@@ -51,7 +57,7 @@ public @interface ExcelTable {
      *
      * @return WorkbookType
      */
-    WorkbookType workbookType() default WorkbookType.SXLSX;
+    WorkbookType workbookType() default WorkbookType.NONE;
 
     /**
      * sheeName
@@ -93,7 +99,7 @@ public @interface ExcelTable {
      *
      * @return 分离器
      */
-    String titleSeparator() default "->";
+    String titleSeparator() default Constants.ARROW;
 
     /**
      * 标题行高度

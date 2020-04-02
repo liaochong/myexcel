@@ -21,6 +21,10 @@ package com.github.liaochong.myexcel.core;
  */
 public enum WorkbookType {
     /**
+     * none,default xlsx
+     */
+    NONE,
+    /**
      * .xls
      */
     XLS,
@@ -41,4 +45,7 @@ public enum WorkbookType {
         return SXLSX.equals(workbookType);
     }
 
+    public static boolean isNone(WorkbookType workbookType) {
+        return NONE.equals(workbookType);
+    }
 }

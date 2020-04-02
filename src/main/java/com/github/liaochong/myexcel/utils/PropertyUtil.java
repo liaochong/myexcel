@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.utils;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.Constants;
 
@@ -28,28 +28,28 @@ import java.util.Properties;
  */
 public class PropertyUtil {
 
-    private static WeakCache<ExcelColumn, Properties> mappingCache = new WeakCache<>();
+    private static WeakCache<ExcelColumnMapping, Properties> mappingCache = new WeakCache<>();
 
-    private static WeakCache<ExcelColumn, Properties> reverseMappingCache = new WeakCache<>();
+    private static WeakCache<ExcelColumnMapping, Properties> reverseMappingCache = new WeakCache<>();
 
     private static final Properties EMPTY_PROPERTIES = new Properties();
 
-    public static java.util.Properties getProperties(ExcelColumn excelColumn) {
-        return getProperties(excelColumn, mappingCache, false);
+    public static java.util.Properties getProperties(ExcelColumnMapping excelColumnMapping) {
+        return getProperties(excelColumnMapping, mappingCache, false);
     }
 
-    public static java.util.Properties getReverseProperties(ExcelColumn excelColumn) {
-        return getProperties(excelColumn, reverseMappingCache, true);
+    public static java.util.Properties getReverseProperties(ExcelColumnMapping excelColumnMapping) {
+        return getProperties(excelColumnMapping, reverseMappingCache, true);
     }
 
-    private static java.util.Properties getProperties(ExcelColumn excelColumn, WeakCache<ExcelColumn, Properties> mappingCache, boolean reverse) {
-        Properties properties = mappingCache.get(excelColumn);
+    private static java.util.Properties getProperties(ExcelColumnMapping excelColumnMapping, WeakCache<ExcelColumnMapping, Properties> mappingCache, boolean reverse) {
+        Properties properties = mappingCache.get(excelColumnMapping);
         if (properties != null) {
             return properties;
         }
-        String[] mappingGroups = excelColumn.mapping().split(Constants.COMMA);
+        String[] mappingGroups = excelColumnMapping.getMapping().split(Constants.COMMA);
         if (mappingGroups.length == 0) {
-            mappingCache.cache(excelColumn, EMPTY_PROPERTIES);
+            mappingCache.cache(excelColumnMapping, EMPTY_PROPERTIES);
             return EMPTY_PROPERTIES;
         }
         properties = new java.util.Properties();
@@ -64,7 +64,7 @@ public class PropertyUtil {
                 properties.setProperty(mappingGroup[0], mappingGroup[1]);
             }
         }
-        mappingCache.cache(excelColumn, properties);
+        mappingCache.cache(excelColumnMapping, properties);
         return properties;
     }
 }

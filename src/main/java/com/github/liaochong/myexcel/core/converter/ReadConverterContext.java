@@ -14,8 +14,10 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.ReadContext;
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
@@ -29,6 +31,7 @@ import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.utils.PropertyUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -50,6 +53,10 @@ import java.util.function.BiFunction;
 public class ReadConverterContext {
 
     private static final Map<Class<?>, Converter<String, ?>> READ_CONVERTERS = new HashMap<>();
+
+    private static final WeakCache<Field, Properties> MAPPING_CACHE = new WeakCache<>();
+
+    private static final Properties EMPTY_PROPERTIES = new Properties();
 
     static {
         BoolReadConverter boolReadConverter = new BoolReadConverter();
@@ -98,26 +105,32 @@ public class ReadConverterContext {
         return this;
     }
 
-    public static void convert(Object obj, ReadContext context, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+    public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         Converter<String, ?> converter = READ_CONVERTERS.get(context.getField().getType());
         if (converter == null) {
             throw new IllegalStateException("No suitable type converter was found.");
         }
         Object value = null;
         try {
-            ExcelColumn excelColumn = context.getField().getAnnotation(ExcelColumn.class);
-            if (excelColumn != null && !excelColumn.mapping().isEmpty()) {
-                Properties properties = PropertyUtil.getReverseProperties(excelColumn);
-                String mappingVal = properties.getProperty(context.getVal());
-                if (mappingVal != null) {
-                    context.setVal(mappingVal);
+            Properties properties = MAPPING_CACHE.get(context.getField());
+            if (properties == null) {
+                ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(context.getField());
+                if (mapping != null && !mapping.getMapping().isEmpty()) {
+                    properties = PropertyUtil.getReverseProperties(mapping);
+                } else {
+                    properties = EMPTY_PROPERTIES;
                 }
+                MAPPING_CACHE.cache(context.getField(), properties);
             }
-            value = converter.convert(context.getVal(), context.getField());
+            String mappingVal = properties.getProperty(context.getVal());
+            if (mappingVal != null) {
+                context.setVal(mappingVal);
+            }
+            value = converter.convert(context.getVal(), context.getField(), convertContext);
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, context);
             if (!toContinue) {
-                throw new ExcelReadException("Failed to convert content，Field:" + context.getField().getName() + ",Content:" + context.getVal() + ",RowNum:" + context.getRowNum(), e);
+                throw new ExcelReadException("Failed to convert content,field:[" + context.getField().getName() + "],content:[" + context.getVal() + "],rowNum:[" + context.getRowNum() + "]", e);
             }
         }
         if (value == null) {

@@ -14,11 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.jfinal.template.Engine;
-import com.jfinal.template.Template;
-
-import java.io.Writer;
-import java.util.Map;
+import com.github.liaochong.myexcel.core.templatehandler.EnjoyTemplateHandler;
 
 /**
  * jfinal enjoy
@@ -27,26 +23,7 @@ import java.util.Map;
  * @version 1.0
  */
 public class EnjoyExcelBuilder extends AbstractExcelBuilder {
-
-    private static final Engine ENGINE;
-
-    private Template template;
-
-    static {
-        ENGINE = Engine.create("EnjoyExcelBuilderEngine");
-        ENGINE.setToClassPathSourceFactory();
-        Engine.setFastMode(true);
-    }
-
-    @Override
-    public ExcelBuilder template(String path) {
-        template = ENGINE.getTemplate(path);
-        return this;
-    }
-
-    @Override
-    protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
-        checkTemplate(template);
-        template.render(renderData, out);
+    public EnjoyExcelBuilder() {
+        super(EnjoyTemplateHandler.class);
     }
 }

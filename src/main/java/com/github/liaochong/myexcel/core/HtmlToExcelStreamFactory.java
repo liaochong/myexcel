@@ -16,7 +16,9 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.parser.StyleParser;
 import com.github.liaochong.myexcel.core.parser.Table;
+import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
@@ -111,15 +113,19 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
      */
     private volatile Thread receiveThread;
 
+    private StyleParser styleParser;
+
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
                                     Consumer<Path> pathConsumer,
                                     int capacity,
-                                    boolean fixedTitles) {
+                                    boolean fixedTitles,
+                                    StyleParser styleParser) {
         this.trWaitQueue = new LinkedBlockingQueue<>(waitSize);
         this.executorService = executorService;
         this.pathConsumer = pathConsumer;
         this.capacity = capacity;
         this.fixedTitles = fixedTitles;
+        this.styleParser = styleParser;
     }
 
     public void start(Table table, Workbook workbook) {
@@ -195,6 +201,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     rowNum = 0;
                     this.setTitles();
                 }
+                setTdStyle(tr);
                 appendRow(tr);
                 totalSize++;
                 tr.getColWidthMap().forEach((k, v) -> {
@@ -213,6 +220,21 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             closeWorkbook();
             TempFileOperator.deleteTempFiles(paths);
             throw new ExcelBuildException("An exception occurred while processing", e);
+        }
+    }
+
+    private void setTdStyle(Tr tr) {
+        if (tr.isFromTemplate()) {
+            return;
+        }
+        styleParser.toggle();
+        for (int i = 0, size = tr.getTdList().size(); i < size; i++) {
+            Td td = tr.getTdList().get(i);
+            if (td.isTh()) {
+                td.setStyle(styleParser.getTitleStyle("title&" + td.getCol()));
+            } else {
+                td.setStyle(styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
+            }
         }
     }
 

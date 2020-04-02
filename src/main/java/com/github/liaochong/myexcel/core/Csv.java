@@ -63,7 +63,10 @@ public class Csv {
             try (FileInputStream fis = new FileInputStream(filePath.toFile());
                  FileOutputStream fos = new FileOutputStream(target.toFile(), true)) {
                 if (append && Files.exists(target) && Files.size(target) > 0) {
-                    fis.skip(3);
+                    long size = fis.skip(3);
+                    if (size != 3) {
+                        throw new IllegalStateException("Skip byte failure");
+                    }
                 }
                 byte[] buffer = new byte[8 * 1024];
                 int len;

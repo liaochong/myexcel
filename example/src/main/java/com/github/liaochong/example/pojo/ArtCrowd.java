@@ -1,6 +1,7 @@
 package com.github.liaochong.example.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import com.github.liaochong.myexcel.core.annotation.ExcelTable;
 
 import java.time.LocalDateTime;
@@ -9,16 +10,16 @@ import java.time.LocalDateTime;
  * @author liaochong
  * @version 1.0
  */
-@ExcelTable(sheetName = "艺术生", useFieldNameAsTitle = true)
+@ExcelModel(sheetName = "艺术生", useFieldNameAsTitle = true)
 public class ArtCrowd extends People {
 
-    @ExcelColumn(order = 3, index = 3, width = 20)
+    @ExcelColumn(order = 3, index = 3)
     private String paintingLevel;
 
-    @ExcelColumn(order = 4, title = "是否会跳舞", width = 9, groups = {People.class, String.class}, index = 4)
+    @ExcelColumn(order = 4, title = "是否会跳舞", groups = {People.class, String.class}, index = 4)
     private boolean dance;
 
-    @ExcelColumn(order = 5, title = "考核时间", width = 10, dateFormatPattern = "yyyy-MM-dd HH:mm:ss", groups = {People.class, String.class}, index = 5)
+    @ExcelColumn(order = 5, title = "考核时间", groups = {People.class, String.class}, index = 5)
     private LocalDateTime assessmentTime;
 
     @ExcelColumn(order = 6, defaultValue = "---")

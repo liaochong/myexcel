@@ -1,7 +1,7 @@
 <table>
     <caption>${sheetName}</caption>
     <thead>
-    <tr style="background-color: #6495ED;height: 300px">
+    <tr style="background-color: #6495ED;height: 100px">
         <th colspan="3" style="text-align: center;vertical-align: middle;font-weight: bold;font-size: 14px;">产品介绍</th>
     </tr>
     <tr>
@@ -27,8 +27,8 @@
         <td>2</td>
         <td>3</td>
     </tr>
-    <tr>
-        <td colspan="3">fdssdfdsfhkadhkdajksdhajhdaskhakdhjkadf</td>
+    <tr style="background-color:red">
+        <td colspan="3"><a href="http://www.baidu.com">百度链接</a></td>
     </tr>
     <#--</#list>-->
     </tbody>

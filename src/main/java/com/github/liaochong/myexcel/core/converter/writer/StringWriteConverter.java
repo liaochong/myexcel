@@ -1,6 +1,7 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
@@ -13,13 +14,13 @@ import java.lang.reflect.Field;
 public class StringWriteConverter implements WriteConverter {
 
     @Override
-    public boolean support(Field field, Object fieldVal) {
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn != null && excelColumn.convertToString();
+    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        return mapping != null && mapping.isConvertToString();
     }
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
+    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
         return Pair.of(String.class, fieldVal.toString());
     }
 }

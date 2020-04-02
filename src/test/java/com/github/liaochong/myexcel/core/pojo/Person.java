@@ -15,7 +15,7 @@
 package com.github.liaochong.myexcel.core.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.ExcelTable;
+import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -28,7 +28,7 @@ import java.util.Date;
  * @version 1.0
  */
 @Data
-@ExcelTable(sheetName = "人员信息", rowHeight = 50, titleRowHeight = 80)
+@ExcelModel(sheetName = "人员信息", rowHeight = 50, titleRowHeight = 80, decimalFormat = "#,000.0000")
 public class Person {
 
     @ExcelColumn(title = "基本信息->姓名", index = 0)

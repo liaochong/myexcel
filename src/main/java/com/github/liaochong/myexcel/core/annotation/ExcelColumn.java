@@ -133,4 +133,11 @@ public @interface ExcelColumn {
      * @return 文件类型
      */
     FileType fileType() default FileType.NONE;
+
+    /**
+     * 是否为公式
+     *
+     * @return true/false
+     */
+    boolean formula() default false;
 }

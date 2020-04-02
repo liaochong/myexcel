@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.ConvertContext;
+
 import java.lang.reflect.Field;
 
 /**
@@ -27,9 +29,10 @@ public interface Converter<E, T> {
     /**
      * 转换
      *
-     * @param obj   被转换对象
-     * @param field 字段，提供额外信息
+     * @param obj            被转换对象
+     * @param field          字段，提供额外信息
+     * @param convertContext 转换上下文
      * @return 转换结果
      */
-    T convert(E obj, Field field);
+    T convert(E obj, Field field, ConvertContext convertContext);
 }

@@ -15,7 +15,11 @@
 package com.github.liaochong.myexcel.core;
 
 
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
+import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
+import com.github.liaochong.myexcel.exception.StopReadException;
+import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -23,10 +27,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * 读取抽象
@@ -36,77 +39,106 @@ import java.util.function.Predicate;
  */
 abstract class AbstractReadHandler<T> {
 
-    protected boolean isMapType;
+    private Map<Integer, Field> fieldMap;
 
-    protected Map<Integer, Field> fieldMap;
-
-    protected Class<T> dataType;
-
-    protected Consumer<T> consumer;
-
-    protected Function<T, Boolean> function;
-
-    protected Predicate<Row> rowFilter;
-
-    protected Predicate<T> beanFilter;
-
-    protected List<T> result;
-
-    protected T obj;
+    private T obj;
 
     protected Map<String, Integer> titles = new HashMap<>();
 
-    protected BiFunction<Throwable, ReadContext, Boolean> exceptionFunction;
-
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
-    protected AddTitleConsumer<String, Integer, Integer> addTitleConsumer = (v, rowNum, colNum) -> {
+    private BiConsumer<String, Integer> addTitleConsumer = (v, colNum) -> {
     };
 
     private ReadContext<T> context = new ReadContext<>();
 
-    protected void init(
-            List<T> result,
-            SaxExcelReader.ReadConfig<T> readConfig) {
-        this.result = result;
-        dataType = readConfig.getDataType();
+    private ConvertContext convertContext;
+    /**
+     * Row object currently being processed
+     */
+    private final Row currentRow = new Row(-1);
+
+    private Supplier<T> newInstance;
+
+    private BiConsumer<Integer, String> fieldHandler;
+
+    private Consumer<T> resultHandler;
+    /**
+     * Whether to use title for import
+     */
+    private boolean readWithTitle;
+
+    public AbstractReadHandler(boolean readCsv,
+                               List<T> result,
+                               SaxExcelReader.ReadConfig<T> readConfig) {
+        convertContext = new ConvertContext(readCsv);
+        Class<T> dataType = readConfig.getDataType();
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        consumer = readConfig.getConsumer();
-        function = readConfig.getFunction();
-        rowFilter = readConfig.getRowFilter();
-        beanFilter = readConfig.getBeanFilter();
-        exceptionFunction = readConfig.getExceptionFunction();
         this.readConfig = readConfig;
-        if (fieldMap.isEmpty()) {
+        boolean isMapType = dataType == Map.class;
+        if (!isMapType && fieldMap.isEmpty()) {
             addTitleConsumer = this::addTitles;
+            readWithTitle = true;
+        }
+        setNewInstanceFunction(dataType, isMapType);
+        // 全局配置获取
+        setConfiguration(dataType, isMapType);
+        setResultHandlerFunction(result, readConfig);
+        setFieldHandlerFunction(isMapType);
+    }
+
+    private void setResultHandlerFunction(List<T> result, SaxExcelReader.ReadConfig<T> readConfig) {
+        if (readConfig.getConsumer() != null) {
+            resultHandler = v -> readConfig.getConsumer().accept(v);
+        } else if (readConfig.getFunction() != null) {
+            resultHandler = v -> {
+                Boolean noStop = readConfig.getFunction().apply(v);
+                if (!noStop) {
+                    throw new StopReadException();
+                }
+            };
+        } else {
+            resultHandler = result::add;
         }
     }
 
     @SuppressWarnings("unchecked")
-    T newInstance(Class<T> clazz) {
+    private void setNewInstanceFunction(Class<T> dataType, boolean isMapType) {
         if (isMapType) {
-            return (T) new LinkedHashMap<Cell, String>();
-        }
-        if (clazz == Map.class) {
-            isMapType = true;
-            return (T) new LinkedHashMap<Cell, String>();
-        }
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            newInstance = () -> (T) new LinkedHashMap<Cell, String>();
+        } else {
+            newInstance = () -> ReflectUtil.newInstance(dataType);
         }
     }
 
-    protected void initFieldMap(int rowNum) {
-        if (rowNum != 0 || !fieldMap.isEmpty()) {
+    private void setConfiguration(Class<T> dataType, boolean isMapType) {
+        if (isMapType) {
             return;
         }
-        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(dataType);
-        fieldMap = new HashMap<>(titleFieldMap.size());
-        titles.forEach((k, v) -> {
-            fieldMap.put(v, titleFieldMap.get(k));
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+        ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.getConfiguration());
+
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        fields.forEach(field -> {
+            ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            if (excelColumn == null) {
+                return;
+            }
+            ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
+            convertContext.getExcelColumnMappingMap().put(field, mapping);
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setFieldHandlerFunction(boolean isMapType) {
+        if (isMapType) {
+            fieldHandler = (colNum, content) -> ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
+        } else {
+            fieldHandler = (colNum, content) -> {
+                Field field = fieldMap.get(colNum);
+                convert(content, currentRow.getRowNum(), colNum, field);
+            };
+        }
     }
 
     protected void convert(String value, int rowNum, int colNum, Field field) {
@@ -114,12 +146,58 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         context.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(obj, context, exceptionFunction);
+        ReadConverterContext.convert(obj, context, convertContext, readConfig.getExceptionFunction());
     }
 
-    private void addTitles(String formattedValue, int rowNum, int thisCol) {
-        if (rowNum == 0) {
+    private void addTitles(String formattedValue, int thisCol) {
+        if (currentRow.getRowNum() == 0) {
             titles.put(formattedValue, thisCol);
         }
+    }
+
+    protected void newRow(int rowNum) {
+        currentRow.setRowNum(rowNum);
+        obj = newInstance.get();
+    }
+
+    protected void setRecordAsNull() {
+        obj = null;
+    }
+
+    protected void handleField(Integer colNum, String content) {
+        if (obj == null || colNum < 0) {
+            return;
+        }
+        content = readConfig.getTrim().apply(content);
+        this.addTitleConsumer.accept(content, colNum);
+        if (readConfig.getRowFilter().test(currentRow)) {
+            fieldHandler.accept(colNum, content);
+        }
+    }
+
+    protected void handleResult() {
+        this.initFieldMap();
+        if (!readConfig.getRowFilter().test(currentRow)) {
+            return;
+        }
+        if (!readConfig.getBeanFilter().test(obj)) {
+            return;
+        }
+        if (readWithTitle && currentRow.getRowNum() == 0) {
+            readWithTitle = false;
+            return;
+        }
+        resultHandler.accept(obj);
+    }
+
+    private void initFieldMap() {
+        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
+            return;
+        }
+        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
+        fieldMap = new HashMap<>(titleFieldMap.size());
+        titles.forEach((k, v) -> {
+            fieldMap.put(v, titleFieldMap.get(k));
+        });
     }
 }

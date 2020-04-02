@@ -14,7 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.ImageFile;
 import com.github.liaochong.myexcel.core.container.Pair;
@@ -32,16 +33,16 @@ import java.lang.reflect.Field;
 public class ImageWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal) {
+    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
         return Pair.of(ImageFile.class, fieldVal);
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal) {
+    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
         if (field.getType() != File.class) {
             return false;
         }
-        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-        return excelColumn.fileType() == FileType.IMAGE;
+        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        return mapping != null && mapping.getFileType() == FileType.IMAGE;
     }
 }

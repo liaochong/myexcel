@@ -14,16 +14,8 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.templatehandler.ThymeleafTemplateHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * ThymeleafExcelBuilder
@@ -34,36 +26,7 @@ import java.util.Objects;
 @Slf4j
 public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
 
-    private static final TemplateEngine TEMPLATE_ENGINE;
-
-    private String filePath;
-
-    static {
-        TEMPLATE_ENGINE = new TemplateEngine();
-        ClassLoaderTemplateResolver classLoaderTemplateResolver = new ClassLoaderTemplateResolver();
-        classLoaderTemplateResolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        classLoaderTemplateResolver.setCacheable(true);
-        TEMPLATE_ENGINE.setTemplateResolver(classLoaderTemplateResolver);
+    public ThymeleafExcelBuilder() {
+        super(ThymeleafTemplateHandler.class);
     }
-
-    @Override
-    public ExcelBuilder template(String path) {
-        Objects.requireNonNull(path);
-        if (!path.endsWith(Constants.HTML_SUFFIX)) {
-            throw new IllegalArgumentException("ThymeleafExcelBuilder only supports files suffixed with .html");
-        }
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        filePath = path;
-        return this;
-    }
-
-    @Override
-    protected <T> void render(Map<String, T> renderData, Writer out) throws Exception {
-        Context context = new Context();
-        context.setVariables(renderData);
-        TEMPLATE_ENGINE.process(filePath, context, out);
-    }
-
 }

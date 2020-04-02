@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
@@ -45,10 +44,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -59,8 +56,6 @@ import java.util.Set;
  */
 @Slf4j
 class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
-
-    private Row currentRow;
 
     private Set<Integer> sheetIndexs;
 
@@ -106,9 +101,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     public HSSFSaxReadHandler(InputStream inputStream,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
+        super(false, result, readConfig);
         this.fs = new POIFSFileSystem(inputStream);
         this.sheetIndexs = readConfig.getSheetIndexs();
-        this.init(result, readConfig);
     }
 
     public void process() throws IOException {
@@ -130,7 +125,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void processRecord(Record record) {
         int thisRow = -1;
@@ -148,7 +142,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                         stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
                     }
                     sheetIndex++;
-                    obj = null;
+                    setRecordAsNull();
                     lastRowNumber = -1;
                     if (orderedBSRs == null) {
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
@@ -258,26 +252,13 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisColumn = mc.getColumn();
             thisStr = null;
         }
-        thisStr = readConfig.getTrim().apply(thisStr);
-        this.addTitleConsumer.accept(thisStr, thisRow, thisColumn);
 
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
-            currentRow = new Row(thisRow);
-            obj = this.newInstance(dataType);
+            newRow(thisRow);
         }
-
-        if (thisStr != null) {
-            if (rowFilter.test(currentRow)) {
-                if (isMapType) {
-                    ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), thisColumn), thisStr);
-                } else {
-                    Field field = fieldMap.get(thisColumn);
-                    convert(thisStr, currentRow.getRowNum(), thisColumn, field);
-                }
-            }
-        }
+        handleField(thisColumn, thisStr);
 
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
@@ -290,23 +271,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 this.titles.clear();
                 return;
             }
-            this.initFieldMap(currentRow.getRowNum());
-            if (!rowFilter.test(currentRow)) {
-                return;
-            }
-            if (!beanFilter.test(obj)) {
-                return;
-            }
-            if (consumer != null) {
-                consumer.accept(obj);
-            } else if (function != null) {
-                Boolean noStop = function.apply(obj);
-                if (!noStop) {
-                    throw new StopReadException();
-                }
-            } else {
-                result.add(obj);
-            }
+            handleResult();
         }
     }
 }

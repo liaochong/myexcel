@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
@@ -60,8 +61,11 @@ public class HtmlTableParser {
 
     private String html;
 
-    private HtmlTableParser() {
+    private Map<String, String> defaultLinkStyle = new HashMap<>();
 
+    private HtmlTableParser() {
+        defaultLinkStyle.put(FontStyle.FONT_COLOR, "blue");
+        defaultLinkStyle.put(FontStyle.TEXT_DECORATION, FontStyle.UNDERLINE);
     }
 
     public static HtmlTableParser of(File htmlFile) {
@@ -140,7 +144,7 @@ public class HtmlTableParser {
             }
             Map<String, String> trStyleMap = StyleUtil.mixStyle(upperStyle, StyleUtil.parseStyle(trElement));
             String height = trStyleMap.get("height");
-            Tr tr = new Tr(index, TdUtil.getValue(height));
+            Tr tr = new Tr(index, TdUtil.getValue(height), true);
             // 行可见性
             tr.setVisibility(!Objects.equals(trStyleMap.get("visibility"), "hidden"));
             this.parseTdOfTr(tr, trElement, trStyleMap, seizeMap);
@@ -176,7 +180,11 @@ public class HtmlTableParser {
             this.setTdContent(tdElement, td);
 
             td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
-            td.setStyle(StyleUtil.mixStyle(trStyle, StyleUtil.parseStyle(tdElement)));
+            Map<String, String> tdStyle = StyleUtil.parseStyle(tdElement);
+            if (tdStyle.isEmpty() && ContentTypeEnum.isLink(td.getTdContentType())) {
+                tdStyle = defaultLinkStyle;
+            }
+            td.setStyle(StyleUtil.mixStyle(trStyle, tdStyle));
 
             String colSpan = tdElement.attr(TableTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));
@@ -231,13 +239,12 @@ public class HtmlTableParser {
                 } else {
                     colWidthMap.put(td.getCol(), width);
                 }
-            } else if (parseConfig.isCustomWidth()) {
-                String widthStr = td.getStyle().get("width");
-                if (widthStr != null) {
-                    int width = TdUtil.getValue(widthStr);
-                    if (width > 0) {
-                        colWidthMap.put(td.getCol(), width);
-                    }
+            }
+            String widthStr = td.getStyle().get("width");
+            if (widthStr != null) {
+                int width = TdUtil.getValue(widthStr);
+                if (width >= 0) {
+                    colWidthMap.put(td.getCol(), width);
                 }
             }
         }
@@ -251,6 +258,15 @@ public class HtmlTableParser {
             String src = imgs.get(0).attr("src");
             td.setFile(new File(src));
             td.setTdContentType(ContentTypeEnum.IMAGE);
+            return;
+        }
+        Elements links = tdElement.getElementsByTag(TableTag.a.name());
+        if (links != null && !links.isEmpty()) {
+            Element a = links.get(0);
+            td.setContent(a.text());
+            String href = a.attr("href").trim();
+            td.setLink(href);
+            td.setTdContentType(href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL);
             return;
         }
         String tdContent = LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
@@ -347,6 +363,10 @@ public class HtmlTableParser {
         /**
          * img
          */
-        img;
+        img,
+        /**
+         * a
+         */
+        a;
     }
 }

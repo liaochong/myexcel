@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liaochong
@@ -19,19 +22,35 @@ class CsvBuilderTest extends BasicTest {
 
     @BeforeAll
     static void before() throws Exception {
-        Files.deleteIfExists(Paths.get(TEST_DIR + "common.csv"));
+        Files.deleteIfExists(Paths.get(TEST_OUTPUT_DIR + "common.csv"));
+    }
+
+    @Test
+    void mapBuild() {
+        List<Map> maps = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", "name" + i);
+            map.put("age", i);
+            maps.add(map);
+        }
+        List<String> titles = new ArrayList<>();
+        titles.add("姓名");
+        titles.add("年龄");
+        Csv csv = CsvBuilder.of(Map.class).titles(titles).build(maps);
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "map.csv"));
     }
 
     @Test
     void build() {
         Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1));
-        csv.write(Paths.get(TEST_DIR + "common.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "common.csv"));
     }
 
     @Test
     void buildContinued() {
         Csv csv = CsvBuilder.of(CsvPeople.class).build(data(1));
-        csv.write(Paths.get(TEST_DIR + "common.csv"), true);
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "common.csv"), true);
     }
 
     @Test
@@ -41,21 +60,21 @@ class CsvBuilderTest extends BasicTest {
             csvBuilder.append(data(1000));
         }
         Csv csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "append.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "append.csv"));
 
         csvBuilder = CsvBuilder.of(CsvPeople.class).noTitles();
         for (int i = 0; i < 10; i++) {
             csvBuilder.append(data(1000));
         }
         csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "append.csv"), true);
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "append.csv"), true);
 
         csvBuilder = CsvBuilder.of(CsvPeople.class);
         for (int i = 0; i < 10; i++) {
             csvBuilder.append(data(1000));
         }
         csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "append.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "append.csv"));
     }
 
     @Test
@@ -65,7 +84,7 @@ class CsvBuilderTest extends BasicTest {
             csvBuilder.append(data(1000));
         }
         Csv csv = csvBuilder.build();
-        csv.write(Paths.get(TEST_DIR + "no_titles_append.csv"));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "no_titles_append.csv"));
     }
 
     private List<CsvPeople> data(int size) {
