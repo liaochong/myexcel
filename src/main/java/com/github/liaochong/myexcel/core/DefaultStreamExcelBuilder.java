@@ -31,10 +31,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +90,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * 模板处理器
      */
     private TemplateHandler templateHandler;
+
+    private List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, null);
@@ -330,6 +335,20 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         htmlToExcelStreamFactory.append(tr);
     }
 
+    public void asyncAppend(Supplier<List<T>> supplier) {
+        CompletableFuture<Void> future;
+        if (executorService == null) {
+            future = CompletableFuture.runAsync(() -> {
+                this.append(supplier.get());
+            });
+        } else {
+            future = CompletableFuture.runAsync(() -> {
+                this.append(supplier.get());
+            }, executorService);
+        }
+        asyncAppendFutures.add(future);
+    }
+
     public <E> void append(String templateFilePath, Map<String, E> renderData) {
         templateHandler.classpathTemplate(templateFilePath);
         this.doAppend(renderData);
@@ -342,16 +361,19 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     @Override
     public Workbook build() {
+        joinAsyncAppendFutures();
         return htmlToExcelStreamFactory.build();
     }
 
     @Override
     public List<Path> buildAsPaths() {
+        joinAsyncAppendFutures();
         return htmlToExcelStreamFactory.buildAsPaths();
     }
 
     @Override
     public Path buildAsZip(String fileName) {
+        joinAsyncAppendFutures();
         return htmlToExcelStreamFactory.buildAsZip(fileName);
     }
 
@@ -386,6 +408,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         }
         for (Table table : tables) {
             table.getTrList().forEach(htmlToExcelStreamFactory::append);
+        }
+    }
+
+    private void joinAsyncAppendFutures() {
+        if (!asyncAppendFutures.isEmpty()) {
+            asyncAppendFutures.forEach(CompletableFuture::join);
         }
     }
 }

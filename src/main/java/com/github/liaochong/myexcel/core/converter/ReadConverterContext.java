@@ -130,7 +130,7 @@ public class ReadConverterContext {
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, context);
             if (!toContinue) {
-                throw new ExcelReadException("Failed to convert content,field:[" + context.getField().getName() + "],content:[" + context.getVal() + "],rowNum:[" + context.getRowNum() + "]", e);
+                throw new ExcelReadException("Failed to convert content,field:[" + context.getField().getDeclaringClass() + "#" + context.getField().getName() + "],content:[" + context.getVal() + "],rowNum:[" + context.getRowNum() + "]", e);
             }
         }
         if (value == null) {
@@ -139,7 +139,7 @@ public class ReadConverterContext {
         try {
             context.getField().set(obj, value);
         } catch (IllegalAccessException e) {
-            throw new SaxReadException("Failed to set the " + context.getField().getName() + " field value to " + context.getVal(), e);
+            throw new SaxReadException("Failed to set the " + context.getField().getDeclaringClass() + "#" + context.getField().getName() + " field value to " + context.getVal(), e);
         }
     }
 }

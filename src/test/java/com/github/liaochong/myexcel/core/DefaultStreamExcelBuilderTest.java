@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 /**
  * @author liaochong
@@ -66,6 +67,20 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             data(excelBuilder, 5000);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
+        }
+    }
+
+    @Test
+    void asyncCommonBuild() throws Exception {
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
+                .fixedTitles()
+                .threadPool(Executors.newFixedThreadPool(10))
+                .start()) {
+            for (int i = 0; i < 1000; i++) {
+                excelBuilder.asyncAppend(this::data);
+            }
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "async_common_build.xlsx"));
         }
     }
 
@@ -250,6 +265,26 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             futures.add(future);
         }
         futures.forEach(CompletableFuture::join);
+    }
+
+    private List<CommonPeople> data() {
+        BigDecimal oddMoney = new BigDecimal(109898);
+        BigDecimal evenMoney = new BigDecimal(66666);
+        List<CommonPeople> result = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            CommonPeople commonPeople = new CommonPeople();
+            boolean odd = i % 2 == 0;
+            commonPeople.setName(odd ? "张三" : "李四");
+            commonPeople.setAge(odd ? 18 : 24);
+            commonPeople.setDance(odd ? true : false);
+            commonPeople.setMoney(odd ? oddMoney : evenMoney);
+            commonPeople.setBirthday(new Date());
+            commonPeople.setLocalDate(LocalDate.now());
+            commonPeople.setLocalDateTime(LocalDateTime.now());
+            commonPeople.setCats(100L);
+            result.add(commonPeople);
+        }
+        return result;
     }
 
     private void customStyleData(DefaultStreamExcelBuilder<CustomStylePeople> excelBuilder, int size) {
