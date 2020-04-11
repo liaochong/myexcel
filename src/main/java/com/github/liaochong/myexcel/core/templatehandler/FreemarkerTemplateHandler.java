@@ -16,13 +16,23 @@ package com.github.liaochong.myexcel.core.templatehandler;
 
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.SimpleDate;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.TemplateModel;
+import freemarker.template.TemplateModelException;
 import org.apache.commons.codec.CharEncoding;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -65,9 +75,28 @@ public class FreemarkerTemplateHandler extends AbstractTemplateHandler<Configura
             } catch (IOException e) {
                 throw new ExcelBuildException("Set Freemarker directory failure", e);
             }
+            setObjectWrapper(configuration);
             CFG_MAP.put(dirPath, configuration);
             return configuration;
         }
+    }
+
+    private void setObjectWrapper(Configuration configuration) {
+        configuration.setObjectWrapper(new DefaultObjectWrapper(Configuration.VERSION_2_3_23) {
+            @Override
+            public TemplateModel wrap(Object object) throws TemplateModelException {
+                if (object instanceof LocalDate) {
+                    return new SimpleDate(Date.valueOf((LocalDate) object));
+                }
+                if (object instanceof LocalTime) {
+                    return new SimpleDate(Time.valueOf((LocalTime) object));
+                }
+                if (object instanceof LocalDateTime) {
+                    return new SimpleDate(Timestamp.valueOf((LocalDateTime) object));
+                }
+                return super.wrap(object);
+            }
+        });
     }
 
     @Override
