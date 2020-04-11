@@ -2,8 +2,6 @@ package com.github.liaochong.example.controller;
 
 import com.github.liaochong.example.pojo.ArtCrowd;
 import com.github.liaochong.myexcel.core.DefaultStreamExcelBuilder;
-import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
-import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Controller;
@@ -13,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -23,57 +21,39 @@ import java.util.concurrent.Executors;
 @Controller
 public class DefaultStreamExcelBuilderExampleController {
 
+    private ExecutorService executorService = Executors.newFixedThreadPool(10);
+
     @GetMapping("/default/excel/stream/example")
     public void streamBuild(HttpServletResponse response) throws Exception {
         try (DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
-                .widthStrategy(WidthStrategy.CUSTOM_WIDTH)
-                .hasStyle()
-                .threadPool(Executors.newFixedThreadPool(10))
+                .threadPool(executorService)
                 .start()) {
-            List<CompletableFuture> futures = new ArrayList<>();
             for (int i = 0; i < 100; i++) {
-                CompletableFuture future = CompletableFuture.runAsync(() -> {
-                    List<ArtCrowd> dataList = this.getDataList();
-                    defaultExcelBuilder.append(dataList);
-                });
-                futures.add(future);
+                // defaultExcelBuilder.append(this.getDataList());
+                defaultExcelBuilder.asyncAppend(this::getDataList);
             }
-            futures.forEach(CompletableFuture::join);
             Workbook workbook = defaultExcelBuilder.build();
-            AttachmentExportUtil.export(workbook, "艺术生信息", response);
+            AttachmentExportUtil.export(workbook, "艺术生信息1", response);
         }
     }
 
     @GetMapping("/default/excel/stream/continue/example")
     public void streamBuildWithContinue(HttpServletResponse response) throws Exception {
         DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
-                .threadPool(Executors.newFixedThreadPool(10))
+                .threadPool(executorService)
                 .start();
-
-        List<CompletableFuture> futures = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            CompletableFuture future = CompletableFuture.runAsync(() -> {
-                List<ArtCrowd> dataList = this.getDataList();
-                defaultExcelBuilder.append(dataList);
-            });
-            futures.add(future);
+            defaultExcelBuilder.asyncAppend(this::getDataList);
         }
-        futures.forEach(CompletableFuture::join);
         Workbook workbook = defaultExcelBuilder.build();
 
         DefaultStreamExcelBuilder<ArtCrowd> defaultStreamExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class, workbook)
-                .threadPool(Executors.newFixedThreadPool(10))
+                .threadPool(executorService)
                 .sheetName("sheet2")
                 .start();
-        futures = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            CompletableFuture future = CompletableFuture.runAsync(() -> {
-                List<ArtCrowd> dataList = this.getDataList();
-                defaultStreamExcelBuilder.append(dataList);
-            });
-            futures.add(future);
+            defaultStreamExcelBuilder.asyncAppend(this::getDataList);
         }
-        futures.forEach(CompletableFuture::join);
         workbook = defaultStreamExcelBuilder.build();
         AttachmentExportUtil.export(workbook, "艺术生信息", response);
     }
