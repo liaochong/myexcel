@@ -335,7 +335,31 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         htmlToExcelStreamFactory.append(tr);
     }
 
-    public void asyncAppend(Supplier<List<T>> supplier) {
+    public <E> void append(String templateFilePath, Map<String, E> renderData) {
+        templateHandler.classpathTemplate(templateFilePath);
+        this.doAppend(renderData);
+    }
+
+    public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
+        templateHandler.fileTemplate(templateDir, templateFileName);
+        this.doAppend(renderData);
+    }
+
+    public void asyncAppend(ListSupplier<T> supplier) {
+        CompletableFuture<Void> future;
+        if (executorService == null) {
+            future = CompletableFuture.runAsync(() -> {
+                this.append(supplier.getAsList());
+            });
+        } else {
+            future = CompletableFuture.runAsync(() -> {
+                this.append(supplier.getAsList());
+            }, executorService);
+        }
+        asyncAppendFutures.add(future);
+    }
+
+    public void asyncAppend(Supplier<T> supplier) {
         CompletableFuture<Void> future;
         if (executorService == null) {
             future = CompletableFuture.runAsync(() -> {
@@ -347,16 +371,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             }, executorService);
         }
         asyncAppendFutures.add(future);
-    }
-
-    public <E> void append(String templateFilePath, Map<String, E> renderData) {
-        templateHandler.classpathTemplate(templateFilePath);
-        this.doAppend(renderData);
-    }
-
-    public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
-        templateHandler.fileTemplate(templateDir, templateFileName);
-        this.doAppend(renderData);
     }
 
     @Override
