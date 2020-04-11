@@ -77,7 +77,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .threadPool(Executors.newFixedThreadPool(10))
                 .start()) {
             for (int i = 0; i < 1000; i++) {
-                excelBuilder.asyncAppend(this::data);
+                excelBuilder.asyncAppend(this::dataList);
             }
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "async_common_build.xlsx"));
@@ -267,7 +267,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         futures.forEach(CompletableFuture::join);
     }
 
-    private List<CommonPeople> data() {
+    private List<CommonPeople> dataList() {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
         List<CommonPeople> result = new ArrayList<>();
