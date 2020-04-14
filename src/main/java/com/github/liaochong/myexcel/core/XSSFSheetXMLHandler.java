@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import org.apache.poi.ss.usermodel.BuiltinFormats;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.RichTextString;
@@ -359,7 +360,7 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
                     if (this.formatString != null && n.length() > 0)
                         thisStr = formatter.formatRawCellContents(Double.parseDouble(n), this.formatIndex, this.formatString);
                     else {
-                        if (n.length() > 0) {
+                        if (n.length() > 0 && n.contains(Constants.SPOT)) {
                             n = String.valueOf(Double.parseDouble(n));
                         }
                         thisStr = n;
