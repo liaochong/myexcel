@@ -357,7 +357,7 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
                 case NUMBER:
                     String n = value.toString();
                     if (n.length() > 0) {
-                        n = Double.valueOf(n).toString();
+                        n = String.valueOf(Double.parseDouble(n));
                     }
                     if (this.formatString != null && n.length() > 0)
                         thisStr = formatter.formatRawCellContents(Double.parseDouble(n), this.formatIndex, this.formatString);
