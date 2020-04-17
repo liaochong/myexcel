@@ -97,7 +97,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private List<Path> paths;
 
-    private List<CompletableFuture> futures;
+    private List<CompletableFuture<Void>> futures;
 
     private Consumer<Path> pathConsumer;
     /**
@@ -374,7 +374,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     Path buildAsZip(String fileName) {
-        Objects.requireNonNull(fileName);
         waiting();
         boolean isXls = workbook instanceof HSSFWorkbook;
         this.storeToTempFile();
@@ -396,19 +395,21 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             throw new RuntimeException(e);
         } finally {
             TempFileOperator.deleteTempFiles(paths);
+            paths.clear();
         }
+        paths.add(zipFile);
         return zipFile;
     }
 
     public void cancel() {
         waiting();
-        closeWorkbook();
-        TempFileOperator.deleteTempFiles(paths);
+        clear();
     }
 
     public void clear() {
         closeWorkbook();
         TempFileOperator.deleteTempFiles(paths);
+        paths = null;
     }
 
 }
