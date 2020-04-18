@@ -395,6 +395,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     public void close() throws IOException {
         if (htmlToExcelStreamFactory != null) {
             htmlToExcelStreamFactory.clear();
+            htmlToExcelStreamFactory = null;
         }
     }
 
