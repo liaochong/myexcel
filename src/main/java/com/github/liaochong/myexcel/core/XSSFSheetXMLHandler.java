@@ -111,8 +111,12 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
     /**
      * Accepts objects needed while parsing.
      *
-     * @param styles  Table of styles
-     * @param strings Table of shared strings
+     * @param styles               Table of styles
+     * @param strings              Table of shared strings
+     * @param formulasNotResults   formulasNotResults
+     * @param sheetContentsHandler sheetContentsHandler
+     * @param dataFormatter        dataFormatter
+     * @param comments             comments
      */
     public XSSFSheetXMLHandler(
             Styles styles,
@@ -129,35 +133,6 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
         this.nextDataType = xssfDataType.NUMBER;
         this.formatter = dataFormatter;
         init(comments);
-    }
-
-    /**
-     * Accepts objects needed while parsing.
-     *
-     * @param styles  Table of styles
-     * @param strings Table of shared strings
-     */
-    public XSSFSheetXMLHandler(
-            Styles styles,
-            SharedStrings strings,
-            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
-            DataFormatter dataFormatter,
-            boolean formulasNotResults) {
-        this(styles, null, strings, sheetContentsHandler, dataFormatter, formulasNotResults);
-    }
-
-    /**
-     * Accepts objects needed while parsing.
-     *
-     * @param styles  Table of styles
-     * @param strings Table of shared strings
-     */
-    public XSSFSheetXMLHandler(
-            Styles styles,
-            SharedStrings strings,
-            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
-            boolean formulasNotResults) {
-        this(styles, strings, sheetContentsHandler, new DataFormatter(), formulasNotResults);
     }
 
     private void init(Comments commentsTable) {
@@ -503,11 +478,15 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
     public interface SheetContentsHandler {
         /**
          * A row with the (zero based) row number has started
+         *
+         * @param rowNum rowNum
          */
         void startRow(int rowNum);
 
         /**
          * A row with the (zero based) row number has ended
+         *
+         * @param rowNum rowNum
          */
         void endRow(int rowNum);
 
@@ -519,11 +498,19 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
          * sparse calls to <code>cell</code>. See the code in
          * <code>src/examples/src/org/apache/poi/xssf/eventusermodel/XLSX2CSV.java</code>
          * for an example of how to handle this scenario.
+         *
+         * @param cellReference  cellReference
+         * @param comment        comment
+         * @param formattedValue formattedValue
          */
         void cell(String cellReference, String formattedValue, XSSFComment comment);
 
         /**
          * A header or footer has been encountered
+         *
+         * @param isHeader isHeader
+         * @param tagName  tagName
+         * @param text     text
          */
         default void headerFooter(String text, boolean isHeader, String tagName) {
         }

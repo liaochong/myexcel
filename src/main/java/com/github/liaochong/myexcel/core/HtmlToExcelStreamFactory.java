@@ -94,10 +94,12 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private int count;
 
     private List<Tr> titles;
+    /**
+     * 临时文件
+     */
+    private List<Path> tempFilePaths = new ArrayList<>();
 
-    private List<Path> paths;
-
-    private List<CompletableFuture> futures;
+    private List<CompletableFuture<Void>> futures;
 
     private Consumer<Path> pathConsumer;
     /**
@@ -145,7 +147,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             sheetName = this.getRealSheetName(table.getCaption());
         }
         this.sheet = this.workbook.createSheet(sheetName);
-        paths = new ArrayList<>();
         if (executorService == null) {
             Thread thread = new Thread(this::receive);
             thread.setName("myexcel-build-" + thread.getId());
@@ -217,8 +218,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             exception = true;
             trWaitQueue.clear();
             trWaitQueue = null;
-            closeWorkbook();
-            TempFileOperator.deleteTempFiles(paths);
+            clear();
             throw new ExcelBuildException("An exception occurred while processing", e);
         }
     }
@@ -262,7 +262,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             futures.forEach(CompletableFuture::join);
         }
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
-        return paths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
+        return tempFilePaths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
     }
 
     protected void waiting() {
@@ -294,16 +294,15 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void storeToTempFile() {
-        boolean isXls = workbook instanceof HSSFWorkbook;
-        String suffix = isXls ? Constants.XLS : Constants.XLSX;
+        String suffix = workbook instanceof HSSFWorkbook ? Constants.XLS : Constants.XLSX;
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
-        paths.add(path);
+        tempFilePaths.add(path);
         try {
             if (executorService != null) {
                 Workbook tempWorkbook = workbook;
                 Sheet tempSheet = sheet;
                 Map<Integer, Integer> tempColWidthMap = colWidthMap;
-                CompletableFuture future = CompletableFuture.runAsync(() -> {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
                     this.freezeTitles(tempWorkbook);
                     try {
@@ -325,8 +324,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 }
             }
         } catch (IOException e) {
-            closeWorkbook();
-            TempFileOperator.deleteTempFiles(paths);
+            clear();
             throw new RuntimeException(e);
         }
     }
@@ -374,41 +372,38 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     Path buildAsZip(String fileName) {
-        Objects.requireNonNull(fileName);
         waiting();
-        boolean isXls = workbook instanceof HSSFWorkbook;
         this.storeToTempFile();
         if (Objects.nonNull(futures)) {
             futures.forEach(CompletableFuture::join);
         }
-        String suffix = isXls ? Constants.XLS : Constants.XLSX;
+        String suffix = workbook instanceof HSSFWorkbook ? Constants.XLS : Constants.XLSX;
         Path zipFile = TempFileOperator.createTempFile(fileName, ".zip");
         try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipFile))) {
-            for (int i = 1, size = paths.size(); i <= size; i++) {
-                Path path = paths.get(i - 1);
+            for (int i = 1, size = tempFilePaths.size(); i <= size; i++) {
+                Path path = tempFilePaths.get(i - 1);
                 ZipEntry zipEntry = new ZipEntry(fileName + " (" + i + ")" + suffix);
                 out.putNextEntry(zipEntry);
                 out.write(Files.readAllBytes(path));
                 out.closeEntry();
             }
         } catch (IOException e) {
-            closeWorkbook();
             throw new RuntimeException(e);
         } finally {
-            TempFileOperator.deleteTempFiles(paths);
+            clear();
+            tempFilePaths.clear();
         }
+        tempFilePaths.add(zipFile);
         return zipFile;
     }
 
     public void cancel() {
         waiting();
-        closeWorkbook();
-        TempFileOperator.deleteTempFiles(paths);
+        clear();
     }
 
     public void clear() {
         closeWorkbook();
-        TempFileOperator.deleteTempFiles(paths);
+        TempFileOperator.deleteTempFiles(tempFilePaths);
     }
-
 }
