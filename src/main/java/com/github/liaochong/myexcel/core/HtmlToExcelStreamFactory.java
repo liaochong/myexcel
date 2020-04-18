@@ -304,7 +304,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 Workbook tempWorkbook = workbook;
                 Sheet tempSheet = sheet;
                 Map<Integer, Integer> tempColWidthMap = colWidthMap;
-                CompletableFuture future = CompletableFuture.runAsync(() -> {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
                     this.freezeTitles(tempWorkbook);
                     try {
@@ -376,12 +376,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     Path buildAsZip(String fileName) {
         waiting();
-        boolean isXls = workbook instanceof HSSFWorkbook;
         this.storeToTempFile();
         if (Objects.nonNull(futures)) {
             futures.forEach(CompletableFuture::join);
         }
-        String suffix = isXls ? Constants.XLS : Constants.XLSX;
+        String suffix = workbook instanceof HSSFWorkbook ? Constants.XLS : Constants.XLSX;
         Path zipFile = TempFileOperator.createTempFile(fileName, ".zip");
         try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipFile))) {
             for (int i = 1, size = tempFilePaths.size(); i <= size; i++) {
@@ -392,10 +391,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 out.closeEntry();
             }
         } catch (IOException e) {
-            closeWorkbook();
             throw new RuntimeException(e);
         } finally {
-            TempFileOperator.deleteTempFiles(tempFilePaths);
+            clear();
             tempFilePaths.clear();
         }
         tempFilePaths.add(zipFile);
