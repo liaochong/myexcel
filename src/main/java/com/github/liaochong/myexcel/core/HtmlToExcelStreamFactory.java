@@ -218,8 +218,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             exception = true;
             trWaitQueue.clear();
             trWaitQueue = null;
-            closeWorkbook();
-            TempFileOperator.deleteTempFiles(tempFilePaths);
+            clear();
             throw new ExcelBuildException("An exception occurred while processing", e);
         }
     }
@@ -295,8 +294,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void storeToTempFile() {
-        boolean isXls = workbook instanceof HSSFWorkbook;
-        String suffix = isXls ? Constants.XLS : Constants.XLSX;
+        String suffix = workbook instanceof HSSFWorkbook ? Constants.XLS : Constants.XLSX;
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
         tempFilePaths.add(path);
         try {
@@ -326,8 +324,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 }
             }
         } catch (IOException e) {
-            closeWorkbook();
-            TempFileOperator.deleteTempFiles(tempFilePaths);
+            clear();
             throw new RuntimeException(e);
         }
     }
