@@ -15,9 +15,11 @@
 package com.github.liaochong.myexcel.core.cache;
 
 import com.github.liaochong.myexcel.utils.TempFileOperator;
+import sun.nio.ch.FileChannelImpl;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +47,10 @@ public class StringsCache implements Cache<Integer, String> {
     private static final int MAX_SIZE_PATH = 1000;
 
     private static final int MAX_PATH = 5;
+    /**
+     * mmap cleaner method
+     */
+    private static Method clearMethod;
 
     private List<Path> cacheFiles = new ArrayList<>();
 
@@ -60,6 +66,15 @@ public class StringsCache implements Cache<Integer, String> {
     private int totalCount;
 
     private int index;
+
+    static {
+        try {
+            clearMethod = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
+            clearMethod.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     public void init(int stringCount) {
         if (stringCount == 0) {
@@ -96,15 +111,24 @@ public class StringsCache implements Cache<Integer, String> {
 
     private String[] getStrings(int route) {
         Path file = cacheFiles.get(route);
+        MappedByteBuffer mbb = null;
         try (FileInputStream fis = new FileInputStream(file.toFile());
              FileChannel fc = fis.getChannel()) {
-            MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+            mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
             byte[] bb = new byte[(int) fc.size()];
             mbb.get(bb);
             String result = new String(bb, StandardCharsets.UTF_8);
             return result.split(LINE_SEPARATOR);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (mbb != null) {
+                try {
+                    clearMethod.invoke(FileChannelImpl.class, mbb);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
