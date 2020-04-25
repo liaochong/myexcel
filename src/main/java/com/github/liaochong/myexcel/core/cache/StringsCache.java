@@ -120,7 +120,7 @@ public class StringsCache implements Cache<Integer, String> {
             mbb.get(bb);
             String result = new String(bb, StandardCharsets.UTF_8);
             String[] values = result.split(LINE_SEPARATOR);
-            for (int i = 0; i < values.length; i++) {
+            for (int i = 0, length = values.length; i < length; i++) {
                 values[i] = RegexpUtil.unescapeLineFeed(values[i]);
             }
             return values;
