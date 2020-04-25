@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.cache;
 
+import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import sun.nio.ch.FileChannelImpl;
 
@@ -118,7 +119,11 @@ public class StringsCache implements Cache<Integer, String> {
             byte[] bb = new byte[(int) fc.size()];
             mbb.get(bb);
             String result = new String(bb, StandardCharsets.UTF_8);
-            return result.split(LINE_SEPARATOR);
+            String[] values = result.split(LINE_SEPARATOR);
+            for (int i = 0; i < values.length; i++) {
+                values[i] = RegexpUtil.unescapeLineFeed(values[i]);
+            }
+            return values;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -153,7 +158,9 @@ public class StringsCache implements Cache<Integer, String> {
         Path file = TempFileOperator.createTempFile("s_c", ".data");
         cacheFiles.add(file);
         try {
-            String content = Arrays.stream(cacheValues).filter(Objects::nonNull).collect(Collectors.joining(LINE_SEPARATOR));
+            String content = Arrays.stream(cacheValues).filter(Objects::nonNull)
+                    .map(RegexpUtil::escapeLineFeed)
+                    .collect(Collectors.joining(LINE_SEPARATOR));
             Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
         } catch (IOException e) {
             throw new RuntimeException(e);
