@@ -149,7 +149,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         this.sheet = this.workbook.createSheet(sheetName);
         Thread thread = new Thread(this::receive);
-        thread.setName("myexcel-build-" + thread.getId());
+        thread.setName("myexcel-exec-" + thread.getId());
         thread.start();
     }
 
