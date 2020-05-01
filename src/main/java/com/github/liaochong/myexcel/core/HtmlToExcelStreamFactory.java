@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -99,7 +100,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
      */
     private List<Path> tempFilePaths = new ArrayList<>();
 
-    private List<CompletableFuture<Void>> futures;
+    private List<CompletableFuture<Void>> futures = new LinkedList<>();
 
     private Consumer<Path> pathConsumer;
     /**
@@ -147,14 +148,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             sheetName = this.getRealSheetName(table.getCaption());
         }
         this.sheet = this.workbook.createSheet(sheetName);
-        if (executorService == null) {
-            Thread thread = new Thread(this::receive);
-            thread.setName("myexcel-build-" + thread.getId());
-            thread.start();
-        } else {
-            futures = new ArrayList<>();
-            executorService.submit(this::receive);
-        }
+        Thread thread = new Thread(this::receive);
+        thread.setName("myexcel-build-" + thread.getId());
+        thread.start();
     }
 
     public void appendTitles(List<Tr> trList) {
