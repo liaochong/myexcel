@@ -549,12 +549,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     /**
-     * 清除样式缓存
+     * 清除缓存
      */
     protected void clearCache() {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
         maxTdHeightMap = new HashMap<>();
+        format = null;
+        createHelper = null;
     }
 
     /**
