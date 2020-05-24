@@ -15,10 +15,6 @@
  */
 package com.github.liaochong.myexcel.core.reflect;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -32,17 +28,15 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ClassFieldContainer {
 
-    Class<?> clazz;
+    private Class<?> clazz;
 
-    List<Field> declaredFields = new ArrayList<>();
+    private List<Field> declaredFields = new ArrayList<>();
 
-    Map<String, Field> fieldMap = new HashMap<>();
+    private Map<String, Field> fieldMap = new HashMap<>();
 
-    ClassFieldContainer parent;
+    private ClassFieldContainer parent;
 
     public Field getFieldByName(String fieldName) {
         return this.getFieldByName(fieldName, this);
@@ -105,4 +99,35 @@ public class ClassFieldContainer {
         return getFieldByName(fieldName, parentContainer);
     }
 
+    public Class<?> getClazz() {
+        return this.clazz;
+    }
+
+    public List<Field> getDeclaredFields() {
+        return this.declaredFields;
+    }
+
+    public Map<String, Field> getFieldMap() {
+        return this.fieldMap;
+    }
+
+    public ClassFieldContainer getParent() {
+        return this.parent;
+    }
+
+    public void setClazz(Class<?> clazz) {
+        this.clazz = clazz;
+    }
+
+    public void setDeclaredFields(List<Field> declaredFields) {
+        this.declaredFields = declaredFields;
+    }
+
+    public void setFieldMap(Map<String, Field> fieldMap) {
+        this.fieldMap = fieldMap;
+    }
+
+    public void setParent(ClassFieldContainer parent) {
+        this.parent = parent;
+    }
 }

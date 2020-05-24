@@ -18,7 +18,6 @@ package com.github.liaochong.myexcel.utils;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
-import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-@UtilityClass
 public final class ReflectUtil {
 
     private static final WeakCache<Class<?>, Map<Integer, Field>> FIELD_CACHE = new WeakCache<>();

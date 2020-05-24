@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.style.CustomColor;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.util.HSSFColor;
 
@@ -30,8 +29,7 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-@UtilityClass
-public class ColorUtil {
+public final class ColorUtil {
 
     private static final String HASH = "#";
 
