@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 
 import java.util.List;
@@ -31,6 +30,14 @@ import java.util.List;
 class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetXMLHandler.SheetContentsHandler {
 
     private int count;
+    /**
+     * blank row count
+     */
+    private int blankCount;
+    /**
+     * is blank row
+     */
+    private boolean isBlank;
 
     public XSSFSaxReadHandler(
             List<T> result,
@@ -41,10 +48,15 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void startRow(int rowNum) {
         newRow(rowNum);
+        isBlank = true;
     }
 
     @Override
     public void endRow(int rowNum) {
+        if (isBlank) {
+            blankCount++;
+            return;
+        }
         handleResult();
         count++;
     }
@@ -52,6 +64,7 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
+        isBlank = false;
         if (cellReference == null) {
             return;
         }
@@ -61,6 +74,6 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void endSheet() {
-        log.info("Import completed, total number of rows {}", count);
+        log.info("Import completed, total number of rows {},{} blank rows filtered.", count, blankCount);
     }
 }

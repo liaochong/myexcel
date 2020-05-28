@@ -24,10 +24,28 @@ public final class RegexpUtil {
 
     private static final Pattern PATTERN_COMMA = Pattern.compile(",");
 
+    private static final Pattern LINE_FEED_PATTERN = Pattern.compile("\n");
+
+    private static final Pattern UN_LINE_FEED_PATTERN = Pattern.compile("&#10;");
+
     public static String removeComma(String content) {
         if (content == null) {
             return content;
         }
         return PATTERN_COMMA.matcher(content).replaceAll("");
+    }
+
+    public static String escapeLineFeed(String content) {
+        if (content == null) {
+            return null;
+        }
+        return LINE_FEED_PATTERN.matcher(content).replaceAll("&#10;");
+    }
+
+    public static String unescapeLineFeed(String content) {
+        if (content == null) {
+            return null;
+        }
+        return UN_LINE_FEED_PATTERN.matcher(content).replaceAll("\n");
     }
 }

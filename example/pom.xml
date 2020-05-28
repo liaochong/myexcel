@@ -43,7 +43,7 @@
         <dependency>
             <groupId>com.github.liaochong</groupId>
             <artifactId>myexcel</artifactId>
-            <version>3.6.0</version>
+            <version>3.7.5</version>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>

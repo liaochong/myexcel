@@ -14,26 +14,28 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
 /**
  * excel单元格
  *
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Cell {
 
-    int rowNum;
+    private final int rowNum;
 
-    int colNum;
+    private final int colNum;
 
     public Cell(int rowNum, int colNum) {
         this.rowNum = rowNum;
         this.colNum = colNum;
+    }
+
+    public int getRowNum() {
+        return rowNum;
+    }
+
+    public int getColNum() {
+        return colNum;
     }
 }

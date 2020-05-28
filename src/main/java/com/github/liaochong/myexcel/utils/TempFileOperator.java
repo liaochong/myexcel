@@ -95,9 +95,11 @@ public class TempFileOperator {
             return;
         }
         try {
-            boolean delSuccess = Files.deleteIfExists(path);
-            if (!delSuccess) {
-                log.warn("Delete temp file failure,fileName:{}", path.toFile().getName());
+            if (Files.exists(path)) {
+                boolean delSuccess = Files.deleteIfExists(path);
+                if (!delSuccess) {
+                    log.warn("Delete temp file failure,fileName:{}", path.toFile().getName());
+                }
             }
         } catch (IOException e) {
             log.warn("Delete temp file failure", e);

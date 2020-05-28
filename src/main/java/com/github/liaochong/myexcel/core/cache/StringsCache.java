@@ -14,10 +14,13 @@
  */
 package com.github.liaochong.myexcel.core.cache;
 
+import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
+import sun.nio.ch.FileChannelImpl;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +48,10 @@ public class StringsCache implements Cache<Integer, String> {
     private static final int MAX_SIZE_PATH = 1000;
 
     private static final int MAX_PATH = 5;
+    /**
+     * mmap cleaner method
+     */
+    private static Method clearMethod;
 
     private List<Path> cacheFiles = new ArrayList<>();
 
@@ -60,6 +67,15 @@ public class StringsCache implements Cache<Integer, String> {
     private int totalCount;
 
     private int index;
+
+    static {
+        try {
+            clearMethod = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
+            clearMethod.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     public void init(int stringCount) {
         if (stringCount == 0) {
@@ -96,15 +112,28 @@ public class StringsCache implements Cache<Integer, String> {
 
     private String[] getStrings(int route) {
         Path file = cacheFiles.get(route);
+        MappedByteBuffer mbb = null;
         try (FileInputStream fis = new FileInputStream(file.toFile());
              FileChannel fc = fis.getChannel()) {
-            MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+            mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
             byte[] bb = new byte[(int) fc.size()];
             mbb.get(bb);
             String result = new String(bb, StandardCharsets.UTF_8);
-            return result.split(LINE_SEPARATOR);
+            String[] values = result.split(LINE_SEPARATOR);
+            for (int i = 0, length = values.length; i < length; i++) {
+                values[i] = RegexpUtil.unescapeLineFeed(values[i]);
+            }
+            return values;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (mbb != null) {
+                try {
+                    clearMethod.invoke(FileChannelImpl.class, mbb);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -129,7 +158,9 @@ public class StringsCache implements Cache<Integer, String> {
         Path file = TempFileOperator.createTempFile("s_c", ".data");
         cacheFiles.add(file);
         try {
-            String content = Arrays.stream(cacheValues).filter(Objects::nonNull).collect(Collectors.joining(LINE_SEPARATOR));
+            String content = Arrays.stream(cacheValues).filter(Objects::nonNull)
+                    .map(RegexpUtil::escapeLineFeed)
+                    .collect(Collectors.joining(LINE_SEPARATOR));
             Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
         } catch (IOException e) {
             throw new RuntimeException(e);
