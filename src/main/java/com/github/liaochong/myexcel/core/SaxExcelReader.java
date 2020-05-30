@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -145,8 +146,28 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
+    public void readThen(@NonNull InputStream fileInputStream, BiConsumer<T, RowContext> contextConsumer) {
+        this.readConfig.contextConsumer = contextConsumer;
+        doRead(fileInputStream);
+    }
+
+    public void readThen(@NonNull File file, BiConsumer<T, RowContext> contextConsumer) {
+        this.readConfig.contextConsumer = contextConsumer;
+        doRead(file);
+    }
+
     public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
         this.readConfig.function = function;
+        doRead(fileInputStream);
+    }
+
+    public void readThen(@NonNull File file, BiFunction<T, RowContext, Boolean> contextFunction) {
+        this.readConfig.contextFunction = contextFunction;
+        doRead(file);
+    }
+
+    public void readThen(@NonNull InputStream fileInputStream, BiFunction<T, RowContext, Boolean> contextFunction) {
+        this.readConfig.contextFunction = contextFunction;
         doRead(fileInputStream);
     }
 
@@ -311,7 +332,11 @@ public class SaxExcelReader<T> {
 
         Consumer<T> consumer;
 
+        BiConsumer<T, RowContext> contextConsumer;
+
         Function<T, Boolean> function;
+
+        BiFunction<T, RowContext, Boolean> contextFunction;
 
         Predicate<Row> rowFilter = row -> true;
 

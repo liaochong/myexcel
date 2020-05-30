@@ -52,6 +52,8 @@ abstract class AbstractReadHandler<T> {
 
     private ReadContext<T> context = new ReadContext<>();
 
+    private RowContext rowContext = new RowContext();
+
     private ConvertContext convertContext;
     /**
      * Row object currently being processed
@@ -63,6 +65,9 @@ abstract class AbstractReadHandler<T> {
     private BiConsumer<Integer, String> fieldHandler;
 
     private Consumer<T> resultHandler;
+
+    private BiConsumer<T, RowContext> contextResultHandler;
+
     /**
      * Whether to use title for import
      */
@@ -93,6 +98,15 @@ abstract class AbstractReadHandler<T> {
         } else if (readConfig.getFunction() != null) {
             resultHandler = v -> {
                 Boolean noStop = readConfig.getFunction().apply(v);
+                if (!noStop) {
+                    throw new StopReadException();
+                }
+            };
+        } else if (readConfig.getContextConsumer() != null) {
+            contextResultHandler = (v, context) -> readConfig.getContextConsumer().accept(v, context);
+        } else if (readConfig.getContextFunction() != null) {
+            contextResultHandler = (v, context) -> {
+                Boolean noStop = readConfig.getContextFunction().apply(v, context);
                 if (!noStop) {
                     throw new StopReadException();
                 }
@@ -187,7 +201,12 @@ abstract class AbstractReadHandler<T> {
             readWithTitle = false;
             return;
         }
-        resultHandler.accept(obj);
+        if (resultHandler != null) {
+            resultHandler.accept(obj);
+        } else {
+            rowContext.setRowNum(context.getRowNum());
+            contextResultHandler.accept(obj, rowContext);
+        }
     }
 
     private void initFieldMap() {
