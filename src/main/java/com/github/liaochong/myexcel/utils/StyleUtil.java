@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
-import lombok.experimental.UtilityClass;
 import org.jsoup.nodes.Element;
 
 import java.util.Collections;
@@ -30,7 +29,6 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-@UtilityClass
 public final class StyleUtil {
 
     private static final Cache<String, Map<String, String>> STYLE_CACHE = new WeakCache<>();

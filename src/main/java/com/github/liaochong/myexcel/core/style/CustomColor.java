@@ -14,9 +14,6 @@
  */
 package com.github.liaochong.myexcel.core.style;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 
@@ -26,17 +23,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomColor {
 
-    boolean isXls = false;
+    private boolean isXls = false;
 
-    HSSFPalette palette;
+    private HSSFPalette palette;
 
-    AtomicInteger colorIndex = new AtomicInteger(56);
+    private AtomicInteger colorIndex = new AtomicInteger(56);
 
-    DefaultIndexedColorMap defaultIndexedColorMap;
+    private DefaultIndexedColorMap defaultIndexedColorMap;
 
     public CustomColor(boolean isXls, HSSFPalette palette) {
         this.isXls = isXls;
@@ -51,5 +46,33 @@ public class CustomColor {
             defaultIndexedColorMap = new DefaultIndexedColorMap();
         }
         return defaultIndexedColorMap;
+    }
+
+    public boolean isXls() {
+        return this.isXls;
+    }
+
+    public HSSFPalette getPalette() {
+        return this.palette;
+    }
+
+    public AtomicInteger getColorIndex() {
+        return this.colorIndex;
+    }
+
+    public void setXls(boolean isXls) {
+        this.isXls = isXls;
+    }
+
+    public void setPalette(HSSFPalette palette) {
+        this.palette = palette;
+    }
+
+    public void setColorIndex(AtomicInteger colorIndex) {
+        this.colorIndex = colorIndex;
+    }
+
+    public void setDefaultIndexedColorMap(DefaultIndexedColorMap defaultIndexedColorMap) {
+        this.defaultIndexedColorMap = defaultIndexedColorMap;
     }
 }

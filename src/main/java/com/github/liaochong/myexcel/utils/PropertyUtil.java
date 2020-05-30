@@ -26,7 +26,7 @@ import java.util.Properties;
  * @author liaochong
  * @version 1.0
  */
-public class PropertyUtil {
+public final class PropertyUtil {
 
     private static WeakCache<ExcelColumnMapping, Properties> mappingCache = new WeakCache<>();
 
