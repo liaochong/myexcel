@@ -26,7 +26,7 @@ public final class RowContext {
         return rowNum;
     }
 
-    public void setRowNum(int rowNum) {
+    void setRowNum(int rowNum) {
         this.rowNum = rowNum;
     }
 }

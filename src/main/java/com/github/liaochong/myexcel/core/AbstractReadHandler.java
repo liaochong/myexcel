@@ -204,7 +204,7 @@ abstract class AbstractReadHandler<T> {
         if (resultHandler != null) {
             resultHandler.accept(obj);
         } else {
-            rowContext.setRowNum(context.getRowNum());
+            rowContext.setRowNum(currentRow.getRowNum());
             contextResultHandler.accept(obj, rowContext);
         }
     }
