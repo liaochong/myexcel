@@ -20,11 +20,6 @@ import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
@@ -52,6 +47,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -76,7 +72,7 @@ public class SaxExcelReader<T> {
         this.readConfig.dataType = dataType;
     }
 
-    public static <T> SaxExcelReader<T> of(@NonNull Class<T> clazz) {
+    public static <T> SaxExcelReader<T> of(Class<T> clazz) {
         return new SaxExcelReader<>(clazz);
     }
 
@@ -125,32 +121,52 @@ public class SaxExcelReader<T> {
         return this;
     }
 
-    public List<T> read(@NonNull InputStream fileInputStream) {
+    public List<T> read(InputStream fileInputStream) {
         doRead(fileInputStream);
         return result;
     }
 
-    public List<T> read(@NonNull File file) {
+    public List<T> read(File file) {
         doRead(file);
         return result;
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
+    public void readThen(InputStream fileInputStream, Consumer<T> consumer) {
         this.readConfig.consumer = consumer;
         doRead(fileInputStream);
     }
 
-    public void readThen(@NonNull File file, Consumer<T> consumer) {
+    public void readThen(File file, Consumer<T> consumer) {
         this.readConfig.consumer = consumer;
         doRead(file);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
+    public void readThen(InputStream fileInputStream, BiConsumer<T, RowContext> contextConsumer) {
+        this.readConfig.contextConsumer = contextConsumer;
+        doRead(fileInputStream);
+    }
+
+    public void readThen(File file, BiConsumer<T, RowContext> contextConsumer) {
+        this.readConfig.contextConsumer = contextConsumer;
+        doRead(file);
+    }
+
+    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
         this.readConfig.function = function;
         doRead(fileInputStream);
     }
 
-    public void readThen(@NonNull File file, Function<T, Boolean> function) {
+    public void readThen(File file, BiFunction<T, RowContext, Boolean> contextFunction) {
+        this.readConfig.contextFunction = contextFunction;
+        doRead(file);
+    }
+
+    public void readThen(InputStream fileInputStream, BiFunction<T, RowContext, Boolean> contextFunction) {
+        this.readConfig.contextFunction = contextFunction;
+        doRead(fileInputStream);
+    }
+
+    public void readThen(File file, Function<T, Boolean> function) {
         this.readConfig.function = function;
         doRead(file);
     }
@@ -298,30 +314,31 @@ public class SaxExcelReader<T> {
         }
     }
 
-    @Getter
-    @Setter
-    @FieldDefaults(level = AccessLevel.PRIVATE)
     public static final class ReadConfig<T> {
 
-        Class<T> dataType;
+        private Class<T> dataType;
 
-        Set<String> sheetNames = new HashSet<>();
+        private Set<String> sheetNames = new HashSet<>();
 
-        Set<Integer> sheetIndexs = new HashSet<>();
+        private Set<Integer> sheetIndexs = new HashSet<>();
 
-        Consumer<T> consumer;
+        private Consumer<T> consumer;
 
-        Function<T, Boolean> function;
+        private BiConsumer<T, RowContext> contextConsumer;
 
-        Predicate<Row> rowFilter = row -> true;
+        private Function<T, Boolean> function;
 
-        Predicate<T> beanFilter = bean -> true;
+        private BiFunction<T, RowContext, Boolean> contextFunction;
 
-        BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
+        private Predicate<Row> rowFilter = row -> true;
 
-        String charset = "UTF-8";
+        private Predicate<T> beanFilter = bean -> true;
 
-        Function<String, String> trim = v -> {
+        private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
+
+        private String charset = "UTF-8";
+
+        private Function<String, String> trim = v -> {
             if (v == null) {
                 return v;
             }
@@ -330,6 +347,102 @@ public class SaxExcelReader<T> {
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
+        }
+
+        public Class<T> getDataType() {
+            return this.dataType;
+        }
+
+        public Set<String> getSheetNames() {
+            return this.sheetNames;
+        }
+
+        public Set<Integer> getSheetIndexs() {
+            return this.sheetIndexs;
+        }
+
+        public Consumer<T> getConsumer() {
+            return this.consumer;
+        }
+
+        public BiConsumer<T, RowContext> getContextConsumer() {
+            return this.contextConsumer;
+        }
+
+        public Function<T, Boolean> getFunction() {
+            return this.function;
+        }
+
+        public BiFunction<T, RowContext, Boolean> getContextFunction() {
+            return this.contextFunction;
+        }
+
+        public Predicate<Row> getRowFilter() {
+            return this.rowFilter;
+        }
+
+        public Predicate<T> getBeanFilter() {
+            return this.beanFilter;
+        }
+
+        public BiFunction<Throwable, ReadContext, Boolean> getExceptionFunction() {
+            return this.exceptionFunction;
+        }
+
+        public String getCharset() {
+            return this.charset;
+        }
+
+        public Function<String, String> getTrim() {
+            return this.trim;
+        }
+
+        public void setDataType(Class<T> dataType) {
+            this.dataType = dataType;
+        }
+
+        public void setSheetNames(Set<String> sheetNames) {
+            this.sheetNames = sheetNames;
+        }
+
+        public void setSheetIndexs(Set<Integer> sheetIndexs) {
+            this.sheetIndexs = sheetIndexs;
+        }
+
+        public void setConsumer(Consumer<T> consumer) {
+            this.consumer = consumer;
+        }
+
+        public void setContextConsumer(BiConsumer<T, RowContext> contextConsumer) {
+            this.contextConsumer = contextConsumer;
+        }
+
+        public void setFunction(Function<T, Boolean> function) {
+            this.function = function;
+        }
+
+        public void setContextFunction(BiFunction<T, RowContext, Boolean> contextFunction) {
+            this.contextFunction = contextFunction;
+        }
+
+        public void setRowFilter(Predicate<Row> rowFilter) {
+            this.rowFilter = rowFilter;
+        }
+
+        public void setBeanFilter(Predicate<T> beanFilter) {
+            this.beanFilter = beanFilter;
+        }
+
+        public void setExceptionFunction(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+            this.exceptionFunction = exceptionFunction;
+        }
+
+        public void setCharset(String charset) {
+            this.charset = charset;
+        }
+
+        public void setTrim(Function<String, String> trim) {
+            this.trim = trim;
         }
     }
 }

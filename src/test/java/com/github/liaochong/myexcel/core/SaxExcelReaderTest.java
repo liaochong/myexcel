@@ -243,6 +243,27 @@ class SaxExcelReaderTest {
     }
 
     @Test
+    void readWithContextCustomer() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), (d, context) -> {
+            System.out.println(d);
+        });
+    }
+
+    @Test
+    void readWithContextFunction() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), (d, context) -> {
+            System.out.println(d);
+            return true;
+        });
+    }
+
+    @Test
     void readCsvMap() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common.csv");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
