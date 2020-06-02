@@ -262,7 +262,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         if (isSelectedSheet) {
             handleField(thisColumn, thisStr);
         }
-
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
             if (!isSelectedSheet) {
