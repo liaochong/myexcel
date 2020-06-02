@@ -258,20 +258,25 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             lastRowNumber = thisRow;
             newRow(thisRow);
         }
-        handleField(thisColumn, thisStr);
+        boolean isSelectedSheet = this.isSelectedSheet();
+        if (isSelectedSheet) {
+            handleField(thisColumn, thisStr);
+        }
 
         // Handle end of row
         if (record instanceof LastCellOfRowDummyRecord) {
-            if (!readConfig.getSheetNames().isEmpty()) {
-                if (!readConfig.getSheetNames().contains(sheetName)) {
-                    this.titles.clear();
-                    return;
-                }
-            } else if (!sheetIndexs.contains(sheetIndex)) {
+            if (!isSelectedSheet) {
                 this.titles.clear();
                 return;
             }
             handleResult();
         }
+    }
+
+    private boolean isSelectedSheet() {
+        if (!readConfig.getSheetNames().isEmpty()) {
+            return readConfig.getSheetNames().contains(sheetName);
+        }
+        return sheetIndexs.contains(sheetIndex);
     }
 }
