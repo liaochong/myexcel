@@ -16,7 +16,6 @@
 package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import lombok.experimental.UtilityClass;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
@@ -42,7 +41,6 @@ import java.nio.file.Paths;
  * @author liaochong
  * @version 1.0
  */
-@UtilityClass
 public final class FileExportUtil {
 
     /**

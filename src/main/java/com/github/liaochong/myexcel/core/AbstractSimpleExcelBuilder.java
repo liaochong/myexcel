@@ -522,12 +522,12 @@ abstract class AbstractSimpleExcelBuilder {
         List<Pair<? extends Class, ?>> contents = new ArrayList<>(data.size());
         if (fieldDisplayOrder == null) {
             data.forEach((k, v) -> {
-                contents.add(Pair.of(v == null ? String.class : v.getClass(), v));
+                contents.add(Pair.of(v == null ? NullType.class : v.getClass(), v));
             });
         } else {
             for (String fieldName : fieldDisplayOrder) {
                 Object val = data.get(fieldName);
-                contents.add(Pair.of(val == null ? String.class : val.getClass(), val));
+                contents.add(Pair.of(val == null ? NullType.class : val.getClass(), val));
             }
         }
         return contents;

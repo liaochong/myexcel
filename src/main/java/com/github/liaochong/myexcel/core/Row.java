@@ -14,23 +14,25 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-
 /**
  * 行
  *
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Row {
 
-    int rowNum;
+    private int rowNum;
 
     public Row(int rowNum) {
+        this.rowNum = rowNum;
+    }
+
+    public int getRowNum() {
+        return this.rowNum;
+    }
+
+    public void setRowNum(int rowNum) {
         this.rowNum = rowNum;
     }
 }

@@ -16,9 +16,6 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.CsvConverter;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -28,27 +25,57 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConvertContext {
     /**
      * {@link com.github.liaochong.myexcel.core.annotation.ExcelModel} setting
      */
-    Configuration configuration = new Configuration();
+    private Configuration configuration = new Configuration();
 
     /**
      * {@link com.github.liaochong.myexcel.core.annotation.ExcelColumn} mapping
      */
-    Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
+    private Map<Field, ExcelColumnMapping> excelColumnMappingMap = new HashMap<>();
     /**
      * csv or excel
      */
-    Class converterType;
+    private Class converterType;
 
-    boolean isConvertCsv;
+    private boolean isConvertCsv;
 
     public ConvertContext(boolean isConvertCsv) {
         this.isConvertCsv = isConvertCsv;
         this.converterType = isConvertCsv ? CsvConverter.class : AllConverter.class;
+    }
+
+    public Configuration getConfiguration() {
+        return this.configuration;
+    }
+
+    public Map<Field, ExcelColumnMapping> getExcelColumnMappingMap() {
+        return this.excelColumnMappingMap;
+    }
+
+    public Class getConverterType() {
+        return this.converterType;
+    }
+
+    public boolean isConvertCsv() {
+        return this.isConvertCsv;
+    }
+
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    public void setExcelColumnMappingMap(Map<Field, ExcelColumnMapping> excelColumnMappingMap) {
+        this.excelColumnMappingMap = excelColumnMappingMap;
+    }
+
+    public void setConverterType(Class converterType) {
+        this.converterType = converterType;
+    }
+
+    public void setConvertCsv(boolean isConvertCsv) {
+        this.isConvertCsv = isConvertCsv;
     }
 }
