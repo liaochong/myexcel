@@ -334,6 +334,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 case "emf":
                     format = Workbook.PICTURE_TYPE_EMF;
                     break;
+                case "pict":
+                    format = Workbook.PICTURE_TYPE_PICT;
+                    break;
+                case "wmf":
+                    format = Workbook.PICTURE_TYPE_WMF;
+                    break;
                 default:
                     throw new IllegalArgumentException("Invalid image type");
             }
