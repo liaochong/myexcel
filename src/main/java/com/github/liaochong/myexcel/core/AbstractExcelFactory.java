@@ -319,7 +319,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             byte[] bytes = Files.readAllBytes(td.getFile().toPath());
             String fileName = td.getFile().getName();
             int format;
-            switch (fileName.substring(fileName.lastIndexOf(".") + 1)) {
+            String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+            switch (suffix) {
                 case "jpg":
                 case "jpeg":
                     format = Workbook.PICTURE_TYPE_JPEG;
