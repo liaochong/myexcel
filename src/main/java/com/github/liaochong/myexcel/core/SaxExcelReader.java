@@ -121,6 +121,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> readAllSheet() {
+        this.readConfig.readAllSheet = true;
+        return this;
+    }
+
     public List<T> read(InputStream fileInputStream) {
         doRead(fileInputStream);
         return result;
@@ -261,7 +266,13 @@ public class SaxExcelReader<T> {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
             XSSFReader xssfReader = new XSSFReader(xlsxPackage);
             XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-            if (!readConfig.sheetNames.isEmpty()) {
+            if (readConfig.readAllSheet) {
+                while (iter.hasNext()) {
+                    try (InputStream stream = iter.next()) {
+                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+                    }
+                }
+            } else if (!readConfig.sheetNames.isEmpty()) {
                 while (iter.hasNext()) {
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetNames.contains(iter.getSheetName())) {
@@ -344,6 +355,8 @@ public class SaxExcelReader<T> {
             }
             return v.trim();
         };
+
+        private boolean readAllSheet;
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
@@ -443,6 +456,14 @@ public class SaxExcelReader<T> {
 
         public void setTrim(Function<String, String> trim) {
             this.trim = trim;
+        }
+
+        public boolean isReadAllSheet() {
+            return readAllSheet;
+        }
+
+        public void setReadAllSheet(boolean readAllSheet) {
+            this.readAllSheet = readAllSheet;
         }
     }
 }
