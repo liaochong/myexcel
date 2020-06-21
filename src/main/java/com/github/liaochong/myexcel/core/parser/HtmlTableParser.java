@@ -269,9 +269,30 @@ public class HtmlTableParser {
             td.setTdContentType(href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL);
             return;
         }
-        String tdContent = LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
-        td.setContent(tdContent);
-        if (StringUtil.isBlank(tdContent)) {
+        StringBuilder tdContent = new StringBuilder();
+        Elements fonts = tdElement.getElementsByTag(TableTag.font.name());
+        if (fonts != null && !fonts.isEmpty()) {
+            td.setFonts(new LinkedList<>());
+            int startIndex = 0;
+            for (Element fontElement : fonts) {
+                String fontContent = fontElement.text();
+                if (fontContent == null) {
+                    continue;
+                }
+                Font font = new Font();
+                font.setStartIndex(startIndex);
+                font.setEndIndex(startIndex + fontContent.length());
+
+                Map<String, String> fontStyle = StyleUtil.parseStyle(fontElement);
+                font.setStyle(fontStyle);
+                td.getFonts().add(font);
+                tdContent.append(fontContent);
+                startIndex = font.getEndIndex();
+            }
+        }
+        String content = LINE_FEED_PATTERN.matcher(tdContent.length() == 0 ? tdElement.text() : tdContent.toString()).replaceAll("\n");
+        td.setContent(content);
+        if (StringUtil.isBlank(content)) {
             return;
         }
         if (tdElement.hasAttr("string")) {
@@ -309,11 +330,11 @@ public class HtmlTableParser {
             td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
             return;
         }
-        if (Constants.TRUE.equals(tdContent) || Constants.FALSE.equals(tdContent)) {
+        if (Constants.TRUE.equals(content) || Constants.FALSE.equals(content)) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
-        if (DOUBLE_PATTERN.matcher(tdContent).matches()) {
+        if (DOUBLE_PATTERN.matcher(content).matches()) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
             return;
         }
@@ -367,6 +388,10 @@ public class HtmlTableParser {
         /**
          * a
          */
-        a;
+        a,
+        /**
+         * font
+         */
+        font;
     }
 }

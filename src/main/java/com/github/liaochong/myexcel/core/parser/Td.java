@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,6 +87,8 @@ public class Td {
     private LocalDate localDate;
 
     private LocalDateTime localDateTime;
+
+    private List<Font> fonts;
 
     public Td(int row, int col) {
         this.row = row;
@@ -224,5 +227,13 @@ public class Td {
 
     public void setLocalDateTime(LocalDateTime localDateTime) {
         this.localDateTime = localDateTime;
+    }
+
+    public List<Font> getFonts() {
+        return fonts;
+    }
+
+    public void setFonts(List<Font> fonts) {
+        this.fonts = fonts;
     }
 }

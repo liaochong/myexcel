@@ -58,29 +58,35 @@ public final class FontStyle {
     public static final short DEFAULT_FONT_SIZE = 12;
 
     public static void setFont(Supplier<Font> fontSupplier, CellStyle cellStyle, Map<String, String> tdStyle, Map<String, Font> fontMap, CustomColor customColor) {
-        String cacheKey = getCacheKey(tdStyle);
+        Font font = getFont(tdStyle, fontMap, fontSupplier, customColor);
+        if (font != null) {
+            cellStyle.setFont(font);
+        }
+    }
+
+    public static Font getFont(Map<String, String> style, Map<String, Font> fontMap, Supplier<Font> fontSupplier, CustomColor customColor) {
+        String cacheKey = getCacheKey(style);
         if (fontMap.get(cacheKey) != null) {
-            cellStyle.setFont(fontMap.get(cacheKey));
-            return;
+            return fontMap.get(cacheKey);
         }
         Font font = null;
-        String fs = tdStyle.get(FONT_SIZE);
+        String fs = style.get(FONT_SIZE);
         if (fs != null) {
             short fontSize = (short) TdUtil.getValue(fs);
             font = fontSupplier.get();
             font.setFontHeightInPoints(fontSize);
         }
-        String fontFamily = tdStyle.get(FONT_FAMILY);
+        String fontFamily = style.get(FONT_FAMILY);
         if (fontFamily != null) {
             font = createFontIfNull(fontSupplier, font);
             font.setFontName(fontFamily);
         }
-        String italic = tdStyle.get(FONT_STYLE);
+        String italic = style.get(FONT_STYLE);
         if (ITALIC.equals(italic)) {
             font = createFontIfNull(fontSupplier, font);
             font.setItalic(true);
         }
-        String textDecoration = tdStyle.get(TEXT_DECORATION);
+        String textDecoration = style.get(TEXT_DECORATION);
         if (LINE_THROUGH.equals(textDecoration)) {
             font = createFontIfNull(fontSupplier, font);
             font.setStrikeout(true);
@@ -88,20 +94,20 @@ public final class FontStyle {
             font = createFontIfNull(fontSupplier, font);
             font.setUnderline(Font.U_SINGLE);
         }
-        String fontWeight = tdStyle.get(FONT_WEIGHT);
+        String fontWeight = style.get(FONT_WEIGHT);
         if (BOLD.equals(fontWeight)) {
             font = createFontIfNull(fontSupplier, font);
             font.setBold(true);
         }
-        String fontColor = tdStyle.get(FONT_COLOR);
+        String fontColor = style.get(FONT_COLOR);
         if (StringUtil.isNotBlank(fontColor)) {
             font = createFontIfNull(fontSupplier, font);
             font = setFontColor(font, customColor, fontColor);
         }
         if (font != null) {
-            cellStyle.setFont(font);
             fontMap.put(cacheKey, font);
         }
+        return font;
     }
 
     private static Font setFontColor(Font font, CustomColor customColor, String fontColor) {
