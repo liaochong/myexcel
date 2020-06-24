@@ -79,6 +79,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     protected Workbook workbook;
     /**
+     * 是否为hssf
+     */
+    private boolean isHssf;
+    /**
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap = new HashMap<>();
@@ -139,6 +143,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         switch (workbookType) {
             case XLS:
                 workbook = new HSSFWorkbook();
+                isHssf = true;
                 break;
             case XLSX:
                 workbook = new XSSFWorkbook();
@@ -463,8 +468,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getFonts() == null || td.getFonts().isEmpty()) {
             return;
         }
-        boolean isHSSF = workbook instanceof HSSFWorkbook;
-        RichTextString richText = isHSSF ? new HSSFRichTextString(td.getContent()) : new XSSFRichTextString(td.getContent());
+        RichTextString richText = isHssf ? new HSSFRichTextString(td.getContent()) : new XSSFRichTextString(td.getContent());
         for (com.github.liaochong.myexcel.core.parser.Font font : td.getFonts()) {
             Font f = FontStyle.getFont(font.getStyle(), fontMap, () -> workbook.createFont(), customColor);
             richText.applyFont(font.getStartIndex(), font.getEndIndex(), f);
