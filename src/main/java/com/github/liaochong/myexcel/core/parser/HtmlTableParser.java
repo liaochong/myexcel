@@ -23,6 +23,7 @@ import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -62,6 +63,8 @@ public class HtmlTableParser {
     private String html;
 
     private Map<String, String> defaultLinkStyle = new HashMap<>();
+
+    private XSSFRichTextString spanText;
 
     private HtmlTableParser() {
         defaultLinkStyle.put(FontStyle.FONT_COLOR, "blue");
@@ -320,28 +323,31 @@ public class HtmlTableParser {
     }
 
     private String parseContent(Element tdElement, Td td) {
-        StringBuilder tdContent = new StringBuilder();
         Elements fonts = tdElement.getElementsByTag(TableTag.span.name());
         if (fonts != null && !fonts.isEmpty()) {
             td.setFonts(new LinkedList<>());
+            if (spanText == null) {
+                spanText = new XSSFRichTextString("");
+            }
             int startIndex = 0;
             for (Element fontElement : fonts) {
                 String fontContent = fontElement.text();
                 if (fontContent == null) {
                     continue;
                 }
+                fontContent = LINE_FEED_PATTERN.matcher(fontContent).replaceAll("\n");
+                spanText.setString(fontContent);
                 Font font = new Font();
                 font.setStartIndex(startIndex);
-                font.setEndIndex(startIndex + fontContent.length());
+                font.setEndIndex(startIndex + spanText.length());
 
                 Map<String, String> fontStyle = StyleUtil.parseStyle(fontElement);
                 font.setStyle(fontStyle);
                 td.getFonts().add(font);
-                tdContent.append(fontContent);
                 startIndex = font.getEndIndex();
             }
         }
-        return LINE_FEED_PATTERN.matcher(tdContent.length() == 0 ? tdElement.text() : tdContent.toString()).replaceAll("\n");
+        return LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
     }
 
     public enum TableTag {
