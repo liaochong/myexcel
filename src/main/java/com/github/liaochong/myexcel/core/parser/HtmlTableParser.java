@@ -269,28 +269,7 @@ public class HtmlTableParser {
             td.setTdContentType(href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL);
             return;
         }
-        StringBuilder tdContent = new StringBuilder();
-        Elements fonts = tdElement.getElementsByTag(TableTag.font.name());
-        if (fonts != null && !fonts.isEmpty()) {
-            td.setFonts(new LinkedList<>());
-            int startIndex = 0;
-            for (Element fontElement : fonts) {
-                String fontContent = fontElement.text();
-                if (fontContent == null) {
-                    continue;
-                }
-                Font font = new Font();
-                font.setStartIndex(startIndex);
-                font.setEndIndex(startIndex + fontContent.length());
-
-                Map<String, String> fontStyle = StyleUtil.parseStyle(fontElement);
-                font.setStyle(fontStyle);
-                td.getFonts().add(font);
-                tdContent.append(fontContent);
-                startIndex = font.getEndIndex();
-            }
-        }
-        String content = LINE_FEED_PATTERN.matcher(tdContent.length() == 0 ? tdElement.text() : tdContent.toString()).replaceAll("\n");
+        String content = this.parseContent(tdElement, td);
         td.setContent(content);
         if (StringUtil.isBlank(content)) {
             return;
@@ -338,6 +317,31 @@ public class HtmlTableParser {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
             return;
         }
+    }
+
+    private String parseContent(Element tdElement, Td td) {
+        StringBuilder tdContent = new StringBuilder();
+        Elements fonts = tdElement.getElementsByTag(TableTag.span.name());
+        if (fonts != null && !fonts.isEmpty()) {
+            td.setFonts(new LinkedList<>());
+            int startIndex = 0;
+            for (Element fontElement : fonts) {
+                String fontContent = fontElement.text();
+                if (fontContent == null) {
+                    continue;
+                }
+                Font font = new Font();
+                font.setStartIndex(startIndex);
+                font.setEndIndex(startIndex + fontContent.length());
+
+                Map<String, String> fontStyle = StyleUtil.parseStyle(fontElement);
+                font.setStyle(fontStyle);
+                td.getFonts().add(font);
+                tdContent.append(fontContent);
+                startIndex = font.getEndIndex();
+            }
+        }
+        return LINE_FEED_PATTERN.matcher(tdContent.length() == 0 ? tdElement.text() : tdContent.toString()).replaceAll("\n");
     }
 
     public enum TableTag {
@@ -390,8 +394,8 @@ public class HtmlTableParser {
          */
         a,
         /**
-         * font
+         * span
          */
-        font;
+        span;
     }
 }
