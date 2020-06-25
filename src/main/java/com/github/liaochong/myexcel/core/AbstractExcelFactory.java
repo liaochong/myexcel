@@ -101,7 +101,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 样式容器
      */
-    private Map<HtmlTableParser.TableTag, CellStyle> defaultCellStyleMap;
+    private Map<HtmlTableParser.HtmlTag, CellStyle> defaultCellStyleMap;
     /**
      * 字体map
      */
@@ -411,17 +411,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private void setCellStyle(Row row, Cell cell, Td td) {
         if (useDefaultStyle) {
             if (td.isTh()) {
-                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.th));
+                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.HtmlTag.th));
             } else {
                 if (ContentTypeEnum.isLink(td.getTdContentType())) {
-                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.link));
+                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.HtmlTag.link));
                 } else {
-                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
+                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.HtmlTag.td));
                 }
             }
         } else {
             if (td.getStyle().isEmpty()) {
-                this.doSetInnerFont(cell, td);
+                this.doSetInnerSpan(cell, td);
                 return;
             }
             String fs = td.getStyle().get("font-size");
@@ -433,7 +433,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             if (cellStyleMap.containsKey(td.getStyle())) {
                 cell.setCellStyle(cellStyleMap.get(td.getStyle()));
-                this.doSetInnerFont(cell, td);
+                this.doSetInnerSpan(cell, td);
                 return;
             }
             CellStyle cellStyle = workbook.createCellStyle();
@@ -458,13 +458,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (td.getFonts() == null || td.getFonts().isEmpty()) {
                 FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
             } else {
-                this.doSetInnerFont(cell, td);
+                this.doSetInnerSpan(cell, td);
             }
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
     }
 
-    private void doSetInnerFont(Cell cell, Td td) {
+    private void doSetInnerSpan(Cell cell, Td td) {
         if (td.getFonts() == null || td.getFonts().isEmpty()) {
             return;
         }
@@ -496,10 +496,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     protected void initCellStyle(Workbook workbook) {
         if (useDefaultStyle) {
-            defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
-            defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
-            defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
-            defaultCellStyleMap.put(HtmlTableParser.TableTag.link, new LinkDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap = new EnumMap<>(HtmlTableParser.HtmlTag.class);
+            defaultCellStyleMap.put(HtmlTableParser.HtmlTag.th, new ThDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap.put(HtmlTableParser.HtmlTag.td, new TdDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap.put(HtmlTableParser.HtmlTag.link, new LinkDefaultCellStyle().supply(workbook));
         } else {
             if (workbook instanceof HSSFWorkbook) {
                 HSSFPalette palette = ((HSSFWorkbook) workbook).getCustomPalette();
