@@ -420,8 +420,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 }
             }
         } else {
+            this.doSetInnerSpan(cell, td);
             if (td.getStyle().isEmpty()) {
-                this.doSetInnerSpan(cell, td);
                 return;
             }
             String fs = td.getStyle().get("font-size");
@@ -433,7 +433,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             if (cellStyleMap.containsKey(td.getStyle())) {
                 cell.setCellStyle(cellStyleMap.get(td.getStyle()));
-                this.doSetInnerSpan(cell, td);
                 return;
             }
             CellStyle cellStyle = workbook.createCellStyle();
@@ -456,11 +455,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             // font
             if (td.getFonts() == null || td.getFonts().isEmpty()) {
                 FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
-                cell.setCellStyle(cellStyle);
-            } else {
-                cell.setCellStyle(cellStyle);
-                this.doSetInnerSpan(cell, td);
             }
+            cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
     }
