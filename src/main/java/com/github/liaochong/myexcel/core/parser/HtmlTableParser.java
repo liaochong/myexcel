@@ -341,8 +341,10 @@ public class HtmlTableParser {
                 font.setEndIndex(startIndex + spanText.length());
 
                 Map<String, String> fontStyle = StyleUtil.parseStyle(spanElement);
-                font.setStyle(fontStyle);
-                td.getFonts().add(font);
+                if (!fontStyle.isEmpty()) {
+                    font.setStyle(fontStyle);
+                    td.getFonts().add(font);
+                }
                 startIndex = font.getEndIndex();
             }
         }
