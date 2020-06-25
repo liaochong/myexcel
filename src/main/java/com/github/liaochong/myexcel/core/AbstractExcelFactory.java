@@ -81,7 +81,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 是否为hssf
      */
-    private boolean isHssf;
+    protected boolean isHssf;
     /**
      * 每行的单元格最大高度map
      */
