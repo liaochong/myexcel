@@ -454,10 +454,11 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 cellStyle.setDataFormat(format.getFormat(formatStr));
             }
             // font
-            cell.setCellStyle(cellStyle);
             if (td.getFonts() == null || td.getFonts().isEmpty()) {
                 FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
+                cell.setCellStyle(cellStyle);
             } else {
+                cell.setCellStyle(cellStyle);
                 this.doSetInnerSpan(cell, td);
             }
             cellStyleMap.put(td.getStyle(), cellStyle);
