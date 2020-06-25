@@ -215,6 +215,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             trWaitQueue.clear();
             trWaitQueue = null;
             clear();
+            log.error("An exception occurred while processing", e);
             throw new ExcelBuildException("An exception occurred while processing", e);
         }
     }
