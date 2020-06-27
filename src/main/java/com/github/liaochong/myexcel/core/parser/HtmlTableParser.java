@@ -23,6 +23,7 @@ import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -62,6 +63,8 @@ public class HtmlTableParser {
     private String html;
 
     private Map<String, String> defaultLinkStyle = new HashMap<>();
+
+    private XSSFRichTextString spanText;
 
     private HtmlTableParser() {
         defaultLinkStyle.put(FontStyle.FONT_COLOR, "blue");
@@ -104,10 +107,10 @@ public class HtmlTableParser {
         //select all <p> tags and prepend \n before that
         document.select("p").before("\\n");
         this.parseConfig = parseConfig;
-        Elements tableElements = document.getElementsByTag(TableTag.table.name());
+        Elements tableElements = document.getElementsByTag(HtmlTag.table.name());
         List<Table> result = tableElements.stream().map(tableElement -> {
             Table table = new Table();
-            Elements captionElements = tableElement.getElementsByTag(TableTag.caption.name());
+            Elements captionElements = tableElement.getElementsByTag(HtmlTag.caption.name());
             if (!captionElements.isEmpty()) {
                 table.setCaption(captionElements.first().text());
             }
@@ -126,7 +129,7 @@ public class HtmlTableParser {
     private void parseTrOfTable(Table table, Element tableElement, Map<String, String> tableStyle) {
         Map<Element, Map<String, String>> parentStyleMap = new ConcurrentHashMap<>();
 
-        Elements trElements = tableElement.getElementsByTag(TableTag.tr.name());
+        Elements trElements = tableElement.getElementsByTag(HtmlTag.tr.name());
         final Map<Integer, List<Integer>> seizeMap = new HashMap<>();
         List<Tr> trList = IntStream.range(0, trElements.size()).mapToObj(index -> {
             Element trElement = trElements.get(index);
@@ -179,17 +182,17 @@ public class HtmlTableParser {
             Td td = new Td(tr.getIndex(), i + shift);
             this.setTdContent(tdElement, td);
 
-            td.setTh(Objects.equals(TableTag.th.name(), tdElement.tagName()));
+            td.setTh(Objects.equals(HtmlTag.th.name(), tdElement.tagName()));
             Map<String, String> tdStyle = StyleUtil.parseStyle(tdElement);
             if (tdStyle.isEmpty() && ContentTypeEnum.isLink(td.getTdContentType())) {
                 tdStyle = defaultLinkStyle;
             }
             td.setStyle(StyleUtil.mixStyle(trStyle, tdStyle));
 
-            String colSpan = tdElement.attr(TableTag.colspan.name());
+            String colSpan = tdElement.attr(HtmlTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));
 
-            String rowSpan = tdElement.attr(TableTag.rowspan.name());
+            String rowSpan = tdElement.attr(HtmlTag.rowspan.name());
             td.setRowSpan(TdUtil.getSpan(rowSpan));
 
             if (!seizeOfTr.isEmpty()) {
@@ -253,14 +256,14 @@ public class HtmlTableParser {
     }
 
     private void setTdContent(Element tdElement, Td td) {
-        Elements imgs = tdElement.getElementsByTag(TableTag.img.name());
+        Elements imgs = tdElement.getElementsByTag(HtmlTag.img.name());
         if (imgs != null && !imgs.isEmpty()) {
             String src = imgs.get(0).attr("src");
             td.setFile(new File(src));
             td.setTdContentType(ContentTypeEnum.IMAGE);
             return;
         }
-        Elements links = tdElement.getElementsByTag(TableTag.a.name());
+        Elements links = tdElement.getElementsByTag(HtmlTag.a.name());
         if (links != null && !links.isEmpty()) {
             Element a = links.get(0);
             td.setContent(a.text());
@@ -269,9 +272,9 @@ public class HtmlTableParser {
             td.setTdContentType(href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL);
             return;
         }
-        String tdContent = LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
-        td.setContent(tdContent);
-        if (StringUtil.isBlank(tdContent)) {
+        String content = this.parseContent(tdElement, td);
+        td.setContent(content);
+        if (StringUtil.isBlank(content)) {
             return;
         }
         if (tdElement.hasAttr("string")) {
@@ -309,17 +312,46 @@ public class HtmlTableParser {
             td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
             return;
         }
-        if (Constants.TRUE.equals(tdContent) || Constants.FALSE.equals(tdContent)) {
+        if (Constants.TRUE.equals(content) || Constants.FALSE.equals(content)) {
             td.setTdContentType(ContentTypeEnum.BOOLEAN);
             return;
         }
-        if (DOUBLE_PATTERN.matcher(tdContent).matches()) {
+        if (DOUBLE_PATTERN.matcher(content).matches()) {
             td.setTdContentType(ContentTypeEnum.DOUBLE);
-            return;
         }
     }
 
-    public enum TableTag {
+    private String parseContent(Element tdElement, Td td) {
+        Elements spans = tdElement.getElementsByTag(HtmlTag.span.name());
+        if (spans != null && !spans.isEmpty()) {
+            td.setFonts(new LinkedList<>());
+            if (spanText == null) {
+                spanText = new XSSFRichTextString("");
+            }
+            int startIndex = 0;
+            for (Element spanElement : spans) {
+                String spanContent = spanElement.text();
+                if (spanContent == null) {
+                    continue;
+                }
+                spanContent = LINE_FEED_PATTERN.matcher(spanContent).replaceAll("\n");
+                spanText.setString(spanContent);
+                Font font = new Font();
+                font.setStartIndex(startIndex);
+                font.setEndIndex(startIndex + spanText.length());
+
+                Map<String, String> fontStyle = StyleUtil.parseStyle(spanElement);
+                if (!fontStyle.isEmpty()) {
+                    font.setStyle(fontStyle);
+                    td.getFonts().add(font);
+                }
+                startIndex = font.getEndIndex();
+            }
+        }
+        return LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
+    }
+
+    public enum HtmlTag {
         /**
          * table
          */
@@ -367,6 +399,10 @@ public class HtmlTableParser {
         /**
          * a
          */
-        a;
+        a,
+        /**
+         * span
+         */
+        span;
     }
 }

@@ -273,6 +273,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     }
 
     private boolean isSelectedSheet() {
+        if (readConfig.isReadAllSheet()) {
+            return true;
+        }
         if (!readConfig.getSheetNames().isEmpty()) {
             return readConfig.getSheetNames().contains(sheetName);
         }

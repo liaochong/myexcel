@@ -34,6 +34,7 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.NonNull;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -48,6 +49,7 @@ import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Picture;
+import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -56,6 +58,7 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
@@ -76,6 +79,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     protected Workbook workbook;
     /**
+     * 是否为hssf
+     */
+    protected boolean isHssf;
+    /**
      * 每行的单元格最大高度map
      */
     private Map<Integer, Short> maxTdHeightMap = new HashMap<>();
@@ -94,7 +101,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 样式容器
      */
-    private Map<HtmlTableParser.TableTag, CellStyle> defaultCellStyleMap;
+    private Map<HtmlTableParser.HtmlTag, CellStyle> defaultCellStyleMap;
     /**
      * 字体map
      */
@@ -136,6 +143,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         switch (workbookType) {
             case XLS:
                 workbook = new HSSFWorkbook();
+                isHssf = true;
                 break;
             case XLSX:
                 workbook = new XSSFWorkbook();
@@ -403,15 +411,16 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private void setCellStyle(Row row, Cell cell, Td td) {
         if (useDefaultStyle) {
             if (td.isTh()) {
-                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.th));
+                cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.HtmlTag.th));
             } else {
                 if (ContentTypeEnum.isLink(td.getTdContentType())) {
-                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.link));
+                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.HtmlTag.link));
                 } else {
-                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.TableTag.td));
+                    cell.setCellStyle(defaultCellStyleMap.get(HtmlTableParser.HtmlTag.td));
                 }
             }
         } else {
+            this.doSetInnerSpan(cell, td);
             if (td.getStyle().isEmpty()) {
                 return;
             }
@@ -433,8 +442,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             TextAlignStyle.setTextAlign(cellStyle, td.getStyle());
             // border
             BorderStyle.setBorder(cellStyle, td.getStyle());
-            // font
-            FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
             // word-break
             WordBreakStyle.setWordBreak(cellStyle, td.getStyle());
             // 内容格式
@@ -445,9 +452,25 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 }
                 cellStyle.setDataFormat(format.getFormat(formatStr));
             }
+            // font
+            if (td.getFonts() == null || td.getFonts().isEmpty()) {
+                FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.getStyle(), fontMap, customColor);
+            }
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.getStyle(), cellStyle);
         }
+    }
+
+    private void doSetInnerSpan(Cell cell, Td td) {
+        if (td.getFonts() == null || td.getFonts().isEmpty()) {
+            return;
+        }
+        RichTextString richText = isHssf ? new HSSFRichTextString(td.getContent()) : new XSSFRichTextString(td.getContent());
+        for (com.github.liaochong.myexcel.core.parser.Font font : td.getFonts()) {
+            Font f = FontStyle.getFont(font.getStyle(), fontMap, () -> workbook.createFont(), customColor);
+            richText.applyFont(font.getStartIndex(), font.getEndIndex(), f);
+        }
+        cell.setCellValue(richText);
     }
 
     /**
@@ -470,10 +493,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     protected void initCellStyle(Workbook workbook) {
         if (useDefaultStyle) {
-            defaultCellStyleMap = new EnumMap<>(HtmlTableParser.TableTag.class);
-            defaultCellStyleMap.put(HtmlTableParser.TableTag.th, new ThDefaultCellStyle().supply(workbook));
-            defaultCellStyleMap.put(HtmlTableParser.TableTag.td, new TdDefaultCellStyle().supply(workbook));
-            defaultCellStyleMap.put(HtmlTableParser.TableTag.link, new LinkDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap = new EnumMap<>(HtmlTableParser.HtmlTag.class);
+            defaultCellStyleMap.put(HtmlTableParser.HtmlTag.th, new ThDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap.put(HtmlTableParser.HtmlTag.td, new TdDefaultCellStyle().supply(workbook));
+            defaultCellStyleMap.put(HtmlTableParser.HtmlTag.link, new LinkDefaultCellStyle().supply(workbook));
         } else {
             if (workbook instanceof HSSFWorkbook) {
                 HSSFPalette palette = ((HSSFWorkbook) workbook).getCustomPalette();
