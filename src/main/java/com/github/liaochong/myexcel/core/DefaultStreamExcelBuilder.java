@@ -73,10 +73,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private Path excel;
     /**
-     * 待追加excel流
-     */
-    private InputStream excelInputStream;
-    /**
      * 文件分割,excel容量
      */
     private int capacity;
@@ -145,7 +141,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType, Workbook workbook) {
         return new DefaultStreamExcelBuilder<>(dataType, workbook);
     }
-
 
     /**
      * 获取实例，设定需要渲染的数据的类类型
