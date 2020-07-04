@@ -17,10 +17,14 @@ package com.github.liaochong.myexcel.utils;
 
 
 import com.github.liaochong.myexcel.core.MyExcelConfiguration;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
+import com.github.liaochong.myexcel.exception.SaxReadException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -104,6 +108,21 @@ public class TempFileOperator {
         } catch (IOException e) {
             log.warn("Delete temp file failure", e);
         }
+    }
+
+    public static Path convertToFile(InputStream is) {
+        Path tempFile = createTempFile("i_t", Constants.XLSX);
+        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
+            byte[] buffer = new byte[8 * 1024];
+            int len;
+            while ((len = is.read(buffer)) > 0) {
+                fos.write(buffer, 0, len);
+            }
+        } catch (IOException e) {
+            TempFileOperator.deleteTempFile(tempFile);
+            throw new SaxReadException("Fail to convert file inputStream to temp file", e);
+        }
+        return tempFile;
     }
 
 }

@@ -24,11 +24,12 @@ import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
-import lombok.NonNull;
+import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -72,6 +73,10 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private Path excel;
     /**
+     * 待追加excel流
+     */
+    private InputStream excelInputStream;
+    /**
      * 文件分割,excel容量
      */
     private int capacity;
@@ -96,7 +101,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private TemplateHandler templateHandler;
 
-    private List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
+    private final List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, (Workbook) null);
@@ -108,6 +113,10 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         this.workbook = workbook;
         configuration.setWidthStrategy(WidthStrategy.NO_AUTO);
         this.isMapBuild = dataType == Map.class;
+    }
+
+    private DefaultStreamExcelBuilder(Class<T> dataType, InputStream excelInputStream) {
+        this(dataType, TempFileOperator.convertToFile(excelInputStream));
     }
 
     private DefaultStreamExcelBuilder(Class<T> dataType, Path excel) {
@@ -125,7 +134,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * @param <T>      T
      * @return DefaultStreamExcelBuilder
      */
-    public static <T> DefaultStreamExcelBuilder<T> of(@NonNull Class<T> dataType) {
+    public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType) {
         return new DefaultStreamExcelBuilder<>(dataType);
     }
 
@@ -155,6 +164,18 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     /**
+     * 获取实例，设定需要渲染的数据的类类型
+     *
+     * @param dataType         数据的类类型
+     * @param excelInputStream excelInputStream
+     * @param <T>              T
+     * @return DefaultStreamExcelBuilder
+     */
+    public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType, InputStream excelInputStream) {
+        return new DefaultStreamExcelBuilder<>(dataType, excelInputStream);
+    }
+
+    /**
      * 已过时，请使用of方法代替
      * 4.0版本移除
      *
@@ -177,22 +198,22 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return new DefaultStreamExcelBuilder<>(Map.class, workbook);
     }
 
-    public DefaultStreamExcelBuilder<T> titles(@NonNull List<String> titles) {
+    public DefaultStreamExcelBuilder<T> titles(List<String> titles) {
         this.titles = titles;
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
+    public DefaultStreamExcelBuilder<T> sheetName(String sheetName) {
         configuration.setSheetName(sheetName);
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+    public DefaultStreamExcelBuilder<T> fieldDisplayOrder(List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> workbookType(@NonNull WorkbookType workbookType) {
+    public DefaultStreamExcelBuilder<T> workbookType(WorkbookType workbookType) {
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
         }
@@ -210,13 +231,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
+    public DefaultStreamExcelBuilder<T> widthStrategy(WidthStrategy widthStrategy) {
         configuration.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
-    public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+    public DefaultStreamExcelBuilder<T> autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
         configuration.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
