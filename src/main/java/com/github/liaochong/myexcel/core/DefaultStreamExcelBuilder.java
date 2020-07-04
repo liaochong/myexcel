@@ -115,10 +115,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         this.isMapBuild = dataType == Map.class;
     }
 
-    private DefaultStreamExcelBuilder(Class<T> dataType, InputStream excelInputStream) {
-        this(dataType, TempFileOperator.convertToFile(excelInputStream));
-    }
-
     private DefaultStreamExcelBuilder(Class<T> dataType, Path excel) {
         super(false);
         this.dataType = dataType;
@@ -172,7 +168,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * @return DefaultStreamExcelBuilder
      */
     public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType, InputStream excelInputStream) {
-        return new DefaultStreamExcelBuilder<>(dataType, excelInputStream);
+        return of(dataType, TempFileOperator.convertToFile(excelInputStream));
     }
 
     /**
