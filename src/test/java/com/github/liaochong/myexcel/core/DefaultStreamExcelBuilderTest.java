@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -240,6 +241,17 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             excelBuilder.append("/templates/freemarkerToExcelExample.ftl", getDataMap());
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "append_template_build.xlsx"));
+        }
+    }
+
+    @Test
+    void appendExistExcel() throws Exception {
+        try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class, Paths.get(TEST_OUTPUT_DIR + "common_build.xlsx"))
+                .fixedTitles()
+                .start()) {
+            data(excelBuilder, 5000);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
         }
     }
 

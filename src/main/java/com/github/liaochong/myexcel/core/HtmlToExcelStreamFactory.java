@@ -24,7 +24,6 @@ import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -140,7 +139,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (this.workbook == null) {
             workbookType(WorkbookType.SXLSX);
         }
-        if (this.workbook instanceof HSSFWorkbook) {
+        if (isHssf) {
             maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
         }
         initCellStyle(this.workbook);
@@ -215,6 +214,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             trWaitQueue.clear();
             trWaitQueue = null;
             clear();
+            log.error("An exception occurred while processing", e);
             throw new ExcelBuildException("An exception occurred while processing", e);
         }
     }
@@ -290,7 +290,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void storeToTempFile() {
-        String suffix = workbook instanceof HSSFWorkbook ? Constants.XLS : Constants.XLSX;
+        String suffix = isHssf ? Constants.XLS : Constants.XLSX;
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
         tempFilePaths.add(path);
         try {
@@ -334,9 +334,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void initNewWorkbook() {
-        boolean isXls = workbook instanceof HSSFWorkbook;
         workbook = null;
-        workbookType(isXls ? WorkbookType.XLS : WorkbookType.SXLSX);
+        workbookType(isHssf ? WorkbookType.XLS : WorkbookType.SXLSX);
         sheetNum = 0;
         rowNum = 0;
         count = 0;
@@ -373,7 +372,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (Objects.nonNull(futures)) {
             futures.forEach(CompletableFuture::join);
         }
-        String suffix = workbook instanceof HSSFWorkbook ? Constants.XLS : Constants.XLSX;
+        String suffix = isHssf ? Constants.XLS : Constants.XLSX;
         Path zipFile = TempFileOperator.createTempFile(fileName, ".zip");
         try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipFile))) {
             for (int i = 1, size = tempFilePaths.size(); i <= size; i++) {
@@ -399,6 +398,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     public void clear() {
+        if (receiveThread != null && receiveThread.isAlive()) {
+            receiveThread.interrupt();
+        }
         closeWorkbook();
         TempFileOperator.deleteTempFiles(tempFilePaths);
     }

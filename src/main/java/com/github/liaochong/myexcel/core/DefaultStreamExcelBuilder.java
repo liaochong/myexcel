@@ -24,11 +24,13 @@ import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
-import lombok.NonNull;
+import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -67,6 +69,10 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private Workbook workbook;
     /**
+     * 待追加excel
+     */
+    private Path excel;
+    /**
      * 文件分割,excel容量
      */
     private int capacity;
@@ -91,16 +97,24 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private TemplateHandler templateHandler;
 
-    private List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
+    private final List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
-        this(dataType, null);
+        this(dataType, (Workbook) null);
     }
 
     private DefaultStreamExcelBuilder(Class<T> dataType, Workbook workbook) {
         super(false);
         this.dataType = dataType;
         this.workbook = workbook;
+        configuration.setWidthStrategy(WidthStrategy.NO_AUTO);
+        this.isMapBuild = dataType == Map.class;
+    }
+
+    private DefaultStreamExcelBuilder(Class<T> dataType, Path excel) {
+        super(false);
+        this.dataType = dataType;
+        this.excel = excel;
         configuration.setWidthStrategy(WidthStrategy.NO_AUTO);
         this.isMapBuild = dataType == Map.class;
     }
@@ -112,7 +126,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * @param <T>      T
      * @return DefaultStreamExcelBuilder
      */
-    public static <T> DefaultStreamExcelBuilder<T> of(@NonNull Class<T> dataType) {
+    public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType) {
         return new DefaultStreamExcelBuilder<>(dataType);
     }
 
@@ -124,8 +138,32 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * @param <T>      T
      * @return DefaultStreamExcelBuilder
      */
-    public static <T> DefaultStreamExcelBuilder<T> of(@NonNull Class<T> dataType, @NonNull Workbook workbook) {
+    public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType, Workbook workbook) {
         return new DefaultStreamExcelBuilder<>(dataType, workbook);
+    }
+
+    /**
+     * 获取实例，设定需要渲染的数据的类类型
+     *
+     * @param dataType 数据的类类型
+     * @param excel    excel
+     * @param <T>      T
+     * @return DefaultStreamExcelBuilder
+     */
+    public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType, Path excel) {
+        return new DefaultStreamExcelBuilder<>(dataType, excel);
+    }
+
+    /**
+     * 获取实例，设定需要渲染的数据的类类型
+     *
+     * @param dataType         数据的类类型
+     * @param excelInputStream excelInputStream
+     * @param <T>              T
+     * @return DefaultStreamExcelBuilder
+     */
+    public static <T> DefaultStreamExcelBuilder<T> of(Class<T> dataType, InputStream excelInputStream) {
+        return of(dataType, TempFileOperator.convertToFile(excelInputStream));
     }
 
     /**
@@ -151,22 +189,22 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return new DefaultStreamExcelBuilder<>(Map.class, workbook);
     }
 
-    public DefaultStreamExcelBuilder<T> titles(@NonNull List<String> titles) {
+    public DefaultStreamExcelBuilder<T> titles(List<String> titles) {
         this.titles = titles;
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> sheetName(@NonNull String sheetName) {
+    public DefaultStreamExcelBuilder<T> sheetName(String sheetName) {
         configuration.setSheetName(sheetName);
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+    public DefaultStreamExcelBuilder<T> fieldDisplayOrder(List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> workbookType(@NonNull WorkbookType workbookType) {
+    public DefaultStreamExcelBuilder<T> workbookType(WorkbookType workbookType) {
         if (workbook != null) {
             throw new IllegalArgumentException("Workbook type confirmed, not modifiable");
         }
@@ -184,13 +222,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> widthStrategy(@NonNull WidthStrategy widthStrategy) {
+    public DefaultStreamExcelBuilder<T> widthStrategy(WidthStrategy widthStrategy) {
         configuration.setWidthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
-    public DefaultStreamExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+    public DefaultStreamExcelBuilder<T> autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
         configuration.setWidthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }
@@ -297,6 +335,15 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         List<Tr> head = this.createThead();
         if (head != null) {
             htmlToExcelStreamFactory.appendTitles(head);
+        }
+        if (excel != null && Files.exists(excel)) {
+            log.info("start reading existing excel data.");
+            SaxExcelReader<T> reader = SaxExcelReader.of(dataType)
+                    .readAllSheet();
+            if (titleLevel > 0) {
+                reader.rowFilter(row -> row.getRowNum() > titleLevel - 1);
+            }
+            reader.readThen(excel.toFile(), (Consumer<T>) this::append);
         }
         return this;
     }

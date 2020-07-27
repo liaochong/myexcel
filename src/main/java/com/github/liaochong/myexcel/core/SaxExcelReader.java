@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.cache.StringsCache;
-import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
@@ -37,7 +36,6 @@ import org.xml.sax.XMLReader;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -121,6 +119,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> readAllSheet() {
+        this.readConfig.readAllSheet = true;
+        return this;
+    }
+
     public List<T> read(InputStream fileInputStream) {
         doRead(fileInputStream);
         return result;
@@ -172,27 +175,12 @@ public class SaxExcelReader<T> {
     }
 
     private void doRead(InputStream fileInputStream) {
-        Path path = this.convertToFile(fileInputStream);
+        Path path = TempFileOperator.convertToFile(fileInputStream);
         try {
             doRead(path.toFile());
         } finally {
             TempFileOperator.deleteTempFile(path);
         }
-    }
-
-    private Path convertToFile(InputStream is) {
-        Path tempFile = TempFileOperator.createTempFile("i_t", Constants.XLSX);
-        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
-            byte[] buffer = new byte[8 * 1024];
-            int len;
-            while ((len = is.read(buffer)) > 0) {
-                fos.write(buffer, 0, len);
-            }
-        } catch (IOException e) {
-            TempFileOperator.deleteTempFile(tempFile);
-            throw new SaxReadException("Fail to convert file inputStream to temp file", e);
-        }
-        return tempFile;
     }
 
     private void doRead(File file) {
@@ -261,7 +249,13 @@ public class SaxExcelReader<T> {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
             XSSFReader xssfReader = new XSSFReader(xlsxPackage);
             XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-            if (!readConfig.sheetNames.isEmpty()) {
+            if (readConfig.readAllSheet) {
+                while (iter.hasNext()) {
+                    try (InputStream stream = iter.next()) {
+                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
+                    }
+                }
+            } else if (!readConfig.sheetNames.isEmpty()) {
                 while (iter.hasNext()) {
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetNames.contains(iter.getSheetName())) {
@@ -344,6 +338,8 @@ public class SaxExcelReader<T> {
             }
             return v.trim();
         };
+
+        private boolean readAllSheet;
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
@@ -443,6 +439,14 @@ public class SaxExcelReader<T> {
 
         public void setTrim(Function<String, String> trim) {
             this.trim = trim;
+        }
+
+        public boolean isReadAllSheet() {
+            return readAllSheet;
+        }
+
+        public void setReadAllSheet(boolean readAllSheet) {
+            this.readAllSheet = readAllSheet;
         }
     }
 }
