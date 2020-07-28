@@ -389,6 +389,7 @@ public class DefaultExcelReader<T> {
             }
             xssfPicturesMap = xssfDrawing.getShapes()
                     .stream()
+                    .filter(s -> s instanceof XSSFPicture)
                     .map(s -> (XSSFPicture) s)
                     .collect(Collectors.toMap(s -> {
                         XSSFClientAnchor anchor = (XSSFClientAnchor) s.getAnchor();
