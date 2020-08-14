@@ -15,10 +15,13 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.core.io.BOMInputStream;
+import com.github.liaochong.myexcel.core.io.ByteOrderMark;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -43,8 +46,13 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
         super(true, result, readConfig);
-        this.is = is;
-        this.charset = readConfig.getCharset();
+        BOMInputStream bomInputStream = new BOMInputStream(is, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE);
+        this.is = bomInputStream;
+        try {
+            this.charset = bomInputStream.getBOMCharsetName() != null ? bomInputStream.getBOMCharsetName() : readConfig.getCharset();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void read() {
@@ -57,9 +65,6 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 newRow(lineIndex);
-                if (lineIndex == 0 && line.length() >= 1 && line.charAt(0) == '\uFEFF') {
-                    line = line.substring(1);
-                }
                 this.process(line);
                 lineIndex++;
             }
