@@ -148,6 +148,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
                     sheetName = orderedBSRs[sheetIndex].getSheetname();
+                    readConfig.getStartSheetConsumer().accept(sheetName, sheetIndex);
                 }
                 break;
 
