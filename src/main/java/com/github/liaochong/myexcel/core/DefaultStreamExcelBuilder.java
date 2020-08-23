@@ -403,7 +403,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
                 this.append(supplier.getAsList());
             }, executorService);
         }
-        asyncAppendFutures.add(future);
+        synchronized (this) {
+            asyncAppendFutures.add(future);
+        }
     }
 
     public void asyncAppend(Supplier<T> supplier) {
@@ -417,7 +419,9 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
                 this.append(supplier.get());
             }, executorService);
         }
-        asyncAppendFutures.add(future);
+        synchronized (this) {
+            asyncAppendFutures.add(future);
+        }
     }
 
     @Override
