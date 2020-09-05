@@ -26,6 +26,7 @@ import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
@@ -98,6 +99,11 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     private TemplateHandler templateHandler;
 
     private final List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
+    /**
+     * sheet前置处理函数
+     */
+    private Consumer<Sheet> startSheetConsumer = sheet -> {
+    };
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, (Workbook) null);
@@ -311,6 +317,11 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
+    public DefaultStreamExcelBuilder<T> startSheet(Consumer<Sheet> startSheetConsumer) {
+        this.startSheetConsumer = startSheetConsumer;
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作
      *
@@ -324,7 +335,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles, styleParser);
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles, styleParser, startSheetConsumer);
         htmlToExcelStreamFactory.widthStrategy(configuration.getWidthStrategy());
         if (workbook == null) {
             htmlToExcelStreamFactory.workbookType(configuration.getWorkbookType());

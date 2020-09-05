@@ -193,6 +193,9 @@ public final class StyleParser {
                     style.putAll(cellStyleMap);
                 }
             }
+            if (style == null && !globalCellStyle.isEmpty()) {
+                style = globalCellStyle;
+            }
             if (style == null) {
                 style = isOddRow ? globalCommonStyle : globalEvenStyle;
             }

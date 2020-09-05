@@ -24,6 +24,7 @@ import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -116,18 +117,24 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private volatile Thread receiveThread;
 
     private StyleParser styleParser;
+    /**
+     * sheet前置处理函数
+     */
+    private final Consumer<Sheet> startSheetConsumer;
 
     public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
                                     Consumer<Path> pathConsumer,
                                     int capacity,
                                     boolean fixedTitles,
-                                    StyleParser styleParser) {
+                                    StyleParser styleParser,
+                                    Consumer<Sheet> startSheetConsumer) {
         this.trWaitQueue = new LinkedBlockingQueue<>(waitSize);
         this.executorService = executorService;
         this.pathConsumer = pathConsumer;
         this.capacity = capacity;
         this.fixedTitles = fixedTitles;
         this.styleParser = styleParser;
+        this.startSheetConsumer = startSheetConsumer;
     }
 
     public void start(Table table, Workbook workbook) {
@@ -146,7 +153,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (table != null) {
             sheetName = this.getRealSheetName(table.getCaption());
         }
-        this.sheet = this.workbook.createSheet(sheetName);
+        this.sheet = this.createSheet(sheetName);
         Thread thread = new Thread(this::receive);
         thread.setName("myexcel-exec-" + thread.getId());
         thread.start();
@@ -193,7 +200,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     sheetNum++;
                     this.setColWidth(colWidthMap, sheet, maxColIndex);
                     colWidthMap = new HashMap<>();
-                    sheet = workbook.createSheet(sheetName + " (" + sheetNum + ")");
+                    sheet = this.createSheet(sheetName + " (" + sheetNum + ")");
                     rowNum = 0;
                     this.setTitles();
                 }
@@ -342,7 +349,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         colWidthMap = new HashMap<>();
         clearCache();
         initCellStyle(workbook);
-        sheet = workbook.createSheet(sheetName);
+        sheet = this.createSheet(sheetName);
         // 标题构建
         if (titles == null) {
             return;
@@ -354,6 +361,16 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         for (Tr titleTr : titles) {
             appendRow(titleTr);
         }
+    }
+
+    private Sheet createSheet(String sheetName) {
+        Sheet sheet = workbook.createSheet(sheetName);
+        // 默认自适应打印页
+        PrintSetup ps = sheet.getPrintSetup();
+        ps.setFitHeight((short) 1);
+        ps.setFitWidth((short) 1);
+        startSheetConsumer.accept(sheet);
+        return sheet;
     }
 
     private void appendRow(Tr tr) {
