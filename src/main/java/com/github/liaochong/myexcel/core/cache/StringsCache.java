@@ -107,7 +107,8 @@ public class StringsCache implements Cache<Integer, String> {
             strings = this.getStrings(route);
             activeCache.put(route, strings);
         }
-        return strings[key - (route * MAX_SIZE_PATH)];
+        int index = key - (route * MAX_SIZE_PATH);
+        return index >= strings.length ? "" : strings[index];
     }
 
     private String[] getStrings(int route) {

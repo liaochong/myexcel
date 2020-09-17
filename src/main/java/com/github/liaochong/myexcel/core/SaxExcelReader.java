@@ -124,6 +124,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> startSheet(BiConsumer<String, Integer> startSheetConsumer) {
+        this.readConfig.startSheetConsumer = startSheetConsumer;
+        return this;
+    }
+
     public List<T> read(InputStream fileInputStream) {
         doRead(fileInputStream);
         return result;
@@ -249,25 +254,30 @@ public class SaxExcelReader<T> {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
             XSSFReader xssfReader = new XSSFReader(xlsxPackage);
             XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+            int index = 0;
             if (readConfig.readAllSheet) {
                 while (iter.hasNext()) {
                     try (InputStream stream = iter.next()) {
+                        readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                         processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                     }
+                    ++index;
                 }
             } else if (!readConfig.sheetNames.isEmpty()) {
                 while (iter.hasNext()) {
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetNames.contains(iter.getSheetName())) {
+                            readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                             processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                         }
+                        ++index;
                     }
                 }
             } else {
-                int index = 0;
                 while (iter.hasNext()) {
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetIndexs.contains(index)) {
+                            readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                             processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                         }
                         ++index;
@@ -340,6 +350,10 @@ public class SaxExcelReader<T> {
         };
 
         private boolean readAllSheet;
+
+        private BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
+            log.info("Start read excel, sheet:{},index:{}", sheetName, sheetIndex);
+        };
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
@@ -447,6 +461,14 @@ public class SaxExcelReader<T> {
 
         public void setReadAllSheet(boolean readAllSheet) {
             this.readAllSheet = readAllSheet;
+        }
+
+        public BiConsumer<String, Integer> getStartSheetConsumer() {
+            return startSheetConsumer;
+        }
+
+        public void setStartSheetConsumer(BiConsumer<String, Integer> startSheetConsumer) {
+            this.startSheetConsumer = startSheetConsumer;
         }
     }
 }
