@@ -99,6 +99,12 @@ public class DefaultExcelReader<T> {
         return v.trim();
     };
 
+    /**
+     * sheet前置处理函数
+     */
+    private Consumer<Sheet> startSheetConsumer = sheet -> {
+    };
+
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
         // 全局配置获取
@@ -156,6 +162,11 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
+    public DefaultExcelReader<T> startSheet(Consumer<Sheet> startSheetConsumer) {
+        this.startSheetConsumer = startSheetConsumer;
+        return this;
+    }
+
     public List<T> read(@NonNull InputStream fileInputStream) throws Exception {
         return this.read(fileInputStream, null);
     }
@@ -167,6 +178,7 @@ public class DefaultExcelReader<T> {
         }
         try {
             Sheet sheet = getSheetOfInputStream(fileInputStream, password);
+            this.startSheetConsumer.accept(sheet);
             return getDataFromFile(sheet, fieldMap);
         } finally {
             clearWorkbook();
@@ -185,6 +197,7 @@ public class DefaultExcelReader<T> {
         }
         try {
             Sheet sheet = getSheetOfFile(file, password);
+            this.startSheetConsumer.accept(sheet);
             return getDataFromFile(sheet, fieldMap);
         } finally {
             clearWorkbook();
@@ -345,6 +358,7 @@ public class DefaultExcelReader<T> {
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
         log.info("FirstRowNum:{},LastRowNum:{}", firstRowNum, lastRowNum);
+        this.startSheetConsumer.accept(sheet);
         if (lastRowNum < 0) {
             log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
             return;
