@@ -53,4 +53,28 @@ public class DefaultExcelReaderTest extends BasicTest {
         List<CommonPeople> list = DefaultExcelReader.of(CommonPeople.class).sheet("工作表2").rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
         System.out.println("");
     }
+
+    @Test
+    public void readStartSheet() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<CommonPeople> list = DefaultExcelReader.of(CommonPeople.class).sheet("工作表2")
+                .startSheet(sheet -> System.out.println(sheet.getLastRowNum()))
+                .rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
+        System.out.println("");
+    }
+
+    @Test
+    public void readThenStartSheet() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        DefaultExcelReader.of(CommonPeople.class).sheet("工作表2")
+                .startSheet(sheet -> System.out.println(sheet.getLastRowNum()))
+                .rowFilter(row -> row.getRowNum() > 0).readThen(path.toFile(), d -> {
+            System.out.println(d.getCats());
+        });
+        System.out.println("");
+    }
 }
