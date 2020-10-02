@@ -21,8 +21,6 @@ import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFAnchor;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
@@ -40,6 +38,8 @@ import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFPicture;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -64,8 +64,9 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class DefaultExcelReader<T> {
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultExcelReader.class);
 
     private static final int DEFAULT_SHEET_INDEX = 0;
 
@@ -125,7 +126,7 @@ public class DefaultExcelReader<T> {
         }
     }
 
-    public static <T> DefaultExcelReader<T> of(@NonNull Class<T> clazz) {
+    public static <T> DefaultExcelReader<T> of(Class<T> clazz) {
         return new DefaultExcelReader<>(clazz);
     }
 
@@ -143,12 +144,12 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
-    public DefaultExcelReader<T> rowFilter(@NonNull Predicate<Row> rowFilter) {
+    public DefaultExcelReader<T> rowFilter(Predicate<Row> rowFilter) {
         this.rowFilter = rowFilter;
         return this;
     }
 
-    public DefaultExcelReader<T> beanFilter(@NonNull Predicate<T> beanFilter) {
+    public DefaultExcelReader<T> beanFilter(Predicate<T> beanFilter) {
         this.beanFilter = beanFilter;
         return this;
     }
@@ -168,19 +169,19 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
-    public List<T> read(@NonNull InputStream fileInputStream) {
+    public List<T> read(InputStream fileInputStream) {
         return this.read(fileInputStream, null);
     }
 
-    public List<T> read(@NonNull InputStream fileInputStream, String password) {
+    public List<T> read(InputStream fileInputStream, String password) {
         return this.doRead(() -> getSheetOfInputStream(fileInputStream, password));
     }
 
-    public List<T> read(@NonNull File file) {
+    public List<T> read(File file) {
         return this.read(file, null);
     }
 
-    public List<T> read(@NonNull File file, String password) {
+    public List<T> read(File file, String password) {
         return this.doRead(() -> getSheetOfFile(file, password));
     }
 
@@ -198,35 +199,35 @@ public class DefaultExcelReader<T> {
         }
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) {
+    public void readThen(InputStream fileInputStream, Consumer<T> consumer) {
         readThen(fileInputStream, null, consumer);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer) {
+    public void readThen(InputStream fileInputStream, String password, Consumer<T> consumer) {
         this.doReadThen(() -> getSheetOfInputStream(fileInputStream, password), consumer, null);
     }
 
-    public void readThen(@NonNull File file, Consumer<T> consumer) {
+    public void readThen(File file, Consumer<T> consumer) {
         readThen(file, null, consumer);
     }
 
-    public void readThen(@NonNull File file, String password, Consumer<T> consumer) {
+    public void readThen(File file, String password, Consumer<T> consumer) {
         this.doReadThen(() -> getSheetOfFile(file, password), consumer, null);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) {
+    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
         readThen(fileInputStream, null, function);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, String password, Function<T, Boolean> function) {
+    public void readThen(InputStream fileInputStream, String password, Function<T, Boolean> function) {
         this.doReadThen(() -> getSheetOfInputStream(fileInputStream, password), null, function);
     }
 
-    public void readThen(@NonNull File file, Function<T, Boolean> function) {
+    public void readThen(File file, Function<T, Boolean> function) {
         readThen(file, null, function);
     }
 
-    public void readThen(@NonNull File file, String password, Function<T, Boolean> function) {
+    public void readThen(File file, String password, Function<T, Boolean> function) {
         this.doReadThen(() -> getSheetOfFile(file, password), null, function);
     }
 
@@ -253,7 +254,7 @@ public class DefaultExcelReader<T> {
         }
     }
 
-    private Sheet getSheetOfInputStream(@NonNull InputStream fileInputStream, String password) {
+    private Sheet getSheetOfInputStream(InputStream fileInputStream, String password) {
         try {
             if (StringUtil.isBlank(password)) {
                 wb = WorkbookFactory.create(fileInputStream);
@@ -266,7 +267,7 @@ public class DefaultExcelReader<T> {
         return getSheet();
     }
 
-    private Sheet getSheetOfFile(@NonNull File file, String password) {
+    private Sheet getSheetOfFile(File file, String password) {
         try {
             if (StringUtil.isBlank(password)) {
                 wb = WorkbookFactory.create(file);
