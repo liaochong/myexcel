@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.style.CustomColor;
-import lombok.NonNull;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.util.HSSFColor;
 
@@ -50,7 +49,7 @@ public final class ColorUtil {
         return colorPredefined.getIndex();
     }
 
-    public static Short getCustomColorIndex(@NonNull CustomColor customColor, @NonNull String color) {
+    public static Short getCustomColorIndex(CustomColor customColor, String color) {
         int[] rgb = getRGBByColor(color);
         if (Objects.isNull(rgb)) {
             return null;
@@ -58,14 +57,14 @@ public final class ColorUtil {
         return getCustomColorIndex(customColor, rgb);
     }
 
-    public static Short getCustomColorIndex(@NonNull CustomColor customColor, @NonNull int[] rgb) {
+    public static Short getCustomColorIndex(CustomColor customColor, int[] rgb) {
         HSSFPalette palette = customColor.getPalette();
         short index = (short) customColor.getColorIndex().getAndIncrement();
         palette.setColorAtIndex(index, (byte) rgb[0], (byte) rgb[1], (byte) rgb[2]);
         return index;
     }
 
-    public static int[] getRGBByColor(@NonNull String color) {
+    public static int[] getRGBByColor(String color) {
         int[] result = null;
         if (color.startsWith(HASH)) {
             // 转为16进制

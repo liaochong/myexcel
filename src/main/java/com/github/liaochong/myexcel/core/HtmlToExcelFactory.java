@@ -22,7 +22,6 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.StringUtil;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -71,7 +70,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @param html html字符串
      * @return HtmlToExcelFactory
      */
-    public static HtmlToExcelFactory readHtml(@NonNull String html) {
+    public static HtmlToExcelFactory readHtml(String html) {
         HtmlToExcelFactory factory = new HtmlToExcelFactory();
         factory.htmlTableParser = HtmlTableParser.of(html);
         return factory;
