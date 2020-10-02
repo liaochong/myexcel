@@ -17,14 +17,11 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public final class ExcelColumnMapping {
 
     /**
