@@ -23,10 +23,10 @@ import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -53,7 +53,6 @@ import java.util.zip.ZipOutputStream;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private static final int XLSX_MAX_ROW_COUNT = 1048576;
@@ -61,6 +60,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private static final int XLS_MAX_ROW_COUNT = 65536;
 
     private static final Tr STOP_FLAG = new Tr(-1, 0);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(HtmlToExcelStreamFactory.class);
 
     private int maxRowCountOfSheet = XLSX_MAX_ROW_COUNT;
 

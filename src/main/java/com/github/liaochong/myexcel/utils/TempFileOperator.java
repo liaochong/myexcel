@@ -20,7 +20,7 @@ import com.github.liaochong.myexcel.core.MyExcelConfiguration;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,10 +36,10 @@ import java.util.Objects;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class TempFileOperator {
 
     private static final int MAX_CREATE_NO = 9_999;
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(TempFileOperator.class);
 
     private static int createNo;
 

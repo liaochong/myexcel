@@ -25,9 +25,9 @@ import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,8 +48,8 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder<T> {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(DefaultStreamExcelBuilder.class);
     /**
      * 设置需要渲染的数据的类类型
      */

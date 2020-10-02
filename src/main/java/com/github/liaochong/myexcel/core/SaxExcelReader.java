@@ -19,7 +19,6 @@ import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -28,6 +27,7 @@ import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStrings;
+import org.slf4j.Logger;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -57,10 +57,10 @@ import java.util.function.Predicate;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class SaxExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(SaxExcelReader.class);
 
     private final List<T> result = new LinkedList<>();
 

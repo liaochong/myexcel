@@ -15,7 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.templatehandler.ThymeleafTemplateHandler;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 /**
  * ThymeleafExcelBuilder
@@ -23,8 +23,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(ThymeleafExcelBuilder.class);
 
     public ThymeleafExcelBuilder() {
         super(ThymeleafTemplateHandler.class);

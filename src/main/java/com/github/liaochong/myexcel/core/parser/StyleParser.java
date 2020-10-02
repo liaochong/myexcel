@@ -19,7 +19,6 @@ import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
-import lombok.Setter;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -70,7 +69,6 @@ public final class StyleParser {
     /**
      * 自定义宽度
      */
-    @Setter
     private Map<Integer, Integer> customWidthMap;
     /**
      * 是否为偶数行
@@ -79,7 +77,6 @@ public final class StyleParser {
     /**
      * 无样式
      */
-    @Setter
     private boolean noStyle;
 
     public StyleParser(Map<Integer, Integer> customWidthMap) {
@@ -225,5 +222,13 @@ public final class StyleParser {
         if (width != null) {
             customWidthMap.put(fieldIndex, TdUtil.getValue(width));
         }
+    }
+
+    public void setCustomWidthMap(Map<Integer, Integer> customWidthMap) {
+        this.customWidthMap = customWidthMap;
+    }
+
+    public void setNoStyle(boolean noStyle) {
+        this.noStyle = noStyle;
     }
 }
