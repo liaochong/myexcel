@@ -62,9 +62,9 @@ public class SaxExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
 
-    private List<T> result = new LinkedList<>();
+    private final List<T> result = new LinkedList<>();
 
-    private ReadConfig<T> readConfig = new ReadConfig<>(DEFAULT_SHEET_INDEX);
+    private final ReadConfig<T> readConfig = new ReadConfig<>(DEFAULT_SHEET_INDEX);
 
     private SaxExcelReader(Class<T> dataType) {
         this.readConfig.dataType = dataType;

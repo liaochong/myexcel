@@ -66,8 +66,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private Sheet sheet;
 
-    private BlockingQueue<Tr> trWaitQueue;
-
     private boolean stop;
 
     private volatile boolean exception;
@@ -85,11 +83,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     private int maxColIndex;
 
     /**
-     * 文件分割,excel容量
-     */
-    private int capacity;
-
-    /**
      * 计数器
      */
     private int count;
@@ -98,43 +91,19 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     /**
      * 临时文件
      */
-    private List<Path> tempFilePaths = new ArrayList<>();
+    private final List<Path> tempFilePaths = new ArrayList<>();
 
-    private List<CompletableFuture<Void>> futures = new LinkedList<>();
+    private final List<CompletableFuture<Void>> futures = new LinkedList<>();
 
-    private Consumer<Path> pathConsumer;
-    /**
-     * 线程池
-     */
-    private ExecutorService executorService;
-    /**
-     * 是否固定标题
-     */
-    private boolean fixedTitles;
     /**
      * 接收线程
      */
-    private volatile Thread receiveThread;
+    volatile Thread receiveThread;
 
-    private StyleParser styleParser;
-    /**
-     * sheet前置处理函数
-     */
-    private final Consumer<Sheet> startSheetConsumer;
+    private final HtmlToExcelStreamFactoryContext context;
 
-    public HtmlToExcelStreamFactory(int waitSize, ExecutorService executorService,
-                                    Consumer<Path> pathConsumer,
-                                    int capacity,
-                                    boolean fixedTitles,
-                                    StyleParser styleParser,
-                                    Consumer<Sheet> startSheetConsumer) {
-        this.trWaitQueue = new LinkedBlockingQueue<>(waitSize);
-        this.executorService = executorService;
-        this.pathConsumer = pathConsumer;
-        this.capacity = capacity;
-        this.fixedTitles = fixedTitles;
-        this.styleParser = styleParser;
-        this.startSheetConsumer = startSheetConsumer;
+    public HtmlToExcelStreamFactory(HtmlToExcelStreamFactoryContext context) {
+        this.context = context;
     }
 
     public void start(Table table, Workbook workbook) {
@@ -190,7 +159,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             }
             int totalSize = 0;
             while (tr != STOP_FLAG) {
-                if (capacity > 0 && count == capacity) {
+                if (context.capacity > 0 && count == context.capacity) {
                     // 上一份数据保存
                     this.storeToTempFile();
                     // 开启下一份数据
@@ -218,8 +187,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             log.info("Total size:{}", totalSize);
         } catch (Exception e) {
             exception = true;
-            trWaitQueue.clear();
-            trWaitQueue = null;
+            context.trWaitQueue.clear();
+            context.trWaitQueue = null;
             clear();
             log.error("An exception occurred while processing", e);
             throw new ExcelBuildException("An exception occurred while processing", e);
@@ -230,19 +199,19 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (tr.isFromTemplate()) {
             return;
         }
-        styleParser.toggle();
+        context.styleParser.toggle();
         for (int i = 0, size = tr.getTdList().size(); i < size; i++) {
             Td td = tr.getTdList().get(i);
             if (td.isTh()) {
-                td.setStyle(styleParser.getTitleStyle("title&" + td.getCol()));
+                td.setStyle(context.styleParser.getTitleStyle("title&" + td.getCol()));
             } else {
-                td.setStyle(styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
+                td.setStyle(context.styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
             }
         }
     }
 
     private Tr getTrFromQueue() throws InterruptedException {
-        Tr tr = trWaitQueue.poll(1, TimeUnit.HOURS);
+        Tr tr = context.trWaitQueue.poll(1, TimeUnit.HOURS);
         if (tr == null) {
             throw new IllegalStateException("Get tr failure,timeout 1 hour.");
         }
@@ -253,7 +222,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     public Workbook build() {
         waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
-        this.freezeTitles(workbook);
+        this.freezePanes(workbook);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }
@@ -274,7 +243,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         this.stop = true;
         this.putTrToQueue(STOP_FLAG);
-        while (!trWaitQueue.isEmpty()) {
+        while (!context.trWaitQueue.isEmpty()) {
             // wait all tr received
             if (exception) {
                 throw new IllegalThreadStateException("An exception occurred while processing");
@@ -284,7 +253,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private void putTrToQueue(Tr tr) {
         try {
-            boolean putSuccess = trWaitQueue.offer(tr, 1, TimeUnit.HOURS);
+            boolean putSuccess = context.trWaitQueue.offer(tr, 1, TimeUnit.HOURS);
             if (!putSuccess) {
                 throw new IllegalStateException("Put tr to queue failure,timeout 1 hour.");
             }
@@ -301,29 +270,29 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         Path path = TempFileOperator.createTempFile("s_t_r_p", suffix);
         tempFilePaths.add(path);
         try {
-            if (executorService != null) {
+            if (context.executorService != null) {
                 Workbook tempWorkbook = workbook;
                 Sheet tempSheet = sheet;
                 Map<Integer, Integer> tempColWidthMap = colWidthMap;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
-                    this.freezeTitles(tempWorkbook);
+                    this.freezePanes(tempWorkbook);
                     try {
                         FileExportUtil.export(tempWorkbook, path.toFile());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                    if (pathConsumer != null) {
-                        pathConsumer.accept(path);
+                    if (context.pathConsumer != null) {
+                        context.pathConsumer.accept(path);
                     }
-                }, executorService);
+                }, context.executorService);
                 futures.add(future);
             } else {
                 this.setColWidth(colWidthMap, sheet, maxColIndex);
-                this.freezeTitles(workbook);
+                this.freezePanes(workbook);
                 FileExportUtil.export(workbook, path.toFile());
-                if (Objects.nonNull(pathConsumer)) {
-                    pathConsumer.accept(path);
+                if (Objects.nonNull(context.pathConsumer)) {
+                    context.pathConsumer.accept(path);
                 }
             }
         } catch (IOException e) {
@@ -332,10 +301,15 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private void freezeTitles(Workbook workbook) {
-        if (fixedTitles && titles != null) {
+    private void freezePanes(Workbook workbook) {
+        if (context.fixedTitles && titles != null) {
             for (int i = 0, size = workbook.getNumberOfSheets(); i < size; i++) {
                 workbook.getSheetAt(i).createFreezePane(0, titles.size());
+            }
+        }
+        if (context.freezePane != null) {
+            for (int i = 0, size = workbook.getNumberOfSheets(); i < size; i++) {
+                workbook.getSheetAt(i).createFreezePane(context.freezePane.getColSplit(), context.freezePane.getRowSplit());
             }
         }
     }
@@ -369,7 +343,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         PrintSetup ps = sheet.getPrintSetup();
         ps.setFitHeight((short) 1);
         ps.setFitWidth((short) 1);
-        startSheetConsumer.accept(sheet);
+        context.startSheetConsumer.accept(sheet);
         return sheet;
     }
 
@@ -420,5 +394,37 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         closeWorkbook();
         TempFileOperator.deleteTempFiles(tempFilePaths);
+    }
+
+    /**
+     * 上下文
+     */
+    static class HtmlToExcelStreamFactoryContext {
+
+        BlockingQueue<Tr> trWaitQueue = new LinkedBlockingQueue<>(Runtime.getRuntime().availableProcessors() * 2);
+        /**
+         * 线程池
+         */
+        ExecutorService executorService;
+        /**
+         * 文件分割,excel容量
+         */
+        int capacity;
+
+        Consumer<Path> pathConsumer;
+        /**
+         * 是否固定标题
+         */
+        boolean fixedTitles;
+
+        StyleParser styleParser;
+
+        /**
+         * sheet前置处理函数
+         */
+        Consumer<Sheet> startSheetConsumer = sheet -> {
+        };
+
+        FreezePane freezePane;
     }
 }
