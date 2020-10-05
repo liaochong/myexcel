@@ -122,7 +122,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         if (table != null) {
             sheetName = this.getRealSheetName(table.getCaption());
         }
-        this.sheet = this.createSheet(sheetName);
         Thread thread = new Thread(this::receive);
         thread.setName("myexcel-exec-" + thread.getId());
         thread.start();
@@ -153,6 +152,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         try {
             receiveThread = Thread.currentThread();
             Tr tr = this.getTrFromQueue();
+            if (sheet == null) {
+                this.sheet = this.createSheet(sheetName);
+            }
             if (maxColIndex == 0) {
                 int tdSize = tr.getTdList().size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
@@ -222,7 +224,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     public Workbook build() {
         waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
-        this.freezePanes(workbook);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }
@@ -274,7 +275,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 Map<Integer, Integer> tempColWidthMap = colWidthMap;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
-                    this.freezePanes(tempWorkbook);
                     try {
                         FileExportUtil.export(tempWorkbook, path.toFile());
                     } catch (IOException e) {
@@ -287,7 +287,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 futures.add(future);
             } else {
                 this.setColWidth(colWidthMap, sheet, maxColIndex);
-                this.freezePanes(workbook);
                 FileExportUtil.export(workbook, path.toFile());
                 if (Objects.nonNull(context.pathConsumer)) {
                     context.pathConsumer.accept(path);
@@ -299,16 +298,12 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private void freezePanes(Workbook workbook) {
+    private void freezePane(Sheet sheet) {
         if (context.fixedTitles && titles != null) {
-            for (int i = 0, size = workbook.getNumberOfSheets(); i < size; i++) {
-                workbook.getSheetAt(i).createFreezePane(0, titles.size());
-            }
+            sheet.createFreezePane(0, titles.size());
         }
         if (context.freezePane != null) {
-            for (int i = 0, size = workbook.getNumberOfSheets(); i < size; i++) {
-                workbook.getSheetAt(i).createFreezePane(context.freezePane.getColSplit(), context.freezePane.getRowSplit());
-            }
+            sheet.createFreezePane(context.freezePane.getColSplit(), context.freezePane.getRowSplit());
         }
     }
 
@@ -337,6 +332,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private Sheet createSheet(String sheetName) {
         Sheet sheet = workbook.createSheet(sheetName);
+        this.freezePane(sheet);
         // 默认自适应打印页
         PrintSetup ps = sheet.getPrintSetup();
         ps.setFitHeight((short) 1);
