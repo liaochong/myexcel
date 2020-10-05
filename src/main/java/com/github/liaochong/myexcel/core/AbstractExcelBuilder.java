@@ -21,7 +21,6 @@ import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,7 +33,6 @@ import java.util.Map;
  */
 public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(AbstractExcelBuilder.class);
     protected TemplateHandler templateHandler;
 
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();

@@ -164,7 +164,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     protected String getRealSheetName(String sheetName) {
         if (sheetName == null) {
-            sheetName = "sheet";
+            sheetName = "Sheet";
         }
         Sheet sheet = workbook.getSheet(sheetName);
         int sort = 1;

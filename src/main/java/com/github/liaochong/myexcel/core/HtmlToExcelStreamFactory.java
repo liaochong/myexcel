@@ -225,6 +225,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
+        if (workbook.getNumberOfSheets() == 0) {
+            this.createSheet(sheetName);
+        }
         return workbook;
     }
 
@@ -276,6 +279,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
                     try {
+                        if (tempWorkbook.getNumberOfSheets() == 0) {
+                            this.createSheet(sheetName);
+                        }
                         FileExportUtil.export(tempWorkbook, path.toFile());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -287,6 +293,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 futures.add(future);
             } else {
                 this.setColWidth(colWidthMap, sheet, maxColIndex);
+                if (workbook.getNumberOfSheets() == 0) {
+                    this.createSheet(sheetName);
+                }
                 FileExportUtil.export(workbook, path.toFile());
                 if (Objects.nonNull(context.pathConsumer)) {
                     context.pathConsumer.accept(path);
@@ -330,8 +339,12 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private Sheet createSheet(String sheetName) {
-        Sheet sheet = workbook.createSheet(sheetName);
+    private synchronized Sheet createSheet(String sheetName) {
+        Sheet sheet = workbook.getSheet(sheetName);
+        if (sheet != null) {
+            return workbook.getSheet(sheetName);
+        }
+        sheet = workbook.createSheet(sheetName);
         this.freezePane(sheet);
         // 默认自适应打印页
         PrintSetup ps = sheet.getPrintSetup();
