@@ -230,9 +230,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     List<Path> buildAsPaths() {
         waiting();
         this.storeToTempFile();
-        if (futures != null) {
-            futures.forEach(CompletableFuture::join);
-        }
+        futures.forEach(CompletableFuture::join);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
         return tempFilePaths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());
     }
@@ -360,9 +358,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     Path buildAsZip(String fileName) {
         waiting();
         this.storeToTempFile();
-        if (Objects.nonNull(futures)) {
-            futures.forEach(CompletableFuture::join);
-        }
+        futures.forEach(CompletableFuture::join);
         String suffix = isHssf ? Constants.XLS : Constants.XLSX;
         Path zipFile = TempFileOperator.createTempFile(fileName, ".zip");
         try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipFile))) {
