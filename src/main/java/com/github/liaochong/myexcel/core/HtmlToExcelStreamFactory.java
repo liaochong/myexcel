@@ -153,7 +153,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             receiveThread = Thread.currentThread();
             Tr tr = this.getTrFromQueue();
             if (sheet == null) {
-                this.sheet = this.createSheet(sheetName);
+                synchronized (this) {
+                    this.sheet = this.createSheet(sheetName);
+                }
             }
             if (maxColIndex == 0) {
                 int tdSize = tr.getTdList().size();
@@ -301,7 +303,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private void createEmptySheetIfAbsent(Workbook tempWorkbook) {
+    private synchronized void createEmptySheetIfAbsent(Workbook tempWorkbook) {
         if (tempWorkbook.getNumberOfSheets() == 0) {
             this.createSheet(sheetName);
         }
@@ -339,12 +341,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private synchronized Sheet createSheet(String sheetName) {
-        Sheet sheet = workbook.getSheet(sheetName);
-        if (sheet != null) {
-            return workbook.getSheet(sheetName);
-        }
-        sheet = workbook.createSheet(sheetName);
+    private Sheet createSheet(String sheetName) {
+        Sheet sheet = workbook.createSheet(sheetName);
         this.freezePane(sheet);
         // 默认自适应打印页
         PrintSetup ps = sheet.getPrintSetup();
