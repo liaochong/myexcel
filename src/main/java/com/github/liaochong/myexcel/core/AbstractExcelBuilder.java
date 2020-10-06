@@ -20,8 +20,6 @@ import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
@@ -33,7 +31,6 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected TemplateHandler templateHandler;
@@ -46,7 +43,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
-    public AbstractExcelBuilder workbookType(@NonNull WorkbookType workbookType) {
+    public AbstractExcelBuilder workbookType(WorkbookType workbookType) {
         htmlToExcelFactory.workbookType(workbookType);
         return this;
     }
@@ -58,14 +55,14 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
-    public AbstractExcelBuilder widthStrategy(@NonNull WidthStrategy widthStrategy) {
+    public AbstractExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
         htmlToExcelFactory.widthStrategy(widthStrategy);
         return this;
     }
 
     @Deprecated
     @Override
-    public AbstractExcelBuilder autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+    public AbstractExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
         htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
         return this;
     }

@@ -16,11 +16,11 @@
 package com.github.liaochong.myexcel.core.style;
 
 import com.github.liaochong.myexcel.utils.ColorUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.slf4j.Logger;
 
 import java.awt.*;
 import java.util.Map;
@@ -29,10 +29,10 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public final class BackgroundStyle {
 
     public static final String BACKGROUND_COLOR = "background-color";
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BackgroundStyle.class);
 
     public static void setBackgroundColor(CellStyle style, Map<String, String> tdStyle, CustomColor customColor) {
         if (tdStyle == null) {

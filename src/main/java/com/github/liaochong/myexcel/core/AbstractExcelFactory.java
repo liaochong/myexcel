@@ -31,7 +31,6 @@ import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
-import lombok.NonNull;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
@@ -158,14 +157,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory widthStrategy(@NonNull WidthStrategy widthStrategy) {
+    public ExcelFactory widthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
         return this;
     }
 
     protected String getRealSheetName(String sheetName) {
         if (sheetName == null) {
-            sheetName = "sheet";
+            sheetName = "Sheet";
         }
         Sheet sheet = workbook.getSheet(sheetName);
         int sort = 1;
