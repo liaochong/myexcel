@@ -225,7 +225,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
-        this.createSheetIfAbsent(workbook);
+        this.createEmptySheetIfAbsent(workbook);
         return workbook;
     }
 
@@ -277,7 +277,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     this.setColWidth(tempColWidthMap, tempSheet, maxColIndex);
                     try {
-                        this.createSheetIfAbsent(tempWorkbook);
+                        this.createEmptySheetIfAbsent(tempWorkbook);
                         FileExportUtil.export(tempWorkbook, path.toFile());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -289,7 +289,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 futures.add(future);
             } else {
                 this.setColWidth(colWidthMap, sheet, maxColIndex);
-                this.createSheetIfAbsent(workbook);
+                this.createEmptySheetIfAbsent(workbook);
                 FileExportUtil.export(workbook, path.toFile());
                 if (Objects.nonNull(context.pathConsumer)) {
                     context.pathConsumer.accept(path);
@@ -301,7 +301,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private void createSheetIfAbsent(Workbook tempWorkbook) {
+    private void createEmptySheetIfAbsent(Workbook tempWorkbook) {
         if (tempWorkbook.getNumberOfSheets() == 0) {
             this.createSheet(sheetName);
         }
