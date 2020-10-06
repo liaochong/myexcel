@@ -106,6 +106,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         this.context = context;
     }
 
+    /**
+     * 消费者是否完结
+     */
+    private volatile boolean consumeFinished = false;
+
     public void start(Table table, Workbook workbook) {
         log.info("Start build excel");
         if (workbook != null) {
@@ -152,11 +157,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         try {
             receiveThread = Thread.currentThread();
             Tr tr = this.getTrFromQueue();
-            if (sheet == null) {
-                synchronized (this) {
-                    this.sheet = this.createSheet(sheetName);
-                }
-            }
+            this.sheet = this.createSheet(sheetName);
             if (maxColIndex == 0) {
                 int tdSize = tr.getTdList().size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
@@ -188,6 +189,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 });
                 tr = this.getTrFromQueue();
             }
+            consumeFinished = true;
             log.info("Total size:{}", totalSize);
         } catch (Exception e) {
             exception = true;
@@ -227,7 +229,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         waiting();
         this.setColWidth(colWidthMap, sheet, maxColIndex);
         log.info("Build Excel success,takes {} ms", System.currentTimeMillis() - startTime);
-        this.createEmptySheetIfAbsent(workbook);
         return workbook;
     }
 
@@ -245,7 +246,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         this.stop = true;
         this.putTrToQueue(STOP_FLAG);
-        while (!context.trWaitQueue.isEmpty()) {
+        while (!consumeFinished) {
             // wait all tr received
             if (exception) {
                 throw new IllegalThreadStateException("An exception occurred while processing");
@@ -303,7 +304,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
     }
 
-    private synchronized void createEmptySheetIfAbsent(Workbook tempWorkbook) {
+    private void createEmptySheetIfAbsent(Workbook tempWorkbook) {
         if (tempWorkbook.getNumberOfSheets() == 0) {
             this.createSheet(sheetName);
         }
