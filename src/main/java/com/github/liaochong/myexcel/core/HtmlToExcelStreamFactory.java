@@ -22,6 +22,8 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.TdUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -117,13 +120,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             this.workbook = workbook;
         }
         startTime = System.currentTimeMillis();
-        if (this.workbook == null) {
-            workbookType(WorkbookType.SXLSX);
-        }
-        if (isHssf) {
-            maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
-        }
-        initCellStyle(this.workbook);
         if (table != null) {
             sheetName = this.getRealSheetName(table.getCaption());
         }
@@ -155,6 +151,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private void receive() {
         try {
+            if (this.workbook == null) {
+                workbookType(WorkbookType.SXLSX);
+            }
+            if (isHssf) {
+                maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
+            }
+            initCellStyle(this.workbook);
             receiveThread = Thread.currentThread();
             Tr tr = this.getTrFromQueue();
             this.sheet = this.createSheet(sheetName);
@@ -206,12 +209,20 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             return;
         }
         context.styleParser.toggle();
+        // 是否为自定义宽度
+        boolean isCustomWidth = !Objects.equals(tr.getColWidthMap(), Collections.emptyMap());
         for (int i = 0, size = tr.getTdList().size(); i < size; i++) {
             Td td = tr.getTdList().get(i);
             if (td.isTh()) {
                 td.setStyle(context.styleParser.getTitleStyle("title&" + td.getCol()));
             } else {
                 td.setStyle(context.styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
+            }
+            if (isCustomWidth) {
+                String width = td.getStyle().get("width");
+                if (StringUtil.isNotBlank(width)) {
+                    tr.getColWidthMap().put(i, TdUtil.getValue(width));
+                }
             }
         }
     }
