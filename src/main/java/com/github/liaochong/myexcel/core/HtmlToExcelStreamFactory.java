@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -208,6 +209,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             return;
         }
         context.styleParser.toggle();
+        // 是否为自定义宽度
+        boolean isCustomWidth = !Objects.equals(tr.getColWidthMap(), Collections.emptyMap());
         for (int i = 0, size = tr.getTdList().size(); i < size; i++) {
             Td td = tr.getTdList().get(i);
             if (td.isTh()) {
@@ -215,9 +218,11 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             } else {
                 td.setStyle(context.styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
             }
-            String width = td.getStyle().get("width");
-            if (StringUtil.isNotBlank(width)) {
-                tr.getColWidthMap().put(i, TdUtil.getValue(width));
+            if (isCustomWidth) {
+                String width = td.getStyle().get("width");
+                if (StringUtil.isNotBlank(width)) {
+                    tr.getColWidthMap().put(i, TdUtil.getValue(width));
+                }
             }
         }
     }
