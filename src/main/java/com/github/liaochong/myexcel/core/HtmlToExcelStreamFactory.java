@@ -22,6 +22,8 @@ import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.TdUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -117,13 +119,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             this.workbook = workbook;
         }
         startTime = System.currentTimeMillis();
-        if (this.workbook == null) {
-            workbookType(WorkbookType.SXLSX);
-        }
-        if (isHssf) {
-            maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
-        }
-        initCellStyle(this.workbook);
         if (table != null) {
             sheetName = this.getRealSheetName(table.getCaption());
         }
@@ -155,6 +150,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
     private void receive() {
         try {
+            if (this.workbook == null) {
+                workbookType(WorkbookType.SXLSX);
+            }
+            if (isHssf) {
+                maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
+            }
+            initCellStyle(this.workbook);
             receiveThread = Thread.currentThread();
             Tr tr = this.getTrFromQueue();
             this.sheet = this.createSheet(sheetName);
@@ -212,6 +214,10 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 td.setStyle(context.styleParser.getTitleStyle("title&" + td.getCol()));
             } else {
                 td.setStyle(context.styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
+            }
+            String width = td.getStyle().get("width");
+            if (StringUtil.isNotBlank(width)) {
+                tr.getColWidthMap().put(i, TdUtil.getValue(width));
             }
         }
     }
