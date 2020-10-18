@@ -221,7 +221,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             if (isCustomWidth) {
                 String width = td.getStyle().get("width");
                 if (StringUtil.isNotBlank(width)) {
-                    tr.getColWidthMap().putIfAbsent(i, TdUtil.getValue(width));
+                    tr.getColWidthMap().put(i, TdUtil.getValue(width));
                 }
             }
         }
