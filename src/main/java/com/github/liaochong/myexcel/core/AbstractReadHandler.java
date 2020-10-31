@@ -59,6 +59,10 @@ abstract class AbstractReadHandler<T> {
      * Row object currently being processed
      */
     private final Row currentRow = new Row(-1);
+    /**
+     * 上一列列号
+     */
+    private int prevColNum = -1;
 
     private Supplier<T> newInstance;
 
@@ -146,7 +150,13 @@ abstract class AbstractReadHandler<T> {
     @SuppressWarnings("unchecked")
     private void setFieldHandlerFunction(boolean isMapType) {
         if (isMapType) {
-            fieldHandler = (colNum, content) -> ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
+            fieldHandler = (colNum, content) -> {
+                for (int i = prevColNum + 1; i < colNum; i++) {
+                    ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), i), null);
+                }
+                ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
+                prevColNum = colNum;
+            };
         } else {
             fieldHandler = (colNum, content) -> {
                 Field field = fieldMap.get(colNum);
