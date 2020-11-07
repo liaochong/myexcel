@@ -63,6 +63,10 @@ abstract class AbstractReadHandler<T> {
      * 上一列列号
      */
     private int prevColNum = -1;
+    /**
+     * 上一行行号
+     */
+    private int prevRowNum = -1;
 
     private Supplier<T> newInstance;
 
@@ -151,11 +155,14 @@ abstract class AbstractReadHandler<T> {
     private void setFieldHandlerFunction(boolean isMapType) {
         if (isMapType) {
             fieldHandler = (colNum, content) -> {
+                int rowNum = currentRow.getRowNum();
+                if(prevRowNum<rowNum) prevColNum = -1;//换时对pervColNum重置
                 for (int i = prevColNum + 1; i < colNum; i++) {
                     ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), i), null);
                 }
                 ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
                 prevColNum = colNum;
+                prevRowNum = rowNum;
             };
         } else {
             fieldHandler = (colNum, content) -> {
