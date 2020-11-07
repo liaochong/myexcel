@@ -17,7 +17,11 @@ package com.github.liaochong.myexcel.core.style;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -51,7 +55,6 @@ public final class BorderStyle {
         if (tdStyle == null) {
             return;
         }
-        tdStyle = new HashMap<>(tdStyle);
         String borderStyle = tdStyle.get(BORDER_STYLE);
         if (borderStyle != null) {
             Matcher matcher = BORDER_PATTERN.matcher(borderStyle);
@@ -59,6 +62,7 @@ public final class BorderStyle {
             while (matcher.find()) {
                 styles.add(matcher.group());
             }
+            tdStyle = new HashMap<>(tdStyle);
             if (styles.size() == 1) {
                 tdStyle.put(BORDER_TOP_STYLE, styles.get(0));
                 tdStyle.put(BORDER_RIGHT_STYLE, styles.get(0));
