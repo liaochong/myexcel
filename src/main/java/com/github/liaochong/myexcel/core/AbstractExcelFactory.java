@@ -54,6 +54,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
@@ -353,8 +354,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             int pictureIdx = workbook.addPicture(bytes, format);
             Drawing drawing = sheet.createDrawingPatriarch();
             ClientAnchor anchor = createHelper.createClientAnchor();
+            anchor.setDx1(isHssf ? 2 : Units.EMU_PER_PIXEL);
+            anchor.setDy1(isHssf ? 2 : Units.EMU_PER_PIXEL);
             anchor.setCol1(td.getCol());
             anchor.setRow1(td.getRow());
+            anchor.setCol2(td.getColBound());
+            anchor.setRow2(td.getRowBound());
             Picture pict = drawing.createPicture(anchor, pictureIdx);
             pict.resize(1, 1);
         } catch (IOException e) {
