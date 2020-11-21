@@ -37,7 +37,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected HtmlToExcelFactory htmlToExcelFactory = new HtmlToExcelFactory();
 
-    AbstractExcelBuilder(Class<? extends TemplateHandler> templateHandlerClass) {
+    protected AbstractExcelBuilder(Class<? extends TemplateHandler> templateHandlerClass) {
         widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
         this.templateHandler = ReflectUtil.newInstance(templateHandlerClass);
     }
