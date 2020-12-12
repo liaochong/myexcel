@@ -305,6 +305,16 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
+    public DefaultStreamExcelBuilder<T> titleRowHeight(int titleRowHeight) {
+        this.configuration.setTitleRowHeight(titleRowHeight);
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> rowHeight(int rowHeight) {
+        this.configuration.setRowHeight(rowHeight);
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作
      *

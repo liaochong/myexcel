@@ -161,6 +161,16 @@ public class DefaultExcelBuilder<T> implements Closeable {
         return this;
     }
 
+    public DefaultExcelBuilder<T> titleRowHeight(int titleRowHeight) {
+        streamExcelBuilder.titleRowHeight(titleRowHeight);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> rowHeight(int rowHeight) {
+        streamExcelBuilder.rowHeight(rowHeight);
+        return this;
+    }
+
     public Workbook build(List<T> data) {
         try {
             streamExcelBuilder.start();
