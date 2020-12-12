@@ -254,6 +254,11 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisStr = null;
         }
 
+        if (record instanceof LastCellOfRowDummyRecord) {
+            LastCellOfRowDummyRecord lc = (LastCellOfRowDummyRecord) record;
+            thisRow = lc.getRow();
+        }
+
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
