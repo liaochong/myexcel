@@ -14,6 +14,8 @@
  */
 package com.github.liaochong.myexcel.core.watermark;
 
+import java.awt.*;
+
 /**
  * 水印
  *
@@ -21,10 +23,26 @@ package com.github.liaochong.myexcel.core.watermark;
  * @version 1.0
  */
 public class Watermark {
-
+    /**
+     * 水印文本
+     */
     private String text;
-
+    /**
+     * 水印颜色
+     */
     private String color = "#C5CBCF";
+    /**
+     * 字体
+     */
+    private Font font = new Font("microsoft-yahei", Font.PLAIN, 16);
+    /**
+     * 水印图片宽度
+     */
+    private int width = 300;
+    /**
+     * 水印图片高度
+     */
+    private int height = 100;
 
     public String getText() {
         return text;
@@ -40,5 +58,29 @@ public class Watermark {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public Font getFont() {
+        return font;
+    }
+
+    public void setFont(Font font) {
+        this.font = font;
     }
 }

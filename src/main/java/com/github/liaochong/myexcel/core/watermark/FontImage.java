@@ -26,21 +26,17 @@ import java.awt.image.BufferedImage;
 public class FontImage {
 
     public static BufferedImage createWatermarkImage(Watermark watermark) {
-        Font font = new Font("microsoft-yahei", Font.PLAIN, 20);
-        int width = 300;
-        int height = 100;
-
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(watermark.getWidth(), watermark.getHeight(), BufferedImage.TYPE_INT_RGB);
         // 背景透明 开始
         Graphics2D g = image.createGraphics();
-        image = g.getDeviceConfiguration().createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+        image = g.getDeviceConfiguration().createCompatibleImage(watermark.getWidth(), watermark.getHeight(), Transparency.TRANSLUCENT);
         g.dispose();
         // 背景透明 结束
         g = image.createGraphics();
         // 设定画笔颜色
         g.setColor(new Color(Integer.parseInt(watermark.getColor().substring(1), 16)));
         // 设置画笔字体
-        g.setFont(font);
+        g.setFont(watermark.getFont());
         // 设定倾斜度
         g.shear(0.1, -0.26);
         // 设置字体平滑
@@ -50,8 +46,8 @@ public class FontImage {
         String[] textArray = watermark.getText().split("\n");
         for (String s : textArray) {
             // 画出字符串
-            g.drawString(s, 0, y);
-            y = y + font.getSize();
+            g.drawString(s, 25, y);
+            y = y + watermark.getFont().getSize();
         }
         // 释放画笔
         g.dispose();
