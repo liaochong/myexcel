@@ -31,7 +31,6 @@ import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
-import lombok.NonNull;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
@@ -55,6 +54,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
@@ -158,14 +158,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory widthStrategy(@NonNull WidthStrategy widthStrategy) {
+    public ExcelFactory widthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
         return this;
     }
 
     protected String getRealSheetName(String sheetName) {
         if (sheetName == null) {
-            sheetName = "sheet";
+            sheetName = "Sheet";
         }
         Sheet sheet = workbook.getSheet(sheetName);
         int sort = 1;
@@ -354,8 +354,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             int pictureIdx = workbook.addPicture(bytes, format);
             Drawing drawing = sheet.createDrawingPatriarch();
             ClientAnchor anchor = createHelper.createClientAnchor();
+            anchor.setDx1(isHssf ? 2 : Units.EMU_PER_PIXEL);
+            anchor.setDy1(isHssf ? 2 : Units.EMU_PER_PIXEL);
             anchor.setCol1(td.getCol());
             anchor.setRow1(td.getRow());
+            anchor.setCol2(td.getColBound());
+            anchor.setRow2(td.getRowBound());
             Picture pict = drawing.createPicture(anchor, pictureIdx);
             pict.resize(1, 1);
         } catch (IOException e) {

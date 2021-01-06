@@ -17,8 +17,6 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.Closeable;
@@ -32,7 +30,6 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class DefaultExcelBuilder<T> implements Closeable {
 
     private static final String STYLE_COMMON_TD = "border-top-style:thin;border-right-style:thin;border-bottom-style:thin;border-left-style:thin;";
@@ -55,13 +52,13 @@ public class DefaultExcelBuilder<T> implements Closeable {
      * @param <T>      T
      * @return DefaultExcelBuilder
      */
-    public static <T> DefaultExcelBuilder<T> of(@NonNull Class<T> dataType) {
+    public static <T> DefaultExcelBuilder<T> of(Class<T> dataType) {
         DefaultExcelBuilder<T> defaultExcelBuilder = new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.of(dataType));
         defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
         return defaultExcelBuilder;
     }
 
-    public static <T> DefaultExcelBuilder<T> of(@NonNull Class<T> dataType, @NonNull Workbook workbook) {
+    public static <T> DefaultExcelBuilder<T> of(Class<T> dataType, Workbook workbook) {
         return new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.of(dataType, workbook));
     }
 
@@ -88,22 +85,22 @@ public class DefaultExcelBuilder<T> implements Closeable {
         return new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.getInstance(workbook));
     }
 
-    public DefaultExcelBuilder<T> titles(@NonNull List<String> titles) {
+    public DefaultExcelBuilder<T> titles(List<String> titles) {
         streamExcelBuilder.titles(titles);
         return this;
     }
 
-    public DefaultExcelBuilder<T> sheetName(@NonNull String sheetName) {
+    public DefaultExcelBuilder<T> sheetName(String sheetName) {
         streamExcelBuilder.sheetName(sheetName);
         return this;
     }
 
-    public DefaultExcelBuilder<T> fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+    public DefaultExcelBuilder<T> fieldDisplayOrder(List<String> fieldDisplayOrder) {
         streamExcelBuilder.fieldDisplayOrder(fieldDisplayOrder);
         return this;
     }
 
-    public DefaultExcelBuilder<T> workbookType(@NonNull WorkbookType workbookType) {
+    public DefaultExcelBuilder<T> workbookType(WorkbookType workbookType) {
         streamExcelBuilder.workbookType(workbookType);
         return this;
     }
@@ -119,13 +116,18 @@ public class DefaultExcelBuilder<T> implements Closeable {
     }
 
     @Deprecated
-    public DefaultExcelBuilder<T> autoWidthStrategy(@NonNull AutoWidthStrategy autoWidthStrategy) {
+    public DefaultExcelBuilder<T> autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
         streamExcelBuilder.autoWidthStrategy(autoWidthStrategy);
         return this;
     }
 
     public DefaultExcelBuilder<T> fixedTitles() {
         streamExcelBuilder.fixedTitles();
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> freezePane(FreezePane freezePane) {
+        streamExcelBuilder.freezePane(freezePane);
         return this;
     }
 
@@ -156,6 +158,16 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     public DefaultExcelBuilder<T> style(String... styles) {
         streamExcelBuilder.style(styles);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> titleRowHeight(int titleRowHeight) {
+        streamExcelBuilder.titleRowHeight(titleRowHeight);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> rowHeight(int rowHeight) {
+        streamExcelBuilder.rowHeight(rowHeight);
         return this;
     }
 

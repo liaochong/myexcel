@@ -18,7 +18,7 @@ import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.io.BOMInputStream;
 import com.github.liaochong.myexcel.core.io.ByteOrderMark;
 import com.github.liaochong.myexcel.exception.StopReadException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,12 +31,12 @@ import java.util.regex.Pattern;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("[\"]{2}");
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(CsvReadHandler.class);
 
     private InputStream is;
 

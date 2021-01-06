@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.templatehandler.ThymeleafTemplateHandler;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * ThymeleafExcelBuilder
@@ -23,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
 
     public ThymeleafExcelBuilder() {

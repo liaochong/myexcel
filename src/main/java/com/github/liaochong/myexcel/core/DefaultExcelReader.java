@@ -15,15 +15,13 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFAnchor;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
@@ -40,6 +38,8 @@ import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFPicture;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -57,18 +57,20 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class DefaultExcelReader<T> {
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultExcelReader.class);
 
     private static final int DEFAULT_SHEET_INDEX = 0;
 
-    private Class<T> dataType;
+    private final Class<T> dataType;
 
     private int sheetIndex = DEFAULT_SHEET_INDEX;
 
@@ -99,6 +101,12 @@ public class DefaultExcelReader<T> {
         return v.trim();
     };
 
+    /**
+     * sheet前置处理函数
+     */
+    private Consumer<Sheet> startSheetConsumer = sheet -> {
+    };
+
     private DefaultExcelReader(Class<T> dataType) {
         this.dataType = dataType;
         // 全局配置获取
@@ -118,7 +126,7 @@ public class DefaultExcelReader<T> {
         }
     }
 
-    public static <T> DefaultExcelReader<T> of(@NonNull Class<T> clazz) {
+    public static <T> DefaultExcelReader<T> of(Class<T> clazz) {
         return new DefaultExcelReader<>(clazz);
     }
 
@@ -136,12 +144,12 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
-    public DefaultExcelReader<T> rowFilter(@NonNull Predicate<Row> rowFilter) {
+    public DefaultExcelReader<T> rowFilter(Predicate<Row> rowFilter) {
         this.rowFilter = rowFilter;
         return this;
     }
 
-    public DefaultExcelReader<T> beanFilter(@NonNull Predicate<T> beanFilter) {
+    public DefaultExcelReader<T> beanFilter(Predicate<T> beanFilter) {
         this.beanFilter = beanFilter;
         return this;
     }
@@ -156,137 +164,118 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
-    public List<T> read(@NonNull InputStream fileInputStream) throws Exception {
+    public DefaultExcelReader<T> startSheet(Consumer<Sheet> startSheetConsumer) {
+        this.startSheetConsumer = startSheetConsumer;
+        return this;
+    }
+
+    public List<T> read(InputStream fileInputStream) {
         return this.read(fileInputStream, null);
     }
 
-    public List<T> read(@NonNull InputStream fileInputStream, String password) throws Exception {
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        if (fieldMap.isEmpty()) {
-            return Collections.emptyList();
-        }
-        try {
-            Sheet sheet = getSheetOfInputStream(fileInputStream, password);
-            return getDataFromFile(sheet, fieldMap);
-        } finally {
-            clearWorkbook();
-        }
+    public List<T> read(InputStream fileInputStream, String password) {
+        return this.doRead(() -> getSheetOfInputStream(fileInputStream, password));
     }
 
-    public List<T> read(@NonNull File file) throws Exception {
+    public List<T> read(File file) {
         return this.read(file, null);
     }
 
-    public List<T> read(@NonNull File file, String password) throws Exception {
-        checkFileSuffix(file);
+    public List<T> read(File file, String password) {
+        return this.doRead(() -> getSheetOfFile(file, password));
+    }
+
+    private List<T> doRead(Supplier<Sheet> sheetSupplier) {
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return Collections.emptyList();
         }
         try {
-            Sheet sheet = getSheetOfFile(file, password);
+            Sheet sheet = sheetSupplier.get();
+            this.startSheetConsumer.accept(sheet);
             return getDataFromFile(sheet, fieldMap);
         } finally {
             clearWorkbook();
         }
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, Consumer<T> consumer) throws Exception {
+    public void readThen(InputStream fileInputStream, Consumer<T> consumer) {
         readThen(fileInputStream, null, consumer);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, String password, Consumer<T> consumer) throws Exception {
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        if (fieldMap.isEmpty()) {
-            return;
-        }
-        try {
-            Sheet sheet = getSheetOfInputStream(fileInputStream, password);
-            readThenConsume(sheet, fieldMap, consumer, null);
-        } finally {
-            clearWorkbook();
-        }
+    public void readThen(InputStream fileInputStream, String password, Consumer<T> consumer) {
+        this.doReadThen(() -> getSheetOfInputStream(fileInputStream, password), consumer, null);
     }
 
-    public void readThen(@NonNull File file, Consumer<T> consumer) throws Exception {
+    public void readThen(File file, Consumer<T> consumer) {
         readThen(file, null, consumer);
     }
 
-    public void readThen(@NonNull File file, String password, Consumer<T> consumer) throws Exception {
-        checkFileSuffix(file);
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        if (fieldMap.isEmpty()) {
-            return;
-        }
-        try {
-            Sheet sheet = getSheetOfFile(file, password);
-            readThenConsume(sheet, fieldMap, consumer, null);
-        } finally {
-            clearWorkbook();
-        }
+    public void readThen(File file, String password, Consumer<T> consumer) {
+        this.doReadThen(() -> getSheetOfFile(file, password), consumer, null);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, Function<T, Boolean> function) throws Exception {
+    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
         readThen(fileInputStream, null, function);
     }
 
-    public void readThen(@NonNull InputStream fileInputStream, String password, Function<T, Boolean> function) throws Exception {
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        if (fieldMap.isEmpty()) {
-            return;
-        }
-        try {
-            Sheet sheet = getSheetOfInputStream(fileInputStream, password);
-            readThenConsume(sheet, fieldMap, null, function);
-        } finally {
-            clearWorkbook();
-        }
+    public void readThen(InputStream fileInputStream, String password, Function<T, Boolean> function) {
+        this.doReadThen(() -> getSheetOfInputStream(fileInputStream, password), null, function);
     }
 
-    public void readThen(@NonNull File file, Function<T, Boolean> function) throws Exception {
+    public void readThen(File file, Function<T, Boolean> function) {
         readThen(file, null, function);
     }
 
-    public void readThen(@NonNull File file, String password, Function<T, Boolean> function) throws Exception {
-        checkFileSuffix(file);
+    public void readThen(File file, String password, Function<T, Boolean> function) {
+        this.doReadThen(() -> getSheetOfFile(file, password), null, function);
+    }
+
+    private void doReadThen(Supplier<Sheet> sheetSupplier, Consumer<T> consumer, Function<T, Boolean> function) {
         Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         if (fieldMap.isEmpty()) {
             return;
         }
         try {
-            Sheet sheet = getSheetOfFile(file, password);
-            readThenConsume(sheet, fieldMap, null, function);
+            Sheet sheet = sheetSupplier.get();
+            readThenConsume(sheet, fieldMap, consumer, function);
         } finally {
             clearWorkbook();
         }
     }
 
-    private void checkFileSuffix(@NonNull File file) {
-        if (!file.getName().endsWith(Constants.XLSX) && !file.getName().endsWith(Constants.XLS)) {
-            throw new IllegalArgumentException("Support only. xls and. xlsx suffix files");
-        }
-    }
-
-    private void clearWorkbook() throws IOException {
+    private void clearWorkbook() {
         if (Objects.nonNull(wb)) {
-            wb.close();
+            try {
+                wb.close();
+            } catch (IOException e) {
+                throw new ExcelReadException("Close workbook failure", e);
+            }
         }
     }
 
-    private Sheet getSheetOfInputStream(@NonNull InputStream fileInputStream, String password) throws IOException {
-        if (StringUtil.isBlank(password)) {
-            wb = WorkbookFactory.create(fileInputStream);
-        } else {
-            wb = WorkbookFactory.create(fileInputStream, password);
+    private Sheet getSheetOfInputStream(InputStream fileInputStream, String password) {
+        try {
+            if (StringUtil.isBlank(password)) {
+                wb = WorkbookFactory.create(fileInputStream);
+            } else {
+                wb = WorkbookFactory.create(fileInputStream, password);
+            }
+        } catch (IOException | EncryptedDocumentException e) {
+            throw new ExcelReadException("Get sheet of excel failure", e);
         }
         return getSheet();
     }
 
-    private Sheet getSheetOfFile(@NonNull File file, String password) throws IOException {
-        if (StringUtil.isBlank(password)) {
-            wb = WorkbookFactory.create(file);
-        } else {
-            wb = WorkbookFactory.create(file, password);
+    private Sheet getSheetOfFile(File file, String password) {
+        try {
+            if (StringUtil.isBlank(password)) {
+                wb = WorkbookFactory.create(file);
+            } else {
+                wb = WorkbookFactory.create(file, password);
+            }
+        } catch (IOException | EncryptedDocumentException e) {
+            throw new ExcelReadException("Get sheet of excel failure", e);
         }
         return getSheet();
     }
@@ -345,6 +334,7 @@ public class DefaultExcelReader<T> {
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
         log.info("FirstRowNum:{},LastRowNum:{}", firstRowNum, lastRowNum);
+        this.startSheetConsumer.accept(sheet);
         if (lastRowNum < 0) {
             log.info("Reading excel takes {} milliseconds", System.currentTimeMillis() - startTime);
             return;

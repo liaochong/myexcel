@@ -20,7 +20,6 @@ import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.CsvBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import lombok.NonNull;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -70,12 +69,12 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
         return this;
     }
 
-    public CsvBuilder<T> fieldDisplayOrder(@NonNull List<String> fieldDisplayOrder) {
+    public CsvBuilder<T> fieldDisplayOrder(List<String> fieldDisplayOrder) {
         this.fieldDisplayOrder = fieldDisplayOrder;
         return this;
     }
 
-    public CsvBuilder<T> titles(@NonNull List<String> titles) {
+    public CsvBuilder<T> titles(List<String> titles) {
         this.titles = titles;
         return this;
     }

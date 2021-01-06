@@ -25,9 +25,9 @@ import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -47,20 +48,12 @@ import java.util.stream.Collectors;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder implements SimpleStreamExcelBuilder<T> {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(DefaultStreamExcelBuilder.class);
     /**
      * 设置需要渲染的数据的类类型
      */
     private Class<T> dataType;
-    /**
-     * 是否固定标题
-     */
-    private boolean fixedTitles;
-    /**
-     * 线程池
-     */
-    private ExecutorService executorService;
     /**
      * 流工厂
      */
@@ -74,14 +67,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private Path excel;
     /**
-     * 文件分割,excel容量
-     */
-    private int capacity;
-    /**
-     * path消费者
-     */
-    private Consumer<Path> pathConsumer;
-    /**
      * 任务取消
      */
     private volatile boolean cancel;
@@ -90,20 +75,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      */
     private Class<?>[] groups;
     /**
-     * 等待队列
-     */
-    private int waitQueueSize = Runtime.getRuntime().availableProcessors() * 2;
-    /**
      * 模板处理器
      */
     private TemplateHandler templateHandler;
 
     private final List<CompletableFuture<Void>> asyncAppendFutures = new LinkedList<>();
-    /**
-     * sheet前置处理函数
-     */
-    private Consumer<Sheet> startSheetConsumer = sheet -> {
-    };
+
+    private final HtmlToExcelStreamFactory.HtmlToExcelStreamFactoryContext context = new HtmlToExcelStreamFactory.HtmlToExcelStreamFactoryContext();
 
     private DefaultStreamExcelBuilder(Class<T> dataType) {
         this(dataType, (Workbook) null);
@@ -240,7 +218,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> fixedTitles() {
-        this.fixedTitles = true;
+        this.context.fixedTitles = true;
         return this;
     }
 
@@ -265,7 +243,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     @Override
     public DefaultStreamExcelBuilder<T> threadPool(ExecutorService executorService) {
-        this.executorService = executorService;
+        this.context.executorService = executorService;
         return this;
     }
 
@@ -280,13 +258,13 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         if (capacity < 1) {
             throw new IllegalArgumentException("Capacity must be greater than 0");
         }
-        this.capacity = capacity;
+        this.context.capacity = capacity;
         return this;
     }
 
     @Override
     public DefaultStreamExcelBuilder<T> pathConsumer(Consumer<Path> pathConsumer) {
-        this.pathConsumer = pathConsumer;
+        this.context.pathConsumer = pathConsumer;
         return this;
     }
 
@@ -297,7 +275,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> waitQueueSize(int waitQueueSize) {
-        this.waitQueueSize = waitQueueSize;
+        this.context.trWaitQueue = new LinkedBlockingQueue<>(waitQueueSize);
         return this;
     }
 
@@ -318,7 +296,22 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     public DefaultStreamExcelBuilder<T> startSheet(Consumer<Sheet> startSheetConsumer) {
-        this.startSheetConsumer = startSheetConsumer;
+        this.context.startSheetConsumer = startSheetConsumer;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> freezePane(FreezePane freezePane) {
+        this.context.freezePane = freezePane;
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> titleRowHeight(int titleRowHeight) {
+        this.configuration.setTitleRowHeight(titleRowHeight);
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> rowHeight(int rowHeight) {
+        this.configuration.setRowHeight(rowHeight);
         return this;
     }
 
@@ -335,7 +328,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             filteredFields = getFilteredFields(classFieldContainer, groups);
         }
-        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(waitQueueSize, executorService, pathConsumer, capacity, fixedTitles, styleParser, startSheetConsumer);
+        context.styleParser = styleParser;
+        htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(context);
         htmlToExcelStreamFactory.widthStrategy(configuration.getWidthStrategy());
         if (workbook == null) {
             htmlToExcelStreamFactory.workbookType(configuration.getWorkbookType());
@@ -405,14 +399,14 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public void asyncAppend(ListSupplier<T> supplier) {
         CompletableFuture<Void> future;
-        if (executorService == null) {
+        if (this.context.executorService == null) {
             future = CompletableFuture.runAsync(() -> {
                 this.append(supplier.getAsList());
             });
         } else {
             future = CompletableFuture.runAsync(() -> {
                 this.append(supplier.getAsList());
-            }, executorService);
+            }, this.context.executorService);
         }
         synchronized (this) {
             asyncAppendFutures.add(future);
@@ -421,14 +415,14 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public void asyncAppend(Supplier<T> supplier) {
         CompletableFuture<Void> future;
-        if (executorService == null) {
+        if (this.context.executorService == null) {
             future = CompletableFuture.runAsync(() -> {
                 this.append(supplier.get());
             });
         } else {
             future = CompletableFuture.runAsync(() -> {
                 this.append(supplier.get());
-            }, executorService);
+            }, this.context.executorService);
         }
         synchronized (this) {
             asyncAppendFutures.add(future);

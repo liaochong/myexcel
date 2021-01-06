@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
@@ -39,6 +38,7 @@ import org.apache.poi.hssf.record.SSTRecord;
 import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,9 +54,9 @@ import java.util.Set;
  * @author liaochong
  * @version 1.0
  */
-@Slf4j
 class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
 
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(HSSFSaxReadHandler.class);
     private Set<Integer> sheetIndexs;
 
     private String sheetName;
@@ -252,6 +252,11 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             thisRow = mc.getRow();
             thisColumn = mc.getColumn();
             thisStr = null;
+        }
+
+        if (record instanceof LastCellOfRowDummyRecord) {
+            LastCellOfRowDummyRecord lc = (LastCellOfRowDummyRecord) record;
+            thisRow = lc.getRow();
         }
 
         // Handle new row
