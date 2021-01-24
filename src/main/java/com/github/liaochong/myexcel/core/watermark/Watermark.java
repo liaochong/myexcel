@@ -38,11 +38,11 @@ public class Watermark {
     /**
      * 水印图片宽度
      */
-    private int width = 300;
+    private int width = 200;
     /**
      * 水印图片高度
      */
-    private int height = 100;
+    private int height = 180;
 
     public String getText() {
         return text;

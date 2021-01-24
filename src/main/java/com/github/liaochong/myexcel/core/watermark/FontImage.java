@@ -15,6 +15,8 @@
 package com.github.liaochong.myexcel.core.watermark;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 /**
@@ -35,20 +37,24 @@ public class FontImage {
         g = image.createGraphics();
         // 设定画笔颜色
         g.setColor(new Color(Integer.parseInt(watermark.getColor().substring(1), 16)));
+        g.setStroke(new BasicStroke(1));
         // 设置画笔字体
         g.setFont(watermark.getFont());
-        // 设定倾斜度
-        g.shear(0.1, -0.26);
         // 设置字体平滑
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // 设定倾斜度
+        g.rotate(-0.5, (double) image.getWidth() / 2, (double) image.getHeight() / 2);
 
-        int y = 50;
-        String[] textArray = watermark.getText().split("\n");
-        for (String s : textArray) {
-            // 画出字符串
-            g.drawString(s, 25, y);
-            y = y + watermark.getFont().getSize();
-        }
+        FontRenderContext context = g.getFontRenderContext();
+        Rectangle2D bounds = watermark.getFont().getStringBounds(watermark.getText(), context);
+
+        double x = (watermark.getWidth() - bounds.getWidth()) / 2;
+        double y = (watermark.getHeight() - bounds.getHeight()) / 2;
+        double ascent = -bounds.getY();
+        double baseY = y + ascent;
+
+        g.drawString(watermark.getText(), (int) x, (int) baseY);
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
         // 释放画笔
         g.dispose();
         return image;
