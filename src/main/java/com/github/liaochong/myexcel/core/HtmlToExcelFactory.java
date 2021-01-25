@@ -20,6 +20,7 @@ import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -122,7 +123,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     @Override
     public Workbook build() {
         try {
-            ParseConfig parseConfig = new ParseConfig(widthStrategy);
+            ParseConfig parseConfig = new ParseConfig(widthStrategy,sheetStrategy);
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
             htmlTableParser = null;
             return this.build(tables);
@@ -164,6 +165,20 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         }
         this.initCellStyle(workbook);
         // 2、处理解析表格
+        if (SheetStrategy.isMultiSheet(sheetStrategy)){
+            buildTablesWithMultiSheet(tables);
+        }else {
+            buildTablesWithOneSheet(tables);
+        }
+        log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
+        return workbook;
+    }
+
+    /**
+     *  MultiSheet 策略
+     * @param tables
+     */
+    private void buildTablesWithMultiSheet(List<Table> tables){
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
             String sheetName = this.getRealSheetName(table.getCaption());
@@ -181,10 +196,31 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             // 移除table
             tables.set(i, null);
         }
-        log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
-        return workbook;
     }
 
+    /**
+     * oneSheet 策略
+     * @param tables tables
+     */
+    private void buildTablesWithOneSheet(List<Table> tables) {
+        String sheetName = this.getRealSheetName(tables.get(0).getCaption());
+        for (int i = 0; i < tables.size(); i++) {
+            Table table =  tables.get(i);
+            Sheet sheet = workbook.getSheet(sheetName);
+            if (sheet == null) {
+                sheet = workbook.createSheet(sheetName);
+            }
+            boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
+            if (!hasTd) {
+                continue;
+            }
+            // 设置单元格样式
+            this.setTdOfTable(table, sheet);
+            this.freezePane(i, sheet);
+            // 移除table
+            tables.set(i, null);
+        }
+    }
     /**
      * 设置所有单元格，自适应列宽，单元格最大支持字符长度255
      */
@@ -197,8 +233,10 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
                     .orElse(0);
         }
         Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
+        final Integer sheetLastRowIndex = sheet.getLastRowNum();
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             Tr tr = table.getTrList().get(i);
+            this.updateTrIndex(tr,sheetLastRowIndex);
             this.createRow(tr, sheet);
             tr.setTdList(null);
         }
@@ -206,4 +244,18 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
     }
 
+    /**
+     * 为 oneSheet 策略更新 tr,td 的 rowIndex
+     * @param tr 当前tr
+     * @param sheetLastRowIndex sheet 最后行下标
+     */
+    private void updateTrIndex(Tr tr,Integer sheetLastRowIndex){
+        if (SheetStrategy.isOneSheet(sheetStrategy)) {
+            if (sheetLastRowIndex!=0){
+                sheetLastRowIndex+=1;
+            }
+            tr.setIndex(tr.getIndex()+sheetLastRowIndex);
+            tr.getTdList().forEach(td->td.setRow(tr.getIndex()));
+        }
+    }
 }

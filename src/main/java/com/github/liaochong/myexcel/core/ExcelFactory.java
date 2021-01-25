@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -54,6 +55,13 @@ public interface ExcelFactory {
      * @return ExcelFactory
      */
     ExcelFactory widthStrategy(WidthStrategy widthStrategy);
+
+    /**
+     * 生成 sheet 策略
+     * @param sheetStrategy 策略
+     * @return ExcelFactory
+     */
+    ExcelFactory sheetStrategy(SheetStrategy sheetStrategy);
 
     /**
      * 构建

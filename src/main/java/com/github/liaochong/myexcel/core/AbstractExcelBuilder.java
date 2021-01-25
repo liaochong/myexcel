@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.TemplateHandler;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
@@ -39,6 +40,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected AbstractExcelBuilder(Class<? extends TemplateHandler> templateHandlerClass) {
         widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
+        sheetStrategy(SheetStrategy.MultiSheet);
         this.templateHandler = ReflectUtil.newInstance(templateHandlerClass);
     }
 
@@ -64,6 +66,11 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     @Override
     public AbstractExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
         htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
+        return this;
+    }
+
+    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy){
+        htmlToExcelFactory.sheetStrategy(sheetStrategy);
         return this;
     }
 
