@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -61,6 +62,13 @@ public interface ExcelBuilder extends Closeable {
      * @return ExcelBuilder
      */
     ExcelBuilder widthStrategy(WidthStrategy widthStrategy);
+
+    /**
+     * Sheet 策略
+     * @param sheetStrategy 策略
+     * @return ExcelBuilder
+     */
+    ExcelBuilder sheetStrategy(SheetStrategy sheetStrategy);
 
     /**
      * 选择固定区域

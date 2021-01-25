@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 
 /**
@@ -26,11 +27,24 @@ public class ParseConfig {
 
     private WidthStrategy widthStrategy;
 
+    private SheetStrategy sheetStrategy;
+
     private boolean isComputeAutoWidth;
+
+    private boolean isMultiSheet;
 
     public ParseConfig(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
         this.isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
+        this.sheetStrategy = SheetStrategy.MultiSheet;
+        this.isMultiSheet = true;
+    }
+
+    public ParseConfig(WidthStrategy widthStrategy, SheetStrategy sheetStrategy) {
+        this.widthStrategy = widthStrategy;
+        this.sheetStrategy = sheetStrategy;
+        this.isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
+        this.isMultiSheet = SheetStrategy.isMultiSheet(sheetStrategy);
     }
 
     public WidthStrategy getWidthStrategy() {
@@ -47,5 +61,16 @@ public class ParseConfig {
 
     public void setComputeAutoWidth(boolean isComputeAutoWidth) {
         this.isComputeAutoWidth = isComputeAutoWidth;
+    }
+    public SheetStrategy getSheetStrategy(){
+        return this.sheetStrategy;
+    }
+
+    public void setSheetStrategy(SheetStrategy sheetStrategy) {
+        this.sheetStrategy = sheetStrategy;
+    }
+
+    public boolean isMultiSheet(){
+        return  this.isMultiSheet;
     }
 }
