@@ -25,19 +25,21 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * 聚合列转换器
+ *
  * @author liaochong
  * @version 1.0
  */
 public class MultiWriteConverter implements WriteConverter {
 
-    private static List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER;
+    public final List<Pair<Class, WriteConverter>> writeConverterContainer;
+
+    public MultiWriteConverter(List<Pair<Class, WriteConverter>> writeConverterContainer) {
+        this.writeConverterContainer = new LinkedList<>(writeConverterContainer);
+    }
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        if (WRITE_CONVERTER_CONTAINER == null) {
-            WRITE_CONVERTER_CONTAINER = new LinkedList<>(WriteConverterContext.WRITE_CONVERTER_CONTAINER);
-            WRITE_CONVERTER_CONTAINER.removeIf(converter -> converter.getValue() instanceof MultiWriteConverter);
-        }
         MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
         List<Object> result = new LinkedList<>();
         for (Object o : ((List) fieldVal)) {
@@ -45,7 +47,7 @@ public class MultiWriteConverter implements WriteConverter {
                 result.add(null);
                 continue;
             }
-            WriteConverter writeConverter = WriteConverterContext.getWriteConverter(field, multiColumn.classType(), o, convertContext, WRITE_CONVERTER_CONTAINER);
+            WriteConverter writeConverter = WriteConverterContext.getWriteConverter(field, multiColumn.classType(), o, convertContext, writeConverterContainer);
             Pair<Class, Object> convertResult = writeConverter.convert(field, multiColumn.classType(), o, convertContext);
             result.add(convertResult.getValue());
         }
