@@ -81,4 +81,14 @@ public class Pair<K, V> {
     protected boolean canEqual(Object other) {
         return other instanceof Pair;
     }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        Object $key = this.getKey();
+        result = result * 59 + ($key == null ? 43 : $key.hashCode());
+        Object $value = this.getValue();
+        result = result * 59 + ($value == null ? 43 : $value.hashCode());
+        return result;
+    }
 }
