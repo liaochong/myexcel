@@ -388,7 +388,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
                 this.appendTr(content);
             }
         } else {
-            List<Pair<? extends Class, ?>> contents = getRenderContent(data, filteredFields);
+            List<Pair<? extends Class, ?>> contents = this.getOriginalRenderContent(data, filteredFields);
             this.appendTr(contents);
         }
     }

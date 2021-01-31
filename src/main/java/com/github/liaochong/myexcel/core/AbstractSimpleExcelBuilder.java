@@ -503,7 +503,46 @@ abstract class AbstractSimpleExcelBuilder {
      * @param <T>          泛型
      * @return 结果集
      */
-    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
+    protected <T> List<List<Pair<? extends Class, ?>>> getMultiRenderContent(T data, List<Field> sortedFields) {
+        List<Pair<? extends Class, ?>> convertResult = this.getOriginalRenderContent(data, sortedFields);
+
+        // 获取最大长度
+        int maxSize = convertResult.stream()
+                .filter(pair -> pair.getValue() instanceof List)
+                .map(pair -> ((List<?>) pair.getValue()).size())
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        List<List<Pair<? extends Class, ?>>> result = new LinkedList<>();
+        for (int i = 0; i < maxSize; i++) {
+            List<Pair<? extends Class, ?>> row = new LinkedList<>();
+            for (Pair<? extends Class, ?> pair : convertResult) {
+                if (!(pair.getValue() instanceof List)) {
+                    row.add(pair);
+                    continue;
+                }
+                List<?> list = (List<?>) pair.getValue();
+                if (list.size() > i) {
+                    Object value = list.get(i);
+                    row.add(value == null ? Pair.of(NullType.class, null) : Pair.of(pair.getKey(), value));
+                } else {
+                    row.add(Pair.of(NullType.class, null));
+                }
+            }
+            result.add(row);
+        }
+        return result;
+    }
+
+    /**
+     * 获取需要被渲染的内容
+     *
+     * @param data         数据集合
+     * @param sortedFields 排序字段
+     * @param <T>          泛型
+     * @return 结果集
+     */
+    protected <T> LinkedList<Pair<? extends Class, ?>> getOriginalRenderContent(T data, List<Field> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);
@@ -520,64 +559,6 @@ abstract class AbstractSimpleExcelBuilder {
                     return value;
                 })
                 .collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    /**
-     * 获取需要被渲染的内容
-     *
-     * @param data         数据集合
-     * @param sortedFields 排序字段
-     * @param <T>          泛型
-     * @return 结果集
-     */
-    protected <T> List<List<Pair<? extends Class, ?>>> getMultiRenderContent(T data, List<Field> sortedFields) {
-        List<Pair<? extends Class, ?>> convertResult = sortedFields.stream()
-                .map(field -> {
-                    Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);
-                    if (value.getValue() != null) {
-                        return value;
-                    }
-                    String defaultValue = defaultValueMap.get(field);
-                    if (defaultValue != null) {
-                        return Pair.of(String.class, defaultValue);
-                    }
-                    if (configuration.getDefaultValue() != null) {
-                        return Pair.of(String.class, configuration.getDefaultValue());
-                    }
-                    return value;
-                })
-                .collect(Collectors.toCollection(LinkedList::new));
-
-        // 获取最大长度
-        int maxSize = convertResult.stream()
-                .filter(pair -> pair.getValue() instanceof List)
-                .map(pair -> ((List<?>) pair.getValue()).size())
-                .max(Integer::compareTo)
-                .orElse(0);
-
-        List<List<Pair<? extends Class, ?>>> result = new LinkedList<>();
-        for (int i = 0; i < maxSize; i++) {
-            List<Pair<? extends Class, ?>> row = new LinkedList<>();
-            for (Pair<? extends Class, ?> pair : convertResult) {
-                if (pair.getValue() == null) {
-                    row.add(Pair.of(NullType.class, null));
-                    continue;
-                }
-                if (!(pair.getValue() instanceof List)) {
-                    row.add(pair);
-                    continue;
-                }
-                List<?> list = (List<?>) pair.getValue();
-                if (list.size() > i) {
-                    Object value = list.get(i);
-                    row.add(value == null ? Pair.of(NullType.class, null) : Pair.of(pair.getKey(), value));
-                } else {
-                    row.add(Pair.of(NullType.class, null));
-                }
-            }
-            result.add(row);
-        }
-        return result;
     }
 
     protected List<Pair<? extends Class, ?>> assemblingMapContents(Map<String, Object> data) {
