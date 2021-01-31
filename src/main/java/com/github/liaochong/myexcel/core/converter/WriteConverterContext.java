@@ -87,7 +87,7 @@ public class WriteConverterContext {
             return writeConverter;
         }
         Optional<WriteConverter> writeConverterOptional = writeConverterContainer.stream()
-                .filter(pair -> (pair.getKey() == convertContext.getConverterType() || pair.getKey() == AllConverter.class) && pair.getValue().support(field, field.getType(), result, convertContext))
+                .filter(pair -> (pair.getKey() == convertContext.getConverterType() || pair.getKey() == AllConverter.class) && pair.getValue().support(field, fieldType, result, convertContext))
                 .map(Pair::getValue)
                 .findFirst();
         writeConverter = writeConverterOptional.orElse(ORIGINAL_WRITE_CONVERTER);
