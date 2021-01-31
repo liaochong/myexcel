@@ -550,7 +550,6 @@ abstract class AbstractSimpleExcelBuilder {
 
         // 获取最大长度
         int maxSize = convertResult.stream()
-                .filter(Objects::nonNull)
                 .filter(pair -> pair.getValue() instanceof List)
                 .map(pair -> ((List<?>) pair.getValue()).size())
                 .max(Integer::compareTo)
