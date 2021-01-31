@@ -3,6 +3,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CustomStylePeople;
 import com.github.liaochong.myexcel.core.pojo.Formula;
+import com.github.liaochong.myexcel.core.pojo.MultiPeople;
 import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
 import com.github.liaochong.myexcel.core.pojo.Product;
 import com.github.liaochong.myexcel.core.pojo.WidthPeople;
@@ -253,6 +254,33 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
         }
+    }
+
+    @Test
+    void testMultiColumn() throws Exception {
+        try (DefaultStreamExcelBuilder<MultiPeople> excelBuilder = DefaultStreamExcelBuilder.of(MultiPeople.class)
+                .fixedTitles()
+                .freezePane(new FreezePane(2, 5))
+                .start()) {
+            multiData(excelBuilder);
+            Workbook workbook = excelBuilder.build();
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "multi_build.xlsx"));
+        }
+    }
+
+    private void multiData(DefaultStreamExcelBuilder<MultiPeople> excelBuilder) {
+        MultiPeople people = new MultiPeople();
+        people.setTastes(new LinkedList<>());
+        people.setDates(new LinkedList<>());
+        people.setName("姓名");
+        for (int i = 0; i < 5; i++) {
+            people.getTastes().add("兴趣" + i);
+        }
+        for (int i = 0; i < 10; i++) {
+            people.getDates().add(new Date());
+        }
+        excelBuilder.append(people);
+
     }
 
     private void data(DefaultStreamExcelBuilder<CommonPeople> excelBuilder, int size) {
