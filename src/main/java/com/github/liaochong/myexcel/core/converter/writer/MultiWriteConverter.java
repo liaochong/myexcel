@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.annotation.MultiColumn;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
@@ -51,7 +52,7 @@ public class MultiWriteConverter implements WriteConverter {
             Pair<Class, Object> convertResult = writeConverter.convert(field, multiColumn.classType(), o, convertContext);
             result.add(convertResult.getValue());
         }
-        return result.isEmpty() ? WriteConverterContext.NULL_PAIR : Pair.of(multiColumn.classType(), result);
+        return result.isEmpty() ? Constants.NULL_PAIR : Pair.of(multiColumn.classType(), result);
     }
 
     @Override

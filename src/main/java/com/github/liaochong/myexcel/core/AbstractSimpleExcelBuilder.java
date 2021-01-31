@@ -524,9 +524,9 @@ abstract class AbstractSimpleExcelBuilder {
                 List<?> list = (List<?>) pair.getValue();
                 if (list.size() > i) {
                     Object value = list.get(i);
-                    row.add(value == null ? Pair.of(NullType.class, null) : Pair.of(pair.getKey(), value));
+                    row.add(value == null ? Constants.NULL_PAIR : Pair.of(pair.getKey(), value));
                 } else {
-                    row.add(Pair.of(NullType.class, null));
+                    row.add(Constants.NULL_PAIR);
                 }
             }
             result.add(row);

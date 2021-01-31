@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core.converter;
 import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.BigDecimalWriteConverter;
@@ -31,7 +32,6 @@ import com.github.liaochong.myexcel.core.converter.writer.OriginalWriteConverter
 import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
-import javax.lang.model.type.NullType;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +43,6 @@ import java.util.Optional;
  * @version 1.0
  */
 public class WriteConverterContext {
-
-    public static final Pair<Class, Object> NULL_PAIR = Pair.of(NullType.class, null);
 
     public static final List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
@@ -75,7 +73,7 @@ public class WriteConverterContext {
     public static Pair<? extends Class, Object> convert(Field field, Object object, ConvertContext convertContext) {
         Object result = ReflectUtil.getFieldValue(object, field);
         if (result == null) {
-            return NULL_PAIR;
+            return Constants.NULL_PAIR;
         }
         WriteConverter writeConverter = getWriteConverter(field, field.getType(), result, convertContext, WRITE_CONVERTER_CONTAINER);
         return writeConverter.convert(field, field.getType(), result, convertContext);
