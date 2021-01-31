@@ -66,7 +66,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
 //                .hideColumns(0, 1)
 //                .globalStyle("background-color:red;", "title->background-color:yellow;")
                 .start()) {
-            data(excelBuilder, 5000);
+            data(excelBuilder, 5);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
         }
@@ -269,18 +269,19 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     }
 
     private void multiData(DefaultStreamExcelBuilder<MultiPeople> excelBuilder) {
-        MultiPeople people = new MultiPeople();
-        people.setTastes(new LinkedList<>());
-        people.setDates(new LinkedList<>());
-        people.setName("姓名");
-        for (int i = 0; i < 5; i++) {
-            people.getTastes().add("兴趣" + i);
+        for (int j = 0; j < 3; j++) {
+            MultiPeople people = new MultiPeople();
+            people.setTastes(new LinkedList<>());
+            people.setDates(new LinkedList<>());
+            people.setName("姓名" + j);
+            for (int i = 0; i < 5; i++) {
+                people.getTastes().add("兴趣" + i);
+            }
+            for (int i = 0; i < 10; i++) {
+                people.getDates().add(new Date());
+            }
+            excelBuilder.append(people);
         }
-        for (int i = 0; i < 10; i++) {
-            people.getDates().add(new Date());
-        }
-        excelBuilder.append(people);
-
     }
 
     private void data(DefaultStreamExcelBuilder<CommonPeople> excelBuilder, int size) {

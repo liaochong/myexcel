@@ -511,7 +511,7 @@ abstract class AbstractSimpleExcelBuilder {
                 .filter(pair -> pair.getValue() instanceof List)
                 .map(pair -> ((List<?>) pair.getValue()).size())
                 .max(Integer::compareTo)
-                .orElse(0);
+                .orElse(1);
 
         List<List<Pair<? extends Class, ?>>> result = new LinkedList<>();
         for (int i = 0; i < maxSize; i++) {

@@ -20,7 +20,6 @@ import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
 
-import javax.lang.model.type.NullType;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +49,7 @@ public class MultiWriteConverter implements WriteConverter {
             Pair<Class, Object> convertResult = writeConverter.convert(field, multiColumn.classType(), o, convertContext);
             result.add(convertResult.getValue());
         }
-        return result.isEmpty() ? Pair.of(NullType.class, null) : Pair.of(multiColumn.classType(), result);
+        return result.isEmpty() ? WriteConverterContext.NULL_PAIR : Pair.of(multiColumn.classType(), result);
     }
 
     @Override

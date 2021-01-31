@@ -44,7 +44,7 @@ import java.util.Optional;
  */
 public class WriteConverterContext {
 
-    private static final Pair<? extends Class, Object> NULL_PAIR = Pair.of(NullType.class, null);
+    public static final Pair<Class, Object> NULL_PAIR = Pair.of(NullType.class, null);
 
     public static final List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
