@@ -33,13 +33,13 @@ import java.lang.reflect.Field;
 public class ImageWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         return Pair.of(ImageFile.class, fieldVal);
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
-        if (field.getType() != File.class) {
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        if (fieldType != File.class) {
             return false;
         }
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);

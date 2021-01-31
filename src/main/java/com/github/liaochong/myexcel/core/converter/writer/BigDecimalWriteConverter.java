@@ -33,12 +33,12 @@ import java.text.DecimalFormat;
 public class BigDecimalWriteConverter implements WriteConverter {
 
     @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
-        return field.getType() == BigDecimal.class;
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        return fieldType == BigDecimal.class;
     }
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         if (!convertContext.isConvertCsv()) {
             return Pair.of(Double.class, ((BigDecimal) fieldVal).toPlainString());
         }

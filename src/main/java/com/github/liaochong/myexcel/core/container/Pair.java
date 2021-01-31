@@ -42,4 +42,43 @@ public class Pair<K, V> {
     public V getValue() {
         return this.value;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        } else if (!(o instanceof Pair)) {
+            return false;
+        } else {
+            Pair<?, ?> other = (Pair) o;
+            if (!other.canEqual(this)) {
+                return false;
+            } else {
+                Object this$key = this.getKey();
+                Object other$key = other.getKey();
+                if (this$key == null) {
+                    if (other$key != null) {
+                        return false;
+                    }
+                } else if (!this$key.equals(other$key)) {
+                    return false;
+                }
+
+                Object this$value = this.getValue();
+                Object other$value = other.getValue();
+                if (this$value == null) {
+                    if (other$value != null) {
+                        return false;
+                    }
+                } else if (!this$value.equals(other$value)) {
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+
+    protected boolean canEqual(Object other) {
+        return other instanceof Pair;
+    }
 }

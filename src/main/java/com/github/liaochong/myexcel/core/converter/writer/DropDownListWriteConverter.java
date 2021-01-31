@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
 import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
@@ -39,9 +40,9 @@ import java.util.stream.Stream;
 public class DropDownListWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         String content;
-        if (field.getType() == List.class) {
+        if (fieldType == List.class) {
             List<?> list = ((List<?>) fieldVal);
             content = list.stream().map(Object::toString).collect(Collectors.joining(","));
             // 确定数据类型
@@ -70,7 +71,7 @@ public class DropDownListWriteConverter implements WriteConverter {
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
-        return field.getType() == Array.class || field.getType() == List.class;
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        return (fieldType == Array.class || fieldType == List.class) && !field.isAnnotationPresent(MultiColumn.class);
     }
 }
