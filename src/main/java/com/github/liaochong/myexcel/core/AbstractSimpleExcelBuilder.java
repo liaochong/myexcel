@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
@@ -105,6 +106,11 @@ abstract class AbstractSimpleExcelBuilder {
 
     protected StyleParser styleParser = new StyleParser(customWidthMap);
 
+    /**
+     * 是否拥有聚合列
+     */
+    protected boolean hasMultiColumn = false;
+
 
     public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
         convertContext = new ConvertContext(isCsvBuild);
@@ -166,6 +172,7 @@ abstract class AbstractSimpleExcelBuilder {
             setGlobalFormat(i, field);
         }
         setTitles(titles);
+        hasMultiColumn = buildFields.stream().anyMatch(field -> field.isAnnotationPresent(MultiColumn.class));
         return buildFields;
     }
 
@@ -496,7 +503,45 @@ abstract class AbstractSimpleExcelBuilder {
      * @param <T>          泛型
      * @return 结果集
      */
-    protected <T> List<Pair<? extends Class, ?>> getRenderContent(T data, List<Field> sortedFields) {
+    protected <T> List<List<Pair<? extends Class, ?>>> getMultiRenderContent(T data, List<Field> sortedFields) {
+        List<Pair<? extends Class, ?>> convertResult = this.getOriginalRenderContent(data, sortedFields);
+
+        // 获取最大长度
+        int maxSize = convertResult.stream()
+                .filter(pair -> pair.getValue() instanceof List)
+                .map(pair -> ((List<?>) pair.getValue()).size())
+                .max(Integer::compareTo)
+                .orElse(1);
+
+        List<List<Pair<? extends Class, ?>>> result = new LinkedList<>();
+        for (int i = 0; i < maxSize; i++) {
+            List<Pair<? extends Class, ?>> row = new LinkedList<>();
+            for (Pair<? extends Class, ?> pair : convertResult) {
+                if (!(pair.getValue() instanceof List)) {
+                    row.add(pair);
+                    continue;
+                }
+                List<?> list = (List<?>) pair.getValue();
+                if (list.size() > i) {
+                    row.add((Pair<Class, Object>) list.get(i));
+                } else {
+                    row.add(Constants.NULL_PAIR);
+                }
+            }
+            result.add(row);
+        }
+        return result;
+    }
+
+    /**
+     * 获取需要被渲染的内容
+     *
+     * @param data         数据集合
+     * @param sortedFields 排序字段
+     * @param <T>          泛型
+     * @return 结果集
+     */
+    protected <T> LinkedList<Pair<? extends Class, ?>> getOriginalRenderContent(T data, List<Field> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);

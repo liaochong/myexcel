@@ -43,7 +43,12 @@
         <dependency>
             <groupId>com.github.liaochong</groupId>
             <artifactId>myexcel</artifactId>
-            <version>3.10.0</version>
+            <version>3.11.0.RC</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>ooxml-schemas</artifactId>
+            <version>1.4</version>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>
