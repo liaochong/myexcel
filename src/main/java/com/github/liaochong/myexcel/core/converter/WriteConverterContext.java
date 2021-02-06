@@ -44,7 +44,7 @@ import java.util.Optional;
  */
 public class WriteConverterContext {
 
-    public static final List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
+    private static final List<Pair<Class, WriteConverter>> WRITE_CONVERTER_CONTAINER = new ArrayList<>();
 
     private static final WeakCache<Pair<Field, Class<?>>, WriteConverter> EXCEL_CONVERTER_CACHE = new WeakCache<>();
 
