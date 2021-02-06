@@ -42,15 +42,15 @@ public class MultiWriteConverter implements WriteConverter {
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
-        List<Object> result = new LinkedList<>();
+        List<Pair<Class, Object>> result = new LinkedList<>();
         for (Object o : ((List) fieldVal)) {
             if (o == null) {
-                result.add(null);
+                result.add(Constants.NULL_PAIR);
                 continue;
             }
             WriteConverter writeConverter = WriteConverterContext.getWriteConverter(field, multiColumn.classType(), o, convertContext, writeConverterContainer);
             Pair<Class, Object> convertResult = writeConverter.convert(field, multiColumn.classType(), o, convertContext);
-            result.add(convertResult.getValue());
+            result.add(convertResult);
         }
         return result.isEmpty() ? Constants.NULL_PAIR : Pair.of(multiColumn.classType(), result);
     }

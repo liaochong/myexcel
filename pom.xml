@@ -45,7 +45,6 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>ooxml-schemas</artifactId>
             <version>1.4</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>

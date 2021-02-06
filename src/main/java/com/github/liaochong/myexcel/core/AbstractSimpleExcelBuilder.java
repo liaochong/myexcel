@@ -523,8 +523,7 @@ abstract class AbstractSimpleExcelBuilder {
                 }
                 List<?> list = (List<?>) pair.getValue();
                 if (list.size() > i) {
-                    Object value = list.get(i);
-                    row.add(value == null ? Constants.NULL_PAIR : Pair.of(pair.getKey(), value));
+                    row.add((Pair<Class, Object>) list.get(i));
                 } else {
                     row.add(Constants.NULL_PAIR);
                 }
