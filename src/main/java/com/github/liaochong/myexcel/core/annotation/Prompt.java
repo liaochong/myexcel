@@ -20,7 +20,7 @@ public @interface Prompt {
      *
      * @return 提示语
      */
-    String title() default "title";
+    String title() default "";
 
     /**
      * 提示
