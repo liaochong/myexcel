@@ -232,6 +232,7 @@ abstract class AbstractSimpleExcelBuilder {
                 Td td = new Td(j, i);
                 td.setTh(true);
                 td.setContent(multiTitles[j]);
+                this.setPrompt(td, i);
                 tds.add(td);
             }
             tdLists.add(tds);
@@ -329,6 +330,7 @@ abstract class AbstractSimpleExcelBuilder {
             td.setFormat(formats.get(index));
             this.setFormula(index, td);
             this.setTdWidth(tr.getColWidthMap(), td);
+            this.setPrompt(td, index);
             return td;
         }).collect(Collectors.toList());
         customWidthMap.forEach(tr.getColWidthMap()::put);
@@ -359,6 +361,14 @@ abstract class AbstractSimpleExcelBuilder {
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.isFormula()) {
             td.setFormula(true);
+        }
+    }
+
+    protected void setPrompt(Td td, int index) {
+        Field field = filteredFields.get(index);
+        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
+        if (excelColumnMapping != null && excelColumnMapping.getPromptContainer() != null) {
+            td.setPromptContainer(excelColumnMapping.getPromptContainer());
         }
     }
 

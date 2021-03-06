@@ -301,6 +301,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     cell.setCellValue(content);
                     break;
             }
+            this.setPrompt(td, sheet);
         }
 
         // 设置单元格样式
@@ -314,6 +315,20 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private void setPrompt(Td td, Sheet sheet) {
+        if (td.getPromptContainer() == null) {
+            return;
+        }
+        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+        DataValidationConstraint constraint = dvHelper.createCustomConstraint("*");
+        CellRangeAddressList addressList = new CellRangeAddressList(
+                td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
+        DataValidation dataValidation = dvHelper.createValidation(constraint, addressList);
+        dataValidation.createPromptBox(td.getPromptContainer().getTitle(), td.getPromptContainer().getText());
+        dataValidation.setShowPromptBox(true);
+        sheet.addValidationData(dataValidation);
     }
 
     private void setImage(Td td, Sheet sheet) {
