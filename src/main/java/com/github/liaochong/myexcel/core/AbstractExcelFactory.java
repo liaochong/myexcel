@@ -321,6 +321,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getPromptContainer() == null) {
             return;
         }
+        if (ContentTypeEnum.isDropdownList(td.getTdContentType())) {
+            return;
+        }
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
         DataValidationConstraint constraint = dvHelper.createCustomConstraint("*");
         CellRangeAddressList addressList = new CellRangeAddressList(
@@ -408,6 +411,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
         DataValidation validation = dvHelper.createValidation(
                 dvConstraint, addressList);
+        if (td.getPromptContainer() != null) {
+            validation.createPromptBox(td.getPromptContainer().getTitle(), td.getPromptContainer().getText());
+            validation.setShowPromptBox(true);
+        }
         if (validation instanceof XSSFDataValidation) {
             validation.setSuppressDropDownArrow(true);
             validation.setShowErrorBox(true);
