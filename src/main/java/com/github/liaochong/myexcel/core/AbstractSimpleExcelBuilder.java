@@ -365,6 +365,9 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     protected void setPrompt(Td td, int index) {
+        if (filteredFields == null || filteredFields.isEmpty()) {
+            return;
+        }
         Field field = filteredFields.get(index);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.getPromptContainer() != null) {
