@@ -58,4 +58,8 @@ public enum ContentTypeEnum {
         return LINK_URL == contentTypeEnum || LINK_EMAIL == contentTypeEnum;
     }
 
+    public static boolean isDropdownList(ContentTypeEnum contentTypeEnum) {
+        return DROP_DOWN_LIST == contentTypeEnum || NUMBER_DROP_DOWN_LIST == contentTypeEnum || BOOLEAN_DROP_DOWN_LIST == contentTypeEnum;
+    }
+
 }

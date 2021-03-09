@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
+import com.github.liaochong.myexcel.core.PromptContainer;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
 import java.io.File;
@@ -89,6 +90,8 @@ public class Td {
     private LocalDateTime localDateTime;
 
     private List<Font> fonts;
+
+    private PromptContainer promptContainer;
 
     public Td(int row, int col) {
         this.row = row;
@@ -235,5 +238,13 @@ public class Td {
 
     public void setFonts(List<Font> fonts) {
         this.fonts = fonts;
+    }
+
+    public PromptContainer getPromptContainer() {
+        return promptContainer;
+    }
+
+    public void setPromptContainer(PromptContainer promptContainer) {
+        this.promptContainer = promptContainer;
     }
 }
