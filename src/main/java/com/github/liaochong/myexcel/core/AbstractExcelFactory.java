@@ -122,6 +122,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private CreationHelper createHelper;
 
     private DataFormat format;
+    /**
+     * 提示约束
+     */
+    private DataValidationConstraint promptConstraint;
+    /**
+     * 下拉列表约束
+     */
+    private Map<String, DataValidationConstraint> explicitListConstraintMapping = new HashMap<>();
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -325,10 +333,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             return;
         }
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-        DataValidationConstraint constraint = dvHelper.createCustomConstraint("*");
+        if (promptConstraint == null) {
+            promptConstraint = dvHelper.createCustomConstraint("*");
+        }
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
-        DataValidation dataValidation = dvHelper.createValidation(constraint, addressList);
+        DataValidation dataValidation = dvHelper.createValidation(promptConstraint, addressList);
         dataValidation.createPromptBox(td.getPromptContainer().getTitle(), td.getPromptContainer().getText());
         dataValidation.setShowPromptBox(true);
         sheet.addValidationData(dataValidation);
@@ -408,7 +418,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
         String[] list = content.split(",");
-        DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
+        DataValidationConstraint dvConstraint = explicitListConstraintMapping.get(content);
+        if (dvConstraint == null) {
+            dvConstraint = dvHelper.createExplicitListConstraint(list);
+        }
         DataValidation validation = dvHelper.createValidation(
                 dvConstraint, addressList);
         if (td.getPromptContainer() != null) {
