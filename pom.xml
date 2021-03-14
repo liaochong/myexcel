@@ -25,7 +25,7 @@
         <poi.version>5.0.0</poi.version>
         <jsoup.version>1.13.1</jsoup.version>
         <lombok.version>1.18.10</lombok.version>
-        <slf4j-api.version>1.7.26</slf4j-api.version>
+        <slf4j-api.version>1.7.30</slf4j-api.version>
         <beetl.version>2.9.9</beetl.version>
         <velocity.version>1.7</velocity.version>
         <freemarker.version>2.3.23</freemarker.version>
