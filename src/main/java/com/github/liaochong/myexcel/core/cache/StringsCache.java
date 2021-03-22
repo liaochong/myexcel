@@ -88,7 +88,7 @@ public class StringsCache implements Cache<Integer, String> {
     public void cache(Integer key, String value) {
         // 存在部分情况下，count与实际不一致
         if (key >= cacheValues.length) {
-            String[] resizeCache = new String[Math.min(key + 5, MAX_SIZE_PATH)];
+            String[] resizeCache = new String[MAX_SIZE_PATH];
             System.arraycopy(cacheValues, 0, resizeCache, 0, cacheValues.length);
             cacheValues = resizeCache;
         }
