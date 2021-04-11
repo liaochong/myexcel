@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
@@ -115,9 +116,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     protected WidthStrategy widthStrategy = WidthStrategy.NO_AUTO;
     /**
+     * 生成sheet策略，默认生成多个sheet
+     */
+    protected SheetStrategy sheetStrategy = SheetStrategy.MULTI_SHEET;
+    /**
      * 暂存单元格，由后续行认领
      */
-    private List<Td> stagingTds = new LinkedList<>();
+    private final List<Td> stagingTds = new LinkedList<>();
 
     private CreationHelper createHelper;
 
@@ -160,6 +165,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory widthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
+        return this;
+    }
+
+    @Override
+    public ExcelFactory sheetStrategy(SheetStrategy sheetStrategy) {
+        this.sheetStrategy = sheetStrategy;
         return this;
     }
 
