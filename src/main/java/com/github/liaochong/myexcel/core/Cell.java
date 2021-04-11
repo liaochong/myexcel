@@ -38,4 +38,33 @@ public class Cell {
     public int getColNum() {
         return colNum;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        } else if (!(o instanceof Cell)) {
+            return false;
+        } else {
+            Cell other = (Cell) o;
+            if (!other.canEqual(this)) {
+                return false;
+            } else if (this.getRowNum() != other.getRowNum()) {
+                return false;
+            } else {
+                return this.getColNum() == other.getColNum();
+            }
+        }
+    }
+
+    private boolean canEqual(Object other) {
+        return other instanceof Cell;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 59 + this.getRowNum();
+        result = result * 59 + this.getColNum();
+        return result;
+    }
 }
