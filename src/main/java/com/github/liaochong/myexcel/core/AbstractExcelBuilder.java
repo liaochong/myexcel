@@ -69,6 +69,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         return this;
     }
 
+    @Override
     public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy){
         htmlToExcelFactory.sheetStrategy(sheetStrategy);
         return this;

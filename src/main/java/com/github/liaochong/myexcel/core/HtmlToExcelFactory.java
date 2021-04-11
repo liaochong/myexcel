@@ -123,7 +123,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     @Override
     public Workbook build() {
         try {
-            ParseConfig parseConfig = new ParseConfig(widthStrategy, sheetStrategy);
+            ParseConfig parseConfig = new ParseConfig(widthStrategy);
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
             htmlTableParser = null;
             return this.build(tables);
@@ -177,7 +177,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     /**
      * MultiSheet 策略
      *
-     * @param tables
+     * @param tables tables
      */
     private void buildTablesWithMultiSheet(List<Table> tables) {
         for (int i = 0, size = tables.size(); i < size; i++) {
@@ -206,12 +206,12 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      */
     private void buildTablesWithOneSheet(List<Table> tables) {
         String sheetName = this.getRealSheetName(tables.get(0).getCaption());
+        Sheet sheet = workbook.getSheet(sheetName);
+        if (sheet == null) {
+            sheet = workbook.createSheet(sheetName);
+        }
         for (int i = 0; i < tables.size(); i++) {
             Table table = tables.get(i);
-            Sheet sheet = workbook.getSheet(sheetName);
-            if (sheet == null) {
-                sheet = workbook.createSheet(sheetName);
-            }
             boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
             if (!hasTd) {
                 continue;
@@ -236,7 +236,13 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
                     .orElse(0);
         }
         Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
-        final Integer sheetLastRowIndex = sheet.getLastRowNum();
+        // one sheet情况下重置非首个table的tr、td索引下标
+        int sheetLastRowIndex = sheet.getLastRowNum();
+        if (SheetStrategy.isOneSheet(sheetStrategy)) {
+            if (sheetLastRowIndex != 0) {
+                sheetLastRowIndex += 1;
+            }
+        }
         for (int i = 0, size = table.getTrList().size(); i < size; i++) {
             Tr tr = table.getTrList().get(i);
             this.updateTrIndex(tr, sheetLastRowIndex);
@@ -253,11 +259,8 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @param tr                当前tr
      * @param sheetLastRowIndex sheet 最后行下标
      */
-    private void updateTrIndex(Tr tr, Integer sheetLastRowIndex) {
+    private void updateTrIndex(Tr tr, int sheetLastRowIndex) {
         if (SheetStrategy.isOneSheet(sheetStrategy)) {
-            if (sheetLastRowIndex != 0) {
-                sheetLastRowIndex += 1;
-            }
             tr.setIndex(tr.getIndex() + sheetLastRowIndex);
             tr.getTdList().forEach(td -> td.setRow(tr.getIndex()));
         }

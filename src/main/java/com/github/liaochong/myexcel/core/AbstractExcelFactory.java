@@ -122,7 +122,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 暂存单元格，由后续行认领
      */
-    private List<Td> stagingTds = new LinkedList<>();
+    private final List<Td> stagingTds = new LinkedList<>();
 
     private CreationHelper createHelper;
 
