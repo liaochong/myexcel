@@ -118,7 +118,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     /**
      * 生成sheet策略，默认生成多个sheet
      */
-    protected SheetStrategy sheetStrategy = SheetStrategy.MultiSheet;
+    protected SheetStrategy sheetStrategy = SheetStrategy.MULTI_SHEET;
     /**
      * 暂存单元格，由后续行认领
      */

@@ -40,7 +40,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     protected AbstractExcelBuilder(Class<? extends TemplateHandler> templateHandlerClass) {
         widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
-        sheetStrategy(SheetStrategy.MultiSheet);
+        sheetStrategy(SheetStrategy.MULTI_SHEET);
         this.templateHandler = ReflectUtil.newInstance(templateHandlerClass);
     }
 

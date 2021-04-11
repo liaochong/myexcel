@@ -31,12 +31,12 @@ public class ParseConfig {
 
     private boolean isComputeAutoWidth;
 
-    private boolean isMultiSheet;
+    private final boolean isMultiSheet;
 
     public ParseConfig(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
         this.isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
-        this.sheetStrategy = SheetStrategy.MultiSheet;
+        this.sheetStrategy = SheetStrategy.MULTI_SHEET;
         this.isMultiSheet = true;
     }
 
@@ -62,7 +62,8 @@ public class ParseConfig {
     public void setComputeAutoWidth(boolean isComputeAutoWidth) {
         this.isComputeAutoWidth = isComputeAutoWidth;
     }
-    public SheetStrategy getSheetStrategy(){
+
+    public SheetStrategy getSheetStrategy() {
         return this.sheetStrategy;
     }
 
@@ -70,7 +71,7 @@ public class ParseConfig {
         this.sheetStrategy = sheetStrategy;
     }
 
-    public boolean isMultiSheet(){
-        return  this.isMultiSheet;
+    public boolean isMultiSheet() {
+        return this.isMultiSheet;
     }
 }

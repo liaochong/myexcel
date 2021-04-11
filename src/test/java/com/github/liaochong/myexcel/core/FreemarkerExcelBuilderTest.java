@@ -53,7 +53,7 @@ class FreemarkerExcelBuilderTest extends BasicTest {
     @Test
     public void oneSheetStrategyExample() throws Exception{
         try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
-            excelBuilder.sheetStrategy(SheetStrategy.OneSheet);
+            excelBuilder.sheetStrategy(SheetStrategy.ONE_SHEET);
             excelBuilder.widthStrategy(WidthStrategy.AUTO_WIDTH);
             Map<String, Object> dataMap = new HashMap<>();
             dataMap.put("sheetName","库存盘点");
