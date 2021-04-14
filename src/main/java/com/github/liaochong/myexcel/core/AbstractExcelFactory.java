@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.style.BackgroundStyle;
 import com.github.liaochong.myexcel.core.style.BorderStyle;
@@ -115,9 +116,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     protected WidthStrategy widthStrategy = WidthStrategy.NO_AUTO;
     /**
+     * 生成sheet策略，默认生成多个sheet
+     */
+    protected SheetStrategy sheetStrategy = SheetStrategy.MULTI_SHEET;
+    /**
      * 暂存单元格，由后续行认领
      */
-    private List<Td> stagingTds = new LinkedList<>();
+    private final List<Td> stagingTds = new LinkedList<>();
 
     private CreationHelper createHelper;
 
@@ -160,6 +165,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory widthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
+        return this;
+    }
+
+    @Override
+    public ExcelFactory sheetStrategy(SheetStrategy sheetStrategy) {
+        this.sheetStrategy = sheetStrategy;
         return this;
     }
 
@@ -301,6 +312,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     cell.setCellValue(content);
                     break;
             }
+            this.setPrompt(td, sheet);
         }
 
         // 设置单元格样式
@@ -314,6 +326,23 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private void setPrompt(Td td, Sheet sheet) {
+        if (td.getPromptContainer() == null) {
+            return;
+        }
+        if (ContentTypeEnum.isDropdownList(td.getTdContentType())) {
+            return;
+        }
+        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+        DataValidationConstraint constraint = dvHelper.createCustomConstraint("*");
+        CellRangeAddressList addressList = new CellRangeAddressList(
+                td.getRow(), td.getRowBound(), td.getCol(), td.getColBound());
+        DataValidation dataValidation = dvHelper.createValidation(constraint, addressList);
+        dataValidation.createPromptBox(td.getPromptContainer().getTitle(), td.getPromptContainer().getText());
+        dataValidation.setShowPromptBox(true);
+        sheet.addValidationData(dataValidation);
     }
 
     private void setImage(Td td, Sheet sheet) {
@@ -393,6 +422,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
         DataValidation validation = dvHelper.createValidation(
                 dvConstraint, addressList);
+        if (td.getPromptContainer() != null) {
+            validation.createPromptBox(td.getPromptContainer().getTitle(), td.getPromptContainer().getText());
+            validation.setShowPromptBox(true);
+        }
         if (validation instanceof XSSFDataValidation) {
             validation.setSuppressDropDownArrow(true);
             validation.setShowErrorBox(true);

@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
 import com.github.liaochong.myexcel.core.constant.DropDownList;
 import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
@@ -39,9 +40,9 @@ import java.util.stream.Stream;
 public class DropDownListWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
-        String content;
-        if (field.getType() == List.class) {
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        String content = "";
+        if (fieldType == List.class) {
             List<?> list = ((List<?>) fieldVal);
             content = list.stream().map(Object::toString).collect(Collectors.joining(","));
             // 确定数据类型
@@ -56,9 +57,16 @@ public class DropDownListWriteConverter implements WriteConverter {
                 }
             }
         } else {
-            Array array = (Array) fieldVal;
-            content = Stream.of(array).map(Object::toString).collect(Collectors.joining(","));
-            Class clazz = Array.get(array, 0).getClass();
+            int len = Array.getLength(fieldVal);
+            if (len == 0) {
+                return Pair.of(DropDownList.class, content);
+            }
+            Object[] obj = new Object[len];
+            for (int i = 0; i < len; i++) {
+                obj[i] = Array.get(fieldVal, i);
+            }
+            content = Stream.of(obj).map(Object::toString).collect(Collectors.joining(","));
+            Class clazz = Array.get(fieldVal, 0).getClass();
             if (ReflectUtil.isBool(clazz)) {
                 return Pair.of(BooleanDropDownList.class, content);
             }
@@ -70,7 +78,7 @@ public class DropDownListWriteConverter implements WriteConverter {
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
-        return field.getType() == Array.class || field.getType() == List.class;
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        return field.getType().isArray() || (field.getType() == List.class && !field.isAnnotationPresent(MultiColumn.class)) || (field.getType() == List.class && fieldType == Array.class);
     }
 }

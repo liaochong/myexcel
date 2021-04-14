@@ -1,6 +1,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
+import com.github.liaochong.myexcel.core.pojo.MultiPeople;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +55,12 @@ class CsvBuilderTest extends BasicTest {
     }
 
     @Test
+    void multiBuild() {
+        Csv csv = CsvBuilder.of(MultiPeople.class).build(multiData(3));
+        csv.write(Paths.get(TEST_OUTPUT_DIR + "multi_build.csv"), true);
+    }
+
+    @Test
     void appendBuild() {
         CsvBuilder<CsvPeople> csvBuilder = CsvBuilder.of(CsvPeople.class);
         for (int i = 0; i < 10; i++) {
@@ -101,6 +108,24 @@ class CsvBuilderTest extends BasicTest {
             csvPeople.setMoney(odd ? oddMoney : evenMoney);
             csvPeople.setBirthday(new Date());
             peoples.add(csvPeople);
+        }
+        return peoples;
+    }
+
+    private List<MultiPeople> multiData(int size) {
+        List<MultiPeople> peoples = new LinkedList<>();
+        for (int j = 0; j < 3; j++) {
+            MultiPeople people = new MultiPeople();
+            people.setTastes(new LinkedList<>());
+            people.setDates(new LinkedList<>());
+            people.setName("姓名" + j);
+            for (int i = 0; i < 5; i++) {
+                people.getTastes().add("兴趣" + i);
+            }
+            for (int i = 0; i < 10; i++) {
+                people.getDates().add(new Date());
+            }
+            peoples.add(people);
         }
         return peoples;
     }

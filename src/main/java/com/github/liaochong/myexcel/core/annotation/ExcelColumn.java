@@ -140,4 +140,11 @@ public @interface ExcelColumn {
      * @return true/false
      */
     boolean formula() default false;
+
+    /**
+     * 提示语
+     *
+     * @return 提示语
+     */
+    Prompt prompt() default @Prompt();
 }

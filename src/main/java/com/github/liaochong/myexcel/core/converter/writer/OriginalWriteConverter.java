@@ -29,12 +29,12 @@ import java.lang.reflect.Field;
 public class OriginalWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
-        return Pair.of(field.getType(), fieldVal);
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        return Pair.of(fieldType, fieldVal);
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         return true;
     }
 }

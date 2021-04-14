@@ -81,12 +81,19 @@ public class StringsCache implements Cache<Integer, String> {
         if (stringCount == 0) {
             return;
         }
-        cacheValues = new String[stringCount > MAX_SIZE_PATH ? MAX_SIZE_PATH : stringCount];
+        cacheValues = new String[Math.min(stringCount, MAX_SIZE_PATH)];
     }
 
     @Override
     public void cache(Integer key, String value) {
-        cacheValues[key - (key / MAX_SIZE_PATH * MAX_SIZE_PATH)] = value;
+        int cacheIndex = key - (key / MAX_SIZE_PATH * MAX_SIZE_PATH);
+        // 存在部分情况下，count与实际不一致
+        if (cacheIndex >= cacheValues.length) {
+            String[] resizeCache = new String[MAX_SIZE_PATH];
+            System.arraycopy(cacheValues, 0, resizeCache, 0, cacheValues.length);
+            cacheValues = resizeCache;
+        }
+        cacheValues[cacheIndex] = value;
         totalCount++;
         if ((key + 1) % MAX_SIZE_PATH == 0) {
             if (index == 0) {

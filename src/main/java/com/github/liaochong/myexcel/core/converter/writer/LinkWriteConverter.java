@@ -33,7 +33,7 @@ import java.lang.reflect.Field;
 public class LinkWriteConverter implements WriteConverter {
 
     @Override
-    public Pair<Class, Object> convert(Field field, Object fieldVal, ConvertContext convertContext) {
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         LinkType linkType = mapping.getLinkType();
         switch (linkType) {
@@ -47,7 +47,7 @@ public class LinkWriteConverter implements WriteConverter {
     }
 
     @Override
-    public boolean support(Field field, Object fieldVal, ConvertContext convertContext) {
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         return mapping != null && !LinkType.NONE.equals(mapping.getLinkType());
     }

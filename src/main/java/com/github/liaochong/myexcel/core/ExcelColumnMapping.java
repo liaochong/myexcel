@@ -15,8 +15,10 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.Prompt;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
+import com.github.liaochong.myexcel.utils.StringUtil;
 
 /**
  * @author liaochong
@@ -89,6 +91,11 @@ public final class ExcelColumnMapping {
      */
     private boolean formula;
 
+    /**
+     * 提示语
+     */
+    private PromptContainer promptContainer;
+
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
         result.title = excelColumn.title();
@@ -112,6 +119,14 @@ public final class ExcelColumnMapping {
         result.mapping = excelColumn.mapping();
         result.fileType = excelColumn.fileType();
         result.formula = excelColumn.formula();
+        // 提示
+        Prompt prompt = excelColumn.prompt();
+        if (StringUtil.isNotBlank(prompt.text())) {
+            PromptContainer promptContainer = new PromptContainer();
+            promptContainer.setTitle(prompt.title());
+            promptContainer.setText(prompt.text());
+            result.promptContainer = promptContainer;
+        }
         return result;
     }
 
@@ -165,5 +180,13 @@ public final class ExcelColumnMapping {
 
     public boolean isFormula() {
         return this.formula;
+    }
+
+    public PromptContainer getPromptContainer() {
+        return promptContainer;
+    }
+
+    public void setPromptContainer(PromptContainer promptContainer) {
+        this.promptContainer = promptContainer;
     }
 }
