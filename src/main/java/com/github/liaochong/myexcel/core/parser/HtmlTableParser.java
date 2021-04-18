@@ -226,6 +226,11 @@ public class HtmlTableParser {
                 shift += td.getColSpan() - 1;
             }
             tdList.add(td);
+            // 斜线
+            boolean hasSlant = tdElement.hasAttr("slant");
+            if (hasSlant) {
+                td.setSlant(true);
+            }
 
             // 设置每列宽度
             if (parseConfig.isComputeAutoWidth()) {

@@ -51,6 +51,7 @@ import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.ShapeTypes;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -58,8 +59,12 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
@@ -314,6 +319,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             this.setPrompt(td, sheet);
         }
+        // 设置斜线
+        this.drawingSlant(td, (XSSFSheet) sheet);
 
         // 设置单元格样式
         this.setCellStyle(currentRow, cell, td);
@@ -326,6 +333,35 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private void drawingSlant(Td td, XSSFSheet sheet) {
+        if (!td.isSlant()) {
+            return;
+        }
+        if (isHssf || workbook instanceof SXSSFWorkbook) {
+            throw new UnsupportedOperationException("The current workbook does not support setting slashes.");
+        }
+        XSSFDrawing drawing = sheet.createDrawingPatriarch();
+        if (createHelper == null) {
+            createHelper = workbook.getCreationHelper();
+        }
+        ClientAnchor anchor = createHelper.createClientAnchor();
+        // 设置斜线的开始位置
+        anchor.setCol1(td.getCol());
+        anchor.setRow1(td.getRow());
+        // 设置斜线的结束位置
+        anchor.setCol2(td.getColBound() + 1);
+        anchor.setRow2(td.getRowBound() + 1);
+        XSSFSimpleShape shape = drawing.createSimpleShape((XSSFClientAnchor) anchor);
+        // 设置形状类型为线型
+        shape.setShapeType(ShapeTypes.LINE);
+        // 设置线宽
+        shape.setLineWidth(0.5);
+        // 设置线的风格
+        shape.setLineStyle(0);
+        // 设置线的颜色
+        shape.setLineStyleColor(0, 0, 0);
     }
 
     private void setPrompt(Td td, Sheet sheet) {
