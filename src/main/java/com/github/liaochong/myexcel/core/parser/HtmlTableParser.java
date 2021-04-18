@@ -229,7 +229,17 @@ public class HtmlTableParser {
             // 斜线
             boolean hasSlant = tdElement.hasAttr("slant");
             if (hasSlant) {
-                td.setSlant(true);
+                String slantStr = tdElement.attr("slant");
+                if (StringUtil.isNotBlank(slantStr)) {
+                    String[] splits = slantStr.split(" ");
+                    if (splits.length != 3) {
+                        throw new IllegalArgumentException("Slash setting error");
+                    }
+                    Slant slant = new Slant(LineStyleEnum.getByName(splits[0]), splits[1], splits[2]);
+                    td.setSlant(slant);
+                } else {
+                    td.setSlant(new Slant());
+                }
             }
 
             // 设置每列宽度

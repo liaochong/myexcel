@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
+import com.github.liaochong.myexcel.core.parser.Slant;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
@@ -30,6 +31,7 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.ColorUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import org.apache.poi.common.usermodel.HyperlinkType;
@@ -336,7 +338,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     private void drawingSlant(Td td, XSSFSheet sheet) {
-        if (!td.isSlant()) {
+        Slant slant = td.getSlant();
+        if (slant == null) {
             return;
         }
         if (isHssf || workbook instanceof SXSSFWorkbook) {
@@ -357,11 +360,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         // 设置形状类型为线型
         shape.setShapeType(ShapeTypes.LINE);
         // 设置线宽
-        shape.setLineWidth(0.5);
+        shape.setLineWidth(slant.getLineWidth());
         // 设置线的风格
-        shape.setLineStyle(0);
+        shape.setLineStyle(slant.getLineStyle());
         // 设置线的颜色
-        shape.setLineStyleColor(0, 0, 0);
+        int[] color = ColorUtil.getRGBByColor(slant.getLineStyleColor());
+        shape.setLineStyleColor(color[0], color[1], color[2]);
     }
 
     private void setPrompt(Td td, Sheet sheet) {
