@@ -322,7 +322,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             this.setPrompt(td, sheet);
         }
         // 设置斜线
-        this.drawingSlant(td, (XSSFSheet) sheet);
+        this.drawingSlant(td, sheet);
 
         // 设置单元格样式
         this.setCellStyle(currentRow, cell, td);
@@ -337,7 +337,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
     }
 
-    private void drawingSlant(Td td, XSSFSheet sheet) {
+    private void drawingSlant(Td td, Sheet sheet) {
         Slant slant = td.getSlant();
         if (slant == null) {
             return;
@@ -345,7 +345,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (isHssf || workbook instanceof SXSSFWorkbook) {
             throw new UnsupportedOperationException("The current workbook does not support setting slashes.");
         }
-        XSSFDrawing drawing = sheet.createDrawingPatriarch();
+        XSSFDrawing drawing = ((XSSFSheet) sheet).createDrawingPatriarch();
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
         }
