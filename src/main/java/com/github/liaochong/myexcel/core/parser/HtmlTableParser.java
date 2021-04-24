@@ -226,6 +226,21 @@ public class HtmlTableParser {
                 shift += td.getColSpan() - 1;
             }
             tdList.add(td);
+            // 斜线
+            boolean hasSlant = tdElement.hasAttr("slant");
+            if (hasSlant) {
+                String slantStr = tdElement.attr("slant");
+                if (StringUtil.isNotBlank(slantStr)) {
+                    String[] splits = slantStr.split(" ");
+                    if (splits.length != 3) {
+                        throw new IllegalArgumentException("Slash setting error");
+                    }
+                    Slant slant = new Slant(LineStyleEnum.getByName(splits[0]), splits[1], splits[2]);
+                    td.setSlant(slant);
+                } else {
+                    td.setSlant(new Slant());
+                }
+            }
 
             // 设置每列宽度
             if (parseConfig.isComputeAutoWidth()) {

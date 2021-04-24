@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
+import com.github.liaochong.myexcel.core.parser.Slant;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
@@ -30,6 +31,7 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.utils.ColorUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import org.apache.poi.common.usermodel.HyperlinkType;
@@ -51,6 +53,7 @@ import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.ShapeTypes;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -58,8 +61,12 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
@@ -314,6 +321,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
             this.setPrompt(td, sheet);
         }
+        // 设置斜线
+        this.drawingSlant(td, sheet);
 
         // 设置单元格样式
         this.setCellStyle(currentRow, cell, td);
@@ -326,6 +335,49 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private void drawingSlant(Td td, Sheet sheet) {
+        Slant slant = td.getSlant();
+        if (slant == null) {
+            return;
+        }
+        if (isHssf) {
+            throw new UnsupportedOperationException("The current workbook does not support setting slashes.");
+        }
+        XSSFDrawing drawing;
+        if (workbook instanceof SXSSFWorkbook) {
+            drawing = ((SXSSFSheet) sheet).getDrawingPatriarch();
+            if (drawing == null) {
+                sheet.createDrawingPatriarch();
+                drawing = ((SXSSFSheet) sheet).getDrawingPatriarch();
+            }
+        } else {
+            drawing = ((XSSFSheet) sheet).getDrawingPatriarch();
+            if (drawing == null) {
+                drawing = ((XSSFSheet) sheet).createDrawingPatriarch();
+            }
+        }
+        if (createHelper == null) {
+            createHelper = workbook.getCreationHelper();
+        }
+        ClientAnchor anchor = createHelper.createClientAnchor();
+        // 设置斜线的开始位置
+        anchor.setCol1(td.getCol());
+        anchor.setRow1(td.getRow());
+        // 设置斜线的结束位置
+        anchor.setCol2(td.getColBound() + 1);
+        anchor.setRow2(td.getRowBound() + 1);
+        XSSFSimpleShape shape = drawing.createSimpleShape((XSSFClientAnchor) anchor);
+        // 设置形状类型为线型
+        shape.setShapeType(ShapeTypes.LINE);
+        // 设置线宽
+        shape.setLineWidth(slant.getLineWidth());
+        // 设置线的风格
+        shape.setLineStyle(slant.getLineStyle());
+        // 设置线的颜色
+        int[] color = ColorUtil.getRGBByColor(slant.getLineStyleColor());
+        shape.setLineStyleColor(color[0], color[1], color[2]);
     }
 
     private void setPrompt(Td td, Sheet sheet) {

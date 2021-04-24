@@ -93,6 +93,11 @@ public class Td {
 
     private PromptContainer promptContainer;
 
+    /**
+     * 斜线
+     */
+    private Slant slant;
+
     public Td(int row, int col) {
         this.row = row;
         this.col = col;
@@ -246,5 +251,13 @@ public class Td {
 
     public void setPromptContainer(PromptContainer promptContainer) {
         this.promptContainer = promptContainer;
+    }
+
+    public Slant getSlant() {
+        return slant;
+    }
+
+    public void setSlant(Slant slant) {
+        this.slant = slant;
     }
 }
