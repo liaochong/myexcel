@@ -342,10 +342,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (slant == null) {
             return;
         }
-        if (isHssf || workbook instanceof SXSSFWorkbook) {
+        if (isHssf) {
             throw new UnsupportedOperationException("The current workbook does not support setting slashes.");
         }
-        XSSFDrawing drawing = ((XSSFSheet) sheet).createDrawingPatriarch();
+        boolean isSXSSFWorkbook = workbook instanceof SXSSFWorkbook;
+        if (isSXSSFWorkbook) {
+            XSSFDrawing drawing = ((SXSSFSheet) sheet).getDrawingPatriarch();
+            if (drawing == null) {
+                sheet.createDrawingPatriarch();
+            }
+        }
+        XSSFDrawing drawing = isSXSSFWorkbook ? ((SXSSFSheet) sheet).getDrawingPatriarch() : ((XSSFSheet) sheet).createDrawingPatriarch();
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
         }
