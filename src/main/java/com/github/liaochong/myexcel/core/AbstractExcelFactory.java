@@ -353,7 +353,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 drawing = ((SXSSFSheet) sheet).getDrawingPatriarch();
             }
         } else {
-            drawing = ((XSSFSheet) sheet).createDrawingPatriarch();
+            drawing = ((XSSFSheet) sheet).getDrawingPatriarch();
+            if (drawing == null) {
+                drawing = ((XSSFSheet) sheet).createDrawingPatriarch();
+            }
         }
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
