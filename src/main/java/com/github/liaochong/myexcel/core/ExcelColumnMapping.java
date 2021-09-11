@@ -80,6 +80,10 @@ public final class ExcelColumnMapping {
      * 简单映射，如"1:男,2:女"
      */
     private String mapping;
+    /**
+     * 映射提供者
+     */
+    private Class<? extends MappingProvider> mappingProvider;
 
     /**
      * 文件类型
@@ -119,6 +123,7 @@ public final class ExcelColumnMapping {
         result.mapping = excelColumn.mapping();
         result.fileType = excelColumn.fileType();
         result.formula = excelColumn.formula();
+        result.mappingProvider = excelColumn.mappingProvider();
         // 提示
         Prompt prompt = excelColumn.prompt();
         if (StringUtil.isNotBlank(prompt.text())) {
@@ -188,5 +193,13 @@ public final class ExcelColumnMapping {
 
     public void setPromptContainer(PromptContainer promptContainer) {
         this.promptContainer = promptContainer;
+    }
+
+    public Class<? extends MappingProvider> getMappingProvider() {
+        return mappingProvider;
+    }
+
+    public void setMappingProvider(Class<? extends MappingProvider> mappingProvider) {
+        this.mappingProvider = mappingProvider;
     }
 }

@@ -15,6 +15,8 @@
  */
 package com.github.liaochong.myexcel.core.annotation;
 
+import com.github.liaochong.myexcel.core.DefaultMappingProvider;
+import com.github.liaochong.myexcel.core.MappingProvider;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 
@@ -126,6 +128,13 @@ public @interface ExcelColumn {
      * @return String
      */
     String mapping() default "";
+
+    /**
+     * 映射提供者
+     *
+     * @return 映射提供者
+     */
+    Class<? extends MappingProvider> mappingProvider() default DefaultMappingProvider.class;
 
     /**
      * 文件类型
