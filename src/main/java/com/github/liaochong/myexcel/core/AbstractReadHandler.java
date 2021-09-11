@@ -76,6 +76,10 @@ abstract class AbstractReadHandler<T> {
      * Whether to use title for import
      */
     private boolean readWithTitle;
+    /**
+     * 标题行编号，默认为-1
+     */
+    private int titleRowNum = -1;
 
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
@@ -174,7 +178,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void addTitles(String formattedValue, int thisCol) {
-        if (currentRow.getRowNum() == 0) {
+        if (currentRow.getRowNum() == titleRowNum) {
             titles.put(formattedValue, thisCol);
         }
     }
@@ -194,9 +198,18 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         content = readConfig.getTrim().apply(content);
-        this.addTitleConsumer.accept(content, colNum);
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
+        } else if (readWithTitle) {
+            if (titleRowNum == -1) {
+                // 尝试下一行是否为标题行
+                Row nextRow = new Row(currentRow.getRowNum() + 1);
+                if (readConfig.getRowFilter().test(nextRow)) {
+                    titleRowNum = currentRow.getRowNum();
+                }
+            } else {
+                this.addTitleConsumer.accept(content, colNum);
+            }
         }
     }
 
@@ -221,7 +234,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void initFieldMap() {
-        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
+        if (currentRow.getRowNum() != titleRowNum || !fieldMap.isEmpty()) {
             return;
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
