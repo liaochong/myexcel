@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ConvertContext;
+import com.github.liaochong.myexcel.core.DefaultMappingProvider;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.MappingProvider;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
@@ -36,7 +37,7 @@ public class MappingProviderWriteConverter implements WriteConverter {
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
-        return mapping != null && mapping.getMappingProvider() != null;
+        return mapping != null && mapping.getMappingProvider() != null && mapping.getMappingProvider() != DefaultMappingProvider.class;
     }
 
     @Override
