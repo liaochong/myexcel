@@ -14,12 +14,12 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.ConvertContext;
-import com.github.liaochong.myexcel.core.Converter;
-import com.github.liaochong.myexcel.core.DefaultConverter;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.converter.ConvertContext;
+import com.github.liaochong.myexcel.core.converter.CustomConverter;
+import com.github.liaochong.myexcel.core.converter.DefaultCustomConverter;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
 import java.lang.reflect.Field;
@@ -32,34 +32,34 @@ import java.lang.reflect.Field;
  */
 public class CustomWriteConverter implements WriteConverter {
 
-    private WeakCache<Class, Converter> cache = new WeakCache<>();
+    private WeakCache<Class, CustomConverter> cache = new WeakCache<>();
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
-        return mapping != null && mapping.getConverter() != null && mapping.getConverter() != DefaultConverter.class;
+        return mapping != null && mapping.getCustomConverter() != null && mapping.getCustomConverter() != DefaultCustomConverter.class;
     }
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
-        Class<? extends Converter> mappingProviderClass = excelColumnMapping.getConverter();
+        Class<? extends CustomConverter> converter = excelColumnMapping.getCustomConverter();
         // 尝试绑定上下文中是否存在
-        Object target = convertContext.getConfiguration().getApplicationBeans().get(mappingProviderClass);
+        Object target = convertContext.getConfiguration().getApplicationBeans().get(converter);
         if (target != null) {
-            Object result = ((Converter) target).convert(fieldVal);
+            Object result = ((CustomConverter) target).convert(fieldVal);
             return Pair.of(result.getClass(), result);
         }
-        if (cache.get(mappingProviderClass) == null) {
-            Converter converter;
+        if (cache.get(converter) == null) {
+            CustomConverter customConverter;
             try {
-                converter = mappingProviderClass.newInstance();
+                customConverter = converter.newInstance();
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
-            cache.cache(mappingProviderClass, converter);
+            cache.cache(converter, customConverter);
         }
-        Object result = cache.get(mappingProviderClass).convert(fieldVal);
+        Object result = cache.get(converter).convert(fieldVal);
         return Pair.of(result.getClass(), result);
     }
 }

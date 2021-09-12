@@ -15,10 +15,10 @@
  */
 package com.github.liaochong.myexcel.core.annotation;
 
-import com.github.liaochong.myexcel.core.Converter;
-import com.github.liaochong.myexcel.core.DefaultConverter;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
+import com.github.liaochong.myexcel.core.converter.CustomConverter;
+import com.github.liaochong.myexcel.core.converter.DefaultCustomConverter;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -134,7 +134,7 @@ public @interface ExcelColumn {
      *
      * @return 映射提供者
      */
-    Class<? extends Converter> converter() default DefaultConverter.class;
+    Class<? extends CustomConverter> converter() default DefaultCustomConverter.class;
 
     /**
      * 文件类型

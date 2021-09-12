@@ -14,14 +14,15 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.converter.CustomConverter;
+
 /**
  * @author liaochong
  * @version 1.0
  */
-public class DefaultConverter implements Converter<Object, Object> {
-
+public class TestCustomConverter implements CustomConverter<Boolean, String> {
     @Override
-    public Object convert(Object originalData) {
-        return originalData;
+    public String convert(Boolean originalData) {
+        return originalData ? "是的" : "不是";
     }
 }

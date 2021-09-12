@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
-import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.ReadContext;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
@@ -51,7 +50,7 @@ import java.util.function.BiFunction;
  */
 public class ReadConverterContext {
 
-    private static final Map<Class<?>, Converter<String, ?>> READ_CONVERTERS = new HashMap<>();
+    private static final Map<Class<?>, ReadConverter<String, ?>> READ_CONVERTERS = new HashMap<>();
 
     private static final WeakCache<Field, Properties> MAPPING_CACHE = new WeakCache<>();
 
@@ -100,14 +99,14 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(BigInteger.class, bigIntegerReadConverter);
     }
 
-    public synchronized ReadConverterContext registering(Class<?> clazz, Converter<String, ?> converter) {
-        READ_CONVERTERS.putIfAbsent(clazz, converter);
+    public synchronized ReadConverterContext registering(Class<?> clazz, ReadConverter<String, ?> readConverter) {
+        READ_CONVERTERS.putIfAbsent(clazz, readConverter);
         return this;
     }
 
     public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
-        Converter<String, ?> converter = READ_CONVERTERS.get(context.getField().getType());
-        if (converter == null) {
+        ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(context.getField().getType());
+        if (readConverter == null) {
             throw new IllegalStateException("No suitable type converter was found.");
         }
         Object value = null;
@@ -126,7 +125,7 @@ public class ReadConverterContext {
             if (mappingVal != null) {
                 context.setVal(mappingVal);
             }
-            value = converter.convert(context.getVal(), context.getField(), convertContext);
+            value = readConverter.convert(context.getVal(), context.getField(), convertContext);
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, context);
             if (!toContinue) {

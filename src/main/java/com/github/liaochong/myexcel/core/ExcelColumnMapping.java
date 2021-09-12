@@ -18,6 +18,7 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.Prompt;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
+import com.github.liaochong.myexcel.core.converter.CustomConverter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 /**
@@ -81,9 +82,9 @@ public final class ExcelColumnMapping {
      */
     private String mapping;
     /**
-     * 转换器
+     * 自定义转换器
      */
-    private Class<? extends Converter> converter;
+    private Class<? extends CustomConverter> customConverter;
 
     /**
      * 文件类型
@@ -123,7 +124,7 @@ public final class ExcelColumnMapping {
         result.mapping = excelColumn.mapping();
         result.fileType = excelColumn.fileType();
         result.formula = excelColumn.formula();
-        result.converter = excelColumn.converter();
+        result.customConverter = excelColumn.converter();
         // 提示
         Prompt prompt = excelColumn.prompt();
         if (StringUtil.isNotBlank(prompt.text())) {
@@ -195,11 +196,11 @@ public final class ExcelColumnMapping {
         this.promptContainer = promptContainer;
     }
 
-    public Class<? extends Converter> getConverter() {
-        return converter;
+    public Class<? extends CustomConverter> getCustomConverter() {
+        return customConverter;
     }
 
-    public void setConverter(Class<? extends Converter> converter) {
-        this.converter = converter;
+    public void setCustomConverter(Class<? extends CustomConverter> customConverter) {
+        this.customConverter = customConverter;
     }
 }
