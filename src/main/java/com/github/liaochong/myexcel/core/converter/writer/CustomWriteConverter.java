@@ -44,6 +44,12 @@ public class CustomWriteConverter implements WriteConverter {
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
         Class<? extends Converter> mappingProviderClass = excelColumnMapping.getConverter();
+        // 尝试绑定上下文中是否存在
+        Object target = convertContext.getConfiguration().getApplicationBeans().get(mappingProviderClass);
+        if (target != null) {
+            Object result = ((Converter) target).convert(fieldVal);
+            return Pair.of(result.getClass(), result);
+        }
         if (cache.get(mappingProviderClass) == null) {
             Converter converter;
             try {
