@@ -6,7 +6,7 @@ package com.github.liaochong.myexcel.core;
  * @author liaochong
  * @version 1.0
  */
-public interface MappingProvider<T, F> {
+public interface Converter<T, F> {
     /**
      * 转化原始数据为指定映射
      *

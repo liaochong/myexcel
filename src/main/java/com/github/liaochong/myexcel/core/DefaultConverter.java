@@ -18,7 +18,7 @@ package com.github.liaochong.myexcel.core;
  * @author liaochong
  * @version 1.0
  */
-public class DefaultMappingProvider implements MappingProvider<Object, Object> {
+public class DefaultConverter implements Converter<Object, Object> {
 
     @Override
     public Object convert(Object originalData) {

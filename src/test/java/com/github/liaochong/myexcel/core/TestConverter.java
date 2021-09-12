@@ -18,7 +18,7 @@ package com.github.liaochong.myexcel.core;
  * @author liaochong
  * @version 1.0
  */
-public class TestMappingProvider implements MappingProvider<Boolean, String> {
+public class TestConverter implements Converter<Boolean, String> {
     @Override
     public String convert(Boolean originalData) {
         return originalData ? "是的" : "不是";

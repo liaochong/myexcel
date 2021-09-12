@@ -81,9 +81,9 @@ public final class ExcelColumnMapping {
      */
     private String mapping;
     /**
-     * 映射提供者
+     * 转换器
      */
-    private Class<? extends MappingProvider> mappingProvider;
+    private Class<? extends Converter> converter;
 
     /**
      * 文件类型
@@ -123,7 +123,7 @@ public final class ExcelColumnMapping {
         result.mapping = excelColumn.mapping();
         result.fileType = excelColumn.fileType();
         result.formula = excelColumn.formula();
-        result.mappingProvider = excelColumn.mappingProvider();
+        result.converter = excelColumn.converter();
         // 提示
         Prompt prompt = excelColumn.prompt();
         if (StringUtil.isNotBlank(prompt.text())) {
@@ -195,11 +195,11 @@ public final class ExcelColumnMapping {
         this.promptContainer = promptContainer;
     }
 
-    public Class<? extends MappingProvider> getMappingProvider() {
-        return mappingProvider;
+    public Class<? extends Converter> getConverter() {
+        return converter;
     }
 
-    public void setMappingProvider(Class<? extends MappingProvider> mappingProvider) {
-        this.mappingProvider = mappingProvider;
+    public void setConverter(Class<? extends Converter> converter) {
+        this.converter = converter;
     }
 }

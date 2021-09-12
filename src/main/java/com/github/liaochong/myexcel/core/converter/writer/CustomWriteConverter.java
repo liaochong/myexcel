@@ -15,9 +15,9 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ConvertContext;
-import com.github.liaochong.myexcel.core.DefaultMappingProvider;
+import com.github.liaochong.myexcel.core.Converter;
+import com.github.liaochong.myexcel.core.DefaultConverter;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
-import com.github.liaochong.myexcel.core.MappingProvider;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
@@ -30,28 +30,28 @@ import java.lang.reflect.Field;
  * @author liaochong
  * @version 1.0
  */
-public class MappingProviderWriteConverter implements WriteConverter {
+public class CustomWriteConverter implements WriteConverter {
 
-    private WeakCache<Class, MappingProvider> cache = new WeakCache<>();
+    private WeakCache<Class, Converter> cache = new WeakCache<>();
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
-        return mapping != null && mapping.getMappingProvider() != null && mapping.getMappingProvider() != DefaultMappingProvider.class;
+        return mapping != null && mapping.getConverter() != null && mapping.getConverter() != DefaultConverter.class;
     }
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
-        Class<? extends MappingProvider> mappingProviderClass = excelColumnMapping.getMappingProvider();
+        Class<? extends Converter> mappingProviderClass = excelColumnMapping.getConverter();
         if (cache.get(mappingProviderClass) == null) {
-            MappingProvider mappingProvider;
+            Converter converter;
             try {
-                mappingProvider = mappingProviderClass.newInstance();
+                converter = mappingProviderClass.newInstance();
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
-            cache.cache(mappingProviderClass, mappingProvider);
+            cache.cache(mappingProviderClass, converter);
         }
         Object result = cache.get(mappingProviderClass).convert(fieldVal);
         return Pair.of(result.getClass(), result);
