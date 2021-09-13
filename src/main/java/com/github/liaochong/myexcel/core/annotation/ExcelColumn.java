@@ -17,8 +17,8 @@ package com.github.liaochong.myexcel.core.annotation;
 
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
-import com.github.liaochong.myexcel.core.converter.CustomConverter;
-import com.github.liaochong.myexcel.core.converter.DefaultCustomConverter;
+import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
+import com.github.liaochong.myexcel.core.converter.DefaultCustomWriteConverter;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -130,11 +130,11 @@ public @interface ExcelColumn {
     String mapping() default "";
 
     /**
-     * 转化器
+     * 写转化器
      *
      * @return 映射提供者
      */
-    Class<? extends CustomConverter> converter() default DefaultCustomConverter.class;
+    Class<? extends CustomWriteConverter> writeConverter() default DefaultCustomWriteConverter.class;
 
     /**
      * 文件类型

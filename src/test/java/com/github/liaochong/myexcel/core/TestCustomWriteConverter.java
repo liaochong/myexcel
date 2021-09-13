@@ -14,13 +14,13 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.converter.CustomConverter;
+import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class TestCustomConverter implements CustomConverter<Boolean, String> {
+public class TestCustomWriteConverter implements CustomWriteConverter<Boolean, String> {
     @Override
     public String convert(Boolean originalData) {
         return originalData ? "是的" : "不是";

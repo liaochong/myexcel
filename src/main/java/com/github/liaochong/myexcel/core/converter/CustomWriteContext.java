@@ -14,14 +14,21 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
+import java.lang.reflect.Field;
+
 /**
  * @author liaochong
  * @version 1.0
  */
-public class DefaultCustomConverter implements CustomConverter<Object, Object> {
+public class CustomWriteContext {
 
-    @Override
-    public Object convert(Object originalData) {
-        return originalData;
+    private Field field;
+
+    public Field getField() {
+        return field;
+    }
+
+    public void setField(Field field) {
+        this.field = field;
     }
 }

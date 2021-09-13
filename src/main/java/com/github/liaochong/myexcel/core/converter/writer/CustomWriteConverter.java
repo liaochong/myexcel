@@ -18,8 +18,8 @@ import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.CustomConverter;
-import com.github.liaochong.myexcel.core.converter.DefaultCustomConverter;
+import com.github.liaochong.myexcel.core.converter.CustomWriteContext;
+import com.github.liaochong.myexcel.core.converter.DefaultCustomWriteConverter;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
 import java.lang.reflect.Field;
@@ -32,34 +32,37 @@ import java.lang.reflect.Field;
  */
 public class CustomWriteConverter implements WriteConverter {
 
-    private WeakCache<Class, CustomConverter> cache = new WeakCache<>();
+    private WeakCache<Class, com.github.liaochong.myexcel.core.converter.CustomWriteConverter> cache = new WeakCache<>();
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
-        return mapping != null && mapping.getCustomConverter() != null && mapping.getCustomConverter() != DefaultCustomConverter.class;
+        return mapping != null && mapping.getCustomWriteConverter() != null && mapping.getCustomWriteConverter() != DefaultCustomWriteConverter.class;
     }
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
-        Class<? extends CustomConverter> converter = excelColumnMapping.getCustomConverter();
+        Class<? extends com.github.liaochong.myexcel.core.converter.CustomWriteConverter> converter = excelColumnMapping.getCustomWriteConverter();
+        // 构建上下文
+        CustomWriteContext customWriteContext = new CustomWriteContext();
+        customWriteContext.setField(field);
         // 尝试绑定上下文中是否存在
         Object target = convertContext.getConfiguration().getApplicationBeans().get(converter);
         if (target != null) {
-            Object result = ((CustomConverter) target).convert(fieldVal);
+            Object result = ((com.github.liaochong.myexcel.core.converter.CustomWriteConverter) target).convert(fieldVal, customWriteContext);
             return Pair.of(result.getClass(), result);
         }
         if (cache.get(converter) == null) {
-            CustomConverter customConverter;
+            com.github.liaochong.myexcel.core.converter.CustomWriteConverter customWriteConverter;
             try {
-                customConverter = converter.newInstance();
+                customWriteConverter = converter.newInstance();
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
-            cache.cache(converter, customConverter);
+            cache.cache(converter, customWriteConverter);
         }
-        Object result = cache.get(converter).convert(fieldVal);
+        Object result = cache.get(converter).convert(fieldVal, customWriteContext);
         return Pair.of(result.getClass(), result);
     }
 }
