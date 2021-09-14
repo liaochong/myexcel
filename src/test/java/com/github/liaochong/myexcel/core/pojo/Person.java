@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.pojo;
 
-import com.github.liaochong.myexcel.core.TestMappingProvider;
+import com.github.liaochong.myexcel.core.TestCustomWriteConverter;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcelModel;
 import lombok.Data;
@@ -53,6 +53,6 @@ public class Person {
     @ExcelColumn(title = "当前时间", format = "yyyy/MM/dd HH:mm:ss", index = 6)
     LocalDateTime localDateTime;
 
-    @ExcelColumn(title = "是否结婚", mappingProvider = TestMappingProvider.class)
+    @ExcelColumn(title = "是否结婚", writeConverter = TestCustomWriteConverter.class)
     boolean married;
 }

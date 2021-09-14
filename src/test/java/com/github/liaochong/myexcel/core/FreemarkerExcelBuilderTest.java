@@ -37,7 +37,7 @@ class FreemarkerExcelBuilderTest extends BasicTest {
     public void test() throws Exception {
         try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
             Map<String, Object> dataMap = this.getDataMap();
-            Workbook workbook = excelBuilder.classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);
+            Workbook workbook = excelBuilder.workbookType(WorkbookType.XLSX).classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_build.xlsx"));
         }
     }
@@ -50,17 +50,19 @@ class FreemarkerExcelBuilderTest extends BasicTest {
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_file_build.xlsx"));
         }
     }
+
     @Test
-    public void oneSheetStrategyExample() throws Exception{
+    public void oneSheetStrategyExample() throws Exception {
         try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
             excelBuilder.sheetStrategy(SheetStrategy.ONE_SHEET);
             excelBuilder.widthStrategy(WidthStrategy.AUTO_WIDTH);
             Map<String, Object> dataMap = new HashMap<>();
-            dataMap.put("sheetName","库存盘点");
+            dataMap.put("sheetName", "库存盘点");
             Workbook workbook = excelBuilder.classpathTemplate("/templates/freemarkerToExcelOneSheetStrategyExample.ftl").build(dataMap);
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_oneSheetStrategy_build.xlsx"));
         }
     }
+
     private Map<String, Object> getDataMap() {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("sheetName", "freemarker_excel_example");
