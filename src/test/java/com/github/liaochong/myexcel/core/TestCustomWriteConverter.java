@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.converter.CustomWriteContext;
 import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
 
 /**
@@ -22,7 +23,7 @@ import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
  */
 public class TestCustomWriteConverter implements CustomWriteConverter<Boolean, String> {
     @Override
-    public String convert(Boolean originalData) {
+    public String convert(Boolean originalData, CustomWriteContext customWriteContext) {
         return originalData ? "是的" : "不是";
     }
 }
