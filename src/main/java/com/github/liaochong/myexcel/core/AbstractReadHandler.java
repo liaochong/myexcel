@@ -207,6 +207,7 @@ abstract class AbstractReadHandler<T> {
                 Row nextRow = new Row(currentRow.getRowNum() + 1);
                 if (readConfig.getRowFilter().test(nextRow)) {
                     titleRowNum = currentRow.getRowNum();
+                    this.addTitleConsumer.accept(content, colNum);
                 }
             } else {
                 this.addTitleConsumer.accept(content, colNum);
