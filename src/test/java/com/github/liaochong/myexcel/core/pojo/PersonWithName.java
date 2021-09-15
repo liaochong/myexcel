@@ -12,23 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
+package com.github.liaochong.myexcel.core.pojo;
 
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 
-import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
- * String读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String, String> {
+public class PersonWithName {
+    @ExcelColumn(title = "金钱", format = "#,000.00")
+    BigDecimal money;
 
-    @Override
-    public String convert(String obj, Field field, ConvertContext convertContext) {
-        return obj;
-    }
+    @ExcelColumn(title = "生日", format = "yyyy-MM-dd HH:mm:ss")
+    Date birthday;
+
+    @ExcelColumn(title = "当前日期", format = "yyyy/MM/dd")
+    LocalDate localDate;
 }

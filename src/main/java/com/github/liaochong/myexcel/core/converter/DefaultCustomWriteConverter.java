@@ -12,23 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
-
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
-
-import java.lang.reflect.Field;
+package com.github.liaochong.myexcel.core.converter;
 
 /**
- * String读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String, String> {
+public class DefaultCustomWriteConverter implements CustomWriteConverter<Object, Object> {
 
     @Override
-    public String convert(String obj, Field field, ConvertContext convertContext) {
-        return obj;
+    public Object convert(Object originalData, CustomWriteContext customWriteContext) {
+        return originalData;
     }
 }

@@ -23,6 +23,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 默认excel创建者
@@ -168,6 +169,16 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     public DefaultExcelBuilder<T> rowHeight(int rowHeight) {
         streamExcelBuilder.rowHeight(rowHeight);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> binding(Object... applicationBeans) {
+        streamExcelBuilder.binding(applicationBeans);
+        return this;
+    }
+
+    public DefaultExcelBuilder<T> binding(Set<Object> applicationBeans) {
+        streamExcelBuilder.binding(applicationBeans);
         return this;
     }
 

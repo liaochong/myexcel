@@ -17,7 +17,9 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -91,6 +93,11 @@ public class Configuration {
     private String decimalFormat = "";
 
     private boolean computeAutoWidth;
+
+    /**
+     * 绑定的上下文，适用spring等容器环境
+     */
+    private Map<Class<?>, Object> applicationBeans = Collections.emptyMap();
 
     public void setWidthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
@@ -227,5 +234,13 @@ public class Configuration {
 
     public void setComputeAutoWidth(boolean computeAutoWidth) {
         this.computeAutoWidth = computeAutoWidth;
+    }
+
+    public Map<Class<?>, Object> getApplicationBeans() {
+        return applicationBeans;
+    }
+
+    public void setApplicationBeans(Map<Class<?>, Object> applicationBeans) {
+        this.applicationBeans = applicationBeans;
     }
 }

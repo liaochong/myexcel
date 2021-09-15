@@ -12,23 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
+package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
-
-import java.lang.reflect.Field;
+import com.github.liaochong.myexcel.core.converter.CustomWriteContext;
+import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
 
 /**
- * String读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String, String> {
-
+public class TestCustomWriteConverter implements CustomWriteConverter<Boolean, String> {
     @Override
-    public String convert(String obj, Field field, ConvertContext convertContext) {
-        return obj;
+    public String convert(Boolean originalData, CustomWriteContext customWriteContext) {
+        return originalData ? "是的" : "不是";
     }
 }
