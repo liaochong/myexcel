@@ -30,14 +30,6 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(XSSFSaxReadHandler.class);
     private int count;
-    /**
-     * blank row count
-     */
-    private int blankCount;
-    /**
-     * is blank row
-     */
-    private boolean isBlank;
 
     public XSSFSaxReadHandler(
             List<T> result,
@@ -48,15 +40,10 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void startRow(int rowNum) {
         newRow(rowNum);
-        isBlank = true;
     }
 
     @Override
     public void endRow(int rowNum) {
-        if (isBlank) {
-            blankCount++;
-            return;
-        }
         handleResult();
         count++;
     }
@@ -64,7 +51,6 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     @Override
     public void cell(String cellReference, String formattedValue,
                      XSSFComment comment) {
-        isBlank = false;
         if (cellReference == null) {
             return;
         }
@@ -74,6 +60,6 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void endSheet() {
-        log.info("Import completed, total number of rows {},{} blank rows filtered.", count, blankCount);
+        log.info("Import completed, total number of rows {}.", count);
     }
 }

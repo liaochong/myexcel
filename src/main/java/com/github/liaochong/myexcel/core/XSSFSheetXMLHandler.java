@@ -97,6 +97,7 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
     private String formatString;
     private final DataFormatter formatter;
     private int rowNum;
+    private int preRowNum = -1;
     private int nextRowNum;      // some sheets do not have rowNums, Excel can read them so we should try to handle them correctly as well
     private String cellRef;
     private boolean formulasNotResults;
@@ -224,7 +225,14 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
             } else {
                 rowNum = nextRowNum;
             }
+            if (rowNum - 1 != preRowNum) {
+                for (int blankRowNum = preRowNum + 1; blankRowNum < rowNum; blankRowNum++) {
+                    output.startRow(blankRowNum);
+                    output.endRow(blankRowNum);
+                }
+            }
             output.startRow(rowNum);
+            this.preRowNum = rowNum;
         }
         // c => cell
         else if ("c".equals(localName)) {

@@ -82,6 +82,11 @@ abstract class AbstractReadHandler<T> {
      */
     private int titleRowNum = -1;
 
+    /**
+     * is blank row
+     */
+    protected boolean isBlankRow;
+
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
                                SaxExcelReader.ReadConfig<T> readConfig) {
@@ -188,6 +193,7 @@ abstract class AbstractReadHandler<T> {
         currentRow.setRowNum(rowNum);
         obj = newInstance.get();
         prevColNum = -1;
+        isBlankRow = true;
     }
 
     protected void setRecordAsNull() {
@@ -198,6 +204,7 @@ abstract class AbstractReadHandler<T> {
         if (obj == null || colNum < 0) {
             return;
         }
+        isBlankRow = false;
         content = readConfig.getTrim().apply(content);
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
@@ -216,6 +223,15 @@ abstract class AbstractReadHandler<T> {
     }
 
     protected void handleResult() {
+        if (isBlankRow) {
+            if (readConfig.isStopReadingOnBlankRow()) {
+                throw new StopReadException();
+            }
+            // 忽略空白行
+            if (readConfig.isIgnoreBlankRow()) {
+                return;
+            }
+        }
         this.initFieldMap();
         if (!readConfig.getRowFilter().test(currentRow)) {
             return;
