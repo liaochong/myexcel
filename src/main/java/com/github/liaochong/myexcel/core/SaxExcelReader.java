@@ -124,6 +124,16 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public SaxExcelReader<T> ignoreBlankRow() {
+        this.readConfig.ignoreBlankRow = true;
+        return this;
+    }
+
+    public SaxExcelReader<T> stopReadingOnBlankRow() {
+        this.readConfig.stopReadingOnBlankRow = true;
+        return this;
+    }
+
     public SaxExcelReader<T> startSheet(BiConsumer<String, Integer> startSheetConsumer) {
         this.readConfig.startSheetConsumer = startSheetConsumer;
         return this;
@@ -350,6 +360,14 @@ public class SaxExcelReader<T> {
         };
 
         private boolean readAllSheet;
+        /**
+         * 是否忽略空白行，默认为否
+         */
+        private boolean ignoreBlankRow = false;
+        /**
+         * 是否在遇到空白行时停止读取
+         */
+        private boolean stopReadingOnBlankRow = false;
 
         private BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
             log.info("Start read excel, sheet:{},index:{}", sheetName, sheetIndex);
@@ -469,6 +487,22 @@ public class SaxExcelReader<T> {
 
         public void setStartSheetConsumer(BiConsumer<String, Integer> startSheetConsumer) {
             this.startSheetConsumer = startSheetConsumer;
+        }
+
+        public boolean isIgnoreBlankRow() {
+            return ignoreBlankRow;
+        }
+
+        public void setIgnoreBlankRow(boolean ignoreBlankRow) {
+            this.ignoreBlankRow = ignoreBlankRow;
+        }
+
+        public boolean isStopReadingOnBlankRow() {
+            return stopReadingOnBlankRow;
+        }
+
+        public void setStopReadingOnBlankRow(boolean stopReadingOnBlankRow) {
+            this.stopReadingOnBlankRow = stopReadingOnBlankRow;
         }
     }
 }
