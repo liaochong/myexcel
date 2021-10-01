@@ -26,6 +26,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -56,6 +57,10 @@ public class DateTimeWriteConverter implements WriteConverter {
             LocalDate localDate = (LocalDate) fieldVal;
             DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
             return Pair.of(String.class, formatter.format(localDate));
+        } else if (fieldType == LocalTime.class) {
+            LocalTime localTime = (LocalTime) fieldVal;
+            DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
+            return Pair.of(String.class, formatter.format(localTime));
         }
         SimpleDateFormat simpleDateFormat = this.getSimpleDateFormat(dateFormatPattern);
         return Pair.of(String.class, simpleDateFormat.format((Date) fieldVal));
