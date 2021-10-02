@@ -88,6 +88,10 @@ public class Configuration {
      */
     private String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     /**
+     * LocalTime格式化
+     */
+    private String localTimeFormat = "HH:mm:ss";
+    /**
      * 数值类全局格式化
      */
     private String decimalFormat = "";
@@ -242,5 +246,13 @@ public class Configuration {
 
     public void setApplicationBeans(Map<Class<?>, Object> applicationBeans) {
         this.applicationBeans = applicationBeans;
+    }
+
+    public String getLocalTimeFormat() {
+        return localTimeFormat;
+    }
+
+    public void setLocalTimeFormat(String localTimeFormat) {
+        this.localTimeFormat = localTimeFormat;
     }
 }

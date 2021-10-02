@@ -66,14 +66,14 @@ public class DateTimeWriteConverter implements WriteConverter {
         return Pair.of(String.class, simpleDateFormat.format((Date) fieldVal));
     }
 
-    private String getDateFormatPattern(ConvertContext convertContext, Field field, Class<?> fieldType) {
+    protected String getDateFormatPattern(ConvertContext convertContext, Field field, Class<?> fieldType) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         if (mapping == null) {
-            return fieldType == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
+            return fieldType == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : fieldType == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         String dateFormatPattern = mapping.getFormat();
         if (dateFormatPattern.isEmpty()) {
-            dateFormatPattern = fieldType == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
+            dateFormatPattern = fieldType == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : fieldType == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         return dateFormatPattern;
     }
@@ -84,7 +84,7 @@ public class DateTimeWriteConverter implements WriteConverter {
      * @param dateFormat 时间格式化
      * @return DateTimeFormatter
      */
-    private DateTimeFormatter getDateTimeFormatter(String dateFormat) {
+    protected DateTimeFormatter getDateTimeFormatter(String dateFormat) {
         DateTimeFormatter formatter = DATETIME_FORMATTER_CONTAINER.get(dateFormat);
         if (formatter == null) {
             formatter = DateTimeFormatter.ofPattern(dateFormat);
