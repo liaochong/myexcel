@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -95,13 +96,13 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<String, 
     protected String getDateFormatPattern(Field field, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         if (mapping == null) {
-            return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
+            return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : field.getType() == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         String format = mapping.getFormat();
         if (!format.isEmpty()) {
             return format;
         }
-        return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
+        return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : field.getType() == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
     }
 
     /**
