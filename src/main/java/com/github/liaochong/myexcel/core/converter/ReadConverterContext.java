@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.LocalDateReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.LocalDateTimeReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.LocalTimeReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.NumberReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.StringReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter;
@@ -36,6 +37,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +67,7 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(Date.class, new DateReadConverter());
         READ_CONVERTERS.put(LocalDate.class, new LocalDateReadConverter());
         READ_CONVERTERS.put(LocalDateTime.class, new LocalDateTimeReadConverter());
+        READ_CONVERTERS.put(LocalTime.class, new LocalTimeReadConverter());
 
         NumberReadConverter<Double> doubleReadConverter = NumberReadConverter.of(Double::valueOf);
         READ_CONVERTERS.put(Double.class, doubleReadConverter);

@@ -26,6 +26,7 @@ import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter
 import com.github.liaochong.myexcel.core.converter.writer.DropDownListWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.ImageWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.LinkWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.LocalTimeWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MappingWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MultiWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.OriginalWriteConverter;
@@ -54,6 +55,7 @@ public class WriteConverterContext {
 
     static {
         WRITE_CONVERTER_CONTAINER.add(Pair.of(CsvConverter.class, new DateTimeWriteConverter()));
+        WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new LocalTimeWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new StringWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new BigDecimalWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new DropDownListWriteConverter()));

@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -171,7 +172,7 @@ public final class ReflectUtil {
     }
 
     public static boolean isDate(Class clazz) {
-        return clazz == Date.class || clazz == LocalDateTime.class || clazz == LocalDate.class;
+        return clazz == Date.class || clazz == LocalDateTime.class || clazz == LocalDate.class || clazz == LocalTime.class;
     }
 
     public static int sortFields(Field field1, Field field2) {
