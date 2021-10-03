@@ -30,14 +30,14 @@ import java.time.format.DateTimeFormatter;
 public class LocalTimeWriteConverter extends DateTimeWriteConverter {
 
     @Override
+    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        return LocalTime.class == fieldType;
+    }
+
+    @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         String dateFormatPattern = getDateFormatPattern(convertContext, field, fieldType);
         DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
         return Pair.of(String.class, formatter.format((LocalTime) fieldVal));
-    }
-
-    @Override
-    public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        return LocalTime.class == fieldType;
     }
 }
