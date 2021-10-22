@@ -14,11 +14,11 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
-import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.converter.Converter;
+import com.github.liaochong.myexcel.core.converter.ConvertContext;
+import com.github.liaochong.myexcel.core.converter.ReadConverter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -37,7 +38,7 @@ import java.util.regex.Pattern;
  * @author chd.y
  * @since 2.3.1
  */
-public abstract class AbstractReadConverter<R> implements Converter<String, R> {
+public abstract class AbstractReadConverter<R> implements ReadConverter<String, R> {
 
     protected static final WeakCache<String, DateTimeFormatter> DATE_TIME_FORMATTER_WEAK_CACHE = new WeakCache<>();
 
@@ -95,13 +96,13 @@ public abstract class AbstractReadConverter<R> implements Converter<String, R> {
     protected String getDateFormatPattern(Field field, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
         if (mapping == null) {
-            return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
+            return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : field.getType() == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
         }
         String format = mapping.getFormat();
         if (!format.isEmpty()) {
             return format;
         }
-        return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : convertContext.getConfiguration().getDateTimeFormat();
+        return field.getType() == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : field.getType() == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
     }
 
     /**

@@ -12,23 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
-
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
+package com.github.liaochong.myexcel.core.converter;
 
 import java.lang.reflect.Field;
 
 /**
- * String读取转换器
+ * 转换接口
  *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String, String> {
+public interface ReadConverter<E, T> {
 
-    @Override
-    public String convert(String obj, Field field, ConvertContext convertContext) {
-        return obj;
-    }
+    /**
+     * 转换
+     *
+     * @param obj            被转换对象
+     * @param field          字段，提供额外信息
+     * @param convertContext 转换上下文
+     * @return 转换结果
+     */
+    T convert(E obj, Field field, ConvertContext convertContext);
 }

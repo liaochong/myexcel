@@ -15,17 +15,18 @@
  */
 package com.github.liaochong.myexcel.core.converter;
 
-import com.github.liaochong.myexcel.core.ConvertContext;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.constant.CsvConverter;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.writer.BigDecimalWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.CustomWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.DropDownListWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.ImageWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.LinkWriteConverter;
+import com.github.liaochong.myexcel.core.converter.writer.LocalTimeWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MappingWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MultiWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.OriginalWriteConverter;
@@ -54,10 +55,12 @@ public class WriteConverterContext {
 
     static {
         WRITE_CONVERTER_CONTAINER.add(Pair.of(CsvConverter.class, new DateTimeWriteConverter()));
+        WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new LocalTimeWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new StringWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new BigDecimalWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new DropDownListWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new LinkWriteConverter()));
+        WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new CustomWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new MappingWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new ImageWriteConverter()));
         WRITE_CONVERTER_CONTAINER.add(Pair.of(AllConverter.class, new MultiWriteConverter(WRITE_CONVERTER_CONTAINER)));

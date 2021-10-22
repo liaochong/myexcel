@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>3.11.4</version>
+    <version>3.11.7</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -22,10 +22,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <poi.version>4.1.1</poi.version>
-        <jsoup.version>1.13.1</jsoup.version>
+        <poi.version>4.1.2</poi.version>
+        <jsoup.version>1.14.3</jsoup.version>
         <lombok.version>1.18.10</lombok.version>
-        <slf4j-api.version>1.7.26</slf4j-api.version>
         <beetl.version>2.9.9</beetl.version>
         <velocity.version>1.7</velocity.version>
         <freemarker.version>2.3.23</freemarker.version>
@@ -50,11 +49,6 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>${jsoup.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
             <groupId>com.ibeetl</groupId>

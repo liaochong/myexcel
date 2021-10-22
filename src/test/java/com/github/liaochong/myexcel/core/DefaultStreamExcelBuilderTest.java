@@ -168,7 +168,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .start()) {
-            data(excelBuilder, 65500);
+            data(excelBuilder, 1650500);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "big_build.xlsx"));
         }
@@ -252,6 +252,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .start()) {
             data(excelBuilder, 5000);
             Workbook workbook = excelBuilder.build();
+//            WatermarkUtil.addWatermark(workbook, "视频");
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "common_build.xlsx"));
         }
     }
@@ -288,6 +289,9 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
         List<CompletableFuture> futures = new LinkedList<>();
+        List<String> ss = new ArrayList<>();
+        ss.add("1");
+        ss.add("2");
         for (int i = 0; i < size; i++) {
             int index = i;
             CompletableFuture future = CompletableFuture.runAsync(() -> {
@@ -301,6 +305,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 commonPeople.setLocalDate(LocalDate.now());
                 commonPeople.setLocalDateTime(LocalDateTime.now());
                 commonPeople.setCats(100L);
+                commonPeople.setMarried(odd ? true : false);
                 excelBuilder.append(commonPeople);
             });
             futures.add(future);
@@ -323,6 +328,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             commonPeople.setLocalDate(LocalDate.now());
             commonPeople.setLocalDateTime(LocalDateTime.now());
             commonPeople.setCats(100L);
+            commonPeople.setMarried(odd ? true : false);
             result.add(commonPeople);
         }
         return result;

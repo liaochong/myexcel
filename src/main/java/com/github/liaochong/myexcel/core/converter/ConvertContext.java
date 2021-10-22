@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core;
+package com.github.liaochong.myexcel.core.converter;
 
+import com.github.liaochong.myexcel.core.Configuration;
+import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.constant.AllConverter;
 import com.github.liaochong.myexcel.core.constant.CsvConverter;
 

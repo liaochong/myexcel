@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core;
 
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.StopReadException;
@@ -76,6 +77,15 @@ abstract class AbstractReadHandler<T> {
      * Whether to use title for import
      */
     private boolean readWithTitle;
+    /**
+     * 标题行编号，默认为-1
+     */
+    private int titleRowNum = -1;
+
+    /**
+     * is blank row
+     */
+    protected boolean isBlankRow;
 
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
@@ -174,7 +184,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void addTitles(String formattedValue, int thisCol) {
-        if (currentRow.getRowNum() == 0) {
+        if (currentRow.getRowNum() == titleRowNum) {
             titles.put(formattedValue, thisCol);
         }
     }
@@ -183,6 +193,7 @@ abstract class AbstractReadHandler<T> {
         currentRow.setRowNum(rowNum);
         obj = newInstance.get();
         prevColNum = -1;
+        isBlankRow = true;
     }
 
     protected void setRecordAsNull() {
@@ -193,14 +204,34 @@ abstract class AbstractReadHandler<T> {
         if (obj == null || colNum < 0) {
             return;
         }
+        isBlankRow = false;
         content = readConfig.getTrim().apply(content);
-        this.addTitleConsumer.accept(content, colNum);
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
+        } else if (readWithTitle) {
+            if (titleRowNum == -1) {
+                // 尝试下一行是否为标题行
+                Row nextRow = new Row(currentRow.getRowNum() + 1);
+                if (readConfig.getRowFilter().test(nextRow)) {
+                    titleRowNum = currentRow.getRowNum();
+                    this.addTitleConsumer.accept(content, colNum);
+                }
+            } else {
+                this.addTitleConsumer.accept(content, colNum);
+            }
         }
     }
 
     protected void handleResult() {
+        if (isBlankRow) {
+            if (readConfig.isStopReadingOnBlankRow()) {
+                throw new StopReadException();
+            }
+            // 忽略空白行
+            if (readConfig.isIgnoreBlankRow()) {
+                return;
+            }
+        }
         this.initFieldMap();
         if (!readConfig.getRowFilter().test(currentRow)) {
             return;
@@ -221,7 +252,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void initFieldMap() {
-        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
+        if (currentRow.getRowNum() != titleRowNum || !fieldMap.isEmpty()) {
             return;
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
