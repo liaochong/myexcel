@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core;
 
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.StopReadException;
@@ -43,12 +44,9 @@ abstract class AbstractReadHandler<T> {
 
     private T obj;
 
-    protected Map<String, Integer> titles = new HashMap<>();
+    protected Map<Integer, String> titles = new HashMap<>();
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
-
-    private BiConsumer<String, Integer> addTitleConsumer = (v, colNum) -> {
-    };
 
     private ReadContext<T> context = new ReadContext<>();
 
@@ -76,6 +74,15 @@ abstract class AbstractReadHandler<T> {
      * Whether to use title for import
      */
     private boolean readWithTitle;
+    /**
+     * 标题行编号，默认为-1
+     */
+    private int titleRowNum = -1;
+
+    /**
+     * is blank row
+     */
+    protected boolean isBlankRow;
 
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
@@ -85,10 +92,7 @@ abstract class AbstractReadHandler<T> {
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
         boolean isMapType = dataType == Map.class;
-        if (!isMapType && fieldMap.isEmpty()) {
-            addTitleConsumer = this::addTitles;
-            readWithTitle = true;
-        }
+        readWithTitle = !isMapType && fieldMap.isEmpty();
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
         setConfiguration(dataType, isMapType);
@@ -173,16 +177,11 @@ abstract class AbstractReadHandler<T> {
         ReadConverterContext.convert(obj, context, convertContext, readConfig.getExceptionFunction());
     }
 
-    private void addTitles(String formattedValue, int thisCol) {
-        if (currentRow.getRowNum() == 0) {
-            titles.put(formattedValue, thisCol);
-        }
-    }
-
     protected void newRow(int rowNum) {
         currentRow.setRowNum(rowNum);
         obj = newInstance.get();
         prevColNum = -1;
+        isBlankRow = true;
     }
 
     protected void setRecordAsNull() {
@@ -193,14 +192,32 @@ abstract class AbstractReadHandler<T> {
         if (obj == null || colNum < 0) {
             return;
         }
+        isBlankRow = false;
         content = readConfig.getTrim().apply(content);
-        this.addTitleConsumer.accept(content, colNum);
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
+        } else if (readWithTitle) {
+            titles.put(colNum, content);
+            if (titleRowNum == -1) {
+                // 尝试下一行是否为标题行
+                Row nextRow = new Row(currentRow.getRowNum() + 1);
+                if (readConfig.getRowFilter().test(nextRow)) {
+                    titleRowNum = currentRow.getRowNum();
+                }
+            }
         }
     }
 
     protected void handleResult() {
+        if (isBlankRow) {
+            if (readConfig.isStopReadingOnBlankRow()) {
+                throw new StopReadException();
+            }
+            // 忽略空白行
+            if (readConfig.isIgnoreBlankRow()) {
+                return;
+            }
+        }
         this.initFieldMap();
         if (!readConfig.getRowFilter().test(currentRow)) {
             return;
@@ -221,13 +238,13 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void initFieldMap() {
-        if (currentRow.getRowNum() != 0 || !fieldMap.isEmpty()) {
+        if (currentRow.getRowNum() != titleRowNum || !fieldMap.isEmpty()) {
             return;
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
         fieldMap = new HashMap<>(titleFieldMap.size());
         titles.forEach((k, v) -> {
-            fieldMap.put(v, titleFieldMap.get(k));
+            fieldMap.put(k, titleFieldMap.get(v));
         });
     }
 }

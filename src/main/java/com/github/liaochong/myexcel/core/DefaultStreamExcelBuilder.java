@@ -34,9 +34,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -312,6 +314,21 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
 
     public DefaultStreamExcelBuilder<T> rowHeight(int rowHeight) {
         this.configuration.setRowHeight(rowHeight);
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> binding(Object... applicationBeans) {
+        this.binding(new HashSet<>(Arrays.asList(applicationBeans)));
+        return this;
+    }
+
+    public DefaultStreamExcelBuilder<T> binding(Set<Object> applicationBeans) {
+        if (applicationBeans.isEmpty()) {
+            log.warn("binding application beans failure");
+            return this;
+        }
+        Map<Class<?>, Object> map = applicationBeans.stream().collect(Collectors.toMap(Object::getClass, b -> b));
+        this.configuration.setApplicationBeans(map);
         return this;
     }
 

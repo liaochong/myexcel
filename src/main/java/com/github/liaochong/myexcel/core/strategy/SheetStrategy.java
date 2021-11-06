@@ -12,23 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
+package com.github.liaochong.myexcel.core.strategy;
 
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
-
-import java.lang.reflect.Field;
+import java.util.Objects;
 
 /**
- * String读取转换器
+ * table 策略
  *
- * @author liaochong
- * @version 1.0
+ * @author QingMings
+ * @since v3.11.3
  */
-public class StringReadConverter implements ReadConverter<String, String> {
+public enum SheetStrategy {
+    /**
+     * 多个table生成在同一个sheet里
+     */
+    ONE_SHEET,
+    /**
+     * 每个table各生成一个sheet
+     */
+    MULTI_SHEET;
 
-    @Override
-    public String convert(String obj, Field field, ConvertContext convertContext) {
-        return obj;
+    public static boolean isOneSheet(SheetStrategy sheetStrategy) {
+        return Objects.equals(sheetStrategy, ONE_SHEET);
+    }
+
+    public static boolean isMultiSheet(SheetStrategy sheetStrategy) {
+        return Objects.equals(sheetStrategy, MULTI_SHEET);
     }
 }

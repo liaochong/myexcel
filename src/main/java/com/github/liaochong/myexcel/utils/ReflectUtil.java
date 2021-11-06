@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 
 import java.lang.reflect.Field;
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -117,7 +119,8 @@ public final class ReflectUtil {
                 throw new IllegalStateException("Title cannot be repeated: " + title + ". Please check it.");
             }
             field.setAccessible(true);
-            fieldMap.put(title, field);
+            String[] splits = title.split(Constants.ARROW);
+            fieldMap.put(splits[splits.length - 1], field);
         }
         TITLE_FIELD_CACHE.cache(dataType, fieldMap);
         return fieldMap;
@@ -171,7 +174,7 @@ public final class ReflectUtil {
     }
 
     public static boolean isDate(Class clazz) {
-        return clazz == Date.class || clazz == LocalDateTime.class || clazz == LocalDate.class;
+        return clazz == Date.class || clazz == LocalDateTime.class || clazz == LocalDate.class || clazz == LocalTime.class;
     }
 
     public static int sortFields(Field field1, Field field2) {

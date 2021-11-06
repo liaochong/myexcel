@@ -15,6 +15,8 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.Product;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.FileExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,7 @@ class FreemarkerExcelBuilderTest extends BasicTest {
     public void test() throws Exception {
         try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
             Map<String, Object> dataMap = this.getDataMap();
-            Workbook workbook = excelBuilder.classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);
+            Workbook workbook = excelBuilder.workbookType(WorkbookType.XLSX).classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_build.xlsx"));
         }
     }
@@ -46,6 +48,18 @@ class FreemarkerExcelBuilderTest extends BasicTest {
             Map<String, Object> dataMap = this.getDataMap();
             Workbook workbook = excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates", "freemarkerToExcelExample.ftl").build(dataMap);
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_file_build.xlsx"));
+        }
+    }
+
+    @Test
+    public void oneSheetStrategyExample() throws Exception {
+        try (ExcelBuilder excelBuilder = new FreemarkerExcelBuilder()) {
+            excelBuilder.sheetStrategy(SheetStrategy.ONE_SHEET);
+            excelBuilder.widthStrategy(WidthStrategy.AUTO_WIDTH);
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("sheetName", "库存盘点");
+            Workbook workbook = excelBuilder.classpathTemplate("/templates/freemarkerToExcelOneSheetStrategyExample.ftl").build(dataMap);
+            FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "freemarker_oneSheetStrategy_build.xlsx"));
         }
     }
 

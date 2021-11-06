@@ -14,35 +14,30 @@
  */
 package com.github.liaochong.myexcel.core.converter.writer;
 
-import com.github.liaochong.myexcel.core.ExcelColumnMapping;
-import com.github.liaochong.myexcel.core.constant.FileType;
-import com.github.liaochong.myexcel.core.constant.ImageFile;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
-import java.io.File;
 import java.lang.reflect.Field;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * 图片写转换器
+ * LocalTime写转换器
  *
  * @author liaochong
  * @version 1.0
  */
-public class ImageWriteConverter implements WriteConverter {
-
-    @Override
-    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        return Pair.of(ImageFile.class, fieldVal);
-    }
+public class LocalTimeWriteConverter extends DateTimeWriteConverter {
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        if (fieldType != File.class) {
-            return false;
-        }
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
-        return mapping != null && mapping.getFileType() == FileType.IMAGE;
+        return LocalTime.class == fieldType;
+    }
+
+    @Override
+    public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
+        String dateFormatPattern = getDateFormatPattern(convertContext, field, fieldType);
+        DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
+        return Pair.of(String.class, formatter.format((LocalTime) fieldVal));
     }
 }

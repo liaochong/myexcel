@@ -15,20 +15,22 @@
 package com.github.liaochong.myexcel.core.converter.reader;
 
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
 
 import java.lang.reflect.Field;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * String读取转换器
+ * LocalTime转化
  *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String, String> {
+public class LocalTimeReadConverter extends AbstractReadConverter<LocalTime> {
 
     @Override
-    public String convert(String obj, Field field, ConvertContext convertContext) {
-        return obj;
+    protected LocalTime doConvert(String v, Field field, ConvertContext convertContext) {
+        DateTimeFormatter dateTimeFormatter = this.getDateFormatFormatter(field, convertContext);
+        return LocalTime.parse(v, dateTimeFormatter);
     }
 }
