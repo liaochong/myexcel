@@ -48,9 +48,6 @@ abstract class AbstractReadHandler<T> {
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
-    private BiConsumer<String, Integer> addTitleConsumer = (v, colNum) -> {
-    };
-
     private ReadContext<T> context = new ReadContext<>();
 
     private RowContext rowContext = new RowContext();
@@ -95,10 +92,7 @@ abstract class AbstractReadHandler<T> {
         fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
         boolean isMapType = dataType == Map.class;
-        if (!isMapType && fieldMap.isEmpty()) {
-            addTitleConsumer = this::addTitles;
-            readWithTitle = true;
-        }
+        readWithTitle = !isMapType && fieldMap.isEmpty();
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
         setConfiguration(dataType, isMapType);
@@ -183,12 +177,6 @@ abstract class AbstractReadHandler<T> {
         ReadConverterContext.convert(obj, context, convertContext, readConfig.getExceptionFunction());
     }
 
-    private void addTitles(String formattedValue, int thisCol) {
-        if (currentRow.getRowNum() == titleRowNum) {
-            titles.put(formattedValue, thisCol);
-        }
-    }
-
     protected void newRow(int rowNum) {
         currentRow.setRowNum(rowNum);
         obj = newInstance.get();
@@ -209,15 +197,13 @@ abstract class AbstractReadHandler<T> {
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
         } else if (readWithTitle) {
+            titles.put(content, colNum);
             if (titleRowNum == -1) {
                 // 尝试下一行是否为标题行
                 Row nextRow = new Row(currentRow.getRowNum() + 1);
                 if (readConfig.getRowFilter().test(nextRow)) {
                     titleRowNum = currentRow.getRowNum();
-                    this.addTitleConsumer.accept(content, colNum);
                 }
-            } else {
-                this.addTitleConsumer.accept(content, colNum);
             }
         }
     }
