@@ -44,7 +44,7 @@ abstract class AbstractReadHandler<T> {
 
     private T obj;
 
-    protected Map<String, Integer> titles = new HashMap<>();
+    protected Map<Integer, String> titles = new HashMap<>();
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
@@ -197,7 +197,7 @@ abstract class AbstractReadHandler<T> {
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
         } else if (readWithTitle) {
-            titles.put(content, colNum);
+            titles.put(colNum, content);
             if (titleRowNum == -1) {
                 // 尝试下一行是否为标题行
                 Row nextRow = new Row(currentRow.getRowNum() + 1);
@@ -244,7 +244,7 @@ abstract class AbstractReadHandler<T> {
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
         fieldMap = new HashMap<>(titleFieldMap.size());
         titles.forEach((k, v) -> {
-            fieldMap.put(v, titleFieldMap.get(k));
+            fieldMap.put(k, titleFieldMap.get(v));
         });
     }
 }
