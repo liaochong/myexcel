@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>3.11.8</version>
+    <version>3.11.9</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -24,7 +24,7 @@
         <java.version>1.8</java.version>
         <poi.version>4.1.2</poi.version>
         <jsoup.version>1.14.3</jsoup.version>
-        <lombok.version>1.18.10</lombok.version>
+        <lombok.version>1.18.22</lombok.version>
         <beetl.version>2.9.9</beetl.version>
         <velocity.version>1.7</velocity.version>
         <freemarker.version>2.3.23</freemarker.version>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-jpeg</artifactId>
-            <version>3.6</version>
+            <version>3.7.0</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -100,7 +100,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.5.2</version>
+            <version>5.8.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

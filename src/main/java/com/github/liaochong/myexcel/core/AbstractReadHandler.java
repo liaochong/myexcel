@@ -16,12 +16,14 @@ package com.github.liaochong.myexcel.core;
 
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -44,7 +46,7 @@ abstract class AbstractReadHandler<T> {
 
     private T obj;
 
-    protected Map<Integer, String> titles = new HashMap<>();
+    protected Map<Integer, Map<Integer, String>> titles = new HashMap<>();
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
@@ -197,7 +199,8 @@ abstract class AbstractReadHandler<T> {
         if (readConfig.getRowFilter().test(currentRow)) {
             fieldHandler.accept(colNum, content);
         } else if (readWithTitle) {
-            titles.put(colNum, content);
+            Map<Integer, String> rowMapping = titles.computeIfAbsent(currentRow.getRowNum(), rowNum -> new HashMap<>());
+            rowMapping.put(colNum, content);
             if (titleRowNum == -1) {
                 // 尝试下一行是否为标题行
                 Row nextRow = new Row(currentRow.getRowNum() + 1);
@@ -243,8 +246,25 @@ abstract class AbstractReadHandler<T> {
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
         fieldMap = new HashMap<>(titleFieldMap.size());
-        titles.forEach((k, v) -> {
-            fieldMap.put(k, titleFieldMap.get(v));
+        // 获取最终标题行
+        Map<Integer, String> titleMapping = titles.get(titleRowNum);
+        titleMapping.forEach((colNum, title) -> {
+            // 获取该行以上所有数据
+            StringBuilder realTitle = new StringBuilder();
+            titles.keySet().stream().sorted().forEach(rowNum -> {
+                Map<Integer, String> prevColMapping = titles.get(rowNum);
+                int realColNum = colNum;
+                for (; ; ) {
+                    String prevTitle = prevColMapping.get(realColNum);
+                    if (StringUtil.isNotBlank(prevTitle)) {
+                        realTitle.append(prevTitle).append(Constants.ARROW);
+                        return;
+                    }
+                    realColNum -= 1;
+                }
+            });
+            realTitle.append(title);
+            fieldMap.put(colNum, titleFieldMap.get(realTitle.toString()));
         });
     }
 }

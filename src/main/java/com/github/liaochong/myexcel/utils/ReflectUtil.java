@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
-import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 
 import java.lang.reflect.Field;
@@ -119,8 +118,7 @@ public final class ReflectUtil {
                 throw new IllegalStateException("Title cannot be repeated: " + title + ". Please check it.");
             }
             field.setAccessible(true);
-            String[] splits = title.split(Constants.ARROW);
-            fieldMap.put(splits[splits.length - 1], field);
+            fieldMap.put(title, field);
         }
         TITLE_FIELD_CACHE.cache(dataType, fieldMap);
         return fieldMap;
