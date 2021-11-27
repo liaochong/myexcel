@@ -49,15 +49,15 @@ abstract class AbstractReadHandler<T> {
 
     private T obj;
 
-    protected Map<Integer, Map<Integer, String>> titles = new HashMap<>();
+    protected Map<Integer, Map<Integer, String>> titles = new LinkedHashMap<>();
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
-    private ReadContext<T> context = new ReadContext<>();
+    private final ReadContext<T> context = new ReadContext<>();
 
-    private RowContext rowContext = new RowContext();
+    private final RowContext rowContext = new RowContext();
 
-    private ConvertContext convertContext;
+    private final ConvertContext convertContext;
     /**
      * Row object currently being processed
      */
@@ -255,11 +255,9 @@ abstract class AbstractReadHandler<T> {
         // 获取最终标题行
         Map<Integer, String> titleMapping = titles.get(titleRowNum);
         for (int i = 0; i < maxColNum; i++) {
-            // 获取该行以上所有数据
             StringJoiner realTitle = new StringJoiner(Constants.ARROW);
             int colNum = i;
-            final String title = titleMapping.get(i);
-            titles.keySet().stream().sorted().forEach(rowNum -> {
+            titles.keySet().forEach(rowNum -> {
                 if (rowNum == titleRowNum) {
                     return;
                 }
@@ -274,10 +272,13 @@ abstract class AbstractReadHandler<T> {
                     realColNum -= 1;
                 }
             });
+            final String title = titleMapping.get(i);
             if (StringUtil.isNotBlank(title)) {
                 realTitle.add(title);
             }
             fieldMap.put(colNum, titleFieldMap.get(realTitle.toString()));
         }
+        // 释放
+        titles = null;
     }
 }
