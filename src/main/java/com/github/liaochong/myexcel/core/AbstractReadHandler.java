@@ -26,13 +26,16 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * 读取抽象
@@ -246,25 +249,35 @@ abstract class AbstractReadHandler<T> {
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.getDataType());
         fieldMap = new HashMap<>(titleFieldMap.size());
+        // 获取最大列数
+        List<Integer> colNums = titles.values().stream().flatMap(t -> t.keySet().stream()).collect(Collectors.toList());
+        int maxColNum = Collections.max(colNums);
         // 获取最终标题行
         Map<Integer, String> titleMapping = titles.get(titleRowNum);
-        titleMapping.forEach((colNum, title) -> {
+        for (int i = 0; i < maxColNum; i++) {
             // 获取该行以上所有数据
-            StringBuilder realTitle = new StringBuilder();
+            StringJoiner realTitle = new StringJoiner(Constants.ARROW);
+            int colNum = i;
+            final String title = titleMapping.get(i);
             titles.keySet().stream().sorted().forEach(rowNum -> {
+                if (rowNum == titleRowNum) {
+                    return;
+                }
                 Map<Integer, String> prevColMapping = titles.get(rowNum);
                 int realColNum = colNum;
                 for (; ; ) {
                     String prevTitle = prevColMapping.get(realColNum);
                     if (StringUtil.isNotBlank(prevTitle)) {
-                        realTitle.append(prevTitle).append(Constants.ARROW);
+                        realTitle.add(prevTitle);
                         return;
                     }
                     realColNum -= 1;
                 }
             });
-            realTitle.append(title);
+            if (StringUtil.isNotBlank(title)) {
+                realTitle.add(title);
+            }
             fieldMap.put(colNum, titleFieldMap.get(realTitle.toString()));
-        });
+        }
     }
 }
