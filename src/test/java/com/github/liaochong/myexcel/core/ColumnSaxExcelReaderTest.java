@@ -11,16 +11,16 @@ import java.util.List;
  * @author liaochong
  * @version 1.0
  */
-class StringColumnSaxExcelReaderTest {
+class ColumnSaxExcelReaderTest {
 
     @Test
     public void testRead() throws Exception {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xlsx");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<String> strings = StringColumnSaxExcelReader.columnNum(0)
+        List<String> strings = ColumnSaxExcelReader.columnNum(0)
                 .rowFilter(row -> row.getRowNum() > 1)
-                .read(path.toFile());
+                .readAsString(path.toFile());
         System.out.println(strings.size());
     }
 
