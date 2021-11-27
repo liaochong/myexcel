@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class StringColumnSaxExcelReader {
 
-    private SaxExcelReader<Map> saxExcelReader = SaxExcelReader.of(Map.class);
+    private final SaxExcelReader<Map> saxExcelReader = SaxExcelReader.of(Map.class);
     /**
      * 默认取第一列
      */
@@ -81,6 +81,7 @@ public class StringColumnSaxExcelReader {
         return mapToString(result);
     }
 
+    @SuppressWarnings("unchecked")
     private List<String> mapToString(List<Map> result) {
         if (result == null || result.isEmpty()) {
             return Collections.emptyList();
