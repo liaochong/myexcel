@@ -51,6 +51,16 @@ public class StringColumnSaxExcelReader {
         return this;
     }
 
+    public StringColumnSaxExcelReader sheet(int sheetNum) {
+        saxExcelReader.sheet(sheetNum);
+        return this;
+    }
+
+    public StringColumnSaxExcelReader sheet(String sheetName) {
+        saxExcelReader.sheet(sheetName);
+        return this;
+    }
+
     public List<String> read(InputStream inputStream) {
         List<Map> result = saxExcelReader.read(inputStream);
         return mapToString(result);
