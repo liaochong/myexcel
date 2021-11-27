@@ -19,12 +19,12 @@ import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStrings;
 import org.slf4j.Logger;
@@ -318,7 +318,7 @@ public class SaxExcelReader<T> {
         DataFormatter formatter = new DataFormatter();
         InputSource sheetSource = new InputSource(sheetInputStream);
         try {
-            XMLReader sheetParser = SAXHelper.newXMLReader();
+            XMLReader sheetParser = XMLHelper.newXMLReader();
             ContentHandler handler = new XSSFSheetXMLHandler(
                     null, null, strings, sheetHandler, formatter, false);
             sheetParser.setContentHandler(handler);
