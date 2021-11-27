@@ -15,6 +15,7 @@
 package com.github.liaochong.myexcel.core;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,8 +51,17 @@ public class StringColumnSaxExcelReader {
         return this;
     }
 
+    public List<String> read(InputStream inputStream) {
+        List<Map> result = saxExcelReader.read(inputStream);
+        return mapToString(result);
+    }
+
     public List<String> read(File file) {
         List<Map> result = saxExcelReader.read(file);
+        return mapToString(result);
+    }
+
+    private List<String> mapToString(List<Map> result) {
         if (result == null || result.isEmpty()) {
             return Collections.emptyList();
         }
