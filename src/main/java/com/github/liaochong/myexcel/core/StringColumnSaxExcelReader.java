@@ -61,6 +61,16 @@ public class StringColumnSaxExcelReader {
         return this;
     }
 
+    public StringColumnSaxExcelReader ignoreBlankRow() {
+        saxExcelReader.ignoreBlankRow();
+        return this;
+    }
+
+    public StringColumnSaxExcelReader stopReadingOnBlankRow() {
+        saxExcelReader.stopReadingOnBlankRow();
+        return this;
+    }
+
     public List<String> read(InputStream inputStream) {
         List<Map> result = saxExcelReader.read(inputStream);
         return mapToString(result);
