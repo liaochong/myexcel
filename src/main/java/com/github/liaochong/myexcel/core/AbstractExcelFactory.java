@@ -346,7 +346,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
         }
-        Drawing<?> drawing = sheet.createDrawingPatriarch();
+        Drawing<?> drawing = sheet.getDrawingPatriarch();
+        if (drawing == null) {
+            drawing = sheet.createDrawingPatriarch();
+        }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setCol1(cell.getColumnIndex());
         anchor.setCol2(cell.getColumnIndex() + 1);
