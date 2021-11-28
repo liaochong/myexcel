@@ -227,59 +227,80 @@ public class HtmlTableParser {
             }
             tdList.add(td);
             // 斜线
-            boolean hasSlant = tdElement.hasAttr("slant");
-            if (hasSlant) {
-                String slantStr = tdElement.attr("slant");
-                if (StringUtil.isNotBlank(slantStr)) {
-                    String[] splits = slantStr.split(" ");
-                    if (splits.length != 3) {
-                        throw new IllegalArgumentException("Slash setting error");
-                    }
-                    Slant slant = new Slant(LineStyleEnum.getByName(splits[0]), splits[1], splits[2]);
-                    td.setSlant(slant);
-                } else {
-                    td.setSlant(new Slant());
-                }
-            }
-
+            this.setSlant(tdElement, td);
             // 设置每列宽度
-            if (parseConfig.isComputeAutoWidth()) {
-                int width = TdUtil.getStringWidth(td.getContent());
-                if (td.getColSpan() > 1) {
-                    int realWidth = (int) Math.ceil(width * 1.0 / td.getColSpan());
-                    for (int j = 0, span = td.getColSpan(); j < span; j++) {
-                        int colIndex = td.getCol() + j;
-                        Integer colWidth = colWidthMap.get(colIndex);
-                        if (colWidth == null || colWidth < realWidth) {
-                            colWidthMap.put(colIndex, realWidth);
-                        }
-                    }
-                } else {
-                    colWidthMap.put(td.getCol(), width);
-                }
-            }
-            String widthStr = td.getStyle().get("width");
-            if (widthStr != null) {
-                int width = TdUtil.getValue(widthStr);
-                if (width >= 0) {
-                    colWidthMap.put(td.getCol(), width);
-                }
-            }
+            this.setColumnWidth(colWidthMap, td);
+            // 批注
+            this.setComment(tdElement, td);
         }
         tr.setTdList(tdList);
         tr.setColWidthMap(colWidthMap);
     }
 
+    private void setComment(Element tdElement, Td td) {
+        String commentText = tdElement.attr("comment-text");
+        String author = tdElement.attr("comment-author");
+        if (StringUtil.isBlank(commentText) && StringUtil.isBlank(author)) {
+            return;
+        }
+        Comment comment = new Comment();
+        comment.setText(commentText);
+        comment.setAuthor(author);
+        td.setComment(comment);
+    }
+
+    private void setSlant(Element tdElement, Td td) {
+        boolean hasSlant = tdElement.hasAttr("slant");
+        if (hasSlant) {
+            String slantStr = tdElement.attr("slant");
+            if (StringUtil.isNotBlank(slantStr)) {
+                String[] splits = slantStr.split(" ");
+                if (splits.length != 3) {
+                    throw new IllegalArgumentException("Slash setting error");
+                }
+                Slant slant = new Slant(LineStyleEnum.getByName(splits[0]), splits[1], splits[2]);
+                td.setSlant(slant);
+            } else {
+                td.setSlant(new Slant());
+            }
+        }
+    }
+
+    private void setColumnWidth(Map<Integer, Integer> colWidthMap, Td td) {
+        if (parseConfig.isComputeAutoWidth()) {
+            int width = TdUtil.getStringWidth(td.getContent());
+            if (td.getColSpan() > 1) {
+                int realWidth = (int) Math.ceil(width * 1.0 / td.getColSpan());
+                for (int j = 0, span = td.getColSpan(); j < span; j++) {
+                    int colIndex = td.getCol() + j;
+                    Integer colWidth = colWidthMap.get(colIndex);
+                    if (colWidth == null || colWidth < realWidth) {
+                        colWidthMap.put(colIndex, realWidth);
+                    }
+                }
+            } else {
+                colWidthMap.put(td.getCol(), width);
+            }
+        }
+        String widthStr = td.getStyle().get("width");
+        if (widthStr != null) {
+            int width = TdUtil.getValue(widthStr);
+            if (width >= 0) {
+                colWidthMap.put(td.getCol(), width);
+            }
+        }
+    }
+
     private void setTdContent(Element tdElement, Td td) {
         Elements imgs = tdElement.getElementsByTag(HtmlTag.img.name());
-        if (imgs != null && !imgs.isEmpty()) {
+        if (!imgs.isEmpty()) {
             String src = imgs.get(0).attr("src");
             td.setFile(new File(src));
             td.setTdContentType(ContentTypeEnum.IMAGE);
             return;
         }
         Elements links = tdElement.getElementsByTag(HtmlTag.a.name());
-        if (links != null && !links.isEmpty()) {
+        if (!links.isEmpty()) {
             Element a = links.get(0);
             td.setContent(a.text());
             String href = a.attr("href").trim();

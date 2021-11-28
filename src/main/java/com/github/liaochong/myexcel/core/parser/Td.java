@@ -92,11 +92,14 @@ public class Td {
     private List<Font> fonts;
 
     private PromptContainer promptContainer;
-
     /**
      * 斜线
      */
     private Slant slant;
+    /**
+     * 批注
+     */
+    private Comment comment;
 
     public Td(int row, int col) {
         this.row = row;
@@ -259,5 +262,13 @@ public class Td {
 
     public void setSlant(Slant slant) {
         this.slant = slant;
+    }
+
+    public Comment getComment() {
+        return comment;
+    }
+
+    public void setComment(Comment comment) {
+        this.comment = comment;
     }
 }

@@ -42,6 +42,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Comment;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.DataValidation;
@@ -323,7 +324,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         // 设置斜线
         this.drawingSlant(td, sheet);
-
+        // 设置批注
+        this.setComment(td, sheet, cell);
         // 设置单元格样式
         this.setCellStyle(currentRow, cell, td);
         if (td.getCol() != td.getColBound()) {
@@ -335,6 +337,26 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.getColSpan() > 0 || td.getRowSpan() > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.getRow(), td.getRowBound(), td.getCol(), td.getColBound()));
         }
+    }
+
+    private void setComment(Td td, Sheet sheet, Cell cell) {
+        if (td.getComment() == null) {
+            return;
+        }
+        if (createHelper == null) {
+            createHelper = workbook.getCreationHelper();
+        }
+        Drawing<?> drawing = sheet.createDrawingPatriarch();
+        ClientAnchor anchor = createHelper.createClientAnchor();
+        anchor.setCol1(cell.getColumnIndex());
+        anchor.setCol2(cell.getColumnIndex() + 1);
+        anchor.setRow1(td.getRow());
+        anchor.setRow2(td.getRowBound());
+        Comment comment = drawing.createCellComment(anchor);
+        RichTextString str = createHelper.createRichTextString(td.getComment().getText());
+        comment.setString(str);
+        comment.setAuthor(td.getComment().getAuthor());
+        cell.setCellComment(comment);
     }
 
     private void drawingSlant(Td td, Sheet sheet) {
