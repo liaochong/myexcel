@@ -254,7 +254,7 @@ abstract class AbstractReadHandler<T> {
         int maxColNum = Collections.max(colNums);
         // 获取最终标题行
         Map<Integer, String> titleMapping = titles.get(titleRowNum);
-        for (int i = 0; i < maxColNum; i++) {
+        for (int i = 0; i <= maxColNum; i++) {
             StringJoiner realTitle = new StringJoiner(Constants.ARROW);
             int colNum = i;
             titles.keySet().forEach(rowNum -> {
