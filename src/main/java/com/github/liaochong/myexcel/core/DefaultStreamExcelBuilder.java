@@ -506,7 +506,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             return;
         }
         for (Table table : tables) {
-            table.getTrList().forEach(htmlToExcelStreamFactory::append);
+            table.trList.forEach(htmlToExcelStreamFactory::append);
         }
     }
 

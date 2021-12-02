@@ -24,15 +24,15 @@ public class Slant {
     /**
      * 线宽
      */
-    private double lineWidth = 0.5;
+    public double lineWidth = 0.5;
     /**
      * 线的风格
      */
-    private int lineStyle = 0;
+    public int lineStyle = 0;
     /**
      * 线的颜色
      */
-    private String lineStyleColor = "#000000";
+    public String lineStyleColor = "#000000";
 
     public Slant() {
     }
@@ -40,30 +40,6 @@ public class Slant {
     public Slant(int lineStyle, String lineWidth, String lineStyleColor) {
         this.lineWidth = Double.parseDouble(lineWidth);
         this.lineStyle = lineStyle;
-        this.lineStyleColor = lineStyleColor;
-    }
-
-    public double getLineWidth() {
-        return lineWidth;
-    }
-
-    public void setLineWidth(double lineWidth) {
-        this.lineWidth = lineWidth;
-    }
-
-    public int getLineStyle() {
-        return lineStyle;
-    }
-
-    public void setLineStyle(int lineStyle) {
-        this.lineStyle = lineStyle;
-    }
-
-    public String getLineStyleColor() {
-        return lineStyleColor;
-    }
-
-    public void setLineStyleColor(String lineStyleColor) {
         this.lineStyleColor = lineStyleColor;
     }
 }
