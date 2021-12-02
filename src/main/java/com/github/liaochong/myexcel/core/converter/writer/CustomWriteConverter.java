@@ -48,7 +48,7 @@ public class CustomWriteConverter implements WriteConverter {
         CustomWriteContext customWriteContext = new CustomWriteContext();
         customWriteContext.setField(field);
         // 尝试绑定上下文中是否存在
-        Object target = convertContext.getConfiguration().getApplicationBeans().get(converter);
+        Object target = convertContext.getConfiguration().applicationBeans.get(converter);
         if (target != null) {
             Object result = ((com.github.liaochong.myexcel.core.converter.CustomWriteConverter) target).convert(fieldVal, customWriteContext);
             return Pair.of(result.getClass(), result);

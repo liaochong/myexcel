@@ -43,7 +43,7 @@ public class BigDecimalWriteConverter implements WriteConverter {
             return Pair.of(Double.class, ((BigDecimal) fieldVal).toPlainString());
         }
         ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
-        String format = convertContext.getConfiguration().getDecimalFormat();
+        String format = convertContext.getConfiguration().decimalFormat;
         if (excelColumnMapping != null && !excelColumnMapping.getFormat().isEmpty()) {
             format = excelColumnMapping.getFormat();
         }
