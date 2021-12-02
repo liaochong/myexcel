@@ -415,7 +415,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.row, td.getRowBound(), td.col, td.getColBound());
         DataValidation dataValidation = dvHelper.createValidation(constraint, addressList);
-        dataValidation.createPromptBox(td.promptContainer.getTitle(), td.promptContainer.getText());
+        dataValidation.createPromptBox(td.promptContainer.title, td.promptContainer.text);
         dataValidation.setShowPromptBox(true);
         sheet.addValidationData(dataValidation);
     }
@@ -498,7 +498,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         DataValidation validation = dvHelper.createValidation(
                 dvConstraint, addressList);
         if (td.promptContainer != null) {
-            validation.createPromptBox(td.promptContainer.getTitle(), td.promptContainer.getText());
+            validation.createPromptBox(td.promptContainer.title, td.promptContainer.text);
             validation.setShowPromptBox(true);
         }
         if (validation instanceof XSSFDataValidation) {
