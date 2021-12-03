@@ -32,6 +32,7 @@
         <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
         <enjoy.version>4.8</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+        <common-compress.version>1.21</common-compress.version>
     </properties>
 
     <dependencies>
@@ -44,6 +45,11 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>ooxml-schemas</artifactId>
             <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>${common-compress.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>

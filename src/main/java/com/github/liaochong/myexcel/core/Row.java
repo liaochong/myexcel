@@ -32,7 +32,7 @@ public class Row {
         return this.rowNum;
     }
 
-    public void setRowNum(int rowNum) {
+    void setRowNum(int rowNum) {
         this.rowNum = rowNum;
     }
 }
