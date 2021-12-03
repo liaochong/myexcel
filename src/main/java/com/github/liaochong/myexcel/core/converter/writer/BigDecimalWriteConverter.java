@@ -39,11 +39,11 @@ public class BigDecimalWriteConverter implements WriteConverter {
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        if (!convertContext.isConvertCsv()) {
+        if (!convertContext.isConvertCsv) {
             return Pair.of(Double.class, ((BigDecimal) fieldVal).toPlainString());
         }
-        ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
-        String format = convertContext.getConfiguration().decimalFormat;
+        ExcelColumnMapping excelColumnMapping = convertContext.excelColumnMappingMap.get(field);
+        String format = convertContext.configuration.decimalFormat;
         if (excelColumnMapping != null && !excelColumnMapping.getFormat().isEmpty()) {
             format = excelColumnMapping.getFormat();
         }

@@ -143,7 +143,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.getConfiguration());
+        ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.configuration);
 
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
         fields.forEach(field -> {
@@ -152,7 +152,7 @@ abstract class AbstractReadHandler<T> {
                 return;
             }
             ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-            convertContext.getExcelColumnMappingMap().put(field, mapping);
+            convertContext.excelColumnMappingMap.put(field, mapping);
         });
     }
 

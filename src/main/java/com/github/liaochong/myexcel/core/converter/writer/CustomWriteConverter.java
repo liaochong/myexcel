@@ -36,19 +36,19 @@ public class CustomWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
         return mapping != null && mapping.getCustomWriteConverter() != null && mapping.getCustomWriteConverter() != DefaultCustomWriteConverter.class;
     }
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping excelColumnMapping = convertContext.excelColumnMappingMap.get(field);
         Class<? extends com.github.liaochong.myexcel.core.converter.CustomWriteConverter> converter = excelColumnMapping.getCustomWriteConverter();
         // 构建上下文
         CustomWriteContext customWriteContext = new CustomWriteContext();
         customWriteContext.setField(field);
         // 尝试绑定上下文中是否存在
-        Object target = convertContext.getConfiguration().applicationBeans.get(converter);
+        Object target = convertContext.configuration.applicationBeans.get(converter);
         if (target != null) {
             Object result = ((com.github.liaochong.myexcel.core.converter.CustomWriteConverter) target).convert(fieldVal, customWriteContext);
             return Pair.of(result.getClass(), result);

@@ -115,8 +115,8 @@ abstract class AbstractSimpleExcelBuilder {
 
     public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
         convertContext = new ConvertContext(isCsvBuild);
-        configuration = convertContext.getConfiguration();
-        excelColumnMappingMap = convertContext.getExcelColumnMappingMap();
+        configuration = convertContext.configuration;
+        excelColumnMappingMap = convertContext.excelColumnMappingMap;
     }
 
     /**

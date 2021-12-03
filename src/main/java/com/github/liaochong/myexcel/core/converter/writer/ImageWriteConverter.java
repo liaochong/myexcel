@@ -42,7 +42,7 @@ public class ImageWriteConverter implements WriteConverter {
         if (fieldType != File.class) {
             return false;
         }
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
         return mapping != null && mapping.getFileType() == FileType.IMAGE;
     }
 }
