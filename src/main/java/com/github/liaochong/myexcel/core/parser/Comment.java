@@ -12,27 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core;
+package com.github.liaochong.myexcel.core.parser;
 
 /**
- * 行
+ * 批注
  *
  * @author liaochong
  * @version 1.0
  */
-public class Row {
+public class Comment {
 
-    private int rowNum;
+    public String text;
 
-    public Row(int rowNum) {
-        this.rowNum = rowNum;
-    }
-
-    public int getRowNum() {
-        return this.rowNum;
-    }
-
-    void setRowNum(int rowNum) {
-        this.rowNum = rowNum;
-    }
+    public String author;
 }

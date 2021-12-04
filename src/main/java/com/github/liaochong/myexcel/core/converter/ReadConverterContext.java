@@ -116,7 +116,7 @@ public class ReadConverterContext {
         try {
             Properties properties = MAPPING_CACHE.get(context.getField());
             if (properties == null) {
-                ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(context.getField());
+                ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(context.getField());
                 if (mapping != null && !mapping.getMapping().isEmpty()) {
                     properties = PropertyUtil.getReverseProperties(mapping);
                 } else {

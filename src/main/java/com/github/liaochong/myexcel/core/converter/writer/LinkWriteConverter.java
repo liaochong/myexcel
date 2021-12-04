@@ -34,7 +34,7 @@ public class LinkWriteConverter implements WriteConverter {
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
         LinkType linkType = mapping.getLinkType();
         switch (linkType) {
             case URL:
@@ -48,7 +48,7 @@ public class LinkWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
         return mapping != null && !LinkType.NONE.equals(mapping.getLinkType());
     }
 }

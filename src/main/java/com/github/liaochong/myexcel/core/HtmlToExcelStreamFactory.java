@@ -121,7 +121,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         startTime = System.currentTimeMillis();
         if (table != null) {
-            sheetName = this.getRealSheetName(table.getCaption());
+            sheetName = this.getRealSheetName(table.caption);
         }
         Thread thread = new Thread(this::receive);
         thread.setName("myexcel-exec-" + thread.getId());
@@ -162,7 +162,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             Tr tr = this.getTrFromQueue();
             this.sheet = this.createSheet(sheetName);
             if (maxColIndex == 0) {
-                int tdSize = tr.getTdList().size();
+                int tdSize = tr.tdList.size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
             }
             int totalSize = 0;
@@ -184,7 +184,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 setTdStyle(tr);
                 appendRow(tr);
                 totalSize++;
-                tr.getColWidthMap().forEach((k, v) -> {
+                tr.colWidthMap.forEach((k, v) -> {
                     Integer val = this.colWidthMap.get(k);
                     if (val == null || v > val) {
                         this.colWidthMap.put(k, v);
@@ -205,23 +205,23 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void setTdStyle(Tr tr) {
-        if (tr.isFromTemplate()) {
+        if (tr.fromTemplate) {
             return;
         }
         context.styleParser.toggle();
         // 是否为自定义宽度
-        boolean isCustomWidth = !Objects.equals(tr.getColWidthMap(), Collections.emptyMap());
-        for (int i = 0, size = tr.getTdList().size(); i < size; i++) {
-            Td td = tr.getTdList().get(i);
-            if (td.isTh()) {
-                td.setStyle(context.styleParser.getTitleStyle("title&" + td.getCol()));
+        boolean isCustomWidth = !Objects.equals(tr.colWidthMap, Collections.emptyMap());
+        for (int i = 0, size = tr.tdList.size(); i < size; i++) {
+            Td td = tr.tdList.get(i);
+            if (td.th) {
+                td.style = context.styleParser.getTitleStyle("title&" + td.col);
             } else {
-                td.setStyle(context.styleParser.getCellStyle(i, td.getTdContentType(), td.getFormat()));
+                td.style = context.styleParser.getCellStyle(i, td.tdContentType, td.format);
             }
             if (isCustomWidth) {
-                String width = td.getStyle().get("width");
+                String width = td.style.get("width");
                 if (StringUtil.isNotBlank(width)) {
-                    tr.getColWidthMap().put(i, TdUtil.getValue(width));
+                    tr.colWidthMap.put(i, TdUtil.getValue(width));
                 }
             }
         }
@@ -365,9 +365,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void appendRow(Tr tr) {
-        tr.setIndex(rowNum);
-        tr.getTdList().forEach(td -> {
-            td.setRow(rowNum);
+        tr.index = rowNum;
+        tr.tdList.forEach(td -> {
+            td.row = rowNum;
         });
         rowNum++;
         count++;

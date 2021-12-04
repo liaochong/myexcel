@@ -43,66 +43,66 @@ public final class ConfigurationUtil {
                 return;
             }
             if (!excelTable.sheetName().isEmpty()) {
-                configuration.setSheetName(excelTable.sheetName());
+                configuration.sheetName = excelTable.sheetName();
             }
             if (!WorkbookType.isNone(excelTable.workbookType())) {
-                configuration.setWorkbookType(excelTable.workbookType());
+                configuration.workbookType = excelTable.workbookType();
             }
-            configuration.setExcludeParent(excelTable.excludeParent());
-            configuration.setIncludeAllField(excelTable.includeAllField());
+            configuration.excludeParent = excelTable.excludeParent();
+            configuration.includeAllField = excelTable.includeAllField();
             if (!excelTable.defaultValue().isEmpty()) {
-                configuration.setDefaultValue(excelTable.defaultValue());
+                configuration.defaultValue = excelTable.defaultValue();
             }
-            configuration.setWrapText(excelTable.wrapText());
+            configuration.wrapText = excelTable.wrapText();
             if (!excelTable.titleSeparator().isEmpty()) {
-                configuration.setTitleSeparator(excelTable.titleSeparator());
+                configuration.titleSeparator = excelTable.titleSeparator();
             }
-            configuration.setIgnoreStaticFields(excelTable.ignoreStaticFields());
+            configuration.ignoreStaticFields = excelTable.ignoreStaticFields();
             if (excelTable.titleRowHeight() != -1) {
-                configuration.setTitleRowHeight(excelTable.titleRowHeight());
+                configuration.titleRowHeight = excelTable.titleRowHeight();
             }
             if (excelTable.rowHeight() != -1) {
-                configuration.setRowHeight(excelTable.rowHeight());
+                configuration.rowHeight = excelTable.rowHeight();
             }
             if (excelTable.style().length != 0) {
-                configuration.getStyle().addAll(Arrays.asList(excelTable.style()));
+                configuration.style.addAll(Arrays.asList(excelTable.style()));
             }
-            configuration.setUseFieldNameAsTitle(excelTable.useFieldNameAsTitle());
+            configuration.useFieldNameAsTitle = excelTable.useFieldNameAsTitle();
         } else {
             if (!excelModel.sheetName().isEmpty()) {
-                configuration.setSheetName(excelModel.sheetName());
+                configuration.sheetName = excelModel.sheetName();
             }
             if (!WorkbookType.isNone(excelModel.workbookType())) {
-                configuration.setWorkbookType(excelModel.workbookType());
+                configuration.workbookType = excelModel.workbookType();
             }
-            configuration.setExcludeParent(excelModel.excludeParent());
-            configuration.setIncludeAllField(excelModel.includeAllField());
+            configuration.excludeParent = excelModel.excludeParent();
+            configuration.includeAllField = excelModel.includeAllField();
             if (!excelModel.defaultValue().isEmpty()) {
-                configuration.setDefaultValue(excelModel.defaultValue());
+                configuration.defaultValue = excelModel.defaultValue();
             }
-            configuration.setWrapText(excelModel.wrapText());
+            configuration.wrapText = excelModel.wrapText();
             if (!excelModel.titleSeparator().isEmpty()) {
-                configuration.setTitleSeparator(excelModel.titleSeparator());
+                configuration.titleSeparator = excelModel.titleSeparator();
             }
-            configuration.setIgnoreStaticFields(excelModel.ignoreStaticFields());
+            configuration.ignoreStaticFields = excelModel.ignoreStaticFields();
             if (excelModel.titleRowHeight() != -1) {
-                configuration.setTitleRowHeight(excelModel.titleRowHeight());
+                configuration.titleRowHeight = excelModel.titleRowHeight();
             }
             if (excelModel.rowHeight() != -1) {
-                configuration.setRowHeight(excelModel.rowHeight());
+                configuration.rowHeight = excelModel.rowHeight();
             }
             if (excelModel.style().length != 0) {
-                configuration.getStyle().addAll(Arrays.asList(excelModel.style()));
+                configuration.style.addAll(Arrays.asList(excelModel.style()));
             }
-            configuration.setUseFieldNameAsTitle(excelModel.useFieldNameAsTitle());
+            configuration.useFieldNameAsTitle = excelModel.useFieldNameAsTitle();
             if (!excelModel.decimalFormat().isEmpty()) {
-                configuration.setDecimalFormat(excelModel.decimalFormat());
+                configuration.decimalFormat = excelModel.decimalFormat();
             }
             if (!excelModel.dateFormat().isEmpty()) {
-                configuration.setDateFormat(excelModel.dateFormat());
+                configuration.dateFormat = excelModel.dateFormat();
             }
             if (!excelModel.dateTimeFormat().isEmpty()) {
-                configuration.setDateTimeFormat(excelModel.dateTimeFormat());
+                configuration.dateTimeFormat = excelModel.dateTimeFormat();
             }
         }
     }

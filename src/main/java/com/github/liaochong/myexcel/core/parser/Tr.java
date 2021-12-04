@@ -28,27 +28,27 @@ public class Tr {
     /**
      * 索引
      */
-    private int index;
+    public int index;
     /**
      * 行单元格
      */
-    private List<Td> tdList = Collections.emptyList();
+    public List<Td> tdList = Collections.emptyList();
     /**
      * 最大宽度
      */
-    private Map<Integer, Integer> colWidthMap;
+    public Map<Integer, Integer> colWidthMap;
     /**
      * 是否可见
      */
-    private boolean visibility = true;
+    public boolean visibility = true;
     /**
      * 行高度
      */
-    private int height;
+    public int height;
     /**
      * 是否来源于模板
      */
-    private boolean fromTemplate;
+    public boolean fromTemplate;
 
     public Tr(int index, int height) {
         this.index = index;
@@ -58,54 +58,6 @@ public class Tr {
     public Tr(int index, int height, boolean fromTemplate) {
         this.index = index;
         this.height = height;
-        this.fromTemplate = fromTemplate;
-    }
-
-    public int getIndex() {
-        return this.index;
-    }
-
-    public List<Td> getTdList() {
-        return this.tdList;
-    }
-
-    public Map<Integer, Integer> getColWidthMap() {
-        return this.colWidthMap;
-    }
-
-    public boolean isVisibility() {
-        return this.visibility;
-    }
-
-    public int getHeight() {
-        return this.height;
-    }
-
-    public boolean isFromTemplate() {
-        return this.fromTemplate;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public void setTdList(List<Td> tdList) {
-        this.tdList = tdList;
-    }
-
-    public void setColWidthMap(Map<Integer, Integer> colWidthMap) {
-        this.colWidthMap = colWidthMap;
-    }
-
-    public void setVisibility(boolean visibility) {
-        this.visibility = visibility;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public void setFromTemplate(boolean fromTemplate) {
         this.fromTemplate = fromTemplate;
     }
 }

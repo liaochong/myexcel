@@ -113,7 +113,7 @@ public class DefaultExcelReader<T> {
         // 全局配置获取
         if (dataType != Map.class) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.getConfiguration());
+            ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.configuration);
 
             List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             fields.forEach(field -> {
@@ -122,7 +122,7 @@ public class DefaultExcelReader<T> {
                     return;
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                convertContext.getExcelColumnMappingMap().put(field, mapping);
+                convertContext.excelColumnMappingMap.put(field, mapping);
             });
         }
     }

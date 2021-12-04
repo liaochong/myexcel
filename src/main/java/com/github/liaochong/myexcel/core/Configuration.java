@@ -30,229 +30,81 @@ public class Configuration {
     /**
      * The name of the sheet to be built
      */
-    private String sheetName;
+    public String sheetName;
     /**
      * The type of workbook to be built
      */
-    private WorkbookType workbookType = WorkbookType.SXLSX;
+    public WorkbookType workbookType = WorkbookType.SXLSX;
     /**
      * 宽度策略
      */
-    private WidthStrategy widthStrategy;
+    public WidthStrategy widthStrategy;
     /**
      * 是否排除父类字段
      */
-    private boolean excludeParent = false;
+    public boolean excludeParent = false;
     /**
      * 是否导出所有字段，否，则只导出含{@link com.github.liaochong.myexcel.core.annotation.ExcelColumn}注解字段
      */
-    private boolean includeAllField = true;
+    public boolean includeAllField = true;
     /**
      * 当对应字段的值为null时所需要替换的默认值
      */
-    private String defaultValue;
+    public String defaultValue;
     /**
      * 是否自动换行
      */
-    private boolean wrapText = true;
+    public boolean wrapText = true;
     /**
      * 多级标题所需的分离标志
      */
-    private String titleSeparator = Constants.ARROW;
+    public String titleSeparator = Constants.ARROW;
     /**
      * 是否忽略静态字段
      */
-    private boolean ignoreStaticFields = true;
+    public boolean ignoreStaticFields = true;
     /**
      * 标题行高度
      */
-    private int titleRowHeight;
+    public int titleRowHeight;
     /**
      * 内容行高度
      */
-    private int rowHeight;
+    public int rowHeight;
     /**
      * 全局样式
      */
-    private Set<String> style = new HashSet<>();
+    public Set<String> style = new HashSet<>();
     /**
      * 是否使用字段名称作为标题，当{@link com.github.liaochong.myexcel.core.annotation.ExcelColumn}设定了title，则覆盖
      */
-    private boolean useFieldNameAsTitle = false;
+    public boolean useFieldNameAsTitle = false;
     /**
      * LocalDate类型数据全局格式化
      */
-    private String dateFormat = "yyyy-MM-dd";
+    public String dateFormat = "yyyy-MM-dd";
     /**
      * Date、LocalDateTime类型数据全局格式化
      */
-    private String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+    public String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     /**
      * LocalTime格式化
      */
-    private String localTimeFormat = "HH:mm:ss";
+    public String localTimeFormat = "HH:mm:ss";
     /**
      * 数值类全局格式化
      */
-    private String decimalFormat = "";
+    public String decimalFormat = "";
 
-    private boolean computeAutoWidth;
+    public boolean computeAutoWidth;
 
     /**
      * 绑定的上下文，适用spring等容器环境
      */
-    private Map<Class<?>, Object> applicationBeans = Collections.emptyMap();
+    public Map<Class<?>, Object> applicationBeans = Collections.emptyMap();
 
     public void setWidthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;
         this.computeAutoWidth = WidthStrategy.isComputeAutoWidth(widthStrategy);
-    }
-
-    public String getSheetName() {
-        return this.sheetName;
-    }
-
-    public WorkbookType getWorkbookType() {
-        return this.workbookType;
-    }
-
-    public WidthStrategy getWidthStrategy() {
-        return this.widthStrategy;
-    }
-
-    public boolean isExcludeParent() {
-        return this.excludeParent;
-    }
-
-    public boolean isIncludeAllField() {
-        return this.includeAllField;
-    }
-
-    public String getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    public boolean isWrapText() {
-        return this.wrapText;
-    }
-
-    public String getTitleSeparator() {
-        return this.titleSeparator;
-    }
-
-    public boolean isIgnoreStaticFields() {
-        return this.ignoreStaticFields;
-    }
-
-    public int getTitleRowHeight() {
-        return this.titleRowHeight;
-    }
-
-    public int getRowHeight() {
-        return this.rowHeight;
-    }
-
-    public Set<String> getStyle() {
-        return this.style;
-    }
-
-    public boolean isUseFieldNameAsTitle() {
-        return this.useFieldNameAsTitle;
-    }
-
-    public String getDateFormat() {
-        return this.dateFormat;
-    }
-
-    public String getDateTimeFormat() {
-        return this.dateTimeFormat;
-    }
-
-    public String getDecimalFormat() {
-        return this.decimalFormat;
-    }
-
-    public boolean isComputeAutoWidth() {
-        return this.computeAutoWidth;
-    }
-
-    public void setSheetName(String sheetName) {
-        this.sheetName = sheetName;
-    }
-
-    public void setWorkbookType(WorkbookType workbookType) {
-        this.workbookType = workbookType;
-    }
-
-    public void setExcludeParent(boolean excludeParent) {
-        this.excludeParent = excludeParent;
-    }
-
-    public void setIncludeAllField(boolean includeAllField) {
-        this.includeAllField = includeAllField;
-    }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    public void setWrapText(boolean wrapText) {
-        this.wrapText = wrapText;
-    }
-
-    public void setTitleSeparator(String titleSeparator) {
-        this.titleSeparator = titleSeparator;
-    }
-
-    public void setIgnoreStaticFields(boolean ignoreStaticFields) {
-        this.ignoreStaticFields = ignoreStaticFields;
-    }
-
-    public void setTitleRowHeight(int titleRowHeight) {
-        this.titleRowHeight = titleRowHeight;
-    }
-
-    public void setRowHeight(int rowHeight) {
-        this.rowHeight = rowHeight;
-    }
-
-    public void setStyle(Set<String> style) {
-        this.style = style;
-    }
-
-    public void setUseFieldNameAsTitle(boolean useFieldNameAsTitle) {
-        this.useFieldNameAsTitle = useFieldNameAsTitle;
-    }
-
-    public void setDateFormat(String dateFormat) {
-        this.dateFormat = dateFormat;
-    }
-
-    public void setDateTimeFormat(String dateTimeFormat) {
-        this.dateTimeFormat = dateTimeFormat;
-    }
-
-    public void setDecimalFormat(String decimalFormat) {
-        this.decimalFormat = decimalFormat;
-    }
-
-    public void setComputeAutoWidth(boolean computeAutoWidth) {
-        this.computeAutoWidth = computeAutoWidth;
-    }
-
-    public Map<Class<?>, Object> getApplicationBeans() {
-        return applicationBeans;
-    }
-
-    public void setApplicationBeans(Map<Class<?>, Object> applicationBeans) {
-        this.applicationBeans = applicationBeans;
-    }
-
-    public String getLocalTimeFormat() {
-        return localTimeFormat;
-    }
-
-    public void setLocalTimeFormat(String localTimeFormat) {
-        this.localTimeFormat = localTimeFormat;
     }
 }

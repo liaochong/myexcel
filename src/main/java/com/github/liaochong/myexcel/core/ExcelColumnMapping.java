@@ -129,8 +129,8 @@ public final class ExcelColumnMapping {
         Prompt prompt = excelColumn.prompt();
         if (StringUtil.isNotBlank(prompt.text())) {
             PromptContainer promptContainer = new PromptContainer();
-            promptContainer.setTitle(prompt.title());
-            promptContainer.setText(prompt.text());
+            promptContainer.title = prompt.title();
+            promptContainer.text = prompt.text();
             result.promptContainer = promptContainer;
         }
         return result;
