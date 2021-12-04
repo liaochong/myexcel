@@ -15,10 +15,10 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.cache.StringsCache;
-import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackagePart;
 import org.apache.poi.ss.usermodel.RichTextString;
+import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.model.SharedStrings;
 import org.apache.poi.xssf.usermodel.XSSFRelation;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
@@ -44,7 +44,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
     /**
      * whether or not to concatenate phoneticRuns onto the shared string
      */
-    private final boolean includePhoneticRuns = true;
+    private final boolean includePhoneticRuns = false;
 
     /**
      * An integer representing the total count of strings in the workbook. This count does not
@@ -62,7 +62,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
     /**
      * The shared strings table.
      */
-    private StringsCache stringsCache;
+    private final StringsCache stringsCache;
 
     private int stringIndex;
 
@@ -102,7 +102,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
             pis.unread(emptyTest);
             InputSource sheetSource = new InputSource(pis);
             try {
-                XMLReader sheetParser = SAXHelper.newXMLReader();
+                XMLReader sheetParser = XMLHelper.newXMLReader();
                 sheetParser.setContentHandler(this);
                 sheetParser.parse(sheetSource);
                 stringsCache.finished();
