@@ -112,7 +112,7 @@ public class HtmlTableParser {
             Table table = new Table();
             Elements captionElements = tableElement.getElementsByTag(HtmlTag.caption.name());
             if (!captionElements.isEmpty()) {
-                table.setCaption(captionElements.first().text());
+                table.caption = captionElements.first().text();
             }
             this.parseTrOfTable(table, tableElement, StyleUtil.parseStyle(tableElement));
             return table;
@@ -149,11 +149,11 @@ public class HtmlTableParser {
             String height = trStyleMap.get("height");
             Tr tr = new Tr(index, TdUtil.getValue(height), true);
             // 行可见性
-            tr.setVisibility(!Objects.equals(trStyleMap.get("visibility"), "hidden"));
+            tr.visibility = !Objects.equals(trStyleMap.get("visibility"), "hidden");
             this.parseTdOfTr(tr, trElement, trStyleMap, seizeMap);
             return tr;
         }).collect(Collectors.toCollection(LinkedList::new));
-        table.setTrList(trList);
+        table.trList = trList;
     }
 
     /**
@@ -167,27 +167,27 @@ public class HtmlTableParser {
     private void parseTdOfTr(Tr tr, Element trElement, Map<String, String> trStyle, Map<Integer, List<Integer>> seizeMap) {
         Elements tdElements = trElement.children();
         if (tdElements.isEmpty()) {
-            tr.setTdList(Collections.emptyList());
-            tr.setColWidthMap(Collections.emptyMap());
+            tr.tdList = Collections.emptyList();
+            tr.colWidthMap = Collections.emptyMap();
             return;
         }
 
         final List<Td> tdList = new LinkedList<>();
         final Map<Integer, Integer> colWidthMap = new HashMap<>(tdElements.size());
-        List<Integer> seizeOfTr = seizeMap.getOrDefault(tr.getIndex(), Collections.emptyList());
+        List<Integer> seizeOfTr = seizeMap.getOrDefault(tr.index, Collections.emptyList());
         // 单元格偏移量
         int shift = 0;
         for (int i = 0, size = tdElements.size(); i < size; i++) {
             Element tdElement = tdElements.get(i);
-            Td td = new Td(tr.getIndex(), i + shift);
+            Td td = new Td(tr.index, i + shift);
             this.setTdContent(tdElement, td);
 
-            td.setTh(Objects.equals(HtmlTag.th.name(), tdElement.tagName()));
+            td.th = Objects.equals(HtmlTag.th.name(), tdElement.tagName());
             Map<String, String> tdStyle = StyleUtil.parseStyle(tdElement);
-            if (tdStyle.isEmpty() && ContentTypeEnum.isLink(td.getTdContentType())) {
+            if (tdStyle.isEmpty() && ContentTypeEnum.isLink(td.tdContentType)) {
                 tdStyle = defaultLinkStyle;
             }
-            td.setStyle(StyleUtil.mixStyle(trStyle, tdStyle));
+            td.style = StyleUtil.mixStyle(trStyle, tdStyle);
 
             String colSpan = tdElement.attr(HtmlTag.colspan.name());
             td.setColSpan(TdUtil.getSpan(colSpan));
@@ -198,97 +198,117 @@ public class HtmlTableParser {
             if (!seizeOfTr.isEmpty()) {
                 List<Integer> checkedPositions = new ArrayList<>();
                 while (true) {
-                    List<Integer> seizePositions = seizeOfTr.stream().filter(s -> td.getCol() >= s).collect(Collectors.toList());
+                    List<Integer> seizePositions = seizeOfTr.stream().filter(s -> td.col >= s).collect(Collectors.toList());
                     if (!checkedPositions.isEmpty()) {
                         seizePositions.removeAll(checkedPositions);
                     }
                     if (seizePositions.isEmpty()) {
                         break;
                     }
-                    td.setCol(td.getCol() + seizePositions.size());
+                    td.col = td.col + seizePositions.size();
                     checkedPositions.addAll(seizePositions);
                 }
             }
 
-            if (td.getRowSpan() > 1) {
-                for (int j = 1, length = td.getRowSpan(); j < length; j++) {
-                    int rowNum = tr.getIndex() + j;
+            if (td.rowSpan > 1) {
+                for (int j = 1, length = td.rowSpan; j < length; j++) {
+                    int rowNum = tr.index + j;
                     List<Integer> seizePosOfTr = seizeMap.get(rowNum);
                     if (Objects.isNull(seizePosOfTr)) {
                         seizePosOfTr = new ArrayList<>();
                         seizeMap.put(rowNum, seizePosOfTr);
                     }
-                    IntStream.rangeClosed(td.getCol(), td.getColBound()).forEach(seizePosOfTr::add);
+                    IntStream.rangeClosed(td.col, td.getColBound()).forEach(seizePosOfTr::add);
                 }
             }
 
-            if (td.getColSpan() > 0) {
-                shift += td.getColSpan() - 1;
+            if (td.colSpan > 0) {
+                shift += td.colSpan - 1;
             }
             tdList.add(td);
             // 斜线
-            boolean hasSlant = tdElement.hasAttr("slant");
-            if (hasSlant) {
-                String slantStr = tdElement.attr("slant");
-                if (StringUtil.isNotBlank(slantStr)) {
-                    String[] splits = slantStr.split(" ");
-                    if (splits.length != 3) {
-                        throw new IllegalArgumentException("Slash setting error");
-                    }
-                    Slant slant = new Slant(LineStyleEnum.getByName(splits[0]), splits[1], splits[2]);
-                    td.setSlant(slant);
-                } else {
-                    td.setSlant(new Slant());
-                }
-            }
-
+            this.setSlant(tdElement, td);
             // 设置每列宽度
-            if (parseConfig.isComputeAutoWidth()) {
-                int width = TdUtil.getStringWidth(td.getContent());
-                if (td.getColSpan() > 1) {
-                    int realWidth = (int) Math.ceil(width * 1.0 / td.getColSpan());
-                    for (int j = 0, span = td.getColSpan(); j < span; j++) {
-                        int colIndex = td.getCol() + j;
-                        Integer colWidth = colWidthMap.get(colIndex);
-                        if (colWidth == null || colWidth < realWidth) {
-                            colWidthMap.put(colIndex, realWidth);
-                        }
-                    }
-                } else {
-                    colWidthMap.put(td.getCol(), width);
+            this.setColumnWidth(colWidthMap, td);
+            // 批注
+            this.setComment(tdElement, td);
+        }
+        tr.tdList = tdList;
+        tr.colWidthMap = colWidthMap;
+    }
+
+    private void setComment(Element tdElement, Td td) {
+        String commentText = tdElement.attr("comment-text");
+        String author = tdElement.attr("comment-author");
+        if (StringUtil.isBlank(commentText) && StringUtil.isBlank(author)) {
+            return;
+        }
+        Comment comment = new Comment();
+        comment.text = commentText;
+        comment.author = author;
+        td.comment = comment;
+    }
+
+    private void setSlant(Element tdElement, Td td) {
+        boolean hasSlant = tdElement.hasAttr("slant");
+        if (hasSlant) {
+            String slantStr = tdElement.attr("slant");
+            if (StringUtil.isNotBlank(slantStr)) {
+                String[] splits = slantStr.split(" ");
+                if (splits.length != 3) {
+                    throw new IllegalArgumentException("Slash setting error");
                 }
-            }
-            String widthStr = td.getStyle().get("width");
-            if (widthStr != null) {
-                int width = TdUtil.getValue(widthStr);
-                if (width >= 0) {
-                    colWidthMap.put(td.getCol(), width);
-                }
+                td.slant = new Slant(LineStyleEnum.getByName(splits[0]), splits[1], splits[2]);
+            } else {
+                td.slant = new Slant();
             }
         }
-        tr.setTdList(tdList);
-        tr.setColWidthMap(colWidthMap);
+    }
+
+    private void setColumnWidth(Map<Integer, Integer> colWidthMap, Td td) {
+        if (parseConfig.isComputeAutoWidth()) {
+            int width = TdUtil.getStringWidth(td.content);
+            if (td.colSpan > 1) {
+                int realWidth = (int) Math.ceil(width * 1.0 / td.colSpan);
+                for (int j = 0, span = td.colSpan; j < span; j++) {
+                    int colIndex = td.col + j;
+                    Integer colWidth = colWidthMap.get(colIndex);
+                    if (colWidth == null || colWidth < realWidth) {
+                        colWidthMap.put(colIndex, realWidth);
+                    }
+                }
+            } else {
+                colWidthMap.put(td.col, width);
+            }
+        }
+        String widthStr = td.style.get("width");
+        if (widthStr != null) {
+            int width = TdUtil.getValue(widthStr);
+            if (width >= 0) {
+                colWidthMap.put(td.col, width);
+            }
+        }
     }
 
     private void setTdContent(Element tdElement, Td td) {
         Elements imgs = tdElement.getElementsByTag(HtmlTag.img.name());
-        if (imgs != null && !imgs.isEmpty()) {
+        if (!imgs.isEmpty()) {
             String src = imgs.get(0).attr("src");
-            td.setFile(new File(src));
-            td.setTdContentType(ContentTypeEnum.IMAGE);
+            td.file = new File(src);
+            td.tdContentType = ContentTypeEnum.IMAGE;
             return;
         }
         Elements links = tdElement.getElementsByTag(HtmlTag.a.name());
-        if (links != null && !links.isEmpty()) {
+        if (!links.isEmpty()) {
             Element a = links.get(0);
-            td.setContent(a.text());
+            td.content = a.text();
             String href = a.attr("href").trim();
-            td.setLink(href);
-            td.setTdContentType(href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL);
+            td.link = href;
+            td.tdContentType = href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL;
             return;
         }
         String content = this.parseContent(tdElement, td);
-        td.setContent(content);
+        td.content = content;
         if (StringUtil.isBlank(content)) {
             return;
         }
@@ -296,59 +316,56 @@ public class HtmlTableParser {
             return;
         }
         if (tdElement.hasAttr("double")) {
-            td.setTdContentType(ContentTypeEnum.DOUBLE);
-            td.setContent(RegexpUtil.removeComma(td.getContent()));
+            td.tdContentType = ContentTypeEnum.DOUBLE;
+            td.content = RegexpUtil.removeComma(td.content);
             return;
         }
         // 公式设置
         boolean isFormula = tdElement.hasAttr("formula");
         if (isFormula) {
-            td.setFormula(true);
-            String formula = td.getContent().trim();
+            td.formula = true;
+            String formula = td.content.trim();
             if (formula.startsWith(Constants.EQUAL)) {
                 formula = formula.substring(1);
             }
-            td.setContent(formula);
+            td.content = formula;
             return;
         }
         if (tdElement.hasAttr("url")) {
             String link = tdElement.attr("url");
-            td.setTdContentType(ContentTypeEnum.LINK_URL);
-            td.setLink(link);
+            td.tdContentType = ContentTypeEnum.LINK_URL;
+            td.link = link;
             return;
         }
         if (tdElement.hasAttr("email")) {
             String link = tdElement.attr("email");
-            td.setTdContentType(ContentTypeEnum.LINK_EMAIL);
-            td.setLink(link);
+            td.tdContentType = ContentTypeEnum.LINK_EMAIL;
+            td.link = link;
             return;
         }
         if (tdElement.hasAttr("dropDownList")) {
-            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
+            td.tdContentType = ContentTypeEnum.DROP_DOWN_LIST;
             return;
         }
         if (Constants.TRUE.equals(content) || Constants.FALSE.equals(content)) {
-            td.setTdContentType(ContentTypeEnum.BOOLEAN);
+            td.tdContentType = ContentTypeEnum.BOOLEAN;
             return;
         }
         if (DOUBLE_PATTERN.matcher(content).matches()) {
-            td.setTdContentType(ContentTypeEnum.DOUBLE);
+            td.tdContentType = ContentTypeEnum.DOUBLE;
         }
     }
 
     private String parseContent(Element tdElement, Td td) {
         Elements spans = tdElement.getElementsByTag(HtmlTag.span.name());
-        if (spans != null && !spans.isEmpty()) {
-            td.setFonts(new LinkedList<>());
+        if (!spans.isEmpty()) {
+            td.fonts = new LinkedList<>();
             if (spanText == null) {
                 spanText = new XSSFRichTextString("");
             }
             int startIndex = 0;
             for (Element spanElement : spans) {
                 String spanContent = spanElement.text();
-                if (spanContent == null) {
-                    continue;
-                }
                 spanContent = LINE_FEED_PATTERN.matcher(spanContent).replaceAll("\n");
                 spanText.setString(spanContent);
                 Font font = new Font();
@@ -358,7 +375,7 @@ public class HtmlTableParser {
                 Map<String, String> fontStyle = StyleUtil.parseStyle(spanElement);
                 if (!fontStyle.isEmpty()) {
                     font.setStyle(fontStyle);
-                    td.getFonts().add(font);
+                    td.fonts.add(font);
                 }
                 startIndex = font.getEndIndex();
             }

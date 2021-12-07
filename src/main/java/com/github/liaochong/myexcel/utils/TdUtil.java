@@ -18,7 +18,6 @@ package com.github.liaochong.myexcel.utils;
 import com.github.liaochong.myexcel.core.cache.Cache;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 
-import java.util.function.IntSupplier;
 import java.util.regex.Pattern;
 
 
@@ -36,9 +35,7 @@ public final class TdUtil {
 
     private static final Cache<String, Integer> SPAN_CACHE = new WeakCache<>();
 
-    public static int get(IntSupplier firstSupplier, IntSupplier secondSupplier) {
-        int firstValue = firstSupplier.getAsInt();
-        int secondValue = secondSupplier.getAsInt();
+    public static int get(int firstValue, int secondValue) {
         return firstValue > 0 ? secondValue + firstValue - 1 : secondValue;
     }
 

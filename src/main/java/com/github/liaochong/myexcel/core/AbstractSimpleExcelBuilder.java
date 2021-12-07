@@ -115,8 +115,8 @@ abstract class AbstractSimpleExcelBuilder {
 
     public AbstractSimpleExcelBuilder(boolean isCsvBuild) {
         convertContext = new ConvertContext(isCsvBuild);
-        configuration = convertContext.getConfiguration();
-        excelColumnMappingMap = convertContext.getExcelColumnMappingMap();
+        configuration = convertContext.configuration;
+        excelColumnMappingMap = convertContext.excelColumnMappingMap;
     }
 
     /**
@@ -139,7 +139,7 @@ abstract class AbstractSimpleExcelBuilder {
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
             String[] columnStyles = null;
             if (excelColumn != null) {
-                if (configuration.isUseFieldNameAsTitle() && excelColumn.title().isEmpty()) {
+                if (configuration.useFieldNameAsTitle && excelColumn.title().isEmpty()) {
                     titles.add(field.getName());
                 } else {
                     titles.add(excelColumn.title());
@@ -163,7 +163,7 @@ abstract class AbstractSimpleExcelBuilder {
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
                 excelColumnMappingMap.put(field, mapping);
             } else {
-                if (configuration.isUseFieldNameAsTitle()) {
+                if (configuration.useFieldNameAsTitle) {
                     titles.add(field.getName());
                 } else {
                     titles.add(null);
@@ -178,7 +178,7 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     protected void parseGlobalStyle() {
-        styleParser.parse(configuration.getStyle());
+        styleParser.parse(configuration.style);
     }
 
     private void setGlobalFormat(int i, Field field) {
@@ -186,12 +186,12 @@ abstract class AbstractSimpleExcelBuilder {
             return;
         }
         if (field.getType() == LocalDate.class) {
-            formats.put(i, configuration.getDateFormat());
+            formats.put(i, configuration.dateFormat);
         } else if (ReflectUtil.isDate(field.getType())) {
-            formats.put(i, configuration.getDateTimeFormat());
+            formats.put(i, configuration.dateTimeFormat);
         } else if (ReflectUtil.isNumber(field.getType())) {
-            if (configuration.getDecimalFormat() != null) {
-                formats.put(i, configuration.getDecimalFormat());
+            if (configuration.decimalFormat != null) {
+                formats.put(i, configuration.decimalFormat);
             }
         }
     }
@@ -203,8 +203,8 @@ abstract class AbstractSimpleExcelBuilder {
      */
     protected Table createTable() {
         Table table = new Table();
-        table.setCaption(configuration.getSheetName());
-        table.setTrList(new LinkedList<>());
+        table.caption = configuration.sheetName;
+        table.trList = new LinkedList<>();
         return table;
     }
 
@@ -225,14 +225,14 @@ abstract class AbstractSimpleExcelBuilder {
                 continue;
             }
             List<Td> tds = new ArrayList<>();
-            String[] multiTitles = title.split(configuration.getTitleSeparator());
+            String[] multiTitles = title.split(configuration.titleSeparator);
             if (multiTitles.length > titleLevel) {
                 titleLevel = multiTitles.length;
             }
             for (int j = 0; j < multiTitles.length; j++) {
                 Td td = new Td(j, i);
-                td.setTh(true);
-                td.setContent(multiTitles[j]);
+                td.th = true;
+                td.content = multiTitles[j];
                 this.setPrompt(td, i);
                 tds.add(td);
             }
@@ -242,7 +242,7 @@ abstract class AbstractSimpleExcelBuilder {
         // 调整rowSpan
         for (List<Td> tdList : tdLists) {
             Td last = tdList.get(tdList.size() - 1);
-            last.setRowSpan(titleLevel - last.getRow());
+            last.setRowSpan(titleLevel - last.row);
         }
 
         // 调整colSpan
@@ -250,25 +250,25 @@ abstract class AbstractSimpleExcelBuilder {
             int level = i;
             Map<String, List<List<Td>>> groups = tdLists.stream()
                     .filter(list -> list.size() > level)
-                    .collect(Collectors.groupingBy(list -> list.get(level).getContent()));
+                    .collect(Collectors.groupingBy(list -> list.get(level).content));
             groups.forEach((k, v) -> {
                 if (v.size() == 1) {
                     return;
                 }
                 List<Td> tds = v.stream().map(list -> list.get(level))
-                        .sorted(Comparator.comparing(Td::getCol))
+                        .sorted(Comparator.comparing(td -> td.col))
                         .collect(Collectors.toList());
 
                 List<List<Td>> subTds = new LinkedList<>();
                 // 不同跨行分别处理
-                Map<Integer, List<Td>> partitions = tds.stream().collect(Collectors.groupingBy(Td::getRowSpan));
+                Map<Integer, List<Td>> partitions = tds.stream().collect(Collectors.groupingBy(td -> td.rowSpan));
                 partitions.forEach((col, subTdList) -> {
                     // 区分开不连续列
                     int splitIndex = 0;
                     for (int j = 0, size = subTdList.size() - 1; j < size; j++) {
                         Td current = subTdList.get(j);
                         Td next = subTdList.get(j + 1);
-                        if (current.getCol() + 1 != next.getCol()) {
+                        if (current.col + 1 != next.col) {
                             List<Td> sub = subTdList.subList(splitIndex, j + 1);
                             splitIndex = j + 1;
                             if (sub.size() <= 1) {
@@ -287,25 +287,25 @@ abstract class AbstractSimpleExcelBuilder {
                     Td t = val.get(0);
                     t.setColSpan(val.size());
                     for (int j = 1; j < val.size(); j++) {
-                        val.get(j).setRow(-1);
+                        val.get(j).row = -1;
                     }
                 });
             });
         }
-        Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.getRow() > -1).collect(Collectors.groupingBy(Td::getRow));
+        Map<Integer, List<Td>> rowTds = tdLists.stream().flatMap(List::stream).filter(td -> td.row > -1).collect(Collectors.groupingBy(td -> td.row));
         List<Tr> trs = new ArrayList<>();
-        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(configuration.getWidthStrategy());
+        boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(configuration.widthStrategy);
         rowTds.forEach((k, v) -> {
-            Tr tr = new Tr(k, configuration.getTitleRowHeight());
-            tr.setColWidthMap(isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap());
-            List<Td> tds = v.stream().sorted(Comparator.comparing(Td::getCol))
+            Tr tr = new Tr(k, configuration.titleRowHeight);
+            tr.colWidthMap = isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap();
+            List<Td> tds = v.stream().sorted(Comparator.comparing(td -> td.col))
                     .peek(td -> {
                         if (isComputeAutoWidth) {
-                            tr.getColWidthMap().put(td.getCol(), TdUtil.getStringWidth(td.getContent(), 0.25));
+                            tr.colWidthMap.put(td.col, TdUtil.getStringWidth(td.content, 0.25));
                         }
                     })
                     .collect(Collectors.toList());
-            tr.setTdList(tds);
+            tr.tdList = tds;
             trs.add(tr);
         });
         return trs;
@@ -318,38 +318,38 @@ abstract class AbstractSimpleExcelBuilder {
      * @return 内容行
      */
     protected Tr createTr(List<Pair<? extends Class, ?>> contents) {
-        Tr tr = new Tr(0, configuration.getRowHeight());
+        Tr tr = new Tr(0, configuration.rowHeight);
         if (contents.isEmpty()) {
             return tr;
         }
-        tr.setColWidthMap(new HashMap<>());
+        tr.colWidthMap = new HashMap<>();
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(index -> {
             Td td = new Td(0, index);
             Pair<? extends Class, ?> pair = contents.get(index);
             this.setTdContent(td, pair);
             this.setTdContentType(td, pair.getKey());
-            td.setFormat(formats.get(index));
+            td.format = formats.get(index);
             this.setFormula(index, td);
-            this.setTdWidth(tr.getColWidthMap(), td);
+            this.setTdWidth(tr.colWidthMap, td);
             this.setPrompt(td, index);
             return td;
         }).collect(Collectors.toList());
-        customWidthMap.forEach(tr.getColWidthMap()::put);
-        tr.setTdList(tdList);
+        customWidthMap.forEach(tr.colWidthMap::put);
+        tr.tdList = tdList;
         return tr;
     }
 
     private void setTdWidth(Map<Integer, Integer> colWidthMap, Td td) {
-        if (!configuration.isComputeAutoWidth()) {
+        if (!configuration.computeAutoWidth) {
             return;
         }
-        if (td.getFormat() == null) {
-            colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getContent()));
+        if (td.format == null) {
+            colWidthMap.put(td.col, TdUtil.getStringWidth(td.content));
         } else {
-            if (td.getContent() != null && td.getFormat().length() > td.getContent().length()) {
-                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat()));
-            } else if (td.getDate() != null || td.getLocalDate() != null || td.getLocalDateTime() != null) {
-                colWidthMap.put(td.getCol(), TdUtil.getStringWidth(td.getFormat(), -0.15));
+            if (td.content != null && td.format.length() > td.content.length()) {
+                colWidthMap.put(td.col, TdUtil.getStringWidth(td.format));
+            } else if (td.date != null || td.localDate != null || td.localDateTime != null) {
+                colWidthMap.put(td.col, TdUtil.getStringWidth(td.format, -0.15));
             }
         }
     }
@@ -361,7 +361,7 @@ abstract class AbstractSimpleExcelBuilder {
         Field field = filteredFields.get(i);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.isFormula()) {
-            td.setFormula(true);
+            td.formula = true;
         }
     }
 
@@ -372,7 +372,7 @@ abstract class AbstractSimpleExcelBuilder {
         Field field = filteredFields.get(index);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.getPromptContainer() != null) {
-            td.setPromptContainer(excelColumnMapping.getPromptContainer());
+            td.promptContainer = excelColumnMapping.getPromptContainer();
         }
     }
 
@@ -382,15 +382,15 @@ abstract class AbstractSimpleExcelBuilder {
             return;
         }
         if (fieldType == Date.class) {
-            td.setDate((Date) pair.getValue());
+            td.date = (Date) pair.getValue();
         } else if (fieldType == LocalDateTime.class) {
-            td.setLocalDateTime((LocalDateTime) pair.getValue());
+            td.localDateTime = (LocalDateTime) pair.getValue();
         } else if (fieldType == LocalDate.class) {
-            td.setLocalDate((LocalDate) pair.getValue());
+            td.localDate = (LocalDate) pair.getValue();
         } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
-            td.setFile((File) pair.getValue());
+            td.file = (File) pair.getValue();
         } else {
-            td.setContent(String.valueOf(pair.getValue()));
+            td.content = String.valueOf(pair.getValue());
         }
     }
 
@@ -399,51 +399,51 @@ abstract class AbstractSimpleExcelBuilder {
             return;
         }
         if (ReflectUtil.isNumber(fieldType)) {
-            td.setTdContentType(ContentTypeEnum.DOUBLE);
+            td.tdContentType = ContentTypeEnum.DOUBLE;
             return;
         }
         if (ReflectUtil.isDate(fieldType)) {
-            td.setTdContentType(ContentTypeEnum.DATE);
+            td.tdContentType = ContentTypeEnum.DATE;
             return;
         }
         if (ReflectUtil.isBool(fieldType)) {
-            td.setTdContentType(ContentTypeEnum.BOOLEAN);
+            td.tdContentType = ContentTypeEnum.BOOLEAN;
             return;
         }
         if (fieldType == DropDownList.class) {
-            td.setTdContentType(ContentTypeEnum.DROP_DOWN_LIST);
+            td.tdContentType = ContentTypeEnum.DROP_DOWN_LIST;
             return;
         }
         if (fieldType == NumberDropDownList.class) {
-            td.setTdContentType(ContentTypeEnum.NUMBER_DROP_DOWN_LIST);
+            td.tdContentType = ContentTypeEnum.NUMBER_DROP_DOWN_LIST;
             return;
         }
         if (fieldType == BooleanDropDownList.class) {
-            td.setTdContentType(ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST);
+            td.tdContentType = ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST;
             return;
         }
-        if (td.getContent() != null && fieldType == LinkUrl.class) {
-            td.setTdContentType(ContentTypeEnum.LINK_URL);
+        if (td.content != null && fieldType == LinkUrl.class) {
+            td.tdContentType = ContentTypeEnum.LINK_URL;
             setLinkTd(td);
             return;
         }
-        if (td.getContent() != null && fieldType == LinkEmail.class) {
-            td.setTdContentType(ContentTypeEnum.LINK_EMAIL);
+        if (td.content != null && fieldType == LinkEmail.class) {
+            td.tdContentType = ContentTypeEnum.LINK_EMAIL;
             setLinkTd(td);
             return;
         }
-        if (td.getFile() != null && fieldType == ImageFile.class) {
-            td.setTdContentType(ContentTypeEnum.IMAGE);
+        if (td.file != null && fieldType == ImageFile.class) {
+            td.tdContentType = ContentTypeEnum.IMAGE;
         }
     }
 
     private void setLinkTd(Td td) {
-        String[] splits = td.getContent().split(Constants.ARROW);
+        String[] splits = td.content.split(Constants.ARROW);
         if (splits.length == 1) {
-            td.setLink(td.getContent());
+            td.link = td.content;
         } else {
-            td.setContent(splits[0]);
-            td.setLink(splits[1]);
+            td.content = splits[0];
+            td.link = splits[1];
         }
     }
 
@@ -472,14 +472,14 @@ abstract class AbstractSimpleExcelBuilder {
                     .collect(Collectors.toList());
         }
         List<Field> preElectionFields;
-        if (configuration.isIncludeAllField()) {
-            if (configuration.isExcludeParent()) {
+        if (configuration.includeAllField) {
+            if (configuration.excludeParent) {
                 preElectionFields = classFieldContainer.getDeclaredFields();
             } else {
                 preElectionFields = classFieldContainer.getFields();
             }
         } else {
-            if (configuration.isExcludeParent()) {
+            if (configuration.excludeParent) {
                 preElectionFields = classFieldContainer.getDeclaredFields().stream()
                         .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
                         .collect(Collectors.toList());
@@ -487,7 +487,7 @@ abstract class AbstractSimpleExcelBuilder {
                 preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             }
         }
-        if (configuration.isIgnoreStaticFields()) {
+        if (configuration.ignoreStaticFields) {
             preElectionFields = preElectionFields.stream()
                     .filter(field -> !Modifier.isStatic(field.getModifiers()))
                     .collect(Collectors.toList());
@@ -566,8 +566,8 @@ abstract class AbstractSimpleExcelBuilder {
                     if (defaultValue != null) {
                         return Pair.of(String.class, defaultValue);
                     }
-                    if (configuration.getDefaultValue() != null) {
-                        return Pair.of(String.class, configuration.getDefaultValue());
+                    if (configuration.defaultValue != null) {
+                        return Pair.of(String.class, configuration.defaultValue);
                     }
                     return value;
                 })

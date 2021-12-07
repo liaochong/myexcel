@@ -18,7 +18,6 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.ParseConfig;
 import com.github.liaochong.myexcel.core.parser.Table;
-import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
@@ -182,12 +181,12 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
     private void buildTablesWithMultiSheet(List<Table> tables) {
         for (int i = 0, size = tables.size(); i < size; i++) {
             Table table = tables.get(i);
-            String sheetName = this.getRealSheetName(table.getCaption());
+            String sheetName = this.getRealSheetName(table.caption);
             Sheet sheet = workbook.getSheet(sheetName);
             if (sheet == null) {
                 sheet = workbook.createSheet(sheetName);
             }
-            boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
+            boolean hasTd = table.trList.stream().map(tr -> tr.tdList).anyMatch(list -> !list.isEmpty());
             if (!hasTd) {
                 continue;
             }
@@ -205,14 +204,14 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @param tables tables
      */
     private void buildTablesWithOneSheet(List<Table> tables) {
-        String sheetName = this.getRealSheetName(tables.get(0).getCaption());
+        String sheetName = this.getRealSheetName(tables.get(0).caption);
         Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
             sheet = workbook.createSheet(sheetName);
         }
         for (int i = 0; i < tables.size(); i++) {
             Table table = tables.get(i);
-            boolean hasTd = table.getTrList().stream().map(Tr::getTdList).anyMatch(list -> !list.isEmpty());
+            boolean hasTd = table.trList.stream().map(tr -> tr.tdList).anyMatch(list -> !list.isEmpty());
             if (!hasTd) {
                 continue;
             }
@@ -229,13 +228,13 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      */
     private void setTdOfTable(Table table, Sheet sheet) {
         int maxColIndex = 0;
-        if (WidthStrategy.isAutoWidth(widthStrategy) && !table.getTrList().isEmpty()) {
-            maxColIndex = table.getTrList().parallelStream()
-                    .mapToInt(tr -> tr.getTdList().stream().mapToInt(Td::getCol).max().orElse(0))
+        if (WidthStrategy.isAutoWidth(widthStrategy) && !table.trList.isEmpty()) {
+            maxColIndex = table.trList.parallelStream()
+                    .mapToInt(tr -> tr.tdList.stream().mapToInt(td -> td.col).max().orElse(0))
                     .max()
                     .orElse(0);
         }
-        Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.getTrList());
+        Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.trList);
         // one sheet情况下重置非首个table的tr、td索引下标
         int sheetLastRowIndex = sheet.getLastRowNum();
         if (SheetStrategy.isOneSheet(sheetStrategy)) {
@@ -243,13 +242,13 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
                 sheetLastRowIndex += 1;
             }
         }
-        for (int i = 0, size = table.getTrList().size(); i < size; i++) {
-            Tr tr = table.getTrList().get(i);
+        for (int i = 0, size = table.trList.size(); i < size; i++) {
+            Tr tr = table.trList.get(i);
             this.updateTrIndex(tr, sheetLastRowIndex);
             this.createRow(tr, sheet);
-            tr.setTdList(null);
+            tr.tdList = null;
         }
-        table.setTrList(null);
+        table.trList = null;
         this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
     }
 
@@ -261,8 +260,8 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      */
     private void updateTrIndex(Tr tr, int sheetLastRowIndex) {
         if (SheetStrategy.isOneSheet(sheetStrategy)) {
-            tr.setIndex(tr.getIndex() + sheetLastRowIndex);
-            tr.getTdList().forEach(td -> td.setRow(tr.getIndex()));
+            tr.index = tr.index + sheetLastRowIndex;
+            tr.tdList.forEach(td -> td.row = tr.index);
         }
     }
 }

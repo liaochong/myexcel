@@ -23,23 +23,7 @@ import java.util.List;
  */
 public class Table {
 
-    private String caption;
+    public String caption;
 
-    private List<Tr> trList;
-
-    public String getCaption() {
-        return this.caption;
-    }
-
-    public List<Tr> getTrList() {
-        return this.trList;
-    }
-
-    public void setCaption(String caption) {
-        this.caption = caption;
-    }
-
-    public void setTrList(List<Tr> trList) {
-        this.trList = trList;
-    }
+    public List<Tr> trList;
 }

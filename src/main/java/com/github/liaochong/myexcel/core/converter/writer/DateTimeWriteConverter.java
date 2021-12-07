@@ -67,13 +67,13 @@ public class DateTimeWriteConverter implements WriteConverter {
     }
 
     protected String getDateFormatPattern(ConvertContext convertContext, Field field, Class<?> fieldType) {
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
         if (mapping == null) {
-            return fieldType == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : fieldType == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
+            return fieldType == LocalDate.class ? convertContext.configuration.dateFormat : fieldType == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;
         }
         String dateFormatPattern = mapping.getFormat();
         if (dateFormatPattern.isEmpty()) {
-            dateFormatPattern = fieldType == LocalDate.class ? convertContext.getConfiguration().getDateFormat() : fieldType == LocalTime.class ? convertContext.getConfiguration().getLocalTimeFormat() : convertContext.getConfiguration().getDateTimeFormat();
+            dateFormatPattern = fieldType == LocalDate.class ? convertContext.configuration.dateFormat : fieldType == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;
         }
         return dateFormatPattern;
     }

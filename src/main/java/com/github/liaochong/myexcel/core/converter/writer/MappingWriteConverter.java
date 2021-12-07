@@ -34,13 +34,13 @@ public class MappingWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        ExcelColumnMapping mapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
         return mapping != null && !mapping.getMapping().isEmpty();
     }
 
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        ExcelColumnMapping excelColumnMapping = convertContext.getExcelColumnMappingMap().get(field);
+        ExcelColumnMapping excelColumnMapping = convertContext.excelColumnMappingMap.get(field);
         String cacheKey = excelColumnMapping.getMapping() + "->" + fieldVal;
         Pair<Class, Object> mapping = mappingCache.get(cacheKey);
         if (mapping != null) {
