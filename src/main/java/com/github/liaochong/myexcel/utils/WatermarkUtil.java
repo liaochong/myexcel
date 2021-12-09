@@ -58,7 +58,7 @@ public class WatermarkUtil {
             return;
         }
         try {
-            if (workbook instanceof HSSFWorkbook || workbook instanceof SXSSFWorkbook) {
+            if (workbook instanceof HSSFWorkbook) {
                 throw new ExcelBuildException("Watermark can only be provided to XSSFWork.");
             }
             BufferedImage image = FontImage.createWatermarkImage(watermark);
@@ -68,7 +68,7 @@ public class WatermarkUtil {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            XSSFWorkbook xssfWorkbook = ((XSSFWorkbook) workbook);
+            XSSFWorkbook xssfWorkbook = workbook instanceof SXSSFWorkbook ? ((SXSSFWorkbook) workbook).getXSSFWorkbook() : (XSSFWorkbook) workbook;
             int pictureIdx = workbook.addPicture(os.toByteArray(), Workbook.PICTURE_TYPE_PNG);
             POIXMLDocumentPart poixmlDocumentPart = xssfWorkbook.getAllPictures().get(pictureIdx);
             PackagePartName ppn = poixmlDocumentPart.getPackagePart().getPartName();
