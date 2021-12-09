@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <poi.version>5.0.0</poi.version>
+        <poi.version>5.1.0</poi.version>
         <jsoup.version>1.14.3</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
         <beetl.version>2.9.9</beetl.version>
@@ -32,7 +32,6 @@
         <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
         <enjoy.version>4.8</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
-        <commons-compress.version>1.21</commons-compress.version>
     </properties>
 
     <dependencies>
