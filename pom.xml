@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <poi.version>4.1.2</poi.version>
+        <poi.version>5.0.0</poi.version>
         <jsoup.version>1.14.3</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
         <beetl.version>2.9.9</beetl.version>
@@ -42,20 +42,15 @@
             <version>${poi.version}</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>commons-compress</artifactId>
-                    <groupId>org.apache.commons</groupId>
+                    <groupId>org.apache.poi</groupId>
+                    <artifactId>poi-ooxml-lite</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
-            <artifactId>ooxml-schemas</artifactId>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>${commons-compress.version}</version>
+            <artifactId>poi-ooxml-full</artifactId>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
