@@ -30,6 +30,7 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ColorUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -66,6 +67,8 @@ import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -82,6 +85,8 @@ import java.util.Objects;
  * @version 1.0
  */
 public abstract class AbstractExcelFactory implements ExcelFactory {
+
+    private static Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
 
     private static final int EMU_PER_MM = 36000;
 
@@ -428,59 +433,62 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.file == null) {
             return;
         }
-        try {
-            if (createHelper == null) {
-                createHelper = workbook.getCreationHelper();
-            }
-            String fileName = td.file.getName();
-            int format;
-            String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-            switch (suffix) {
-                case "jpg":
-                case "jpeg":
-                    format = Workbook.PICTURE_TYPE_JPEG;
-                    break;
-                case "png":
-                    format = Workbook.PICTURE_TYPE_PNG;
-                    break;
-                case "dib":
-                    format = Workbook.PICTURE_TYPE_DIB;
-                    break;
-                case "emf":
-                    format = Workbook.PICTURE_TYPE_EMF;
-                    break;
-                case "pict":
-                    format = Workbook.PICTURE_TYPE_PICT;
-                    break;
-                case "wmf":
-                    format = Workbook.PICTURE_TYPE_WMF;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid image type");
-            }
-            ClientAnchor anchor = createHelper.createClientAnchor();
-            anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
-            anchor.setDx1(0);
-            anchor.setDy1(0);
-            anchor.setDx2(isHssf ? 1023 : 100 * EMU_PER_MM);
-            anchor.setDy2(isHssf ? 1023 : 99 * EMU_PER_MM);
-            anchor.setCol1(td.col);
-            anchor.setRow1(td.row);
-            anchor.setCol2(td.getColBound());
-            anchor.setRow2(td.getRowBound());
-            Drawing<?> drawing = sheet.getDrawingPatriarch();
-            if (drawing == null) {
-                drawing = sheet.createDrawingPatriarch();
-            }
-            byte[] bytes = Files.readAllBytes(td.file.toPath());
-            if (imageMapping == null) {
-                imageMapping = new HashMap<>();
-            }
-            Integer pictureIdx = imageMapping.computeIfAbsent(td.file.getAbsolutePath(), s -> workbook.addPicture(bytes, format));
-            drawing.createPicture(anchor, pictureIdx);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (createHelper == null) {
+            createHelper = workbook.getCreationHelper();
         }
+        String fileName = td.file.getName();
+        int format;
+        String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        switch (suffix) {
+            case "jpg":
+            case "jpeg":
+                format = Workbook.PICTURE_TYPE_JPEG;
+                break;
+            case "png":
+                format = Workbook.PICTURE_TYPE_PNG;
+                break;
+            case "dib":
+                format = Workbook.PICTURE_TYPE_DIB;
+                break;
+            case "emf":
+                format = Workbook.PICTURE_TYPE_EMF;
+                break;
+            case "pict":
+                format = Workbook.PICTURE_TYPE_PICT;
+                break;
+            case "wmf":
+                format = Workbook.PICTURE_TYPE_WMF;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid image type");
+        }
+        ClientAnchor anchor = createHelper.createClientAnchor();
+        anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
+        anchor.setDx1(0);
+        anchor.setDy1(0);
+        anchor.setDx2(isHssf ? 1023 : 100 * EMU_PER_MM);
+        anchor.setDy2(isHssf ? 1023 : 99 * EMU_PER_MM);
+        anchor.setCol1(td.col);
+        anchor.setRow1(td.row);
+        anchor.setCol2(td.getColBound());
+        anchor.setRow2(td.getRowBound());
+        Drawing<?> drawing = sheet.getDrawingPatriarch();
+        if (drawing == null) {
+            drawing = sheet.createDrawingPatriarch();
+        }
+        if (imageMapping == null) {
+            imageMapping = new HashMap<>();
+        }
+        Integer pictureIdx = imageMapping.computeIfAbsent(td.file.getAbsolutePath(), s -> {
+            try {
+                byte[] bytes = Files.readAllBytes(td.file.toPath());
+                return workbook.addPicture(bytes, format);
+            } catch (IOException e) {
+                logger.error("read image failure", e);
+                throw new ExcelBuildException("read image failure, path:" + td.file.getAbsolutePath(), e);
+            }
+        });
+        drawing.createPicture(anchor, pictureIdx);
     }
 
     private Cell setLink(Td td, Row currentRow, HyperlinkType hyperlinkType) {
@@ -711,6 +719,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         maxTdHeightMap = new HashMap<>();
         format = null;
         createHelper = null;
+        imageMapping = null;
     }
 
     /**
