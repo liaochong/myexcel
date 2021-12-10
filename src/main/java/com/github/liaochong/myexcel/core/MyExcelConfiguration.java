@@ -45,7 +45,7 @@ public final class MyExcelConfiguration {
             try {
                 temporaryFileDirectory = Paths.get(Paths.get(new File("").getCanonicalPath()) + "/myexcel");
                 if (!temporaryFileDirectory.toFile().exists()) {
-                    temporaryFileDirectory = Files.createDirectory(temporaryFileDirectory);
+                    Files.createDirectory(temporaryFileDirectory);
                 }
                 return temporaryFileDirectory;
             } catch (IOException e) {

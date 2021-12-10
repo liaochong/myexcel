@@ -30,76 +30,76 @@ public final class ExcelColumnMapping {
     /**
      * 列标题
      */
-    private String title;
+    public String title;
 
     /**
      * 顺序，数值越大越靠后
      */
-    private int order;
+    public int order;
 
     /**
      * 列索引，从零开始，不允许重复
      */
-    private int index;
+    public int index;
 
     /**
      * 分组
      */
-    private Class<?>[] groups;
+    public Class<?>[] groups;
 
     /**
      * 为null时默认值
      */
-    private String defaultValue;
+    public String defaultValue;
 
     /**
      * 宽度
      */
-    private int width;
+    public int width;
 
     /**
      * 是否强制转换成字符串
      */
-    private boolean convertToString;
+    public boolean convertToString;
 
     /**
      * 格式化，时间、金额等
      */
-    private String format;
+    public String format;
 
     /**
      * 样式
      */
-    private String[] style;
+    public String[] style;
 
     /**
      * 链接
      */
-    private LinkType linkType;
+    public LinkType linkType;
 
     /**
      * 简单映射，如"1:男,2:女"
      */
-    private String mapping;
+    public String mapping;
     /**
      * 自定义写转换器
      */
-    private Class<? extends CustomWriteConverter> customWriteConverter;
+    public Class<? extends CustomWriteConverter> customWriteConverter;
 
     /**
      * 文件类型
      */
-    private FileType fileType;
+    public FileType fileType;
 
     /**
      * 是否为公式
      */
-    private boolean formula;
+    public boolean formula;
 
     /**
      * 提示语
      */
-    private PromptContainer promptContainer;
+    public PromptContainer promptContainer;
 
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
@@ -134,73 +134,5 @@ public final class ExcelColumnMapping {
             result.promptContainer = promptContainer;
         }
         return result;
-    }
-
-    public String getTitle() {
-        return this.title;
-    }
-
-    public int getOrder() {
-        return this.order;
-    }
-
-    public int getIndex() {
-        return this.index;
-    }
-
-    public Class<?>[] getGroups() {
-        return this.groups;
-    }
-
-    public String getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    public int getWidth() {
-        return this.width;
-    }
-
-    public boolean isConvertToString() {
-        return this.convertToString;
-    }
-
-    public String getFormat() {
-        return this.format;
-    }
-
-    public String[] getStyle() {
-        return this.style;
-    }
-
-    public LinkType getLinkType() {
-        return this.linkType;
-    }
-
-    public String getMapping() {
-        return this.mapping;
-    }
-
-    public FileType getFileType() {
-        return this.fileType;
-    }
-
-    public boolean isFormula() {
-        return this.formula;
-    }
-
-    public PromptContainer getPromptContainer() {
-        return promptContainer;
-    }
-
-    public void setPromptContainer(PromptContainer promptContainer) {
-        this.promptContainer = promptContainer;
-    }
-
-    public Class<? extends CustomWriteConverter> getCustomWriteConverter() {
-        return customWriteConverter;
-    }
-
-    public void setCustomWriteConverter(Class<? extends CustomWriteConverter> customWriteConverter) {
-        this.customWriteConverter = customWriteConverter;
     }
 }

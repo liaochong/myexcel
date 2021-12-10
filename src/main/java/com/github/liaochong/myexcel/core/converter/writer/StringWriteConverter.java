@@ -16,7 +16,7 @@ public class StringWriteConverter implements WriteConverter {
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
-        return mapping != null && mapping.isConvertToString();
+        return mapping != null && mapping.convertToString;
     }
 
     @Override

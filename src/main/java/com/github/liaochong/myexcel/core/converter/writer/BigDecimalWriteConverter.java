@@ -44,8 +44,8 @@ public class BigDecimalWriteConverter implements WriteConverter {
         }
         ExcelColumnMapping excelColumnMapping = convertContext.excelColumnMappingMap.get(field);
         String format = convertContext.configuration.decimalFormat;
-        if (excelColumnMapping != null && !excelColumnMapping.getFormat().isEmpty()) {
-            format = excelColumnMapping.getFormat();
+        if (excelColumnMapping != null && !excelColumnMapping.format.isEmpty()) {
+            format = excelColumnMapping.format;
         }
         if (format.isEmpty()) {
             return Pair.of(Double.class, ((BigDecimal) fieldVal).toPlainString());

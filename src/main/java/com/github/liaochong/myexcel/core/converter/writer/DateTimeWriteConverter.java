@@ -71,7 +71,7 @@ public class DateTimeWriteConverter implements WriteConverter {
         if (mapping == null) {
             return fieldType == LocalDate.class ? convertContext.configuration.dateFormat : fieldType == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;
         }
-        String dateFormatPattern = mapping.getFormat();
+        String dateFormatPattern = mapping.format;
         if (dateFormatPattern.isEmpty()) {
             dateFormatPattern = fieldType == LocalDate.class ? convertContext.configuration.dateFormat : fieldType == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;
         }

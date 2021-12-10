@@ -360,7 +360,7 @@ abstract class AbstractSimpleExcelBuilder {
         }
         Field field = filteredFields.get(i);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
-        if (excelColumnMapping != null && excelColumnMapping.isFormula()) {
+        if (excelColumnMapping != null && excelColumnMapping.formula) {
             td.formula = true;
         }
     }
@@ -371,8 +371,8 @@ abstract class AbstractSimpleExcelBuilder {
         }
         Field field = filteredFields.get(index);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
-        if (excelColumnMapping != null && excelColumnMapping.getPromptContainer() != null) {
-            td.promptContainer = excelColumnMapping.getPromptContainer();
+        if (excelColumnMapping != null && excelColumnMapping.promptContainer != null) {
+            td.promptContainer = excelColumnMapping.promptContainer;
         }
     }
 
