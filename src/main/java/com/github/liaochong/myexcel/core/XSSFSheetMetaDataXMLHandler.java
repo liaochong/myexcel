@@ -65,7 +65,7 @@ public class XSSFSheetMetaDataXMLHandler extends DefaultHandler {
     @Override
     public void endDocument() throws SAXException {
         if (rowNum > 0) {
-            sheetMetaData.setLastRowNum(rowNum);
+            sheetMetaData.setLastRowNum(rowNum + 1);
         }
     }
 }

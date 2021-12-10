@@ -193,14 +193,16 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
-    public WorkbookMetaData getWorkbookMetaData(InputStream fileInputStream) {
-        this.doRead(fileInputStream, true);
-        return workbookMetaData;
+    public static WorkbookMetaData getWorkbookMetaData(InputStream fileInputStream) {
+        SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
+        saxExcelReader.doRead(fileInputStream, true);
+        return saxExcelReader.workbookMetaData;
     }
 
-    public WorkbookMetaData getWorkbookMetaData(File file) {
-        this.doRead(file, true);
-        return workbookMetaData;
+    public static WorkbookMetaData getWorkbookMetaData(File file) {
+        SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
+        saxExcelReader.doRead(file, true);
+        return saxExcelReader.workbookMetaData;
     }
 
     private void doRead(InputStream fileInputStream) {
