@@ -28,7 +28,7 @@
         <beetl.version>3.9.0.RELEASE</beetl.version>
         <velocity.version>1.7</velocity.version>
         <freemarker.version>2.3.31</freemarker.version>
-        <groovy-templates.version>2.4.13</groovy-templates.version>
+        <groovy-templates.version>3.0.9</groovy-templates.version>
         <thymeleaf.version>3.0.14.RELEASE</thymeleaf.version>
         <enjoy.version>4.9.16</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>

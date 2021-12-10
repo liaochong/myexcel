@@ -24,15 +24,9 @@ import java.util.List;
  */
 public class WorkbookMetaData {
 
-    private String workbookName;
-
     private int sheetCount;
 
     private List<SheetMetaData> sheetMetaData;
-
-    public String getWorkbookName() {
-        return workbookName;
-    }
 
     public int getSheetCount() {
         return sheetCount;
@@ -40,10 +34,6 @@ public class WorkbookMetaData {
 
     public List<SheetMetaData> getSheetMetaData() {
         return sheetMetaData;
-    }
-
-    public void setWorkbookName(String workbookName) {
-        this.workbookName = workbookName;
     }
 
     public void setSheetCount(int sheetCount) {

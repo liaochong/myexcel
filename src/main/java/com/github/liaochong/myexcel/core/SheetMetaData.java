@@ -26,6 +26,10 @@ public class SheetMetaData {
 
     private int lastRowNum;
 
+    public SheetMetaData(String sheetName) {
+        this.sheetName = sheetName;
+    }
+
     public String getSheetName() {
         return sheetName;
     }

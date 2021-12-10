@@ -61,6 +61,10 @@ public class SaxExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(SaxExcelReader.class);
+    /**
+     * 元数据
+     */
+    private WorkbookMetaData workbookMetaData;
 
     private final List<T> result = new LinkedList<>();
 
@@ -189,16 +193,34 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
+    public WorkbookMetaData getWorkbookMetaData(InputStream fileInputStream) {
+        this.doRead(fileInputStream, true);
+        return workbookMetaData;
+    }
+
+    public WorkbookMetaData getWorkbookMetaData(File file) {
+        this.doRead(file, true);
+        return workbookMetaData;
+    }
+
     private void doRead(InputStream fileInputStream) {
+        this.doRead(fileInputStream, false);
+    }
+
+    private void doRead(InputStream fileInputStream, boolean readMetaData) {
         Path path = TempFileOperator.convertToFile(fileInputStream);
         try {
-            doRead(path.toFile());
+            doRead(path.toFile(), readMetaData);
         } finally {
             TempFileOperator.deleteTempFile(path);
         }
     }
 
     private void doRead(File file) {
+        this.doRead(file, false);
+    }
+
+    private void doRead(File file, boolean readMetaData) {
         FileMagic fm;
         try (InputStream is = FileMagic.prepareToCheckMagic(new FileInputStream(file))) {
             fm = FileMagic.valueOf(is);
@@ -208,10 +230,10 @@ public class SaxExcelReader<T> {
         try {
             switch (fm) {
                 case OOXML:
-                    doReadXlsx(file);
+                    doReadXlsx(file, readMetaData);
                     break;
                 case OLE2:
-                    doReadXls(file);
+                    doReadXls(file, readMetaData);
                     break;
                 default:
                     doReadCsv(file);
@@ -221,7 +243,7 @@ public class SaxExcelReader<T> {
         }
     }
 
-    private void doReadXls(File file) {
+    private void doReadXls(File file, boolean readMetaData) {
         try {
             new HSSFSaxReadHandler<>(file, result, readConfig).process();
         } catch (StopReadException e) {
@@ -231,9 +253,13 @@ public class SaxExcelReader<T> {
         }
     }
 
-    private void doReadXlsx(File file) {
+    private void doReadXlsx(File file, boolean readMetaData) {
         try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-            process(p);
+            if (readMetaData) {
+                processMetaData(p);
+            } else {
+                process(p);
+            }
         } catch (StopReadException e) {
             // do nothing
         } catch (Exception e) {
@@ -264,33 +290,33 @@ public class SaxExcelReader<T> {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
             XSSFReader xssfReader = new XSSFReader(xlsxPackage);
             XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-            int index = 0;
+            int index = -1;
             if (readConfig.readAllSheet) {
                 while (iter.hasNext()) {
+                    ++index;
                     try (InputStream stream = iter.next()) {
                         readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                         processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                     }
-                    ++index;
                 }
             } else if (!readConfig.sheetNames.isEmpty()) {
                 while (iter.hasNext()) {
+                    ++index;
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetNames.contains(iter.getSheetName())) {
                             readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                             processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                         }
-                        ++index;
                     }
                 }
             } else {
                 while (iter.hasNext()) {
+                    ++index;
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetIndexs.contains(index)) {
                             readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                             processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                         }
-                        ++index;
                     }
                 }
             }
@@ -298,6 +324,33 @@ public class SaxExcelReader<T> {
             stringsCache.clearAll();
         }
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
+    }
+
+    private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
+        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) new XSSFReader(xlsxPackage).getSheetsData();
+        workbookMetaData = new WorkbookMetaData();
+        int index = -1;
+        while (iter.hasNext()) {
+            ++index;
+            try (InputStream stream = iter.next()) {
+                try {
+                    SheetMetaData sheetMetaData = new SheetMetaData(iter.getSheetName());
+                    XMLReader sheetParser = XMLHelper.newXMLReader();
+                    sheetParser.setContentHandler(new XSSFSheetMetaDataXMLHandler(sheetMetaData));
+                    sheetParser.parse(new InputSource(stream));
+                    // 设置元数据信息
+                    if (workbookMetaData.getSheetMetaData() == null) {
+                        workbookMetaData.setSheetMetaData(new LinkedList<>());
+                    }
+                    workbookMetaData.getSheetMetaData().add(sheetMetaData);
+                } catch (ParserConfigurationException e) {
+                    throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
+                }
+            }
+        }
+        if (index > -1) {
+            workbookMetaData.setSheetCount(index + 1);
+        }
     }
 
     /**
