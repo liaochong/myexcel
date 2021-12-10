@@ -50,7 +50,6 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.ShapeTypes;
@@ -83,6 +82,8 @@ import java.util.Objects;
  * @version 1.0
  */
 public abstract class AbstractExcelFactory implements ExcelFactory {
+
+    private static final int EMU_PER_MM = 36000;
 
     protected Workbook workbook;
     /**
@@ -133,6 +134,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private CreationHelper createHelper;
 
     private DataFormat format;
+    /**
+     * 图片路径缓存
+     */
+    private Map<String, Integer> imageMapping;
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -427,7 +432,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (createHelper == null) {
                 createHelper = workbook.getCreationHelper();
             }
-            byte[] bytes = Files.readAllBytes(td.file.toPath());
             String fileName = td.file.getName();
             int format;
             String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
@@ -454,19 +458,26 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 default:
                     throw new IllegalArgumentException("Invalid image type");
             }
-            int pictureIdx = workbook.addPicture(bytes, format);
-            Drawing drawing = sheet.createDrawingPatriarch();
             ClientAnchor anchor = createHelper.createClientAnchor();
+            anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
             anchor.setDx1(0);
             anchor.setDy1(0);
-            anchor.setDx2(100);
-            anchor.setDy2(100);
+            anchor.setDx2(isHssf ? 1023 : 100 * EMU_PER_MM);
+            anchor.setDy2(isHssf ? 1023 : 99 * EMU_PER_MM);
             anchor.setCol1(td.col);
             anchor.setRow1(td.row);
             anchor.setCol2(td.getColBound());
             anchor.setRow2(td.getRowBound());
-            Picture pict = drawing.createPicture(anchor, pictureIdx);
-            pict.resize(1, 1);
+            Drawing<?> drawing = sheet.getDrawingPatriarch();
+            if (drawing == null) {
+                drawing = sheet.createDrawingPatriarch();
+            }
+            byte[] bytes = Files.readAllBytes(td.file.toPath());
+            if (imageMapping == null) {
+                imageMapping = new HashMap<>();
+            }
+            Integer pictureIdx = imageMapping.computeIfAbsent(td.file.getAbsolutePath(), s -> workbook.addPicture(bytes, format));
+            drawing.createPicture(anchor, pictureIdx);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
