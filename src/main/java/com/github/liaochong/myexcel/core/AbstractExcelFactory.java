@@ -651,7 +651,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (freezePane == null) {
                 throw new IllegalStateException("FreezePane is null");
             }
-            sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
+            sheet.createFreezePane(freezePane.colSplit, freezePane.rowSplit);
         }
     }
 

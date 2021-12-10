@@ -326,7 +326,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             sheet.createFreezePane(0, titles.size());
         }
         if (context.freezePane != null) {
-            sheet.createFreezePane(context.freezePane.getColSplit(), context.freezePane.getRowSplit());
+            sheet.createFreezePane(context.freezePane.colSplit, context.freezePane.rowSplit);
         }
     }
 

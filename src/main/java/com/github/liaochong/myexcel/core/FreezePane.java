@@ -24,23 +24,15 @@ public class FreezePane {
     /**
      * 从左到右需固定列数
      */
-    private final int colSplit;
+    final int colSplit;
 
     /**
      * 从上到下需固定行数
      */
-    private final int rowSplit;
+    final int rowSplit;
 
     public FreezePane(int rowSplit, int colSplit) {
         this.colSplit = colSplit;
         this.rowSplit = rowSplit;
-    }
-
-    public int getColSplit() {
-        return this.colSplit;
-    }
-
-    public int getRowSplit() {
-        return this.rowSplit;
     }
 }
