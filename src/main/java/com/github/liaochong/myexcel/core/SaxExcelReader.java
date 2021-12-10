@@ -330,179 +330,51 @@ public class SaxExcelReader<T> {
 
     public static final class ReadConfig<T> {
 
-        private Class<T> dataType;
+        public Class<T> dataType;
 
-        private Set<String> sheetNames = new HashSet<>();
+        public Set<String> sheetNames = new HashSet<>();
 
-        private Set<Integer> sheetIndexs = new HashSet<>();
+        public Set<Integer> sheetIndexs = new HashSet<>();
 
-        private Consumer<T> consumer;
+        public Consumer<T> consumer;
 
-        private BiConsumer<T, RowContext> contextConsumer;
+        public BiConsumer<T, RowContext> contextConsumer;
 
-        private Function<T, Boolean> function;
+        public Function<T, Boolean> function;
 
-        private BiFunction<T, RowContext, Boolean> contextFunction;
+        public BiFunction<T, RowContext, Boolean> contextFunction;
 
-        private Predicate<Row> rowFilter = row -> true;
+        public Predicate<Row> rowFilter = row -> true;
 
-        private Predicate<T> beanFilter = bean -> true;
+        public Predicate<T> beanFilter = bean -> true;
 
-        private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
+        public BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
-        private String charset = "UTF-8";
+        public String charset = "UTF-8";
 
-        private Function<String, String> trim = v -> {
+        public Function<String, String> trim = v -> {
             if (v == null) {
                 return v;
             }
             return v.trim();
         };
 
-        private boolean readAllSheet;
+        public boolean readAllSheet;
         /**
          * 是否忽略空白行，默认为否
          */
-        private boolean ignoreBlankRow = false;
+        public boolean ignoreBlankRow = false;
         /**
          * 是否在遇到空白行时停止读取
          */
-        private boolean stopReadingOnBlankRow = false;
+        public boolean stopReadingOnBlankRow = false;
 
-        private BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
+        public BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
             log.info("Start read excel, sheet:{},index:{}", sheetName, sheetIndex);
         };
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
-        }
-
-        public Class<T> getDataType() {
-            return this.dataType;
-        }
-
-        public Set<String> getSheetNames() {
-            return this.sheetNames;
-        }
-
-        public Set<Integer> getSheetIndexs() {
-            return this.sheetIndexs;
-        }
-
-        public Consumer<T> getConsumer() {
-            return this.consumer;
-        }
-
-        public BiConsumer<T, RowContext> getContextConsumer() {
-            return this.contextConsumer;
-        }
-
-        public Function<T, Boolean> getFunction() {
-            return this.function;
-        }
-
-        public BiFunction<T, RowContext, Boolean> getContextFunction() {
-            return this.contextFunction;
-        }
-
-        public Predicate<Row> getRowFilter() {
-            return this.rowFilter;
-        }
-
-        public Predicate<T> getBeanFilter() {
-            return this.beanFilter;
-        }
-
-        public BiFunction<Throwable, ReadContext, Boolean> getExceptionFunction() {
-            return this.exceptionFunction;
-        }
-
-        public String getCharset() {
-            return this.charset;
-        }
-
-        public Function<String, String> getTrim() {
-            return this.trim;
-        }
-
-        public void setDataType(Class<T> dataType) {
-            this.dataType = dataType;
-        }
-
-        public void setSheetNames(Set<String> sheetNames) {
-            this.sheetNames = sheetNames;
-        }
-
-        public void setSheetIndexs(Set<Integer> sheetIndexs) {
-            this.sheetIndexs = sheetIndexs;
-        }
-
-        public void setConsumer(Consumer<T> consumer) {
-            this.consumer = consumer;
-        }
-
-        public void setContextConsumer(BiConsumer<T, RowContext> contextConsumer) {
-            this.contextConsumer = contextConsumer;
-        }
-
-        public void setFunction(Function<T, Boolean> function) {
-            this.function = function;
-        }
-
-        public void setContextFunction(BiFunction<T, RowContext, Boolean> contextFunction) {
-            this.contextFunction = contextFunction;
-        }
-
-        public void setRowFilter(Predicate<Row> rowFilter) {
-            this.rowFilter = rowFilter;
-        }
-
-        public void setBeanFilter(Predicate<T> beanFilter) {
-            this.beanFilter = beanFilter;
-        }
-
-        public void setExceptionFunction(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
-            this.exceptionFunction = exceptionFunction;
-        }
-
-        public void setCharset(String charset) {
-            this.charset = charset;
-        }
-
-        public void setTrim(Function<String, String> trim) {
-            this.trim = trim;
-        }
-
-        public boolean isReadAllSheet() {
-            return readAllSheet;
-        }
-
-        public void setReadAllSheet(boolean readAllSheet) {
-            this.readAllSheet = readAllSheet;
-        }
-
-        public BiConsumer<String, Integer> getStartSheetConsumer() {
-            return startSheetConsumer;
-        }
-
-        public void setStartSheetConsumer(BiConsumer<String, Integer> startSheetConsumer) {
-            this.startSheetConsumer = startSheetConsumer;
-        }
-
-        public boolean isIgnoreBlankRow() {
-            return ignoreBlankRow;
-        }
-
-        public void setIgnoreBlankRow(boolean ignoreBlankRow) {
-            this.ignoreBlankRow = ignoreBlankRow;
-        }
-
-        public boolean isStopReadingOnBlankRow() {
-            return stopReadingOnBlankRow;
-        }
-
-        public void setStopReadingOnBlankRow(boolean stopReadingOnBlankRow) {
-            this.stopReadingOnBlankRow = stopReadingOnBlankRow;
         }
     }
 }
