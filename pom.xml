@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>3.12.1</version>
+    <version>4.0.0.RC</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -25,13 +25,15 @@
         <poi.version>5.1.0</poi.version>
         <jsoup.version>1.14.3</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
-        <beetl.version>2.9.9</beetl.version>
+        <beetl.version>3.9.0.RELEASE</beetl.version>
         <velocity.version>1.7</velocity.version>
-        <freemarker.version>2.3.23</freemarker.version>
+        <freemarker.version>2.3.31</freemarker.version>
         <groovy-templates.version>2.4.13</groovy-templates.version>
         <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
-        <enjoy.version>4.8</enjoy.version>
+        <enjoy.version>4.9.16</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+        <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
+        <imageio-jpeg.version>3.7.0</imageio-jpeg.version>
     </properties>
 
     <dependencies>
@@ -95,7 +97,7 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-jpeg</artifactId>
-            <version>3.7.0</version>
+            <version>${imageio-jpeg.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -106,7 +108,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.1</version>
+            <version>${junit-jupiter-api.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
