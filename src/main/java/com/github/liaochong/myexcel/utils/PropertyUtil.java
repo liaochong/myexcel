@@ -47,7 +47,7 @@ public final class PropertyUtil {
         if (properties != null) {
             return properties;
         }
-        String[] mappingGroups = excelColumnMapping.getMapping().split(Constants.COMMA);
+        String[] mappingGroups = excelColumnMapping.mapping.split(Constants.COMMA);
         if (mappingGroups.length == 0) {
             mappingCache.cache(excelColumnMapping, EMPTY_PROPERTIES);
             return EMPTY_PROPERTIES;
