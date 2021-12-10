@@ -266,10 +266,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         } else {
             String content = td.content;
             switch (td.tdContentType) {
-                case STRING:
-                    cell = currentRow.createCell(td.col, CellType.STRING);
-                    cell.setCellValue(content);
-                    break;
                 case DOUBLE:
                     cell = currentRow.createCell(td.col, CellType.NUMERIC);
                     if (null != content) {
