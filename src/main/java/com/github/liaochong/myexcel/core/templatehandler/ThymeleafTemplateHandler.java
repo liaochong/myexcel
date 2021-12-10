@@ -97,7 +97,8 @@ public class ThymeleafTemplateHandler extends AbstractTemplateHandler<TemplateEn
     @Override
     protected <F> void render(Map<String, F> renderData, Writer out) throws Exception {
         Context context = new Context();
-        context.setVariables(renderData);
+        Map<String, Object> variables = new HashMap<>(renderData);
+        context.setVariables(variables);
         templateEngine.process(filePath, context, out);
     }
 }

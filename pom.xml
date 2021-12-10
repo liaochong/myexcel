@@ -29,7 +29,7 @@
         <velocity.version>1.7</velocity.version>
         <freemarker.version>2.3.31</freemarker.version>
         <groovy-templates.version>2.4.13</groovy-templates.version>
-        <thymeleaf.version>2.1.6.RELEASE</thymeleaf.version>
+        <thymeleaf.version>3.0.14.RELEASE</thymeleaf.version>
         <enjoy.version>4.9.16</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
         <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
