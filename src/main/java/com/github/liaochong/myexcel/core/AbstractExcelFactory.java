@@ -86,7 +86,7 @@ import java.util.Objects;
  */
 public abstract class AbstractExcelFactory implements ExcelFactory {
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
 
     private static final int EMU_PER_MM = 36000;
 
@@ -165,9 +165,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             case XLS:
                 workbook = new HSSFWorkbook();
                 isHssf = true;
-                break;
-            case XLSX:
-                workbook = new XSSFWorkbook();
                 break;
             case SXLSX:
                 workbook = new SXSSFWorkbook(1);
