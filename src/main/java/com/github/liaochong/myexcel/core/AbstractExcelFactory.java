@@ -360,9 +360,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setCol1(cell.getColumnIndex());
-        anchor.setCol2(cell.getColumnIndex() + 1);
+        anchor.setCol2(cell.getColumnIndex() + 2);
         anchor.setRow1(td.row);
-        anchor.setRow2(td.getRowBound());
+        anchor.setRow2(td.getRowBound() + 2);
         Comment comment = drawing.createCellComment(anchor);
         RichTextString str = createHelper.createRichTextString(td.comment.text);
         comment.setString(str);
