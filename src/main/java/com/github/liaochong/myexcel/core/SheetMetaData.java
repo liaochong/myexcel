@@ -24,10 +24,13 @@ public class SheetMetaData {
 
     private String sheetName;
 
+    private int sheetIndex;
+
     private int lastRowNum;
 
-    public SheetMetaData(String sheetName) {
+    public SheetMetaData(String sheetName, int sheetIndex) {
         this.sheetName = sheetName;
+        this.sheetIndex = sheetIndex;
     }
 
     public String getSheetName() {
@@ -44,5 +47,13 @@ public class SheetMetaData {
 
     public void setLastRowNum(int lastRowNum) {
         this.lastRowNum = lastRowNum;
+    }
+
+    public int getSheetIndex() {
+        return sheetIndex;
+    }
+
+    public void setSheetIndex(int sheetIndex) {
+        this.sheetIndex = sheetIndex;
     }
 }

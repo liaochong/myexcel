@@ -336,7 +336,7 @@ public class SaxExcelReader<T> {
             ++index;
             try (InputStream stream = iter.next()) {
                 try {
-                    SheetMetaData sheetMetaData = new SheetMetaData(iter.getSheetName());
+                    SheetMetaData sheetMetaData = new SheetMetaData(iter.getSheetName(), index);
                     XMLReader sheetParser = XMLHelper.newXMLReader();
                     sheetParser.setContentHandler(new XSSFSheetMetaDataXMLHandler(sheetMetaData));
                     sheetParser.parse(new InputSource(stream));
