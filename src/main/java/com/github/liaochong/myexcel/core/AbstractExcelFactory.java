@@ -413,7 +413,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             return;
         }
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-        DataValidationConstraint constraint = dvHelper.createCustomConstraint("*");
+        DataValidationConstraint constraint = dvHelper.createCustomConstraint("BB1");
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.row, td.getRowBound(), td.col, td.getColBound());
         DataValidation dataValidation = dvHelper.createValidation(constraint, addressList);
