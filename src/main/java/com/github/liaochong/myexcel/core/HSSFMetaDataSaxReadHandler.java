@@ -92,12 +92,19 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
         workbookBuildingListener = new EventWorkbookBuilder.SheetRecordCollectingListener(formatListener);
         request.addListenerForAllRecords(workbookBuildingListener);
         factory.processWorkbookEvents(request, fs);
+        // 处理最后一个sheet
+        if (lastRowNumber > -1) {
+            workbookMetaData.getSheetMetaDataList().get(sheetIndex).setLastRowNum(lastRowNumber + 1);
+        }
     }
 
     @Override
     public void processRecord(Record record) {
         int thisRow = -1;
         switch (record.getSid()) {
+            case BoundSheetRecord.sid:
+                boundSheetRecords.add((BoundSheetRecord) record);
+                break;
             case BOFRecord.sid:
                 BOFRecord br = (BOFRecord) record;
                 if (br.getType() == BOFRecord.TYPE_WORKSHEET) {
@@ -106,7 +113,7 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
                     }
                     List<SheetMetaData> sheetMetaDataList = workbookMetaData.getSheetMetaDataList();
                     if (lastRowNumber > -1) {
-                        sheetMetaDataList.get(sheetIndex).setLastRowNum(lastRowNumber);
+                        sheetMetaDataList.get(sheetIndex).setLastRowNum(lastRowNumber + 1);
                     }
                     sheetIndex++;
                     lastRowNumber = -1;

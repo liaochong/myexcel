@@ -248,10 +248,10 @@ public class SaxExcelReader<T> {
     private void doReadXls(File file, boolean readMetaData) {
         try {
             if (readMetaData) {
-                new HSSFSaxReadHandler<>(file, result, readConfig).process();
-            } else {
                 workbookMetaData = new WorkbookMetaData();
                 new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
+            } else {
+                new HSSFSaxReadHandler<>(file, result, readConfig).process();
             }
         } catch (StopReadException e) {
             // do nothing
