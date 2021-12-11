@@ -49,7 +49,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
         BOMInputStream bomInputStream = new BOMInputStream(is, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE);
         this.is = bomInputStream;
         try {
-            this.charset = bomInputStream.getBOMCharsetName() != null ? bomInputStream.getBOMCharsetName() : readConfig.getCharset();
+            this.charset = bomInputStream.getBOMCharsetName() != null ? bomInputStream.getBOMCharsetName() : readConfig.charset;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

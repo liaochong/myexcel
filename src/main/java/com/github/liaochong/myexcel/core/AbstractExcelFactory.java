@@ -30,6 +30,7 @@ import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
+import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.utils.ColorUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -50,7 +51,6 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.ShapeTypes;
@@ -58,7 +58,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
@@ -68,6 +67,8 @@ import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -84,6 +85,10 @@ import java.util.Objects;
  * @version 1.0
  */
 public abstract class AbstractExcelFactory implements ExcelFactory {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
+
+    private static final int EMU_PER_MM = 36000;
 
     protected Workbook workbook;
     /**
@@ -134,6 +139,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private CreationHelper createHelper;
 
     private DataFormat format;
+    /**
+     * 图片路径缓存
+     */
+    private Map<String, Integer> imageMapping;
 
     @Override
     public ExcelFactory useDefaultStyle() {
@@ -156,9 +165,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             case XLS:
                 workbook = new HSSFWorkbook();
                 isHssf = true;
-                break;
-            case XLSX:
-                workbook = new XSSFWorkbook();
                 break;
             case SXLSX:
                 workbook = new SXSSFWorkbook(1);
@@ -257,10 +263,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         } else {
             String content = td.content;
             switch (td.tdContentType) {
-                case STRING:
-                    cell = currentRow.createCell(td.col, CellType.STRING);
-                    cell.setCellValue(content);
-                    break;
                 case DOUBLE:
                     cell = currentRow.createCell(td.col, CellType.NUMERIC);
                     if (null != content) {
@@ -351,9 +353,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setCol1(cell.getColumnIndex());
-        anchor.setCol2(cell.getColumnIndex() + 1);
+        anchor.setCol2(cell.getColumnIndex() + 2);
         anchor.setRow1(td.row);
-        anchor.setRow2(td.getRowBound());
+        anchor.setRow2(td.getRowBound() + 2);
         Comment comment = drawing.createCellComment(anchor);
         RichTextString str = createHelper.createRichTextString(td.comment.text);
         comment.setString(str);
@@ -411,7 +413,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             return;
         }
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-        DataValidationConstraint constraint = dvHelper.createCustomConstraint("*");
+        DataValidationConstraint constraint = dvHelper.createCustomConstraint("BB1");
         CellRangeAddressList addressList = new CellRangeAddressList(
                 td.row, td.getRowBound(), td.col, td.getColBound());
         DataValidation dataValidation = dvHelper.createValidation(constraint, addressList);
@@ -424,51 +426,62 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.file == null) {
             return;
         }
-        try {
-            if (createHelper == null) {
-                createHelper = workbook.getCreationHelper();
-            }
-            byte[] bytes = Files.readAllBytes(td.file.toPath());
-            String fileName = td.file.getName();
-            int format;
-            String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-            switch (suffix) {
-                case "jpg":
-                case "jpeg":
-                    format = Workbook.PICTURE_TYPE_JPEG;
-                    break;
-                case "png":
-                    format = Workbook.PICTURE_TYPE_PNG;
-                    break;
-                case "dib":
-                    format = Workbook.PICTURE_TYPE_DIB;
-                    break;
-                case "emf":
-                    format = Workbook.PICTURE_TYPE_EMF;
-                    break;
-                case "pict":
-                    format = Workbook.PICTURE_TYPE_PICT;
-                    break;
-                case "wmf":
-                    format = Workbook.PICTURE_TYPE_WMF;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid image type");
-            }
-            int pictureIdx = workbook.addPicture(bytes, format);
-            Drawing drawing = sheet.createDrawingPatriarch();
-            ClientAnchor anchor = createHelper.createClientAnchor();
-            anchor.setDx1(isHssf ? 2 : Units.EMU_PER_PIXEL);
-            anchor.setDy1(isHssf ? 2 : Units.EMU_PER_PIXEL);
-            anchor.setCol1(td.col);
-            anchor.setRow1(td.row);
-            anchor.setCol2(td.getColBound());
-            anchor.setRow2(td.getRowBound());
-            Picture pict = drawing.createPicture(anchor, pictureIdx);
-            pict.resize(1, 1);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (createHelper == null) {
+            createHelper = workbook.getCreationHelper();
         }
+        String fileName = td.file.getName();
+        int format;
+        String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        switch (suffix) {
+            case "jpg":
+            case "jpeg":
+                format = Workbook.PICTURE_TYPE_JPEG;
+                break;
+            case "png":
+                format = Workbook.PICTURE_TYPE_PNG;
+                break;
+            case "dib":
+                format = Workbook.PICTURE_TYPE_DIB;
+                break;
+            case "emf":
+                format = Workbook.PICTURE_TYPE_EMF;
+                break;
+            case "pict":
+                format = Workbook.PICTURE_TYPE_PICT;
+                break;
+            case "wmf":
+                format = Workbook.PICTURE_TYPE_WMF;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid image type");
+        }
+        ClientAnchor anchor = createHelper.createClientAnchor();
+        anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
+        anchor.setDx1(0);
+        anchor.setDy1(0);
+        anchor.setDx2(isHssf ? 1023 : 100 * EMU_PER_MM);
+        anchor.setDy2(isHssf ? 1023 : 99 * EMU_PER_MM);
+        anchor.setCol1(td.col);
+        anchor.setRow1(td.row);
+        anchor.setCol2(td.getColBound());
+        anchor.setRow2(td.getRowBound());
+        Drawing<?> drawing = sheet.getDrawingPatriarch();
+        if (drawing == null) {
+            drawing = sheet.createDrawingPatriarch();
+        }
+        if (imageMapping == null) {
+            imageMapping = new HashMap<>();
+        }
+        Integer pictureIdx = imageMapping.computeIfAbsent(td.file.getAbsolutePath(), s -> {
+            try {
+                byte[] bytes = Files.readAllBytes(td.file.toPath());
+                return workbook.addPicture(bytes, format);
+            } catch (IOException e) {
+                logger.error("read image failure", e);
+                throw new ExcelBuildException("read image failure, path:" + td.file.getAbsolutePath(), e);
+            }
+        });
+        drawing.createPicture(anchor, pictureIdx);
     }
 
     private Cell setLink(Td td, Row currentRow, HyperlinkType hyperlinkType) {
@@ -631,7 +644,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (freezePane == null) {
                 throw new IllegalStateException("FreezePane is null");
             }
-            sheet.createFreezePane(freezePane.getColSplit(), freezePane.getRowSplit());
+            sheet.createFreezePane(freezePane.colSplit, freezePane.rowSplit);
         }
     }
 
@@ -699,6 +712,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         maxTdHeightMap = new HashMap<>();
         format = null;
         createHelper = null;
+        imageMapping = null;
     }
 
     /**
