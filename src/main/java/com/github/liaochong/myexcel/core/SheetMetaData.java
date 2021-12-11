@@ -24,9 +24,9 @@ public class SheetMetaData {
 
     private String sheetName;
 
-    private int sheetIndex;
+    private int sheetIndex = -1;
 
-    private int lastRowNum;
+    private int lastRowNum = -1;
 
     public SheetMetaData(String sheetName, int sheetIndex) {
         this.sheetName = sheetName;
