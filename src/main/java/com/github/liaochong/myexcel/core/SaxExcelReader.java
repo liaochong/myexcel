@@ -218,6 +218,12 @@ public class SaxExcelReader<T> {
         doRead(path.toFile());
     }
 
+    public static WorkbookMetaData getWorkbookMetaData(Path path) {
+        SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
+        saxExcelReader.doRead(path.toFile(), true);
+        return saxExcelReader.workbookMetaData;
+    }
+
     public static WorkbookMetaData getWorkbookMetaData(InputStream fileInputStream) {
         SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
         saxExcelReader.doRead(fileInputStream, true);
