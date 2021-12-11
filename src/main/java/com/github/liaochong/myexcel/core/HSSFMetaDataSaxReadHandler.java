@@ -32,7 +32,6 @@ import org.apache.poi.hssf.record.NoteRecord;
 import org.apache.poi.hssf.record.NumberRecord;
 import org.apache.poi.hssf.record.RKRecord;
 import org.apache.poi.hssf.record.Record;
-import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
@@ -50,11 +49,9 @@ import java.util.List;
  */
 public class HSSFMetaDataSaxReadHandler implements HSSFListener {
 
-    private String sheetName;
-
     private BoundSheetRecord[] orderedBSRs;
 
-    private List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
+    private final List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
 
     private final POIFSFileSystem fs;
 
@@ -71,11 +68,7 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
      */
     private int sheetIndex = -1;
 
-    private boolean outputNextStringRecord;
-    // For handling formulas with string results
-    private int nextRow;
-
-    private WorkbookMetaData workbookMetaData;
+    private final WorkbookMetaData workbookMetaData;
 
     public HSSFMetaDataSaxReadHandler(File file, WorkbookMetaData workbookMetaData) throws IOException {
         this.fs = new POIFSFileSystem(new FileInputStream(file));
@@ -86,12 +79,10 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
         MissingRecordAwareHSSFListener listener = new MissingRecordAwareHSSFListener(this);
         FormatTrackingHSSFListener formatListener = new FormatTrackingHSSFListener(listener);
 
-        HSSFEventFactory factory = new HSSFEventFactory();
         HSSFRequest request = new HSSFRequest();
-
         workbookBuildingListener = new EventWorkbookBuilder.SheetRecordCollectingListener(formatListener);
         request.addListenerForAllRecords(workbookBuildingListener);
-        factory.processWorkbookEvents(request, fs);
+        new HSSFEventFactory().processWorkbookEvents(request, fs);
         // 处理最后一个sheet
         if (lastRowNumber > -1) {
             workbookMetaData.getSheetMetaDataList().get(sheetIndex).setLastRowNum(lastRowNumber + 1);
@@ -120,7 +111,7 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
                     if (orderedBSRs == null) {
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
-                    sheetName = orderedBSRs[sheetIndex].getSheetname();
+                    String sheetName = orderedBSRs[sheetIndex].getSheetname();
                     SheetMetaData sheetMetaData = new SheetMetaData(sheetName, sheetIndex);
                     sheetMetaDataList.add(sheetMetaData);
                     workbookMetaData.setSheetCount(sheetIndex + 1);
@@ -137,14 +128,6 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
             case FormulaRecord.sid:
                 FormulaRecord frec = (FormulaRecord) record;
                 thisRow = frec.getRow();
-                break;
-            case StringRecord.sid:
-                if (outputNextStringRecord) {
-                    // String for formula
-                    StringRecord srec = (StringRecord) record;
-                    thisRow = nextRow;
-                    outputNextStringRecord = false;
-                }
                 break;
             case LabelRecord.sid:
                 LabelRecord lrec = (LabelRecord) record;
