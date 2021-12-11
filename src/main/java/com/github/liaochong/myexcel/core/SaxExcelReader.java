@@ -143,6 +143,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public List<T> read(Path path) {
+        doRead(path.toFile());
+        return result;
+    }
+
     public List<T> read(InputStream fileInputStream) {
         doRead(fileInputStream);
         return result;
@@ -163,6 +168,11 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
+    public void readThen(Path path, Consumer<T> consumer) {
+        this.readConfig.consumer = consumer;
+        doRead(path.toFile());
+    }
+
     public void readThen(InputStream fileInputStream, BiConsumer<T, RowContext> contextConsumer) {
         this.readConfig.contextConsumer = contextConsumer;
         doRead(fileInputStream);
@@ -173,9 +183,9 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
-    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
-        this.readConfig.function = function;
-        doRead(fileInputStream);
+    public void readThen(Path path, BiConsumer<T, RowContext> contextConsumer) {
+        this.readConfig.contextConsumer = contextConsumer;
+        doRead(path.toFile());
     }
 
     public void readThen(File file, BiFunction<T, RowContext, Boolean> contextFunction) {
@@ -188,9 +198,24 @@ public class SaxExcelReader<T> {
         doRead(fileInputStream);
     }
 
+    public void readThen(Path path, BiFunction<T, RowContext, Boolean> contextFunction) {
+        this.readConfig.contextFunction = contextFunction;
+        doRead(path.toFile());
+    }
+
+    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
+        this.readConfig.function = function;
+        doRead(fileInputStream);
+    }
+
     public void readThen(File file, Function<T, Boolean> function) {
         this.readConfig.function = function;
         doRead(file);
+    }
+
+    public void readThen(Path path, Function<T, Boolean> function) {
+        this.readConfig.function = function;
+        doRead(path.toFile());
     }
 
     public static WorkbookMetaData getWorkbookMetaData(InputStream fileInputStream) {
