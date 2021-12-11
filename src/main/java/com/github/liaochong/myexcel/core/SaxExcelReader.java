@@ -263,6 +263,9 @@ public class SaxExcelReader<T> {
                     doReadXls(file, readMetaData);
                     break;
                 default:
+                    if (readMetaData) {
+                        throw new UnsupportedOperationException();
+                    }
                     doReadCsv(file);
             }
         } catch (Throwable e) {
