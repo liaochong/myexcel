@@ -19,14 +19,14 @@ import org.apache.poi.ss.usermodel.BuiltinFormats;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.util.CellAddress;
-import org.apache.poi.util.POILogFactory;
-import org.apache.poi.util.POILogger;
 import org.apache.poi.xssf.model.Comments;
 import org.apache.poi.xssf.model.SharedStrings;
 import org.apache.poi.xssf.model.Styles;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -42,7 +42,7 @@ import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
  * @version 1.0
  */
 public class XSSFSheetXMLHandler extends DefaultHandler {
-    private static final POILogger logger = POILogFactory.getLogger(XSSFSheetXMLHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(XSSFSheetXMLHandler.class);
 
     /**
      * These are the different kinds of cells we support.
@@ -203,7 +203,7 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
                     // TODO Retrieve the shared formula and tweak it to
                     //  match the current cell
                     if (formulasNotResults) {
-                        logger.log(POILogger.WARN, "shared formulas not yet supported!");
+                        logger.warn("shared formulas not yet supported!");
                     } /*else {
                    // It's a shared formula, so we can't get at the formula string yet
                    // However, they don't care about the formula string, so that's ok!
@@ -334,7 +334,7 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
                         RichTextString rtss = sharedStringsTable.getItemAt(idx);
                         thisStr = rtss.toString();
                     } catch (NumberFormatException ex) {
-                        logger.log(POILogger.ERROR, "Failed to parse SST index '" + sstIndex, ex);
+                        logger.error("Failed to parse SST index '" + sstIndex, ex);
                     }
                     break;
 

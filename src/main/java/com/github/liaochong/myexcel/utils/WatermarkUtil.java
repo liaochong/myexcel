@@ -68,15 +68,14 @@ public class WatermarkUtil {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            XSSFWorkbook xssfWorkbook;
-            workbook = xssfWorkbook = workbook instanceof SXSSFWorkbook ? ((SXSSFWorkbook) workbook).getXSSFWorkbook() : ((XSSFWorkbook) workbook);
+            XSSFWorkbook xssfWorkbook = workbook instanceof SXSSFWorkbook ? ((SXSSFWorkbook) workbook).getXSSFWorkbook() : (XSSFWorkbook) workbook;
             int pictureIdx = workbook.addPicture(os.toByteArray(), Workbook.PICTURE_TYPE_PNG);
             POIXMLDocumentPart poixmlDocumentPart = xssfWorkbook.getAllPictures().get(pictureIdx);
+            PackagePartName ppn = poixmlDocumentPart.getPackagePart().getPartName();
+            String relType = XSSFRelation.IMAGE_PNG.getRelation();
             //获取每个Sheet表
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 XSSFSheet sheet = xssfWorkbook.getSheetAt(i);
-                PackagePartName ppn = poixmlDocumentPart.getPackagePart().getPartName();
-                String relType = XSSFRelation.IMAGES.getRelation();
                 //add relation from sheet to the picture data
                 PackageRelationship pr = sheet.getPackagePart().addRelationship(ppn, TargetMode.INTERNAL, relType, null);
                 //set background picture to sheet

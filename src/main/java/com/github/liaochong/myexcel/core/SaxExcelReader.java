@@ -61,6 +61,10 @@ public class SaxExcelReader<T> {
 
     private static final int DEFAULT_SHEET_INDEX = 0;
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(SaxExcelReader.class);
+    /**
+     * 元数据
+     */
+    private WorkbookMetaData workbookMetaData;
 
     private final List<T> result = new LinkedList<>();
 
@@ -139,6 +143,11 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    public List<T> read(Path path) {
+        doRead(path.toFile());
+        return result;
+    }
+
     public List<T> read(InputStream fileInputStream) {
         doRead(fileInputStream);
         return result;
@@ -159,6 +168,11 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
+    public void readThen(Path path, Consumer<T> consumer) {
+        this.readConfig.consumer = consumer;
+        doRead(path.toFile());
+    }
+
     public void readThen(InputStream fileInputStream, BiConsumer<T, RowContext> contextConsumer) {
         this.readConfig.contextConsumer = contextConsumer;
         doRead(fileInputStream);
@@ -169,9 +183,9 @@ public class SaxExcelReader<T> {
         doRead(file);
     }
 
-    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
-        this.readConfig.function = function;
-        doRead(fileInputStream);
+    public void readThen(Path path, BiConsumer<T, RowContext> contextConsumer) {
+        this.readConfig.contextConsumer = contextConsumer;
+        doRead(path.toFile());
     }
 
     public void readThen(File file, BiFunction<T, RowContext, Boolean> contextFunction) {
@@ -184,21 +198,62 @@ public class SaxExcelReader<T> {
         doRead(fileInputStream);
     }
 
+    public void readThen(Path path, BiFunction<T, RowContext, Boolean> contextFunction) {
+        this.readConfig.contextFunction = contextFunction;
+        doRead(path.toFile());
+    }
+
+    public void readThen(InputStream fileInputStream, Function<T, Boolean> function) {
+        this.readConfig.function = function;
+        doRead(fileInputStream);
+    }
+
     public void readThen(File file, Function<T, Boolean> function) {
         this.readConfig.function = function;
         doRead(file);
     }
 
+    public void readThen(Path path, Function<T, Boolean> function) {
+        this.readConfig.function = function;
+        doRead(path.toFile());
+    }
+
+    public static WorkbookMetaData getWorkbookMetaData(Path path) {
+        SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
+        saxExcelReader.doRead(path.toFile(), true);
+        return saxExcelReader.workbookMetaData;
+    }
+
+    public static WorkbookMetaData getWorkbookMetaData(InputStream fileInputStream) {
+        SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
+        saxExcelReader.doRead(fileInputStream, true);
+        return saxExcelReader.workbookMetaData;
+    }
+
+    public static WorkbookMetaData getWorkbookMetaData(File file) {
+        SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
+        saxExcelReader.doRead(file, true);
+        return saxExcelReader.workbookMetaData;
+    }
+
     private void doRead(InputStream fileInputStream) {
+        this.doRead(fileInputStream, false);
+    }
+
+    private void doRead(InputStream fileInputStream, boolean readMetaData) {
         Path path = TempFileOperator.convertToFile(fileInputStream);
         try {
-            doRead(path.toFile());
+            doRead(path.toFile(), readMetaData);
         } finally {
             TempFileOperator.deleteTempFile(path);
         }
     }
 
     private void doRead(File file) {
+        this.doRead(file, false);
+    }
+
+    private void doRead(File file, boolean readMetaData) {
         FileMagic fm;
         try (InputStream is = FileMagic.prepareToCheckMagic(new FileInputStream(file))) {
             fm = FileMagic.valueOf(is);
@@ -208,12 +263,15 @@ public class SaxExcelReader<T> {
         try {
             switch (fm) {
                 case OOXML:
-                    doReadXlsx(file);
+                    doReadXlsx(file, readMetaData);
                     break;
                 case OLE2:
-                    doReadXls(file);
+                    doReadXls(file, readMetaData);
                     break;
                 default:
+                    if (readMetaData) {
+                        throw new UnsupportedOperationException();
+                    }
                     doReadCsv(file);
             }
         } catch (Throwable e) {
@@ -221,9 +279,14 @@ public class SaxExcelReader<T> {
         }
     }
 
-    private void doReadXls(File file) {
+    private void doReadXls(File file, boolean readMetaData) {
         try {
-            new HSSFSaxReadHandler<>(file, result, readConfig).process();
+            if (readMetaData) {
+                workbookMetaData = new WorkbookMetaData();
+                new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
+            } else {
+                new HSSFSaxReadHandler<>(file, result, readConfig).process();
+            }
         } catch (StopReadException e) {
             // do nothing
         } catch (IOException e) {
@@ -231,9 +294,13 @@ public class SaxExcelReader<T> {
         }
     }
 
-    private void doReadXlsx(File file) {
+    private void doReadXlsx(File file, boolean readMetaData) {
         try (OPCPackage p = OPCPackage.open(file, PackageAccess.READ)) {
-            process(p);
+            if (readMetaData) {
+                processMetaData(p);
+            } else {
+                process(p);
+            }
         } catch (StopReadException e) {
             // do nothing
         } catch (Exception e) {
@@ -264,33 +331,33 @@ public class SaxExcelReader<T> {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
             XSSFReader xssfReader = new XSSFReader(xlsxPackage);
             XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-            int index = 0;
+            int index = -1;
             if (readConfig.readAllSheet) {
                 while (iter.hasNext()) {
+                    ++index;
                     try (InputStream stream = iter.next()) {
                         readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                         processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                     }
-                    ++index;
                 }
             } else if (!readConfig.sheetNames.isEmpty()) {
                 while (iter.hasNext()) {
+                    ++index;
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetNames.contains(iter.getSheetName())) {
                             readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                             processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                         }
-                        ++index;
                     }
                 }
             } else {
                 while (iter.hasNext()) {
+                    ++index;
                     try (InputStream stream = iter.next()) {
                         if (readConfig.sheetIndexs.contains(index)) {
                             readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                             processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
                         }
-                        ++index;
                     }
                 }
             }
@@ -298,6 +365,30 @@ public class SaxExcelReader<T> {
             stringsCache.clearAll();
         }
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
+    }
+
+    private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
+        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) new XSSFReader(xlsxPackage).getSheetsData();
+        workbookMetaData = new WorkbookMetaData();
+        int index = -1;
+        while (iter.hasNext()) {
+            ++index;
+            try (InputStream stream = iter.next()) {
+                try {
+                    SheetMetaData sheetMetaData = new SheetMetaData(iter.getSheetName(), index);
+                    XMLReader sheetParser = XMLHelper.newXMLReader();
+                    sheetParser.setContentHandler(new XSSFSheetMetaDataXMLHandler(sheetMetaData));
+                    sheetParser.parse(new InputSource(stream));
+                    // 设置元数据信息
+                    workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
+                } catch (ParserConfigurationException e) {
+                    throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
+                }
+            }
+        }
+        if (index > -1) {
+            workbookMetaData.setSheetCount(index + 1);
+        }
     }
 
     /**
@@ -330,179 +421,51 @@ public class SaxExcelReader<T> {
 
     public static final class ReadConfig<T> {
 
-        private Class<T> dataType;
+        public Class<T> dataType;
 
-        private Set<String> sheetNames = new HashSet<>();
+        public Set<String> sheetNames = new HashSet<>();
 
-        private Set<Integer> sheetIndexs = new HashSet<>();
+        public Set<Integer> sheetIndexs = new HashSet<>();
 
-        private Consumer<T> consumer;
+        public Consumer<T> consumer;
 
-        private BiConsumer<T, RowContext> contextConsumer;
+        public BiConsumer<T, RowContext> contextConsumer;
 
-        private Function<T, Boolean> function;
+        public Function<T, Boolean> function;
 
-        private BiFunction<T, RowContext, Boolean> contextFunction;
+        public BiFunction<T, RowContext, Boolean> contextFunction;
 
-        private Predicate<Row> rowFilter = row -> true;
+        public Predicate<Row> rowFilter = row -> true;
 
-        private Predicate<T> beanFilter = bean -> true;
+        public Predicate<T> beanFilter = bean -> true;
 
-        private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
+        public BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
-        private String charset = "UTF-8";
+        public String charset = "UTF-8";
 
-        private Function<String, String> trim = v -> {
+        public Function<String, String> trim = v -> {
             if (v == null) {
                 return v;
             }
             return v.trim();
         };
 
-        private boolean readAllSheet;
+        public boolean readAllSheet;
         /**
          * 是否忽略空白行，默认为否
          */
-        private boolean ignoreBlankRow = false;
+        public boolean ignoreBlankRow = false;
         /**
          * 是否在遇到空白行时停止读取
          */
-        private boolean stopReadingOnBlankRow = false;
+        public boolean stopReadingOnBlankRow = false;
 
-        private BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
+        public BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
             log.info("Start read excel, sheet:{},index:{}", sheetName, sheetIndex);
         };
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
-        }
-
-        public Class<T> getDataType() {
-            return this.dataType;
-        }
-
-        public Set<String> getSheetNames() {
-            return this.sheetNames;
-        }
-
-        public Set<Integer> getSheetIndexs() {
-            return this.sheetIndexs;
-        }
-
-        public Consumer<T> getConsumer() {
-            return this.consumer;
-        }
-
-        public BiConsumer<T, RowContext> getContextConsumer() {
-            return this.contextConsumer;
-        }
-
-        public Function<T, Boolean> getFunction() {
-            return this.function;
-        }
-
-        public BiFunction<T, RowContext, Boolean> getContextFunction() {
-            return this.contextFunction;
-        }
-
-        public Predicate<Row> getRowFilter() {
-            return this.rowFilter;
-        }
-
-        public Predicate<T> getBeanFilter() {
-            return this.beanFilter;
-        }
-
-        public BiFunction<Throwable, ReadContext, Boolean> getExceptionFunction() {
-            return this.exceptionFunction;
-        }
-
-        public String getCharset() {
-            return this.charset;
-        }
-
-        public Function<String, String> getTrim() {
-            return this.trim;
-        }
-
-        public void setDataType(Class<T> dataType) {
-            this.dataType = dataType;
-        }
-
-        public void setSheetNames(Set<String> sheetNames) {
-            this.sheetNames = sheetNames;
-        }
-
-        public void setSheetIndexs(Set<Integer> sheetIndexs) {
-            this.sheetIndexs = sheetIndexs;
-        }
-
-        public void setConsumer(Consumer<T> consumer) {
-            this.consumer = consumer;
-        }
-
-        public void setContextConsumer(BiConsumer<T, RowContext> contextConsumer) {
-            this.contextConsumer = contextConsumer;
-        }
-
-        public void setFunction(Function<T, Boolean> function) {
-            this.function = function;
-        }
-
-        public void setContextFunction(BiFunction<T, RowContext, Boolean> contextFunction) {
-            this.contextFunction = contextFunction;
-        }
-
-        public void setRowFilter(Predicate<Row> rowFilter) {
-            this.rowFilter = rowFilter;
-        }
-
-        public void setBeanFilter(Predicate<T> beanFilter) {
-            this.beanFilter = beanFilter;
-        }
-
-        public void setExceptionFunction(BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
-            this.exceptionFunction = exceptionFunction;
-        }
-
-        public void setCharset(String charset) {
-            this.charset = charset;
-        }
-
-        public void setTrim(Function<String, String> trim) {
-            this.trim = trim;
-        }
-
-        public boolean isReadAllSheet() {
-            return readAllSheet;
-        }
-
-        public void setReadAllSheet(boolean readAllSheet) {
-            this.readAllSheet = readAllSheet;
-        }
-
-        public BiConsumer<String, Integer> getStartSheetConsumer() {
-            return startSheetConsumer;
-        }
-
-        public void setStartSheetConsumer(BiConsumer<String, Integer> startSheetConsumer) {
-            this.startSheetConsumer = startSheetConsumer;
-        }
-
-        public boolean isIgnoreBlankRow() {
-            return ignoreBlankRow;
-        }
-
-        public void setIgnoreBlankRow(boolean ignoreBlankRow) {
-            this.ignoreBlankRow = ignoreBlankRow;
-        }
-
-        public boolean isStopReadingOnBlankRow() {
-            return stopReadingOnBlankRow;
-        }
-
-        public void setStopReadingOnBlankRow(boolean stopReadingOnBlankRow) {
-            this.stopReadingOnBlankRow = stopReadingOnBlankRow;
         }
     }
 }

@@ -104,7 +104,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                               SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
         super(false, result, readConfig);
         this.fs = new POIFSFileSystem(inputStream);
-        this.sheetIndexs = readConfig.getSheetIndexs();
+        this.sheetIndexs = readConfig.sheetIndexs;
     }
 
     public void process() throws IOException {
@@ -150,7 +150,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
                     sheetName = orderedBSRs[sheetIndex].getSheetname();
-                    readConfig.getStartSheetConsumer().accept(sheetName, sheetIndex);
+                    readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
                 }
                 break;
 
@@ -281,11 +281,11 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     }
 
     private boolean isSelectedSheet() {
-        if (readConfig.isReadAllSheet()) {
+        if (readConfig.readAllSheet) {
             return true;
         }
-        if (!readConfig.getSheetNames().isEmpty()) {
-            return readConfig.getSheetNames().contains(sheetName);
+        if (!readConfig.sheetNames.isEmpty()) {
+            return readConfig.sheetNames.contains(sheetName);
         }
         return sheetIndexs.contains(sheetIndex);
     }
