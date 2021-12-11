@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -26,21 +27,21 @@ public class WorkbookMetaData {
 
     private int sheetCount;
 
-    private List<SheetMetaData> sheetMetaData;
+    private List<SheetMetaData> sheetMetaDataList = new LinkedList<>();
 
     public int getSheetCount() {
         return sheetCount;
     }
 
-    public List<SheetMetaData> getSheetMetaData() {
-        return sheetMetaData;
+    public List<SheetMetaData> getSheetMetaDataList() {
+        return sheetMetaDataList;
     }
 
     public void setSheetCount(int sheetCount) {
         this.sheetCount = sheetCount;
     }
 
-    public void setSheetMetaData(List<SheetMetaData> sheetMetaData) {
-        this.sheetMetaData = sheetMetaData;
+    public void setSheetMetaDataList(List<SheetMetaData> sheetMetaDataList) {
+        this.sheetMetaDataList = sheetMetaDataList;
     }
 }

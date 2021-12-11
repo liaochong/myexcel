@@ -247,7 +247,12 @@ public class SaxExcelReader<T> {
 
     private void doReadXls(File file, boolean readMetaData) {
         try {
-            new HSSFSaxReadHandler<>(file, result, readConfig).process();
+            if (readMetaData) {
+                new HSSFSaxReadHandler<>(file, result, readConfig).process();
+            } else {
+                workbookMetaData = new WorkbookMetaData();
+                new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
+            }
         } catch (StopReadException e) {
             // do nothing
         } catch (IOException e) {
@@ -341,10 +346,7 @@ public class SaxExcelReader<T> {
                     sheetParser.setContentHandler(new XSSFSheetMetaDataXMLHandler(sheetMetaData));
                     sheetParser.parse(new InputSource(stream));
                     // 设置元数据信息
-                    if (workbookMetaData.getSheetMetaData() == null) {
-                        workbookMetaData.setSheetMetaData(new LinkedList<>());
-                    }
-                    workbookMetaData.getSheetMetaData().add(sheetMetaData);
+                    workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
                 } catch (ParserConfigurationException e) {
                     throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
                 }
