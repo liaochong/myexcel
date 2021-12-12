@@ -640,12 +640,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * @param workbook workbook
      */
     protected void initCellStyle(Workbook workbook) {
-        if (useDefaultStyle) {
+        if (useDefaultStyle || applyDefaultStyle) {
             defaultCellStyleMap = new EnumMap<>(HtmlTableParser.HtmlTag.class);
             defaultCellStyleMap.put(HtmlTableParser.HtmlTag.th, new ThDefaultCellStyle().supply(workbook));
             defaultCellStyleMap.put(HtmlTableParser.HtmlTag.td, new TdDefaultCellStyle().supply(workbook));
             defaultCellStyleMap.put(HtmlTableParser.HtmlTag.link, new LinkDefaultCellStyle().supply(workbook));
-        } else {
+        }
+        if (!useDefaultStyle) {
             if (workbook instanceof HSSFWorkbook) {
                 HSSFPalette palette = ((HSSFWorkbook) workbook).getCustomPalette();
                 customColor = new CustomColor(true, palette);
