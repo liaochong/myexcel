@@ -104,6 +104,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     private boolean useDefaultStyle;
     /**
+     * 是否应用默认样式，允许覆盖
+     */
+    private boolean applyDefaultStyle;
+    /**
      * 自定义颜色
      */
     private CustomColor customColor;
@@ -147,6 +151,12 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory useDefaultStyle() {
         this.useDefaultStyle = true;
+        return this;
+    }
+
+    @Override
+    public ExcelFactory applyDefaultStyle() {
+        this.applyDefaultStyle = true;
         return this;
     }
 
@@ -560,7 +570,20 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 cell.setCellStyle(cellStyleMap.get(td.style));
                 return;
             }
-            CellStyle cellStyle = workbook.createCellStyle();
+            CellStyle cellStyle;
+            if (applyDefaultStyle) {
+                if (td.th) {
+                    cellStyle = defaultCellStyleMap.get(HtmlTableParser.HtmlTag.th);
+                } else {
+                    if (ContentTypeEnum.isLink(td.tdContentType)) {
+                        cellStyle = defaultCellStyleMap.get(HtmlTableParser.HtmlTag.link);
+                    } else {
+                        cellStyle = defaultCellStyleMap.get(HtmlTableParser.HtmlTag.td);
+                    }
+                }
+            } else {
+                cellStyle = workbook.createCellStyle();
+            }
             // background-color
             BackgroundStyle.setBackgroundColor(cellStyle, td.style, customColor);
             // text-align

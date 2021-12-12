@@ -47,6 +47,13 @@ public interface ExcelBuilder extends Closeable {
     ExcelBuilder useDefaultStyle();
 
     /**
+     * 应用默认样式
+     *
+     * @return ExcelBuilder
+     */
+    ExcelBuilder applyDefaultStyle();
+
+    /**
      * 自动宽度策略
      *
      * @param autoWidthStrategy 策略
