@@ -88,6 +88,21 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
 
+    private static final Map<String, String> DEFAULT_TD_STYLE = new HashMap<String, String>() {{
+        put("text-align", "center");
+        put("vertical-align", "center");
+        put("border-style", "thin");
+    }};
+
+    private static final Map<String, String> DEFAULT_TH_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+        put("font-weight", "bold");
+    }};
+
+    private static final Map<String, String> DEFAULT_LINK_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+        put("text-decoration", "underline");
+        put("color", "blue");
+    }};
+
     private static final int EMU_PER_MM = 36000;
 
     protected Workbook workbook;
@@ -570,20 +585,18 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 cell.setCellStyle(cellStyleMap.get(td.style));
                 return;
             }
-            CellStyle cellStyle;
             if (applyDefaultStyle) {
                 if (td.th) {
-                    cellStyle = defaultCellStyleMap.get(HtmlTableParser.HtmlTag.th);
+                    DEFAULT_TH_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
                 } else {
                     if (ContentTypeEnum.isLink(td.tdContentType)) {
-                        cellStyle = defaultCellStyleMap.get(HtmlTableParser.HtmlTag.link);
+                        DEFAULT_LINK_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
                     } else {
-                        cellStyle = defaultCellStyleMap.get(HtmlTableParser.HtmlTag.td);
+                        DEFAULT_TD_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
                     }
                 }
-            } else {
-                cellStyle = workbook.createCellStyle();
             }
+            CellStyle cellStyle = workbook.createCellStyle();
             // background-color
             BackgroundStyle.setBackgroundColor(cellStyle, td.style, customColor);
             // text-align
