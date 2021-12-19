@@ -571,7 +571,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
         } else {
             this.doSetInnerSpan(cell, td);
-            if (td.style.isEmpty()) {
+            if (td.style.isEmpty() && !applyDefaultStyle) {
                 return;
             }
             String fs = td.style.get("font-size");
@@ -580,10 +580,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
                     maxTdHeightMap.put(row.getRowNum(), fontSize);
                 }
-            }
-            if (cellStyleMap.containsKey(td.style)) {
-                cell.setCellStyle(cellStyleMap.get(td.style));
-                return;
             }
             if (applyDefaultStyle) {
                 if (td.th) {
@@ -595,6 +591,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                         DEFAULT_TD_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
                     }
                 }
+            }
+            if (cellStyleMap.containsKey(td.style)) {
+                cell.setCellStyle(cellStyleMap.get(td.style));
+                return;
             }
             CellStyle cellStyle = workbook.createCellStyle();
             // background-color
