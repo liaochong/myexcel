@@ -88,20 +88,11 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
 
-    private static final Map<String, String> DEFAULT_TD_STYLE = new HashMap<String, String>() {{
-        put("text-align", "center");
-        put("vertical-align", "center");
-        put("border-style", "thin");
-    }};
+    private static Map<String, String> DEFAULT_TD_STYLE;
 
-    private static final Map<String, String> DEFAULT_TH_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
-        put("font-weight", "bold");
-    }};
+    private static Map<String, String> DEFAULT_TH_STYLE;
 
-    private static final Map<String, String> DEFAULT_LINK_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
-        put("text-decoration", "underline");
-        put("color", "blue");
-    }};
+    private static Map<String, String> DEFAULT_LINK_STYLE;
 
     private static final int EMU_PER_MM = 36000;
 
@@ -172,6 +163,18 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory applyDefaultStyle() {
         this.applyDefaultStyle = true;
+        DEFAULT_TD_STYLE = new HashMap<String, String>() {{
+            put("text-align", "center");
+            put("vertical-align", "center");
+            put("border-style", "thin");
+        }};
+        DEFAULT_TH_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+            put("font-weight", "bold");
+        }};
+        DEFAULT_LINK_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+            put("text-decoration", "underline");
+            put("color", "blue");
+        }};
         return this;
     }
 
