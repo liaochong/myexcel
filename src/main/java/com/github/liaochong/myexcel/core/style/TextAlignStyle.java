@@ -35,11 +35,9 @@ public final class TextAlignStyle {
 
     public static final String MIDDLE = "middle";
 
-    public static final String CENTER = "center";
+    private static final Map<String, HorizontalAlignment> horizontalAlignmentMap;
 
-    private static Map<String, HorizontalAlignment> horizontalAlignmentMap;
-
-    private static Map<String, VerticalAlignment> verticalAlignmentMap;
+    private static final Map<String, VerticalAlignment> verticalAlignmentMap;
 
     static {
         horizontalAlignmentMap = Arrays.stream(HorizontalAlignment.values()).collect(Collectors.toMap(h -> h.name().toLowerCase(), h -> h));
