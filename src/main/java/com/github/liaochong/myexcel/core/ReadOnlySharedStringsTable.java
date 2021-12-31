@@ -42,11 +42,6 @@ import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
  */
 public class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings {
     /**
-     * whether or not to concatenate phoneticRuns onto the shared string
-     */
-    private final boolean includePhoneticRuns = false;
-
-    /**
      * An integer representing the total count of strings in the workbook. This count does not
      * include any numbers, it counts only the total of text strings in the workbook.
      */
@@ -170,10 +165,6 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
             tIsOpen = true;
         } else if ("rPh".equals(localName)) {
             inRPh = true;
-            //append space...this assumes that rPh always comes after regular <t>
-            if (includePhoneticRuns && characters.length() > 0) {
-                characters.append(" ");
-            }
         }
     }
 
@@ -198,9 +189,7 @@ public class ReadOnlySharedStringsTable extends DefaultHandler implements Shared
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
         if (tIsOpen) {
-            if (inRPh && includePhoneticRuns) {
-                characters.append(ch, start, length);
-            } else if (!inRPh) {
+            if (!inRPh) {
                 characters.append(ch, start, length);
             }
         }
