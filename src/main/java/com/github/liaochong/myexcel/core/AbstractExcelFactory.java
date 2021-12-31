@@ -94,8 +94,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private static Map<String, String> DEFAULT_LINK_STYLE;
 
-    private static final int EMU_PER_MM = 36000;
-
     protected Workbook workbook;
     /**
      * 是否为hssf
@@ -487,8 +485,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
         anchor.setDx1(0);
         anchor.setDy1(0);
-        anchor.setDx2(isHssf ? 1023 : 100 * EMU_PER_MM);
-        anchor.setDy2(isHssf ? 1023 : 99 * EMU_PER_MM);
+        final int emuPerMm = 36000;
+        anchor.setDx2(isHssf ? 1023 : 100 * emuPerMm);
+        anchor.setDy2(isHssf ? 1023 : 99 * emuPerMm);
         anchor.setCol1(td.col);
         anchor.setRow1(td.row);
         anchor.setCol2(td.getColBound());
