@@ -630,8 +630,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         RichTextString richText = isHssf ? new HSSFRichTextString(td.content) : new XSSFRichTextString(td.content);
         for (com.github.liaochong.myexcel.core.parser.Font font : td.fonts) {
-            Font f = FontStyle.getFont(font.getStyle(), fontMap, () -> workbook.createFont(), customColor);
-            richText.applyFont(font.getStartIndex(), font.getEndIndex(), f);
+            Font f = FontStyle.getFont(font.style, fontMap, () -> workbook.createFont(), customColor);
+            richText.applyFont(font.startIndex, font.endIndex, f);
         }
         cell.setCellValue(richText);
     }
