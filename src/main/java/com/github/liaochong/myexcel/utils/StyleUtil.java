@@ -38,7 +38,6 @@ public final class StyleUtil {
         return parseStyle(style);
     }
 
-
     public static Map<String, String> parseStyle(String style) {
         if (style.length() == 0) {
             return Collections.emptyMap();
@@ -89,7 +88,7 @@ public final class StyleUtil {
         // 相加的两倍，防止扩容。
         Map<String, String> result = new HashMap<>((targetStyle.size() + originStyle.size()) * 2);
         originStyle.forEach(result::putIfAbsent);
-        targetStyle.forEach(result::put);
+        result.putAll(targetStyle);
         return result;
     }
 }

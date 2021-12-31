@@ -49,14 +49,6 @@ public final class ColorUtil {
         return colorPredefined.getIndex();
     }
 
-    public static Short getCustomColorIndex(CustomColor customColor, String color) {
-        int[] rgb = getRGBByColor(color);
-        if (Objects.isNull(rgb)) {
-            return null;
-        }
-        return getCustomColorIndex(customColor, rgb);
-    }
-
     public static Short getCustomColorIndex(CustomColor customColor, int[] rgb) {
         HSSFPalette palette = customColor.getPalette();
         short index = (short) customColor.getColorIndex().getAndIncrement();
