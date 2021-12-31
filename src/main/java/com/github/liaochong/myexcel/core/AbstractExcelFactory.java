@@ -161,18 +161,20 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory applyDefaultStyle() {
         this.applyDefaultStyle = true;
-        DEFAULT_TD_STYLE = new HashMap<String, String>() {{
-            put("text-align", "center");
-            put("vertical-align", "center");
-            put("border-style", "thin");
-        }};
-        DEFAULT_TH_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
-            put("font-weight", "bold");
-        }};
-        DEFAULT_LINK_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
-            put("text-decoration", "underline");
-            put("color", "blue");
-        }};
+        if (DEFAULT_TD_STYLE == null) {
+            DEFAULT_TD_STYLE = new HashMap<String, String>() {{
+                put("text-align", "center");
+                put("vertical-align", "center");
+                put("border-style", "thin");
+            }};
+            DEFAULT_TH_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+                put("font-weight", "bold");
+            }};
+            DEFAULT_LINK_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+                put("text-decoration", "underline");
+                put("color", "blue");
+            }};
+        }
         return this;
     }
 
