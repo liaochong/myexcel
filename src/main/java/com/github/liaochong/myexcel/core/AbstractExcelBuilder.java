@@ -57,6 +57,12 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
+    public ExcelBuilder applyDefaultStyle() {
+        htmlToExcelFactory.applyDefaultStyle();
+        return this;
+    }
+
+    @Override
     public AbstractExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
         htmlToExcelFactory.widthStrategy(widthStrategy);
         return this;
@@ -70,7 +76,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
-    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy){
+    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy) {
         htmlToExcelFactory.sheetStrategy(sheetStrategy);
         return this;
     }

@@ -55,7 +55,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     /**
      * 设置需要渲染的数据的类类型
      */
-    private Class<T> dataType;
+    private final Class<T> dataType;
     /**
      * 流工厂
      */

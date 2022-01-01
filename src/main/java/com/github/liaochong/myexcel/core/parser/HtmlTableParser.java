@@ -62,7 +62,7 @@ public class HtmlTableParser {
 
     private String html;
 
-    private Map<String, String> defaultLinkStyle = new HashMap<>();
+    private final Map<String, String> defaultLinkStyle = new HashMap<>();
 
     private XSSFRichTextString spanText;
 
@@ -369,15 +369,15 @@ public class HtmlTableParser {
                 spanContent = LINE_FEED_PATTERN.matcher(spanContent).replaceAll("\n");
                 spanText.setString(spanContent);
                 Font font = new Font();
-                font.setStartIndex(startIndex);
-                font.setEndIndex(startIndex + spanText.length());
+                font.startIndex = startIndex;
+                font.endIndex = startIndex + spanText.length();
 
                 Map<String, String> fontStyle = StyleUtil.parseStyle(spanElement);
                 if (!fontStyle.isEmpty()) {
-                    font.setStyle(fontStyle);
+                    font.style = fontStyle;
                     td.fonts.add(font);
                 }
-                startIndex = font.getEndIndex();
+                startIndex = font.endIndex;
             }
         }
         return LINE_FEED_PATTERN.matcher(tdElement.text()).replaceAll("\n");
@@ -435,6 +435,6 @@ public class HtmlTableParser {
         /**
          * span
          */
-        span;
+        span
     }
 }

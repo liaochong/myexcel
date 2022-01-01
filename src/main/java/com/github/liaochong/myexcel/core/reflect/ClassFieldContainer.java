@@ -32,9 +32,9 @@ public class ClassFieldContainer {
 
     private Class<?> clazz;
 
-    private List<Field> declaredFields = new ArrayList<>();
+    private final List<Field> declaredFields = new ArrayList<>();
 
-    private Map<String, Field> fieldMap = new HashMap<>();
+    private final Map<String, Field> fieldMap = new HashMap<>();
 
     private ClassFieldContainer parent;
 
@@ -74,8 +74,7 @@ public class ClassFieldContainer {
 
     private void filterFields(List<Field> declaredFields, List<Field> fieldContainer) {
         to:
-        for (int i = 0, size = declaredFields.size(); i < size; i++) {
-            Field field = declaredFields.get(i);
+        for (Field field : declaredFields) {
             for (int j = 0; j < fieldContainer.size(); j++) {
                 Field f = fieldContainer.get(j);
                 if (f.getName().equals(field.getName())) {
@@ -117,14 +116,6 @@ public class ClassFieldContainer {
 
     public void setClazz(Class<?> clazz) {
         this.clazz = clazz;
-    }
-
-    public void setDeclaredFields(List<Field> declaredFields) {
-        this.declaredFields = declaredFields;
-    }
-
-    public void setFieldMap(Map<String, Field> fieldMap) {
-        this.fieldMap = fieldMap;
     }
 
     public void setParent(ClassFieldContainer parent) {

@@ -29,7 +29,7 @@ public class CustomColor {
 
     private HSSFPalette palette;
 
-    private AtomicInteger colorIndex = new AtomicInteger(56);
+    private final AtomicInteger colorIndex = new AtomicInteger(56);
 
     private DefaultIndexedColorMap defaultIndexedColorMap;
 
@@ -62,17 +62,5 @@ public class CustomColor {
 
     public void setXls(boolean isXls) {
         this.isXls = isXls;
-    }
-
-    public void setPalette(HSSFPalette palette) {
-        this.palette = palette;
-    }
-
-    public void setColorIndex(AtomicInteger colorIndex) {
-        this.colorIndex = colorIndex;
-    }
-
-    public void setDefaultIndexedColorMap(DefaultIndexedColorMap defaultIndexedColorMap) {
-        this.defaultIndexedColorMap = defaultIndexedColorMap;
     }
 }

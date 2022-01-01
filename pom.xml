@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>4.0.0.RC</version>
+    <version>4.0.0.RC1</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -34,6 +34,7 @@
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
         <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
         <imageio-jpeg.version>3.7.0</imageio-jpeg.version>
+        <commons-csv.version>1.9.0</commons-csv.version>
     </properties>
 
     <dependencies>
@@ -52,6 +53,11 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml-full</artifactId>
             <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>${commons-csv.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>

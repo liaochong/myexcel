@@ -88,7 +88,11 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
 
-    private static final int EMU_PER_MM = 36000;
+    private static Map<String, String> DEFAULT_TD_STYLE;
+
+    private static Map<String, String> DEFAULT_TH_STYLE;
+
+    private static Map<String, String> DEFAULT_LINK_STYLE;
 
     protected Workbook workbook;
     /**
@@ -103,6 +107,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 是否使用默认样式
      */
     private boolean useDefaultStyle;
+    /**
+     * 是否应用默认样式，允许覆盖
+     */
+    private boolean applyDefaultStyle;
     /**
      * 自定义颜色
      */
@@ -147,6 +155,26 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     @Override
     public ExcelFactory useDefaultStyle() {
         this.useDefaultStyle = true;
+        return this;
+    }
+
+    @Override
+    public ExcelFactory applyDefaultStyle() {
+        this.applyDefaultStyle = true;
+        if (DEFAULT_TD_STYLE == null) {
+            DEFAULT_TD_STYLE = new HashMap<String, String>() {{
+                put("text-align", "center");
+                put("vertical-align", "center");
+                put("border-style", "thin");
+            }};
+            DEFAULT_TH_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+                put("font-weight", "bold");
+            }};
+            DEFAULT_LINK_STYLE = new HashMap<String, String>(DEFAULT_TD_STYLE) {{
+                put("text-decoration", "underline");
+                put("color", "blue");
+            }};
+        }
         return this;
     }
 
@@ -459,8 +487,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
         anchor.setDx1(0);
         anchor.setDy1(0);
-        anchor.setDx2(isHssf ? 1023 : 100 * EMU_PER_MM);
-        anchor.setDy2(isHssf ? 1023 : 99 * EMU_PER_MM);
+        final int emuPerMm = 36000;
+        anchor.setDx2(isHssf ? 1023 : 100 * emuPerMm);
+        anchor.setDy2(isHssf ? 1023 : 99 * emuPerMm);
         anchor.setCol1(td.col);
         anchor.setRow1(td.row);
         anchor.setCol2(td.getColBound());
@@ -546,7 +575,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             }
         } else {
             this.doSetInnerSpan(cell, td);
-            if (td.style.isEmpty()) {
+            if (td.style.isEmpty() && !applyDefaultStyle) {
                 return;
             }
             String fs = td.style.get("font-size");
@@ -554,6 +583,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 short fontSize = (short) TdUtil.getValue(fs);
                 if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
                     maxTdHeightMap.put(row.getRowNum(), fontSize);
+                }
+            }
+            if (applyDefaultStyle) {
+                if (td.th) {
+                    DEFAULT_TH_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
+                } else {
+                    if (ContentTypeEnum.isLink(td.tdContentType)) {
+                        DEFAULT_LINK_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
+                    } else {
+                        DEFAULT_TD_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
+                    }
                 }
             }
             if (cellStyleMap.containsKey(td.style)) {
@@ -592,8 +632,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         RichTextString richText = isHssf ? new HSSFRichTextString(td.content) : new XSSFRichTextString(td.content);
         for (com.github.liaochong.myexcel.core.parser.Font font : td.fonts) {
-            Font f = FontStyle.getFont(font.getStyle(), fontMap, () -> workbook.createFont(), customColor);
-            richText.applyFont(font.getStartIndex(), font.getEndIndex(), f);
+            Font f = FontStyle.getFont(font.style, fontMap, () -> workbook.createFont(), customColor);
+            richText.applyFont(font.startIndex, font.endIndex, f);
         }
         cell.setCellValue(richText);
     }

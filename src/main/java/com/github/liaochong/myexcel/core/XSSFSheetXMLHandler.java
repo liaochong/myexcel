@@ -41,7 +41,7 @@ import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
  * @author liaochong
  * @version 1.0
  */
-public class XSSFSheetXMLHandler extends DefaultHandler {
+class XSSFSheetXMLHandler extends DefaultHandler {
     private static final Logger logger = LoggerFactory.getLogger(XSSFSheetXMLHandler.class);
 
     /**
@@ -61,18 +61,18 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
     /**
      * Table with the styles used for formatting
      */
-    private Styles stylesTable;
+    private final Styles stylesTable;
 
     /**
      * Table with cell comments
      */
-    private Comments comments;
+    private final Comments comments;
 
     /**
      * Read only access to the shared strings table, for looking
      * up (most) string cell's contents
      */
-    private SharedStrings sharedStringsTable;
+    private final SharedStrings sharedStringsTable;
 
     /**
      * Where our text is going
@@ -100,12 +100,12 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
     private int preRowNum = -1;
     private int nextRowNum;      // some sheets do not have rowNums, Excel can read them so we should try to handle them correctly as well
     private String cellRef;
-    private boolean formulasNotResults;
+    private final boolean formulasNotResults;
 
     // Gathers characters as they are seen.
-    private StringBuilder value = new StringBuilder(64);
-    private StringBuilder formula = new StringBuilder(64);
-    private StringBuilder headerFooter = new StringBuilder(64);
+    private final StringBuilder value = new StringBuilder(64);
+    private final StringBuilder formula = new StringBuilder(64);
+    private final StringBuilder headerFooter = new StringBuilder(64);
 
     private Queue<CellAddress> commentCellRefs;
 
@@ -154,12 +154,9 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
             // Easy inline string
             return true;
         }
-        if ("t".equals(name) && isIsOpen) {
-            // Inline string <is><t>...</t></is> pair
-            return true;
-        }
+        // Inline string <is><t>...</t></is> pair
+        return "t".equals(name) && isIsOpen;
         // It isn't a text tag
-        return false;
     }
 
     @Override

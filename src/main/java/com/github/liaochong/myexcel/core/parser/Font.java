@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 富文本字体
+ *
  * @author liaochong
  * @version 1.0
  */
@@ -26,39 +28,15 @@ public class Font {
     /**
      * 整体字符串中起始位置
      */
-    private int startIndex;
+    public int startIndex;
 
     /**
      * 整体字符串中终点位置，不包含
      */
-    private int endIndex;
+    public int endIndex;
 
     /**
      * 单元格样式
      */
-    private Map<String, String> style = new HashMap<>();
-
-    public int getStartIndex() {
-        return startIndex;
-    }
-
-    public void setStartIndex(int startIndex) {
-        this.startIndex = startIndex;
-    }
-
-    public int getEndIndex() {
-        return endIndex;
-    }
-
-    public void setEndIndex(int endIndex) {
-        this.endIndex = endIndex;
-    }
-
-    public Map<String, String> getStyle() {
-        return style;
-    }
-
-    public void setStyle(Map<String, String> style) {
-        this.style = style;
-    }
+    public Map<String, String> style = new HashMap<>();
 }

@@ -33,6 +33,13 @@ public interface ExcelFactory {
     ExcelFactory useDefaultStyle();
 
     /**
+     * 应用默认样式
+     *
+     * @return ExcelFactory
+     */
+    ExcelFactory applyDefaultStyle();
+
+    /**
      * 窗口冻结
      *
      * @param freezePanes 窗口冻结区域

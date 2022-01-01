@@ -14,45 +14,33 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.io.BOMInputStream;
-import com.github.liaochong.myexcel.core.io.ByteOrderMark;
 import com.github.liaochong.myexcel.exception.StopReadException;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author liaochong
  * @version 1.0
  */
 class CsvReadHandler<T> extends AbstractReadHandler<T> {
-
-    private static final Pattern PATTERN_SPLIT = Pattern.compile(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)");
-
-    private static final Pattern PATTERN_QUOTES = Pattern.compile("[\"]{2}");
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(CsvReadHandler.class);
 
-    private InputStream is;
-
-    private String charset;
+    private final InputStream is;
 
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
         super(true, result, readConfig);
-        BOMInputStream bomInputStream = new BOMInputStream(is, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE);
-        this.is = bomInputStream;
-        try {
-            this.charset = bomInputStream.getBOMCharsetName() != null ? bomInputStream.getBOMCharsetName() : readConfig.charset;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.is = is;
     }
 
     public void read() {
@@ -60,13 +48,17 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             return;
         }
         long startTime = System.currentTimeMillis();
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, charset))) {
-            int lineIndex = 0;
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                newRow(lineIndex);
-                this.process(line);
-                lineIndex++;
+        try (Reader reader = new InputStreamReader(new BOMInputStream(is), readConfig.csvCharset);
+             CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withDelimiter(readConfig.csvDelimiter))) {
+            for (final CSVRecord record : parser) {
+                newRow((int) (record.getRecordNumber() - 1));
+                Iterator<String> iterator = record.stream().iterator();
+                int columnIndex = 0;
+                while (iterator.hasNext()) {
+                    String content = iterator.next();
+                    handleField(columnIndex++, content);
+                }
+                handleResult();
             }
             log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
         } catch (StopReadException e) {
@@ -75,29 +67,5 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private void process(String line) {
-        if (line != null) {
-            String[] strArr = PATTERN_SPLIT.split(line, -1);
-            for (int i = 0, size = strArr.length; i < size; i++) {
-                String content = strArr[i];
-                if (content != null && content.isEmpty()) {
-                    content = null;
-                }
-                if (content != null && content.indexOf(Constants.QUOTES) == 0) {
-                    if (content.length() > 2) {
-                        content = content.substring(1, content.length() - 1);
-                    } else {
-                        content = "";
-                    }
-                }
-                if (content != null) {
-                    content = PATTERN_QUOTES.matcher(content).replaceAll("\"");
-                }
-                handleField(i, content);
-            }
-        }
-        handleResult();
     }
 }
