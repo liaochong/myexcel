@@ -51,8 +51,8 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             return;
         }
         long startTime = System.currentTimeMillis();
-        try (Reader reader = new InputStreamReader(new BOMInputStream(is), charset)) {
-            final CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL);
+        try (Reader reader = new InputStreamReader(new BOMInputStream(is), charset);
+             CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL)) {
             for (final CSVRecord record : parser) {
                 newRow((int) (record.getRecordNumber() - 1));
                 Iterator<String> iterator = record.stream().iterator();
