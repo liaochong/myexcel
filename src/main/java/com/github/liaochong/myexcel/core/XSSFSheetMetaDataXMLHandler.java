@@ -24,7 +24,7 @@ import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
  * @author liaochong
  * @version 1.0
  */
-public class XSSFSheetMetaDataXMLHandler extends DefaultHandler {
+class XSSFSheetMetaDataXMLHandler extends DefaultHandler {
     /**
      * some sheets do not have rowNums, Excel can read them so we should try to handle them correctly as well
      */

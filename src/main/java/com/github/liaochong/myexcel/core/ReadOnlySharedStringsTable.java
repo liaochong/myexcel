@@ -40,7 +40,7 @@ import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
  * @author liaochong
  * @version 1.0
  */
-public class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings {
+class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings {
     /**
      * An integer representing the total count of strings in the workbook. This count does not
      * include any numbers, it counts only the total of text strings in the workbook.
