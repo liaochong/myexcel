@@ -36,14 +36,11 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
 
     private final InputStream is;
 
-    private final String charset;
-
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
         super(true, result, readConfig);
         this.is = is;
-        this.charset = readConfig.charset;
     }
 
     public void read() {
@@ -51,8 +48,8 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
             return;
         }
         long startTime = System.currentTimeMillis();
-        try (Reader reader = new InputStreamReader(new BOMInputStream(is), charset);
-             CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL)) {
+        try (Reader reader = new InputStreamReader(new BOMInputStream(is), readConfig.csvCharset);
+             CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withDelimiter(readConfig.csvDelimiter))) {
             for (final CSVRecord record : parser) {
                 newRow((int) (record.getRecordNumber() - 1));
                 Iterator<String> iterator = record.stream().iterator();

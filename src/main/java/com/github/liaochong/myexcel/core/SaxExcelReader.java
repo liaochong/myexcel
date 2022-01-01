@@ -108,8 +108,19 @@ public class SaxExcelReader<T> {
         return this;
     }
 
+    @Deprecated
     public SaxExcelReader<T> charset(String charset) {
-        this.readConfig.charset = charset;
+        this.readConfig.csvCharset = charset;
+        return this;
+    }
+
+    public SaxExcelReader<T> csvCharset(String charset) {
+        this.readConfig.csvCharset = charset;
+        return this;
+    }
+
+    public SaxExcelReader<T> csvDelimiter(char delimiter) {
+        this.readConfig.csvDelimiter = delimiter;
         return this;
     }
 
@@ -441,7 +452,9 @@ public class SaxExcelReader<T> {
 
         public BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (t, c) -> false;
 
-        public String charset = "UTF-8";
+        public String csvCharset = "UTF-8";
+
+        public char csvDelimiter = ',';
 
         public Function<String, String> trim = v -> {
             if (v == null) {
