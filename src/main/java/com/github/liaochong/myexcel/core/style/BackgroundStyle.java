@@ -35,9 +35,6 @@ public final class BackgroundStyle {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BackgroundStyle.class);
 
     public static void setBackgroundColor(CellStyle style, Map<String, String> tdStyle, CustomColor customColor) {
-        if (tdStyle == null) {
-            return;
-        }
         String color = tdStyle.get(BACKGROUND_COLOR);
         if (color == null) {
             return;
