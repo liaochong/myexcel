@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.0.RC2</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>

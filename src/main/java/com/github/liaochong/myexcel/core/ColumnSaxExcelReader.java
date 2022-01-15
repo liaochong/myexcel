@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  * 字符列sax读取，原理是使用Map接受值，选择指定的某一列
  *
  * @author liaochong
- * @version 1.0
+ * @version 4.0.0.RC
  */
 public class ColumnSaxExcelReader {
 
@@ -38,6 +39,10 @@ public class ColumnSaxExcelReader {
      * 默认取第一列
      */
     private final int columnNum;
+    /**
+     * 是否忽略空单元格
+     */
+    private boolean ignoreBlankCell;
 
     private ColumnSaxExcelReader(int columnNum) {
         this.columnNum = columnNum;
@@ -62,8 +67,9 @@ public class ColumnSaxExcelReader {
         return this;
     }
 
-    public ColumnSaxExcelReader ignoreBlankRow() {
+    public ColumnSaxExcelReader ignoreBlankCell() {
         saxExcelReader.ignoreBlankRow();
+        ignoreBlankCell = true;
         return this;
     }
 
@@ -145,7 +151,9 @@ public class ColumnSaxExcelReader {
         }
         return result.stream().map(map -> ((Set<Cell>) map.keySet()).stream().filter(cell -> cell.getColNum() == columnNum)
                         .map(((Map<Cell, String>) map)::get)
+                        .filter(Objects::nonNull)
                         .findFirst().orElse(null))
+                .filter(v -> !ignoreBlankCell || v != null)
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
