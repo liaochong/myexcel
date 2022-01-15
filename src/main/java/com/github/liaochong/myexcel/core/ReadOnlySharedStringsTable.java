@@ -95,11 +95,10 @@ class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings
         int emptyTest = pis.read();
         if (emptyTest > -1) {
             pis.unread(emptyTest);
-            InputSource sheetSource = new InputSource(pis);
             try {
                 XMLReader sheetParser = XMLHelper.newXMLReader();
                 sheetParser.setContentHandler(this);
-                sheetParser.parse(sheetSource);
+                sheetParser.parse(new InputSource(pis));
                 stringsCache.finished();
             } catch (ParserConfigurationException e) {
                 throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());

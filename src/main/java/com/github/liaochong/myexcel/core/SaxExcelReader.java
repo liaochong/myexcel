@@ -417,14 +417,12 @@ public class SaxExcelReader<T> {
             SharedStrings strings,
             XSSFSheetXMLHandler.SheetContentsHandler sheetHandler,
             InputStream sheetInputStream) throws IOException, SAXException {
-        DataFormatter formatter = new DataFormatter();
-        InputSource sheetSource = new InputSource(sheetInputStream);
         try {
             XMLReader sheetParser = XMLHelper.newXMLReader();
             ContentHandler handler = new XSSFSheetXMLHandler(
-                    null, null, strings, sheetHandler, formatter, false);
+                    null, null, strings, sheetHandler, new DataFormatter(), false);
             sheetParser.setContentHandler(handler);
-            sheetParser.parse(sheetSource);
+            sheetParser.parse(new InputSource(sheetInputStream));
         } catch (ParserConfigurationException e) {
             throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
         }

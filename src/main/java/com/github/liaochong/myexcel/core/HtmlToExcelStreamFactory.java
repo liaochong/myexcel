@@ -228,7 +228,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private Tr getTrFromQueue() throws InterruptedException {
-        Tr tr = context.trWaitQueue.poll(1, TimeUnit.HOURS);
+        Tr tr = context.trWaitQueue.poll(15, TimeUnit.MINUTES);
         if (tr == null) {
             throw new IllegalStateException("Get tr failure,timeout 1 hour.");
         }

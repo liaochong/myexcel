@@ -44,7 +44,7 @@ public final class BorderStyle {
 
     private static final Pattern BORDER_PATTERN = Pattern.compile("(\\w+)");
 
-    private static Map<String, org.apache.poi.ss.usermodel.BorderStyle> borderStyleMap;
+    private static final Map<String, org.apache.poi.ss.usermodel.BorderStyle> borderStyleMap;
 
     static {
         borderStyleMap = Arrays.stream(org.apache.poi.ss.usermodel.BorderStyle.values())
@@ -52,9 +52,6 @@ public final class BorderStyle {
     }
 
     public static void setBorder(CellStyle cellStyle, Map<String, String> tdStyle) {
-        if (tdStyle == null) {
-            return;
-        }
         String borderStyle = tdStyle.get(BORDER_STYLE);
         if (borderStyle != null) {
             Matcher matcher = BORDER_PATTERN.matcher(borderStyle);

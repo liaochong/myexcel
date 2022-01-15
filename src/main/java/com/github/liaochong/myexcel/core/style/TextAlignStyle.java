@@ -46,9 +46,6 @@ public final class TextAlignStyle {
     }
 
     public static void setTextAlign(CellStyle cellStyle, Map<String, String> tdStyle) {
-        if (tdStyle == null) {
-            return;
-        }
         String textAlign = tdStyle.get(TEXT_ALIGN);
         if (horizontalAlignmentMap.containsKey(textAlign)) {
             cellStyle.setAlignment(horizontalAlignmentMap.get(textAlign));
