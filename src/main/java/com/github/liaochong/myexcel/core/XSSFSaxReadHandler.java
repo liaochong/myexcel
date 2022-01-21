@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.slf4j.Logger;
 
@@ -49,12 +49,12 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     }
 
     @Override
-    public void cell(String cellReference, String formattedValue,
+    public void cell(CellAddress cellAddress, String formattedValue,
                      XSSFComment comment) {
-        if (cellReference == null) {
+        if (cellAddress == null) {
             return;
         }
-        int thisCol = (new CellReference(cellReference)).getCol();
+        int thisCol = cellAddress.getColumn();
         handleField(thisCol, formattedValue);
     }
 

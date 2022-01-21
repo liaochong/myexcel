@@ -33,7 +33,9 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
 
@@ -85,8 +87,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     private boolean fIsOpen;
     // Set when an Inline String "is" is seen
     private boolean isIsOpen;
-    // Set when a header/footer element is seen
-    private boolean hfIsOpen;
 
     // Set when cell start element is seen;
     // used when cell close element is seen.
@@ -105,9 +105,12 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     // Gathers characters as they are seen.
     private final StringBuilder value = new StringBuilder(64);
     private final StringBuilder formula = new StringBuilder(64);
-    private final StringBuilder headerFooter = new StringBuilder(64);
 
     private Queue<CellAddress> commentCellRefs;
+
+    private final Map<CellAddress, CellAddress> mergeCellMapping;
+
+    private final Map<CellAddress, String> mergeFirstCellMapping;
 
     /**
      * Accepts objects needed while parsing.
@@ -120,12 +123,15 @@ class XSSFSheetXMLHandler extends DefaultHandler {
      * @param comments             comments
      */
     public XSSFSheetXMLHandler(
+            Map<CellAddress, CellAddress> mergeCellMapping,
             Styles styles,
             Comments comments,
             SharedStrings strings,
             XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
             DataFormatter dataFormatter,
             boolean formulasNotResults) {
+        this.mergeCellMapping = mergeCellMapping;
+        this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.stylesTable = styles;
         this.comments = comments;
         this.sharedStringsTable = strings;
@@ -209,12 +215,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             } else {
                 fIsOpen = true;
             }
-        } else if ("oddHeader".equals(localName) || "evenHeader".equals(localName) ||
-                "firstHeader".equals(localName) || "firstFooter".equals(localName) ||
-                "oddFooter".equals(localName) || "evenFooter".equals(localName)) {
-            hfIsOpen = true;
-            // Clear contents cache
-            headerFooter.setLength(0);
         } else if ("row".equals(localName)) {
             String rowNumStr = attributes.getValue("r");
             if (rowNumStr != null) {
@@ -340,7 +340,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                     if (this.formatString != null && n.length() > 0)
                         thisStr = formatter.formatRawCellContents(Double.parseDouble(n), this.formatIndex, this.formatString);
                     else {
-                        if (n.length() > 0 && n.contains(Constants.SPOT)) {
+                        if (n.contains(Constants.SPOT)) {
                             n = String.valueOf(Double.parseDouble(n));
                         }
                         thisStr = n;
@@ -356,35 +356,34 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             checkForEmptyCellComments(EmptyCellCommentsCheckType.CELL);
             XSSFComment comment = comments != null ? comments.findCellComment(new CellAddress(cellRef)) : null;
 
+            CellAddress cellAddress = new CellAddress(cellRef);
+            String finalThisStr = thisStr;
+            mergeFirstCellMapping.computeIfPresent(cellAddress, (k, v) -> finalThisStr);
             // Output
-            output.cell(cellRef, thisStr, comment);
-        } else if ("f".equals(localName)) {
-            fIsOpen = false;
-        } else if ("is".equals(localName)) {
-            isIsOpen = false;
+            output.cell(cellAddress, thisStr, comment);
         } else if ("row".equals(localName)) {
             // Handle any "missing" cells which had comments attached
             checkForEmptyCellComments(EmptyCellCommentsCheckType.END_OF_ROW);
-
             // Finish up the row
             output.endRow(rowNum);
-
             // some sheets do not have rowNum set in the XML, Excel can read them so we should try to read them as well
             nextRowNum = rowNum + 1;
+        } else if ("c".equals(localName)) {
+            CellAddress cellAddress = new CellAddress(cellRef);
+            CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
+            if (firstCellAddress != null) {
+                output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress), null);
+            }
         } else if ("sheetData".equals(localName)) {
             // Handle any "missing" cells which had comments attached
             checkForEmptyCellComments(EmptyCellCommentsCheckType.END_OF_SHEET_DATA);
 
             // indicate that this sheet is now done
             output.endSheet();
-        } else if ("oddHeader".equals(localName) || "evenHeader".equals(localName) ||
-                "firstHeader".equals(localName)) {
-            hfIsOpen = false;
-            output.headerFooter(headerFooter.toString(), true, localName);
-        } else if ("oddFooter".equals(localName) || "evenFooter".equals(localName) ||
-                "firstFooter".equals(localName)) {
-            hfIsOpen = false;
-            output.headerFooter(headerFooter.toString(), false, localName);
+        } else if ("f".equals(localName)) {
+            fIsOpen = false;
+        } else if ("is".equals(localName)) {
+            isIsOpen = false;
         }
     }
 
@@ -400,9 +399,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
         }
         if (fIsOpen) {
             formula.append(ch, start, length);
-        }
-        if (hfIsOpen) {
-            headerFooter.append(ch, start, length);
         }
     }
 
@@ -467,7 +463,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
      */
     private void outputEmptyCellComment(CellAddress cellRef) {
         XSSFComment comment = comments.findCellComment(cellRef);
-        output.cell(cellRef.formatAsString(), null, comment);
+        output.cell(cellRef, null, comment);
     }
 
     private enum EmptyCellCommentsCheckType {
@@ -504,21 +500,11 @@ class XSSFSheetXMLHandler extends DefaultHandler {
          * <code>src/examples/src/org/apache/poi/xssf/eventusermodel/XLSX2CSV.java</code>
          * for an example of how to handle this scenario.
          *
-         * @param cellReference  cellReference
+         * @param cellAddress    cellAddress
          * @param comment        comment
          * @param formattedValue formattedValue
          */
-        void cell(String cellReference, String formattedValue, XSSFComment comment);
-
-        /**
-         * A header or footer has been encountered
-         *
-         * @param isHeader isHeader
-         * @param tagName  tagName
-         * @param text     text
-         */
-        default void headerFooter(String text, boolean isHeader, String tagName) {
-        }
+        void cell(CellAddress cellAddress, String formattedValue, XSSFComment comment);
 
         /**
          * Signal that the end of a sheet was been reached
