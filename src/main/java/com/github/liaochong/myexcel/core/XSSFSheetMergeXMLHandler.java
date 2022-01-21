@@ -52,8 +52,9 @@ class XSSFSheetMergeXMLHandler extends DefaultHandler {
                 CellAddress cellAddress = iterator.next();
                 if (firstCellAddress == null) {
                     firstCellAddress = cellAddress;
+                } else {
+                    mergeCellMapping.put(cellAddress, firstCellAddress);
                 }
-                mergeCellMapping.put(cellAddress, firstCellAddress);
             }
         }
     }
