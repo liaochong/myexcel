@@ -15,13 +15,10 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import org.apache.poi.ss.usermodel.BuiltinFormats;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.model.SharedStrings;
-import org.apache.poi.xssf.model.Styles;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,11 +51,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
         SST_STRING,
         NUMBER,
     }
-
-    /**
-     * Table with the styles used for formatting
-     */
-    private final Styles stylesTable;
 
     /**
      * Read only access to the shared strings table, for looking
@@ -99,20 +91,17 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     /**
      * Accepts objects needed while parsing.
      *
-     * @param styles               Table of styles
      * @param strings              Table of shared strings
      * @param sheetContentsHandler sheetContentsHandler
      * @param dataFormatter        dataFormatter
      */
     public XSSFSheetXMLHandler(
             Map<CellAddress, CellAddress> mergeCellMapping,
-            Styles styles,
             SharedStrings strings,
             XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
             DataFormatter dataFormatter) {
         this.mergeCellMapping = mergeCellMapping;
         this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
-        this.stylesTable = styles;
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;
         this.nextDataType = xssfDataType.NUMBER;
@@ -197,24 +186,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                 nextDataType = xssfDataType.SST_STRING;
             else if ("str".equals(cellType))
                 nextDataType = xssfDataType.FORMULA;
-            else {
-                // Number, but almost certainly with a special style or format
-                XSSFCellStyle style = null;
-                if (stylesTable != null) {
-                    if (cellStyleStr != null) {
-                        int styleIndex = Integer.parseInt(cellStyleStr);
-                        style = stylesTable.getStyleAt(styleIndex);
-                    } else if (stylesTable.getNumCellStyles() > 0) {
-                        style = stylesTable.getStyleAt(0);
-                    }
-                }
-                if (style != null) {
-                    this.formatIndex = style.getDataFormat();
-                    this.formatString = style.getDataFormatString();
-                    if (this.formatString == null)
-                        this.formatString = BuiltinFormats.getBuiltinFormat(this.formatIndex);
-                }
-            }
         }
     }
 
