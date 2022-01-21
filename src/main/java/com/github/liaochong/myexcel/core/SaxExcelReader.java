@@ -364,7 +364,7 @@ public class SaxExcelReader<T> {
                     if (acceptFunction.apply(stream, index)) {
                         readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
                         ContentHandler handler = new XSSFSheetXMLHandler(
-                                mergeCellIndexMapping.get(index), strings, new XSSFSaxReadHandler<>(result, readConfig), new DataFormatter());
+                                mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap()), strings, new XSSFSaxReadHandler<>(result, readConfig), new DataFormatter());
                         processSheet(handler, stream);
                         mergeCellIndexMapping.remove(index);
                     }
