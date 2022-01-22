@@ -14,9 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
-import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
-import org.apache.poi.hssf.eventusermodel.HSSFRequest;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.LastCellOfRowDummyRecord;
 import org.apache.poi.hssf.record.BOFRecord;
 import org.apache.poi.hssf.record.BlankRecord;
@@ -53,10 +50,9 @@ class HSSFMetaDataSaxReadHandler extends AbstractHSSFReadHandler {
         this.workbookMetaData = workbookMetaData;
     }
 
+    @Override
     public void process() throws IOException {
-        HSSFRequest request = new HSSFRequest();
-        request.addListenerForAllRecords(new EventWorkbookBuilder.SheetRecordCollectingListener(this));
-        new HSSFEventFactory().processWorkbookEvents(request, fs);
+        super.process();
         // 处理最后一个sheet
         if (lastRowNumber > -1) {
             workbookMetaData.getSheetMetaDataList().get(sheetIndex).setLastRowNum(lastRowNumber + 1);

@@ -14,9 +14,6 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
-import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
-import org.apache.poi.hssf.eventusermodel.HSSFRequest;
 import org.apache.poi.hssf.record.BOFRecord;
 import org.apache.poi.hssf.record.BoundSheetRecord;
 import org.apache.poi.hssf.record.MergeCellsRecord;
@@ -47,12 +44,6 @@ class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
         this.fs = new POIFSFileSystem(new FileInputStream(file));
     }
 
-    public void process() throws IOException {
-        HSSFEventFactory factory = new HSSFEventFactory();
-        HSSFRequest request = new HSSFRequest();
-        request.addListenerForAllRecords(new EventWorkbookBuilder.SheetRecordCollectingListener(this));
-        factory.processWorkbookEvents(request, fs);
-    }
 
     @Override
     public void processRecord(Record record) {

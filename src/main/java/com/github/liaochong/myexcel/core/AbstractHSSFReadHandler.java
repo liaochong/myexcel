@@ -14,10 +14,14 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
+import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
 import org.apache.poi.hssf.eventusermodel.HSSFListener;
+import org.apache.poi.hssf.eventusermodel.HSSFRequest;
 import org.apache.poi.hssf.record.BoundSheetRecord;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,4 +44,10 @@ abstract class AbstractHSSFReadHandler implements HSSFListener {
     protected SaxExcelReader.ReadConfig<?> readConfig;
 
     protected POIFSFileSystem fs;
+
+    protected void process() throws IOException {
+        HSSFRequest request = new HSSFRequest();
+        request.addListenerForAllRecords(new EventWorkbookBuilder.SheetRecordCollectingListener(this));
+        new HSSFEventFactory().processWorkbookEvents(request, fs);
+    }
 }
