@@ -38,7 +38,7 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-public class HSSFMergeReadHandler implements HSSFListener {
+class HSSFMergeReadHandler implements HSSFListener {
 
     private BoundSheetRecord[] orderedBSRs;
 

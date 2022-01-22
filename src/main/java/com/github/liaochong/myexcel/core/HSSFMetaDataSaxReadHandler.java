@@ -15,11 +15,9 @@
 package com.github.liaochong.myexcel.core;
 
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
-import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
 import org.apache.poi.hssf.eventusermodel.HSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFRequest;
-import org.apache.poi.hssf.eventusermodel.MissingRecordAwareHSSFListener;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.LastCellOfRowDummyRecord;
 import org.apache.poi.hssf.record.BOFRecord;
 import org.apache.poi.hssf.record.BlankRecord;
@@ -32,7 +30,6 @@ import org.apache.poi.hssf.record.NoteRecord;
 import org.apache.poi.hssf.record.NumberRecord;
 import org.apache.poi.hssf.record.RKRecord;
 import org.apache.poi.hssf.record.Record;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import java.io.File;
@@ -47,7 +44,7 @@ import java.util.List;
  * @author liaochong
  * @version 1.0
  */
-public class HSSFMetaDataSaxReadHandler implements HSSFListener {
+class HSSFMetaDataSaxReadHandler implements HSSFListener {
 
     private BoundSheetRecord[] orderedBSRs;
 
@@ -56,13 +53,6 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
     private final POIFSFileSystem fs;
 
     private int lastRowNumber = -1;
-
-    /**
-     * For parsing Formulas
-     */
-    private EventWorkbookBuilder.SheetRecordCollectingListener workbookBuildingListener;
-    private HSSFWorkbook stubWorkbook;
-
     /**
      * So we known which sheet we're on
      */
@@ -76,12 +66,8 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
     }
 
     public void process() throws IOException {
-        MissingRecordAwareHSSFListener listener = new MissingRecordAwareHSSFListener(this);
-        FormatTrackingHSSFListener formatListener = new FormatTrackingHSSFListener(listener);
-
         HSSFRequest request = new HSSFRequest();
-        workbookBuildingListener = new EventWorkbookBuilder.SheetRecordCollectingListener(formatListener);
-        request.addListenerForAllRecords(workbookBuildingListener);
+        request.addListenerForAllRecords(new EventWorkbookBuilder.SheetRecordCollectingListener(this));
         new HSSFEventFactory().processWorkbookEvents(request, fs);
         // 处理最后一个sheet
         if (lastRowNumber > -1) {
@@ -99,9 +85,6 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
             case BOFRecord.sid:
                 BOFRecord br = (BOFRecord) record;
                 if (br.getType() == BOFRecord.TYPE_WORKSHEET) {
-                    if (workbookBuildingListener != null && stubWorkbook == null) {
-                        stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
-                    }
                     List<SheetMetaData> sheetMetaDataList = workbookMetaData.getSheetMetaDataList();
                     if (lastRowNumber > -1) {
                         sheetMetaDataList.get(sheetIndex).setLastRowNum(lastRowNumber + 1);
@@ -118,46 +101,36 @@ public class HSSFMetaDataSaxReadHandler implements HSSFListener {
                 }
                 break;
             case BlankRecord.sid:
-                BlankRecord brec = (BlankRecord) record;
-                thisRow = brec.getRow();
+                thisRow = ((BlankRecord) record).getRow();
                 break;
             case BoolErrRecord.sid:
-                BoolErrRecord berec = (BoolErrRecord) record;
-                thisRow = berec.getRow();
+                thisRow = ((BoolErrRecord) record).getRow();
                 break;
             case FormulaRecord.sid:
-                FormulaRecord frec = (FormulaRecord) record;
-                thisRow = frec.getRow();
+                thisRow = ((FormulaRecord) record).getRow();
                 break;
             case LabelRecord.sid:
-                LabelRecord lrec = (LabelRecord) record;
-                thisRow = lrec.getRow();
+                thisRow = ((LabelRecord) record).getRow();
                 break;
             case LabelSSTRecord.sid:
-                LabelSSTRecord lsrec = (LabelSSTRecord) record;
-                thisRow = lsrec.getRow();
+                thisRow = ((LabelSSTRecord) record).getRow();
                 break;
             case NoteRecord.sid:
-                NoteRecord nrec = (NoteRecord) record;
-                thisRow = nrec.getRow();
+                thisRow = ((NoteRecord) record).getRow();
                 break;
             case NumberRecord.sid:
-                NumberRecord numrec = (NumberRecord) record;
-                thisRow = numrec.getRow();
+                thisRow = ((NumberRecord) record).getRow();
                 break;
             case RKRecord.sid:
-                RKRecord rkrec = (RKRecord) record;
-                thisRow = rkrec.getRow();
+                thisRow = ((RKRecord) record).getRow();
                 break;
             default:
                 break;
         }
-
         if (record instanceof LastCellOfRowDummyRecord) {
             LastCellOfRowDummyRecord lc = (LastCellOfRowDummyRecord) record;
             thisRow = lc.getRow();
         }
-
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
