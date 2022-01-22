@@ -366,7 +366,7 @@ public class SaxExcelReader<T> {
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
-    private Map<Integer, Map<CellAddress, CellAddress>> processMerge(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
+    private Map<Integer, Map<CellAddress, CellAddress>> processMerge(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
         if (!readConfig.detectedMerge) {
             return Collections.emptyMap();
         }
@@ -379,7 +379,21 @@ public class SaxExcelReader<T> {
         return mergeCellIndexMapping;
     }
 
-    private void doReadSheet(OPCPackage xlsxPackage, CiConsumer<InputStream, Integer, String> ciConsumer) throws IOException, OpenXML4JException, SAXException {
+    private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
+        workbookMetaData = new WorkbookMetaData();
+        readConfig.readAllSheet = true;
+        int lastIndex = this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
+            SheetMetaData sheetMetaData = new SheetMetaData(sheetName, index);
+            this.processSheet(new XSSFSheetMetaDataXMLHandler(sheetMetaData), stream);
+            // 设置元数据信息
+            workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
+        });
+        if (lastIndex > -1) {
+            workbookMetaData.setSheetCount(lastIndex + 1);
+        }
+    }
+
+    private int doReadSheet(OPCPackage xlsxPackage, CiConsumer<InputStream, Integer, String> ciConsumer) throws IOException, OpenXML4JException {
         XSSFReader.SheetIterator iter = this.getSheetIterator(xlsxPackage);
         BiFunction<InputStream, Integer, Boolean> acceptFunction = this.getSheetAcceptFunction(iter);
         int index = -1;
@@ -391,6 +405,7 @@ public class SaxExcelReader<T> {
                 }
             }
         }
+        return index;
     }
 
     private XSSFReader.SheetIterator getSheetIterator(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
@@ -400,30 +415,14 @@ public class SaxExcelReader<T> {
 
     private BiFunction<InputStream, Integer, Boolean> getSheetAcceptFunction(XSSFReader.SheetIterator iter) {
         BiFunction<InputStream, Integer, Boolean> acceptFunction = (is, index) -> true;
-        if (!readConfig.sheetNames.isEmpty()) {
+        if (readConfig.readAllSheet) {
+            acceptFunction = (is, index) -> true;
+        } else if (!readConfig.sheetNames.isEmpty()) {
             acceptFunction = (is, index) -> readConfig.sheetNames.contains(iter.getSheetName());
         } else if (!readConfig.sheetIndexs.isEmpty()) {
             acceptFunction = (is, index) -> readConfig.sheetIndexs.contains(index);
         }
         return acceptFunction;
-    }
-
-    private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
-        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) new XSSFReader(xlsxPackage).getSheetsData();
-        workbookMetaData = new WorkbookMetaData();
-        int index = -1;
-        while (iter.hasNext()) {
-            ++index;
-            try (InputStream stream = iter.next()) {
-                SheetMetaData sheetMetaData = new SheetMetaData(iter.getSheetName(), index);
-                this.processSheet(new XSSFSheetMetaDataXMLHandler(sheetMetaData), stream);
-                // 设置元数据信息
-                workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
-            }
-        }
-        if (index > -1) {
-            workbookMetaData.setSheetCount(index + 1);
-        }
     }
 
     /**
