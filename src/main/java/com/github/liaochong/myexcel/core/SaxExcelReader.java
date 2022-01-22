@@ -304,7 +304,11 @@ public class SaxExcelReader<T> {
                 workbookMetaData = new WorkbookMetaData();
                 new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
             } else {
-                new HSSFSaxReadHandler<>(file, result, readConfig).process();
+                Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
+                if (readConfig.detectedMerge) {
+                    new HSSFMergeReadHandler(file, readConfig, mergeCellIndexMapping).process();
+                }
+                new HSSFSaxReadHandler<>(file, result, readConfig, mergeCellIndexMapping).process();
             }
         } catch (StopReadException e) {
             // do nothing
