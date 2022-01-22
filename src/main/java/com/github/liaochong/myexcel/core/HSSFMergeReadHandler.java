@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core;
 
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
-import org.apache.poi.hssf.eventusermodel.HSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFRequest;
 import org.apache.poi.hssf.record.BOFRecord;
 import org.apache.poi.hssf.record.BoundSheetRecord;
@@ -28,31 +27,17 @@ import org.apache.poi.ss.util.CellAddress;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-class HSSFMergeReadHandler implements HSSFListener {
-
-    private BoundSheetRecord[] orderedBSRs;
-
-    private final List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
-
-    private int sheetIndex = -1;
-
-    private String sheetName;
+class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
 
     private final Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping;
-
-    private final SaxExcelReader.ReadConfig<?> readConfig;
-
-    private final POIFSFileSystem fs;
 
     public HSSFMergeReadHandler(File file,
                                 SaxExcelReader.ReadConfig<?> readConfig,

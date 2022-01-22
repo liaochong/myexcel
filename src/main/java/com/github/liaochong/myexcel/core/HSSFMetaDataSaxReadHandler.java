@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core;
 
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
-import org.apache.poi.hssf.eventusermodel.HSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFRequest;
 import org.apache.poi.hssf.eventusermodel.dummyrecord.LastCellOfRowDummyRecord;
 import org.apache.poi.hssf.record.BOFRecord;
@@ -35,7 +34,6 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,19 +42,9 @@ import java.util.List;
  * @author liaochong
  * @version 1.0
  */
-class HSSFMetaDataSaxReadHandler implements HSSFListener {
-
-    private BoundSheetRecord[] orderedBSRs;
-
-    private final List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
-
-    private final POIFSFileSystem fs;
+class HSSFMetaDataSaxReadHandler extends AbstractHSSFReadHandler {
 
     private int lastRowNumber = -1;
-    /**
-     * So we known which sheet we're on
-     */
-    private int sheetIndex = -1;
 
     private final WorkbookMetaData workbookMetaData;
 
