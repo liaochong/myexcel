@@ -280,6 +280,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
             if (firstCellAddress != null) {
                 output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
+                mergeCellMapping.remove(cellAddress);
             }
         } else if ("sheetData".equals(localName)) {
             // indicate that this sheet is now done
