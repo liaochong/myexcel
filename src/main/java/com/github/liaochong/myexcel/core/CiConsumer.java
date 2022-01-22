@@ -5,7 +5,7 @@ package com.github.liaochong.myexcel.core;
  * @version 1.0
  */
 @FunctionalInterface
-public interface CiConsumer<T, F, U> {
+interface CiConsumer<T, F, U> {
 
     void accept(T t, F f, U u);
 }
