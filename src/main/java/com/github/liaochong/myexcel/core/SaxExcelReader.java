@@ -395,12 +395,12 @@ public class SaxExcelReader<T> {
 
     private int doReadSheet(OPCPackage xlsxPackage, CiConsumer<InputStream, Integer, String> ciConsumer) throws IOException, OpenXML4JException {
         XSSFReader.SheetIterator iter = this.getSheetIterator(xlsxPackage);
-        BiFunction<InputStream, Integer, Boolean> acceptFunction = this.getSheetAcceptFunction(iter);
+        CiFunction<InputStream, Integer, String, Boolean> acceptFunction = this.getSheetAcceptFunction();
         int index = -1;
         while (iter.hasNext()) {
             ++index;
             try (InputStream stream = iter.next()) {
-                if (acceptFunction.apply(stream, index)) {
+                if (acceptFunction.apply(stream, index, iter.getSheetName())) {
                     ciConsumer.accept(stream, index, iter.getSheetName());
                 }
             }
@@ -413,14 +413,14 @@ public class SaxExcelReader<T> {
         return (XSSFReader.SheetIterator) xssfReader.getSheetsData();
     }
 
-    private BiFunction<InputStream, Integer, Boolean> getSheetAcceptFunction(XSSFReader.SheetIterator iter) {
-        BiFunction<InputStream, Integer, Boolean> acceptFunction = (is, index) -> true;
+    private CiFunction<InputStream, Integer, String, Boolean> getSheetAcceptFunction() {
+        CiFunction<InputStream, Integer, String, Boolean> acceptFunction = (is, index, sheetName) -> true;
         if (readConfig.readAllSheet) {
-            acceptFunction = (is, index) -> true;
+            acceptFunction = (is, index, sheetName) -> true;
         } else if (!readConfig.sheetNames.isEmpty()) {
-            acceptFunction = (is, index) -> readConfig.sheetNames.contains(iter.getSheetName());
+            acceptFunction = (is, index, sheetName) -> readConfig.sheetNames.contains(sheetName);
         } else if (!readConfig.sheetIndexs.isEmpty()) {
-            acceptFunction = (is, index) -> readConfig.sheetIndexs.contains(index);
+            acceptFunction = (is, index, sheetName) -> readConfig.sheetIndexs.contains(index);
         }
         return acceptFunction;
     }
