@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +60,6 @@ import java.util.stream.Collectors;
 class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(HSSFSaxReadHandler.class);
-    private final Set<Integer> sheetIndexs;
 
     private String sheetName;
 
@@ -106,7 +104,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                               Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) throws IOException {
         super(false, result, readConfig);
         this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.sheetIndexs = readConfig.sheetIndexs;
         this.mergeCellIndexMapping = mergeCellIndexMapping;
     }
 
@@ -296,6 +293,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         if (!readConfig.sheetNames.isEmpty()) {
             return readConfig.sheetNames.contains(sheetName);
         }
-        return sheetIndexs.contains(sheetIndex);
+        return readConfig.sheetIndexs.contains(sheetIndex);
     }
 }
