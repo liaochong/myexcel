@@ -135,37 +135,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             vIsOpen = true;
             // Clear contents cache
             value.setLength(0);
-        } else if ("is".equals(localName)) {
-            // Inline string outer tag
-            isIsOpen = true;
-        } else if ("f".equals(localName)) {
-            // Mark us as being a formula if not already
-            if (nextDataType == xssfDataType.NUMBER) {
-                nextDataType = xssfDataType.FORMULA;
-            }
-
-            // Decide where to get the formula string from
-            String type = attributes.getValue("t");
-            if (type != null && type.equals("shared")) {
-                // Is it the one that defines the shared, or uses it?
-                String ref = attributes.getValue("ref");
-                String si = attributes.getValue("si");
-            }
-        } else if ("row".equals(localName)) {
-            String rowNumStr = attributes.getValue("r");
-            if (rowNumStr != null) {
-                rowNum = Integer.parseInt(rowNumStr) - 1;
-            } else {
-                rowNum = nextRowNum;
-            }
-            if (rowNum - 1 != preRowNum) {
-                for (int blankRowNum = preRowNum + 1; blankRowNum < rowNum; blankRowNum++) {
-                    output.startRow(blankRowNum);
-                    output.endRow(blankRowNum);
-                }
-            }
-            output.startRow(rowNum);
-            this.preRowNum = rowNum;
         }
         // c => cell
         else if ("c".equals(localName)) {
@@ -186,6 +155,37 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                 nextDataType = xssfDataType.SST_STRING;
             else if ("str".equals(cellType))
                 nextDataType = xssfDataType.FORMULA;
+        } else if ("row".equals(localName)) {
+            String rowNumStr = attributes.getValue("r");
+            if (rowNumStr != null) {
+                rowNum = Integer.parseInt(rowNumStr) - 1;
+            } else {
+                rowNum = nextRowNum;
+            }
+            if (rowNum - 1 != preRowNum) {
+                for (int blankRowNum = preRowNum + 1; blankRowNum < rowNum; blankRowNum++) {
+                    output.startRow(blankRowNum);
+                    output.endRow(blankRowNum);
+                }
+            }
+            output.startRow(rowNum);
+            this.preRowNum = rowNum;
+        } else if ("is".equals(localName)) {
+            // Inline string outer tag
+            isIsOpen = true;
+        } else if ("f".equals(localName)) {
+            // Mark us as being a formula if not already
+            if (nextDataType == xssfDataType.NUMBER) {
+                nextDataType = xssfDataType.FORMULA;
+            }
+
+            // Decide where to get the formula string from
+            String type = attributes.getValue("t");
+            if (type != null && type.equals("shared")) {
+                // Is it the one that defines the shared, or uses it?
+                String ref = attributes.getValue("ref");
+                String si = attributes.getValue("si");
+            }
         }
     }
 
@@ -270,11 +270,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             mergeFirstCellMapping.computeIfPresent(cellAddress, (k, v) -> finalThisStr);
             // Output
             output.cell(cellAddress, thisStr);
-        } else if ("row".equals(localName)) {
-            // Finish up the row
-            output.endRow(rowNum);
-            // some sheets do not have rowNum set in the XML, Excel can read them so we should try to read them as well
-            nextRowNum = rowNum + 1;
         } else if ("c".equals(localName)) {
             CellAddress cellAddress = new CellAddress(cellRef);
             CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
@@ -282,6 +277,11 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                 output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
                 mergeCellMapping.remove(cellAddress);
             }
+        } else if ("row".equals(localName)) {
+            // Finish up the row
+            output.endRow(rowNum);
+            // some sheets do not have rowNum set in the XML, Excel can read them so we should try to read them as well
+            nextRowNum = rowNum + 1;
         } else if ("sheetData".equals(localName)) {
             // indicate that this sheet is now done
             output.endSheet();
