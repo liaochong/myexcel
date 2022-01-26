@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.model.SharedStrings;
@@ -72,10 +71,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     // used when cell close element is seen.
     private xssfDataType nextDataType;
 
-    // Used to format numeric cell values.
-    private short formatIndex;
-    private String formatString;
-    private final DataFormatter formatter;
     private int rowNum;
     private int preRowNum = -1;
     private int nextRowNum;      // some sheets do not have rowNums, Excel can read them so we should try to handle them correctly as well
@@ -93,19 +88,16 @@ class XSSFSheetXMLHandler extends DefaultHandler {
      *
      * @param strings              Table of shared strings
      * @param sheetContentsHandler sheetContentsHandler
-     * @param dataFormatter        dataFormatter
      */
     public XSSFSheetXMLHandler(
             Map<CellAddress, CellAddress> mergeCellMapping,
             SharedStrings strings,
-            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
-            DataFormatter dataFormatter) {
+            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler) {
         this.mergeCellMapping = mergeCellMapping;
         this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;
         this.nextDataType = xssfDataType.NUMBER;
-        this.formatter = dataFormatter;
     }
 
     private boolean isTextTag(String name) {
@@ -140,8 +132,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
         else if ("c".equals(localName)) {
             // Set up defaults.
             this.nextDataType = xssfDataType.NUMBER;
-            this.formatIndex = -1;
-            this.formatString = null;
             cellRef = attributes.getValue("r");
             String cellType = attributes.getValue("t");
             String cellStyleStr = attributes.getValue("s");
@@ -178,14 +168,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             if (nextDataType == xssfDataType.NUMBER) {
                 nextDataType = xssfDataType.FORMULA;
             }
-
-            // Decide where to get the formula string from
-            String type = attributes.getValue("t");
-            if (type != null && type.equals("shared")) {
-                // Is it the one that defines the shared, or uses it?
-                String ref = attributes.getValue("ref");
-                String si = attributes.getValue("si");
-            }
         }
     }
 
@@ -215,21 +197,8 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                     break;
 
                 case FORMULA:
-                    String fv = value.toString();
-
-                    if (this.formatString != null) {
-                        try {
-                            // Try to use the value as a formattable number
-                            double d = Double.parseDouble(fv);
-                            thisStr = formatter.formatRawCellContents(d, this.formatIndex, this.formatString);
-                        } catch (NumberFormatException e) {
-                            // Formula is a String result not a Numeric one
-                            thisStr = fv;
-                        }
-                    } else {
-                        // No formatting applied, just do raw value in all cases
-                        thisStr = fv;
-                    }
+                    // No formatting applied, just do raw value in all cases
+                    thisStr = value.toString();
                     break;
                 case INLINE_STRING:
                     // TODO: Can these ever have formatting on them?
@@ -250,14 +219,10 @@ class XSSFSheetXMLHandler extends DefaultHandler {
 
                 case NUMBER:
                     String n = value.toString();
-                    if (this.formatString != null && n.length() > 0)
-                        thisStr = formatter.formatRawCellContents(Double.parseDouble(n), this.formatIndex, this.formatString);
-                    else {
-                        if (n.contains(Constants.SPOT)) {
-                            n = String.valueOf(Double.parseDouble(n));
-                        }
-                        thisStr = n;
+                    if (n.contains(Constants.SPOT)) {
+                        n = String.valueOf(Double.parseDouble(n));
                     }
+                    thisStr = n;
                     break;
 
                 default:

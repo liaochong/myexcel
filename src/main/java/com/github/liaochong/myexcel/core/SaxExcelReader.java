@@ -23,7 +23,6 @@ import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
@@ -356,7 +355,7 @@ public class SaxExcelReader<T> {
             this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
                 readConfig.startSheetConsumer.accept(sheetName, index);
                 ContentHandler handler = new XSSFSheetXMLHandler(
-                        mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap()), strings, new XSSFSaxReadHandler<>(result, readConfig), new DataFormatter());
+                        mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap()), strings, new XSSFSaxReadHandler<>(result, readConfig));
                 processSheet(handler, stream);
                 mergeCellIndexMapping.remove(index);
             });
