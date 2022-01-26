@@ -23,10 +23,9 @@ import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
-import org.apache.poi.xssf.model.SharedStrings;
 import org.slf4j.Logger;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -41,9 +40,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -151,6 +153,11 @@ public class SaxExcelReader<T> {
 
     public SaxExcelReader<T> startSheet(BiConsumer<String, Integer> startSheetConsumer) {
         this.readConfig.startSheetConsumer = startSheetConsumer;
+        return this;
+    }
+
+    public SaxExcelReader<T> detectedMerge() {
+        this.readConfig.detectedMerge = true;
         return this;
     }
 
@@ -296,7 +303,11 @@ public class SaxExcelReader<T> {
                 workbookMetaData = new WorkbookMetaData();
                 new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
             } else {
-                new HSSFSaxReadHandler<>(file, result, readConfig).process();
+                Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
+                if (readConfig.detectedMerge) {
+                    new HSSFMergeReadHandler(file, readConfig, mergeCellIndexMapping).process();
+                }
+                new HSSFSaxReadHandler<>(file, result, readConfig, mergeCellIndexMapping).process();
             }
         } catch (StopReadException e) {
             // do nothing
@@ -337,93 +348,96 @@ public class SaxExcelReader<T> {
      */
     private void process(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
         long startTime = System.currentTimeMillis();
+        Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = this.processMerge(xlsxPackage);
         StringsCache stringsCache = new StringsCache();
         try {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
-            XSSFReader xssfReader = new XSSFReader(xlsxPackage);
-            XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-            int index = -1;
-            if (readConfig.readAllSheet) {
-                while (iter.hasNext()) {
-                    ++index;
-                    try (InputStream stream = iter.next()) {
-                        readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
-                        processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
-                    }
-                }
-            } else if (!readConfig.sheetNames.isEmpty()) {
-                while (iter.hasNext()) {
-                    ++index;
-                    try (InputStream stream = iter.next()) {
-                        if (readConfig.sheetNames.contains(iter.getSheetName())) {
-                            readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
-                            processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
-                        }
-                    }
-                }
-            } else {
-                while (iter.hasNext()) {
-                    ++index;
-                    try (InputStream stream = iter.next()) {
-                        if (readConfig.sheetIndexs.contains(index)) {
-                            readConfig.startSheetConsumer.accept(iter.getSheetName(), index);
-                            processSheet(strings, new XSSFSaxReadHandler<>(result, readConfig), stream);
-                        }
-                    }
-                }
-            }
+            this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
+                readConfig.startSheetConsumer.accept(sheetName, index);
+                ContentHandler handler = new XSSFSheetXMLHandler(
+                        mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap()), strings, new XSSFSaxReadHandler<>(result, readConfig));
+                processSheet(handler, stream);
+                mergeCellIndexMapping.remove(index);
+            });
         } finally {
             stringsCache.clearAll();
         }
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
-    private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
-        XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) new XSSFReader(xlsxPackage).getSheetsData();
+    private Map<Integer, Map<CellAddress, CellAddress>> processMerge(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
+        if (!readConfig.detectedMerge) {
+            return Collections.emptyMap();
+        }
+        Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
+        this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
+            Map<CellAddress, CellAddress> mergeCellMapping = new HashMap<>();
+            processSheet(new XSSFSheetMergeXMLHandler(mergeCellMapping), stream);
+            mergeCellIndexMapping.put(index, mergeCellMapping);
+        });
+        return mergeCellIndexMapping;
+    }
+
+    private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
         workbookMetaData = new WorkbookMetaData();
+        readConfig.readAllSheet = true;
+        int lastIndex = this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
+            SheetMetaData sheetMetaData = new SheetMetaData(sheetName, index);
+            this.processSheet(new XSSFSheetMetaDataXMLHandler(sheetMetaData), stream);
+            // 设置元数据信息
+            workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
+        });
+        if (lastIndex > -1) {
+            workbookMetaData.setSheetCount(lastIndex + 1);
+        }
+    }
+
+    private int doReadSheet(OPCPackage xlsxPackage, CiConsumer<InputStream, Integer, String> ciConsumer) throws IOException, OpenXML4JException {
+        XSSFReader.SheetIterator iter = this.getSheetIterator(xlsxPackage);
+        CiFunction<InputStream, Integer, String, Boolean> acceptFunction = this.getSheetAcceptFunction();
         int index = -1;
         while (iter.hasNext()) {
             ++index;
             try (InputStream stream = iter.next()) {
-                try {
-                    SheetMetaData sheetMetaData = new SheetMetaData(iter.getSheetName(), index);
-                    XMLReader sheetParser = XMLHelper.newXMLReader();
-                    sheetParser.setContentHandler(new XSSFSheetMetaDataXMLHandler(sheetMetaData));
-                    sheetParser.parse(new InputSource(stream));
-                    // 设置元数据信息
-                    workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
-                } catch (ParserConfigurationException e) {
-                    throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
+                if (acceptFunction.apply(stream, index, iter.getSheetName())) {
+                    ciConsumer.accept(stream, index, iter.getSheetName());
                 }
             }
         }
-        if (index > -1) {
-            workbookMetaData.setSheetCount(index + 1);
+        return index;
+    }
+
+    private XSSFReader.SheetIterator getSheetIterator(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
+        XSSFReader xssfReader = new XSSFReader(xlsxPackage);
+        return (XSSFReader.SheetIterator) xssfReader.getSheetsData();
+    }
+
+    private CiFunction<InputStream, Integer, String, Boolean> getSheetAcceptFunction() {
+        CiFunction<InputStream, Integer, String, Boolean> acceptFunction = (is, index, sheetName) -> true;
+        if (readConfig.readAllSheet) {
+            acceptFunction = (is, index, sheetName) -> true;
+        } else if (!readConfig.sheetNames.isEmpty()) {
+            acceptFunction = (is, index, sheetName) -> readConfig.sheetNames.contains(sheetName);
+        } else if (!readConfig.sheetIndexs.isEmpty()) {
+            acceptFunction = (is, index, sheetName) -> readConfig.sheetIndexs.contains(index);
         }
+        return acceptFunction;
     }
 
     /**
      * Parses and shows the content of one sheet
      * using the specified styles and shared-strings tables.
      *
-     * @param strings          The table of strings that may be referenced by cells in the sheet
      * @param sheetInputStream The stream to read the sheet-data from.
-     * @throws java.io.IOException An IO exception from the parser,
-     *                             possibly from a byte stream or character stream
-     *                             supplied by the application.
-     * @throws SAXException        if parsing the XML data fails.
      */
     private void processSheet(
-            SharedStrings strings,
-            XSSFSheetXMLHandler.SheetContentsHandler sheetHandler,
-            InputStream sheetInputStream) throws IOException, SAXException {
+            ContentHandler handler,
+            InputStream sheetInputStream) {
         try {
             XMLReader sheetParser = XMLHelper.newXMLReader();
-            ContentHandler handler = new XSSFSheetXMLHandler(
-                    null, null, strings, sheetHandler, new DataFormatter(), false);
             sheetParser.setContentHandler(handler);
             sheetParser.parse(new InputSource(sheetInputStream));
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | IOException | SAXException e) {
             throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
         }
     }
@@ -470,6 +484,8 @@ public class SaxExcelReader<T> {
          * 是否在遇到空白行时停止读取
          */
         public boolean stopReadingOnBlankRow = false;
+
+        public boolean detectedMerge;
 
         public BiConsumer<String, Integer> startSheetConsumer = (sheetName, sheetIndex) -> {
             log.info("Start read excel, sheet:{},index:{}", sheetName, sheetIndex);

@@ -38,16 +38,18 @@ import org.apache.poi.hssf.record.SSTRecord;
 import org.apache.poi.hssf.record.StringRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.util.CellAddress;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * HSSF sax处理
@@ -58,18 +60,17 @@ import java.util.Set;
 class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListener {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(HSSFSaxReadHandler.class);
-    private Set<Integer> sheetIndexs;
 
     private String sheetName;
 
-    private POIFSFileSystem fs;
+    private final POIFSFileSystem fs;
 
     private int lastRowNumber = -1;
 
     /**
      * Should we output the formula, or the value it has?
      */
-    private boolean outputFormulaValues = true;
+    private final boolean outputFormulaValues = true;
 
     /**
      * For parsing Formulas
@@ -86,25 +87,24 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
      */
     private int sheetIndex = -1;
     private BoundSheetRecord[] orderedBSRs;
-    private List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
+    private final List<BoundSheetRecord> boundSheetRecords = new ArrayList<>();
 
     // For handling formulas with string results
     private int nextRow;
     private int nextColumn;
     private boolean outputNextStringRecord;
 
+    private final Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping;
+
+    private Map<CellAddress, String> mergeFirstCellMapping;
+
     public HSSFSaxReadHandler(File file,
                               List<T> result,
-                              SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
-        this(new FileInputStream(file), result, readConfig);
-    }
-
-    public HSSFSaxReadHandler(InputStream inputStream,
-                              List<T> result,
-                              SaxExcelReader.ReadConfig<T> readConfig) throws IOException {
+                              SaxExcelReader.ReadConfig<T> readConfig,
+                              Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) throws IOException {
         super(false, result, readConfig);
-        this.fs = new POIFSFileSystem(inputStream);
-        this.sheetIndexs = readConfig.sheetIndexs;
+        this.fs = new POIFSFileSystem(new FileInputStream(file));
+        this.mergeCellIndexMapping = mergeCellIndexMapping;
     }
 
     public void process() throws IOException {
@@ -151,6 +151,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     }
                     sheetName = orderedBSRs[sheetIndex].getSheetname();
                     readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
+                    mergeFirstCellMapping = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
                 }
                 break;
 
@@ -163,7 +164,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
                 thisRow = brec.getRow();
                 thisColumn = brec.getColumn();
-                thisStr = null;
                 break;
             case BoolErrRecord.sid:
                 BoolErrRecord berec = (BoolErrRecord) record;
@@ -215,9 +215,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
                 thisRow = lsrec.getRow();
                 thisColumn = lsrec.getColumn();
-                if (sstRecord == null) {
-                    thisStr = null;
-                } else {
+                if (sstRecord != null) {
                     thisStr = sstRecord.getString(lsrec.getSSTIndex()).toString();
                 }
                 break;
@@ -226,7 +224,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
                 thisRow = nrec.getRow();
                 thisColumn = nrec.getColumn();
-                thisStr = null;
                 break;
             case NumberRecord.sid:
                 NumberRecord numrec = (NumberRecord) record;
@@ -242,7 +239,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
                 thisRow = rkrec.getRow();
                 thisColumn = rkrec.getColumn();
-                thisStr = null;
                 break;
             default:
                 break;
@@ -267,7 +263,17 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             newRow(thisRow);
         }
         boolean isSelectedSheet = this.isSelectedSheet();
-        if (isSelectedSheet) {
+        if (isSelectedSheet && thisColumn != -1) {
+            if (readConfig.detectedMerge) {
+                CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
+                String finalThisStr = thisStr;
+                mergeFirstCellMapping.computeIfPresent(cellAddress, (k, v) -> finalThisStr);
+                CellAddress firstCellAddress = mergeCellIndexMapping.get(sheetIndex).get(cellAddress);
+                if (firstCellAddress != null) {
+                    thisStr = mergeFirstCellMapping.get(firstCellAddress);
+                    mergeCellIndexMapping.get(sheetIndex).remove(cellAddress);
+                }
+            }
             handleField(thisColumn, thisStr);
         }
         // Handle end of row
@@ -287,6 +293,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         if (!readConfig.sheetNames.isEmpty()) {
             return readConfig.sheetNames.contains(sheetName);
         }
-        return sheetIndexs.contains(sheetIndex);
+        return readConfig.sheetIndexs.contains(sheetIndex);
     }
 }
