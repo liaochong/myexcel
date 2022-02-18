@@ -37,6 +37,7 @@ https://github.com/liaochong/myexcel/wiki
 联系以及问题反馈 | Contact me
 --------------------------
 * Email：liaochong8950@163.com
+* QQ：1131988645
 * Issue：[issues](https://github.com/liaochong/myexcel/issues)
 
 > 如本项目对您有所帮助，烦请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，十分感谢您的关注！
