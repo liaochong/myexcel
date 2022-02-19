@@ -97,6 +97,10 @@ public class Configuration {
     public String decimalFormat = "";
 
     public boolean computeAutoWidth;
+    /**
+     * 是否自动合并
+     */
+    public boolean autoMerge;
 
     /**
      * 绑定的上下文，适用spring等容器环境

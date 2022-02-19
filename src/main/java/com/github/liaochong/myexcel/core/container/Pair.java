@@ -26,6 +26,8 @@ public class Pair<K, V> {
 
     private final V value;
 
+    private Integer repeatSize;
+
     private Pair(K key, V value) {
         this.key = key;
         this.value = value;
@@ -41,6 +43,14 @@ public class Pair<K, V> {
 
     public V getValue() {
         return this.value;
+    }
+
+    public Integer getRepeatSize() {
+        return repeatSize;
+    }
+
+    public void setRepeatSize(Integer repeatSize) {
+        this.repeatSize = repeatSize;
     }
 
     @Override
@@ -67,13 +77,8 @@ public class Pair<K, V> {
                 Object this$value = this.getValue();
                 Object other$value = other.getValue();
                 if (this$value == null) {
-                    if (other$value != null) {
-                        return false;
-                    }
-                } else if (!this$value.equals(other$value)) {
-                    return false;
-                }
-                return true;
+                    return other$value == null;
+                } else return this$value.equals(other$value);
             }
         }
     }
