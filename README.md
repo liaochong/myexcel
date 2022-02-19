@@ -43,5 +43,6 @@ https://github.com/liaochong/myexcel/wiki
 > 如本项目对您有所帮助，烦请点击上方star或者在下方扫码支付任意金额以鼓励作者更好地开发，十分感谢您的关注！
 
 <p>
-    <img width="518" alt="image" src="https://user-images.githubusercontent.com/8674986/154786358-8e6c0d45-4a40-45f0-a7ad-6041ada3882e.JPG">
+    <img width="320" alt="image" src="https://user-images.githubusercontent.com/8674986/154786358-8e6c0d45-4a40-45f0-a7ad-6041ada3882e.JPG">
+    <img width="320" alt="image" src="https://user-images.githubusercontent.com/8674986/154786504-23538aa4-6ba8-4a4f-a8bd-aed50763d873.JPG">
 </p>
