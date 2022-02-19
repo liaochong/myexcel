@@ -44,5 +44,7 @@ https://github.com/liaochong/myexcel/wiki
 
 <p>
     <img width="320" alt="image" src="https://user-images.githubusercontent.com/8674986/154786358-8e6c0d45-4a40-45f0-a7ad-6041ada3882e.JPG">
-    <img width="320" alt="image" src="https://user-images.githubusercontent.com/8674986/154786504-23538aa4-6ba8-4a4f-a8bd-aed50763d873.JPG">
+</p>
+<p>
+    <img width="320" margin-left alt="image" src="https://user-images.githubusercontent.com/8674986/154786504-23538aa4-6ba8-4a4f-a8bd-aed50763d873.JPG">
 </p>
