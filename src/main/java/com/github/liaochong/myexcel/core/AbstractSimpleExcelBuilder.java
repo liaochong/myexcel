@@ -91,7 +91,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 格式化
      */
-    private Map<Integer, String> formats = new HashMap<>();
+    private final Map<Integer, String> formats = new HashMap<>();
     /**
      * 是否为Map类型导出
      */
@@ -99,11 +99,11 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 转换上下文
      */
-    private ConvertContext convertContext;
+    private final ConvertContext convertContext;
 
     protected Configuration configuration;
 
-    private Map<Field, ExcelColumnMapping> excelColumnMappingMap;
+    private final Map<Field, ExcelColumnMapping> excelColumnMappingMap;
 
     protected StyleParser styleParser = new StyleParser(customWidthMap);
 
@@ -326,6 +326,9 @@ abstract class AbstractSimpleExcelBuilder {
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(index -> {
             Td td = new Td(0, index);
             Pair<? extends Class, ?> pair = contents.get(index);
+            if (pair.getRepeatSize() != null) {
+                td.setRowSpan(pair.getRepeatSize());
+            }
             this.setTdContent(td, pair);
             this.setTdContentType(td, pair.getKey());
             td.format = formats.get(index);
@@ -532,7 +535,16 @@ abstract class AbstractSimpleExcelBuilder {
             List<Pair<? extends Class, ?>> row = new LinkedList<>();
             for (Pair<? extends Class, ?> pair : convertResult) {
                 if (!(pair.getValue() instanceof List)) {
-                    row.add(pair);
+                    if (configuration.autoMerge) {
+                        if (i == 0) {
+                            pair.setRepeatSize(maxSize);
+                            row.add(pair);
+                        } else {
+                            row.add(Pair.of(NullType.class, null));
+                        }
+                    } else {
+                        row.add(pair);
+                    }
                     continue;
                 }
                 List<?> list = (List<?>) pair.getValue();

@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.CustomWriteContext;
@@ -32,7 +33,7 @@ import java.lang.reflect.Field;
  */
 public class CustomWriteConverter implements WriteConverter {
 
-    private WeakCache<Class, com.github.liaochong.myexcel.core.converter.CustomWriteConverter> cache = new WeakCache<>();
+    private final WeakCache<Class, com.github.liaochong.myexcel.core.converter.CustomWriteConverter> cache = new WeakCache<>();
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
@@ -51,7 +52,7 @@ public class CustomWriteConverter implements WriteConverter {
         Object target = convertContext.configuration.applicationBeans.get(converter);
         if (target != null) {
             Object result = ((com.github.liaochong.myexcel.core.converter.CustomWriteConverter) target).convert(fieldVal, customWriteContext);
-            return Pair.of(result.getClass(), result);
+            return result == null ? Constants.NULL_PAIR : Pair.of(result.getClass(), result);
         }
         if (cache.get(converter) == null) {
             com.github.liaochong.myexcel.core.converter.CustomWriteConverter customWriteConverter;
@@ -63,6 +64,6 @@ public class CustomWriteConverter implements WriteConverter {
             cache.cache(converter, customWriteConverter);
         }
         Object result = cache.get(converter).convert(fieldVal, customWriteContext);
-        return Pair.of(result.getClass(), result);
+        return result == null ? Constants.NULL_PAIR : Pair.of(result.getClass(), result);
     }
 }
