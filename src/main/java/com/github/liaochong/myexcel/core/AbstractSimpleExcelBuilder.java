@@ -540,7 +540,7 @@ abstract class AbstractSimpleExcelBuilder {
                             pair.setRepeatSize(maxSize);
                             row.add(pair);
                         } else {
-                            row.add(Constants.NULL_PAIR);
+                            row.add(Pair.of(NullType.class, null));
                         }
                     } else {
                         row.add(pair);
