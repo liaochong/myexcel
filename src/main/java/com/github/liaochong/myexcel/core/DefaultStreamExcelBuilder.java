@@ -357,12 +357,12 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             htmlToExcelStreamFactory.workbookType(configuration.workbookType);
         }
         Table table = this.createTable();
-        htmlToExcelStreamFactory.start(table, workbook);
-
         List<Tr> head = this.createThead();
         if (head != null) {
             htmlToExcelStreamFactory.appendTitles(head);
         }
+        htmlToExcelStreamFactory.start(table, workbook);
+
         if (excel != null && Files.exists(excel)) {
             log.info("start reading existing excel data.");
             SaxExcelReader<T> reader = SaxExcelReader.of(dataType)

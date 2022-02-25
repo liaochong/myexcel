@@ -159,14 +159,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             }
             initCellStyle(this.workbook);
             receiveThread = Thread.currentThread();
-            Tr tr = this.getTrFromQueue();
             this.sheet = workbook.getSheet(sheetName);
             if (this.sheet == null) {
                 this.sheet = this.createSheet(sheetName);
             } else {
-                count = this.sheet.getLastRowNum() + 1;
+                rowNum = count = this.sheet.getLastRowNum() + 1;
                 context.trWaitQueue.clear();
             }
+            Tr tr = this.getTrFromQueue();
             if (maxColIndex == 0) {
                 int tdSize = tr.tdList.size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
