@@ -215,6 +215,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         return this;
     }
 
+    protected String getSheetNameIfAbsent(String sheetName) {
+        if (sheetName == null) {
+            sheetName = "Sheet";
+        }
+        return sheetName;
+    }
+
     protected String getRealSheetName(String sheetName) {
         if (sheetName == null) {
             sheetName = "Sheet";

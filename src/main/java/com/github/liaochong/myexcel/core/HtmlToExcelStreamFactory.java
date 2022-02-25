@@ -121,7 +121,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
         }
         startTime = System.currentTimeMillis();
         if (table != null) {
-            sheetName = this.getRealSheetName(table.caption);
+            sheetName = this.getSheetNameIfAbsent(table.caption);
         }
         Thread thread = new Thread(this::receive);
         thread.setName("myexcel-exec-" + thread.getId());
@@ -160,7 +160,13 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             initCellStyle(this.workbook);
             receiveThread = Thread.currentThread();
             Tr tr = this.getTrFromQueue();
-            this.sheet = this.createSheet(sheetName);
+            this.sheet = workbook.getSheet(sheetName);
+            if (this.sheet == null) {
+                this.sheet = this.createSheet(sheetName);
+            } else {
+                count = this.sheet.getLastRowNum() + 1;
+                context.trWaitQueue.clear();
+            }
             if (maxColIndex == 0) {
                 int tdSize = tr.tdList.size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
