@@ -160,7 +160,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 this.sheet = this.createSheet(sheetName);
             } else {
                 rowNum = count = this.sheet.getLastRowNum() + 1;
-                if (rowNum > -1) {
+                if (rowNum > 0) {
                     context.trWaitQueue.clear();
                 }
             }
