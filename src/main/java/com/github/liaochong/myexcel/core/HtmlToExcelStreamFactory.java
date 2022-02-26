@@ -214,6 +214,9 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             } else {
                 rowNum = this.sheet.getLastRowNum() + 1;
                 count += rowNum;
+                if (rowNum == 0) {
+                    this.setTitles();
+                }
                 createNextSheet();
             }
         }
