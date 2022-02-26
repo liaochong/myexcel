@@ -34,7 +34,8 @@ MyExcel，是一个集导入、导出、加密Excel等多项功能的工具包�
 --------------
 https://github.com/liaochong/myexcel/wiki
 
-*升级4.x版本注意事项*
+**升级4.x版本注意事项**
+
  因POI 4.x与5.x版本存在部分不兼容情况，升级MyExcel为4.x（POI 5.x）时，需要注意以下事项：
 
 1. POI版本必须为5.x
