@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
 /**
  * 临时文件操作类
@@ -49,7 +48,7 @@ public class TempFileOperator {
      */
     public static Path createTempFile(String prefix, String suffix) {
         try {
-            return TempFile.createTempFile("liaochong$myexcel_" + prefix + "_" + (new Random().nextInt()) + "_", suffix).toPath();
+            return TempFile.createTempFile("liaochong$myexcel_" + prefix + "_" + Thread.currentThread().getId() + "_", suffix).toPath();
         } catch (IOException e) {
             throw ExcelBuildException.of("Failed to create temp file", e);
         }
