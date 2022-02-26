@@ -202,7 +202,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
     }
 
     private void createNextSheet() {
-        if (rowNum == maxRowCountOfSheet) {
+        if (rowNum >= maxRowCountOfSheet) {
             sheetNum++;
             this.setColWidth(colWidthMap, sheet, maxColIndex);
             colWidthMap = new HashMap<>();
