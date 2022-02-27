@@ -42,7 +42,7 @@ public final class ConfigurationUtil {
             if (excelTable == null) {
                 return;
             }
-            if (!excelTable.sheetName().isEmpty()) {
+            if (!excelTable.sheetName().isEmpty() && configuration.sheetName == null) {
                 configuration.sheetName = excelTable.sheetName();
             }
             if (!WorkbookType.isNone(excelTable.workbookType())) {
@@ -69,7 +69,7 @@ public final class ConfigurationUtil {
             }
             configuration.useFieldNameAsTitle = excelTable.useFieldNameAsTitle();
         } else {
-            if (!excelModel.sheetName().isEmpty()) {
+            if (!excelModel.sheetName().isEmpty() && configuration.sheetName == null) {
                 configuration.sheetName = excelModel.sheetName();
             }
             if (!WorkbookType.isNone(excelModel.workbookType())) {

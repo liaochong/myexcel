@@ -14,11 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * MyExcel配置
@@ -28,29 +24,7 @@ import java.nio.file.Paths;
  */
 public final class MyExcelConfiguration {
 
-    private static Path temporaryFileDirectory;
-
+    @Deprecated
     public static void setTemporaryFileDirectory(Path temporaryFileDirectory) {
-        MyExcelConfiguration.temporaryFileDirectory = temporaryFileDirectory;
-    }
-
-    public static Path temporaryFileDirectory() {
-        if (temporaryFileDirectory != null) {
-            return temporaryFileDirectory;
-        }
-        synchronized (MyExcelConfiguration.class) {
-            if (temporaryFileDirectory != null) {
-                return temporaryFileDirectory;
-            }
-            try {
-                temporaryFileDirectory = Paths.get(Paths.get(new File("").getCanonicalPath()) + "/myexcel");
-                if (!temporaryFileDirectory.toFile().exists()) {
-                    Files.createDirectory(temporaryFileDirectory);
-                }
-                return temporaryFileDirectory;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 }

@@ -58,10 +58,6 @@ import java.util.zip.ZipOutputStream;
  */
 class HtmlToExcelStreamFactory extends AbstractExcelFactory {
 
-    private static final int XLSX_MAX_ROW_COUNT = 1048576;
-
-    private static final int XLS_MAX_ROW_COUNT = 65536;
-
     private static final Tr STOP_FLAG = new Tr(-1, 0);
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(HtmlToExcelStreamFactory.class);
 
@@ -120,8 +116,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             this.workbook = workbook;
         }
         startTime = System.currentTimeMillis();
-        if (table != null) {
-            sheetName = this.getRealSheetName(table.caption);
+        if (table != null && table.caption != null) {
+            sheetName = table.caption;
         }
         Thread thread = new Thread(this::receive);
         thread.setName("myexcel-exec-" + thread.getId());
@@ -159,8 +155,16 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             }
             initCellStyle(this.workbook);
             receiveThread = Thread.currentThread();
+            this.sheet = workbook.getSheet(sheetName);
+            if (this.sheet == null) {
+                this.sheet = this.createSheet(sheetName);
+            } else {
+                rowNum = count = this.sheet.getLastRowNum() + 1;
+                if (rowNum > 0) {
+                    context.trWaitQueue.clear();
+                }
+            }
             Tr tr = this.getTrFromQueue();
-            this.sheet = this.createSheet(sheetName);
             if (maxColIndex == 0) {
                 int tdSize = tr.tdList.size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
@@ -173,14 +177,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                     // 开启下一份数据
                     this.initNewWorkbook();
                 }
-                if (rowNum == maxRowCountOfSheet) {
-                    sheetNum++;
-                    this.setColWidth(colWidthMap, sheet, maxColIndex);
-                    colWidthMap = new HashMap<>();
-                    sheet = this.createSheet(sheetName + " (" + sheetNum + ")");
-                    rowNum = 0;
-                    this.setTitles();
-                }
+                createNextSheet();
                 setTdStyle(tr);
                 appendRow(tr);
                 totalSize++;
@@ -201,6 +198,27 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             clear();
             log.error("An exception occurred while processing", e);
             throw new ExcelBuildException("An exception occurred while processing", e);
+        }
+    }
+
+    private void createNextSheet() {
+        if (rowNum >= maxRowCountOfSheet) {
+            sheetNum++;
+            this.setColWidth(colWidthMap, sheet, maxColIndex);
+            colWidthMap = new HashMap<>();
+            sheet = workbook.getSheet(sheetName + " (" + sheetNum + ")");
+            if (sheet == null) {
+                sheet = this.createSheet(sheetName + " (" + sheetNum + ")");
+                rowNum = 0;
+                this.setTitles();
+            } else {
+                rowNum = this.sheet.getLastRowNum() + 1;
+                count += rowNum;
+                if (rowNum == 0) {
+                    this.setTitles();
+                }
+                createNextSheet();
+            }
         }
     }
 

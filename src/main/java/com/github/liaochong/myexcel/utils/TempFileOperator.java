@@ -15,11 +15,10 @@
  */
 package com.github.liaochong.myexcel.utils;
 
-
-import com.github.liaochong.myexcel.core.MyExcelConfiguration;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
+import org.apache.poi.util.TempFile;
 import org.slf4j.Logger;
 
 import java.io.FileOutputStream;
@@ -38,10 +37,7 @@ import java.util.Objects;
  */
 public class TempFileOperator {
 
-    private static final int MAX_CREATE_NO = 9_999;
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(TempFileOperator.class);
-
-    private static int createNo;
 
     /**
      * 依据前缀名称创建临时文件
@@ -52,27 +48,10 @@ public class TempFileOperator {
      */
     public static Path createTempFile(String prefix, String suffix) {
         try {
-            return Files.createTempFile(MyExcelConfiguration.temporaryFileDirectory(), getTempFileName(prefix), suffix);
+            return TempFile.createTempFile("liaochong$myexcel_" + prefix + "_" + Thread.currentThread().getId() + "_", suffix).toPath();
         } catch (IOException e) {
             throw ExcelBuildException.of("Failed to create temp file", e);
         }
-    }
-
-    /**
-     * 获取临时文件名称
-     *
-     * @param prefix 文件前缀
-     * @return 文件名称
-     */
-    private static String getTempFileName(String prefix) {
-        long currentTimeMillis = System.currentTimeMillis();
-        synchronized (TempFileOperator.class) {
-            if (createNo > MAX_CREATE_NO) {
-                createNo = 0;
-            }
-            createNo++;
-        }
-        return prefix + "_" + Thread.currentThread().getId() + "_" + currentTimeMillis + "_" + createNo;
     }
 
     /**

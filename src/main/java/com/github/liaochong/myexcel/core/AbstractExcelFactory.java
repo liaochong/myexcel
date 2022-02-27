@@ -88,6 +88,10 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractExcelFactory.class);
 
+    protected static final int XLSX_MAX_ROW_COUNT = 1048576;
+
+    protected static final int XLS_MAX_ROW_COUNT = 65536;
+
     private static Map<String, String> DEFAULT_TD_STYLE;
 
     private static Map<String, String> DEFAULT_TH_STYLE;
