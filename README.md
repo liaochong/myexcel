@@ -40,6 +40,7 @@ https://github.com/liaochong/myexcel/wiki
 
 1. POI版本必须为5.x
 2. 排除掉poi-ooxml-schemas依赖（POI 5.x以poi-ooxml-full作为代替）
+3. commons-io版本为2.11.0
 
 联系以及问题反馈 | Contact me
 --------------------------
