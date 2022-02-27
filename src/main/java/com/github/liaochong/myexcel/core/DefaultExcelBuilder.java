@@ -37,7 +37,7 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     private static final String STYLE_TITLE = "font-weight:bold;font-size:14;text-align:center;vertical-align:middle;";
 
-    private final DefaultStreamExcelBuilder<T> streamExcelBuilder;
+    private DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
@@ -179,11 +179,6 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     public DefaultExcelBuilder<T> binding(Set<Object> applicationBeans) {
         streamExcelBuilder.binding(applicationBeans);
-        return this;
-    }
-
-    public DefaultExcelBuilder<T> autoMerge() {
-        streamExcelBuilder.autoMerge();
         return this;
     }
 
