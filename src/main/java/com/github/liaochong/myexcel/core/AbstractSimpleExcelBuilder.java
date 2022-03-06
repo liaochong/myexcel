@@ -440,7 +440,7 @@ abstract class AbstractSimpleExcelBuilder {
             setLinkTd(td);
             return;
         }
-        if (td.file != null && fieldType == ImageFile.class) {
+        if ((td.file != null || td.fileIs != null) && fieldType == ImageFile.class) {
             td.tdContentType = ContentTypeEnum.IMAGE;
         }
     }

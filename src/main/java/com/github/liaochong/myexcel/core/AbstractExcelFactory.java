@@ -60,6 +60,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
@@ -464,6 +465,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
         }
+        int pictureIdx;
         int format;
         if (td.file != null) {
             String fileName = td.file.getName();
@@ -491,28 +493,41 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 default:
                     throw new IllegalArgumentException("Invalid image type");
             }
+            if (imageMapping == null) {
+                imageMapping = new HashMap<>();
+            }
+            pictureIdx = imageMapping.computeIfAbsent(td.file.getAbsolutePath(), s -> {
+                try {
+                    byte[] bytes = Files.readAllBytes(td.file.toPath());
+                    return workbook.addPicture(bytes, format);
+                } catch (IOException e) {
+                    logger.error("read image failure", e);
+                    throw new ExcelBuildException("read image failure, path:" + td.file.getAbsolutePath(), e);
+                }
+            });
         } else {
             FileMagic fm;
             try (InputStream is = FileMagic.prepareToCheckMagic(td.fileIs)) {
                 fm = FileMagic.valueOf(is);
+                switch (fm) {
+                    case JPEG:
+                        format = Workbook.PICTURE_TYPE_JPEG;
+                        break;
+                    case PNG:
+                        format = Workbook.PICTURE_TYPE_PNG;
+                        break;
+                    case EMF:
+                        format = Workbook.PICTURE_TYPE_EMF;
+                        break;
+                    case WMF:
+                        format = Workbook.PICTURE_TYPE_WMF;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid image type");
+                }
+                pictureIdx = workbook.addPicture(IOUtils.toByteArray(is), format);
             } catch (Throwable throwable) {
                 throw new SaxReadException("Fail to get excel magic", throwable);
-            }
-            switch (fm) {
-                case JPEG:
-                    format = Workbook.PICTURE_TYPE_JPEG;
-                    break;
-                case PNG:
-                    format = Workbook.PICTURE_TYPE_PNG;
-                    break;
-                case EMF:
-                    format = Workbook.PICTURE_TYPE_EMF;
-                    break;
-                case WMF:
-                    format = Workbook.PICTURE_TYPE_WMF;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid image type");
             }
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
@@ -530,18 +545,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (drawing == null) {
             drawing = sheet.createDrawingPatriarch();
         }
-        if (imageMapping == null) {
-            imageMapping = new HashMap<>();
-        }
-        Integer pictureIdx = imageMapping.computeIfAbsent(td.file.getAbsolutePath(), s -> {
-            try {
-                byte[] bytes = Files.readAllBytes(td.file.toPath());
-                return workbook.addPicture(bytes, format);
-            } catch (IOException e) {
-                logger.error("read image failure", e);
-                throw new ExcelBuildException("read image failure, path:" + td.file.getAbsolutePath(), e);
-            }
-        });
         drawing.createPicture(anchor, pictureIdx);
     }
 
