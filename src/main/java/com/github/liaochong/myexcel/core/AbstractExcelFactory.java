@@ -31,6 +31,7 @@ import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.WordBreakStyle;
 import com.github.liaochong.myexcel.exception.ExcelBuildException;
+import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.utils.ColorUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -38,6 +39,7 @@ import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -71,6 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -455,37 +458,62 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     private void setImage(Td td, Sheet sheet) {
-        if (td.file == null) {
+        if (td.file == null && td.fileIs == null) {
             return;
         }
         if (createHelper == null) {
             createHelper = workbook.getCreationHelper();
         }
-        String fileName = td.file.getName();
         int format;
-        String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-        switch (suffix) {
-            case "jpg":
-            case "jpeg":
-                format = Workbook.PICTURE_TYPE_JPEG;
-                break;
-            case "png":
-                format = Workbook.PICTURE_TYPE_PNG;
-                break;
-            case "dib":
-                format = Workbook.PICTURE_TYPE_DIB;
-                break;
-            case "emf":
-                format = Workbook.PICTURE_TYPE_EMF;
-                break;
-            case "pict":
-                format = Workbook.PICTURE_TYPE_PICT;
-                break;
-            case "wmf":
-                format = Workbook.PICTURE_TYPE_WMF;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid image type");
+        if (td.file != null) {
+            String fileName = td.file.getName();
+            String suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+            switch (suffix) {
+                case "jpg":
+                case "jpeg":
+                    format = Workbook.PICTURE_TYPE_JPEG;
+                    break;
+                case "png":
+                    format = Workbook.PICTURE_TYPE_PNG;
+                    break;
+                case "dib":
+                    format = Workbook.PICTURE_TYPE_DIB;
+                    break;
+                case "emf":
+                    format = Workbook.PICTURE_TYPE_EMF;
+                    break;
+                case "pict":
+                    format = Workbook.PICTURE_TYPE_PICT;
+                    break;
+                case "wmf":
+                    format = Workbook.PICTURE_TYPE_WMF;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid image type");
+            }
+        } else {
+            FileMagic fm;
+            try (InputStream is = FileMagic.prepareToCheckMagic(td.fileIs)) {
+                fm = FileMagic.valueOf(is);
+            } catch (Throwable throwable) {
+                throw new SaxReadException("Fail to get excel magic", throwable);
+            }
+            switch (fm) {
+                case JPEG:
+                    format = Workbook.PICTURE_TYPE_JPEG;
+                    break;
+                case PNG:
+                    format = Workbook.PICTURE_TYPE_PNG;
+                    break;
+                case EMF:
+                    format = Workbook.PICTURE_TYPE_EMF;
+                    break;
+                case WMF:
+                    format = Workbook.PICTURE_TYPE_WMF;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid image type");
+            }
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);

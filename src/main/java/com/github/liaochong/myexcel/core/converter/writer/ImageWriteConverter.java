@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 
 /**
@@ -39,7 +40,7 @@ public class ImageWriteConverter implements WriteConverter {
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
-        if (fieldType != File.class) {
+        if (fieldType != File.class && fieldType != InputStream.class) {
             return false;
         }
         ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
