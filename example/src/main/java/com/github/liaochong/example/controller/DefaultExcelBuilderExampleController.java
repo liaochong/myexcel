@@ -17,7 +17,7 @@ import java.util.List;
  * @version 1.0
  */
 @Controller
-public class DefaultExcelBuilderExampleController {
+public class DefaultExcelBuilderExampleController extends Style {
 
     @GetMapping("/default/excel/example")
     public void defaultBuild(HttpServletResponse response) throws Exception {
