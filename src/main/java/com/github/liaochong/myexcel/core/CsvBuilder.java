@@ -16,6 +16,8 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.core.parser.Table;
+import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.CsvBuildException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
@@ -190,9 +192,18 @@ public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeab
         clear();
     }
 
+    @Override
+    protected List<Tr> createThead() {
+        return super.createThead();
+    }
+
     public void clear() {
         if (csv != null) {
             csv.clear();
         }
     }
+
+    protected Table createTable() {
+       return super.createTable();
+   }
 }

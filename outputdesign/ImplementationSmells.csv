@@ -1,0 +1,361 @@
+Project Name,Package Name,Type Name,Method Name,Implementation Smell,Cause of the Smell,Method start line no
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,buildWithXLS,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/beetlToExcelExample.btl").workbookType(WorkbookType.XLS).useDefaultStyle().build(dataMap);" is 142.,56
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,buildWithXLSX,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/beetlToExcelExample.btl").workbookType(WorkbookType.XLSX).useDefaultStyle().build(dataMap);" is 143.,75
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,buildWithSXLSX,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/beetlToExcelExample.btl").workbookType(WorkbookType.SXLSX).useDefaultStyle().build(dataMap);" is 144.,94
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 10,113
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 2,113
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 100,113
+myexcel,com.github.liaochong.example.controller,BeetlExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 999,113
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 1000,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 134L,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 6456L,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 54354L,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 100,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 2,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 19,46
+myexcel,com.github.liaochong.example.controller,CsvExampleController,getDataList,Magic Number,The method contains a magic number: 18,46
+myexcel,com.github.liaochong.example.controller,DefaultExcelBuilderExampleController,defaultBuildWithWorkbook,Long Statement,The length of the statement "workbook=DefaultExcelBuilder.of(ArtCrowd.class`workbook).sheetName("sheet2").widthStrategy(WidthStrategy.NO_AUTO).build(dataList);" is 130.,45
+myexcel,com.github.liaochong.example.controller,DefaultExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 1000,55
+myexcel,com.github.liaochong.example.controller,DefaultExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 1000,55
+myexcel,com.github.liaochong.example.controller,DefaultExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 2,55
+myexcel,com.github.liaochong.example.controller,DefaultExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 19,55
+myexcel,com.github.liaochong.example.controller,DefaultExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 18,55
+myexcel,com.github.liaochong.example.controller,DefaultExcelReaderExampleController,read,Long Statement,The length of the statement "List<ArtCrowd> result=DefaultExcelReader.of(ArtCrowd.class).sheet(0).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());" is 127.,35
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,streamBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder=DefaultStreamExcelBuilder.of(ArtCrowd.class).threadPool(executorService).start()){" is 143.,26
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,streamBuild,Magic Number,The method contains a magic number: 100,26
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,streamBuildWithContinue,Long Statement,The length of the statement "DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder=DefaultStreamExcelBuilder.of(ArtCrowd.class).threadPool(executorService).start();" is 137.,40
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,streamBuildWithContinue,Long Statement,The length of the statement "DefaultStreamExcelBuilder<ArtCrowd> defaultStreamExcelBuilder=DefaultStreamExcelBuilder.of(ArtCrowd.class`workbook).threadPool(executorService).sheetName("sheet2").start();" is 172.,40
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,streamBuildWithContinue,Magic Number,The method contains a magic number: 100,40
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,streamBuildWithContinue,Magic Number,The method contains a magic number: 100,40
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 1000,61
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 1000,61
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 2,61
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 19,61
+myexcel,com.github.liaochong.example.controller,DefaultStreamExcelBuilderExampleController,getDataList,Magic Number,The method contains a magic number: 18,61
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,buildWithXLS,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/freemarkerToExcelExample.ftl").workbookType(WorkbookType.XLS).useDefaultStyle().build(dataMap);" is 147.,60
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,buildWithXLSX,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/freemarkerToExcelExample.ftl").workbookType(WorkbookType.XLSX).useDefaultStyle().build(dataMap);" is 148.,79
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,buildWithSXLSX,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/freemarkerToExcelExample.ftl").workbookType(WorkbookType.SXLSX).useDefaultStyle().build(dataMap);" is 149.,98
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,buildWithEncrypt,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/freemarkerToExcelExample.ftl").workbookType(WorkbookType.SXLSX).useDefaultStyle().build(dataMap);" is 149.,117
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,buildWithAutoWidth,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/freemarkerToExcelExample.ftl").useDefaultStyle().autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH).build(dataMap);" is 164.,136
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 10,155
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 2,155
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 100,155
+myexcel,com.github.liaochong.example.controller,FreemarkerExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 999,155
+myexcel,com.github.liaochong.example.controller,SaxExcelReaderExampleController,read,Long Statement,The length of the statement "List<ArtCrowd> result=SaxExcelReader.of(ArtCrowd.class).beanFilter(bean -> bean.isDance()).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());" is 149.,38
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,buildWithXLS,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/velocityToExcelExample.vm").workbookType(WorkbookType.XLS).useDefaultStyle().build(dataMap);" is 144.,59
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,buildWithXLSX,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/velocityToExcelExample.vm").workbookType(WorkbookType.XLSX).useDefaultStyle().build(dataMap);" is 145.,78
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,buildWithSXLSX,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/velocityToExcelExample.vm").workbookType(WorkbookType.SXLSX).useDefaultStyle().build(dataMap);" is 146.,97
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,buildWithEncrypt,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/velocityToExcelExample.vm").workbookType(WorkbookType.SXLSX).useDefaultStyle().build(dataMap);" is 146.,116
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,buildWithAutoWidth,Long Statement,The length of the statement "Workbook workbook=excelBuilder.template("/templates/velocityToExcelExample.vm").useDefaultStyle().autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH).build(dataMap);" is 161.,135
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 10,154
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 2,154
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 100,154
+myexcel,com.github.liaochong.example.controller,VelocityExcelBuilderExampleController,getDataMap,Magic Number,The method contains a magic number: 999,154
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,workbookType,Missing default,The following switch statement is missing a default case: switch (workbookType) {,191
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,createRow,Complex Method,Cyclomatic complexity of the method is 9,237
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,createRow,Magic Number,The method contains a magic number: 5,237
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,createRow,Magic Number,The method contains a magic number: 5,237
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,createCell,Complex Method,Cyclomatic complexity of the method is 22,283
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,createCell,Missing default,The following switch statement is missing a default case: switch (td.tdContentType) {,283
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setComment,Magic Number,The method contains a magic number: 2,375
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setComment,Magic Number,The method contains a magic number: 2,375
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,drawingSlant,Magic Number,The method contains a magic number: 2,398
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Complex Method,Cyclomatic complexity of the method is 12,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Magic Number,The method contains a magic number: 36000,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Magic Number,The method contains a magic number: 1023,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Magic Number,The method contains a magic number: 100,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Magic Number,The method contains a magic number: 1023,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Magic Number,The method contains a magic number: 99,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setImage,Missing default,The following switch statement is missing a default case: switch (suffix) {,457
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setDropDownList,Magic Number,The method contains a magic number: 250,535
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setCellStyle,Complex Method,Cyclomatic complexity of the method is 14,563
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,getColMaxWidthMap,Magic Number,The method contains a magic number: 0.25,695
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,getColMaxWidthMap,Magic Number,The method contains a magic number: 16,695
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setColWidth,Magic Number,The method contains a magic number: 255,725
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setColWidth,Magic Number,The method contains a magic number: 255,725
+myexcel,com.github.liaochong.myexcel.core,AbstractExcelFactory,setColWidth,Magic Number,The method contains a magic number: 8,725
+myexcel,com.github.liaochong.myexcel.core,AbstractReadHandler,handleResult,Complex Method,Cyclomatic complexity of the method is 8,217
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,getFilteredFields,Complex Method,Cyclomatic complexity of the method is 11,122
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,createThead,Complex Method,Cyclomatic complexity of the method is 15,211
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,createThead,Long Statement,The length of the statement "Map<String`List<List<Td>>> groups=tdLists.stream().filter(list -> list.size() > level).collect(Collectors.groupingBy(list -> list.get(level).content));" is 151.,211
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,createThead,Long Statement,The length of the statement "List<Td> tds=v.stream().map(list -> list.get(level)).sorted(Comparator.comparing(td -> td.col)).collect(Collectors.toList());" is 125.,211
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,createThead,Long Statement,The length of the statement "Map<Integer`List<Td>> rowTds=tdLists.stream().flatMap(List::stream).filter(td -> td.row > -1).collect(Collectors.groupingBy(td -> td.row));" is 139.,211
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,createThead,Magic Number,The method contains a magic number: 0.25,211
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,setTdWidth,Complex Conditional,The conditional expression td.date != null || td.localDate != null || td.localDateTime != null is complex.,345
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,setTdWidth,Magic Number,The method contains a magic number: 0.15,345
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,setTdContentType,Complex Method,Cyclomatic complexity of the method is 11,400
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,getGroupFields,Long Statement,The length of the statement "List<Class<?>> selectedGroupList=Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();" is 161.,462
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,getGroupFields,Long Statement,The length of the statement "return preElectionFields.stream().filter(field -> (!field.isAnnotationPresent(ExcludeColumn.class) && !field.isAnnotationPresent(IgnoreColumn.class)) && ReflectUtil.isFieldSelected(selectedGroupList`field)).sorted(ReflectUtil::sortFields).collect(Collectors.toList());" is 268.,462
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,getPreElectionFields,Long Statement,The length of the statement "preElectionFields=classFieldContainer.getDeclaredFields().stream().filter(field -> field.isAnnotationPresent(ExcelColumn.class)).collect(Collectors.toList());" is 158.,470
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,getPreElectionFields,Long Statement,The length of the statement "preElectionFields=preElectionFields.stream().filter(field -> !Modifier.isStatic(field.getModifiers())).collect(Collectors.toList());" is 132.,470
+myexcel,com.github.liaochong.myexcel.core,AbstractSimpleExcelBuilder,getMultiRenderContent,Long Statement,The length of the statement "int maxSize=convertResult.stream().filter(pair -> pair.getValue() instanceof List).map(pair -> ((List<?>)pair.getValue()).size()).max(Integer::compareTo).orElse(1);" is 164.,515
+myexcel,com.github.liaochong.myexcel.core,Cell,hashCode,Magic Number,The method contains a magic number: 59,64
+myexcel,com.github.liaochong.myexcel.core,Cell,hashCode,Magic Number,The method contains a magic number: 59,64
+myexcel,com.github.liaochong.myexcel.core,ColumnSaxExcelReader,mapToString,Long Statement,The length of the statement "return result.stream().map(map -> ((Set<Cell>)map.keySet()).stream().filter(cell -> cell.getColNum() == columnNum).map(((Map<Cell`String>)map)::get).filter(Objects::nonNull).findFirst().orElse(null)).filter(v -> !ignoreBlankCell || v != null).collect(Collectors.toCollection(LinkedList::new));" is 293.,147
+myexcel,com.github.liaochong.myexcel.core,ColumnSaxExcelReader,getList,Long Statement,The length of the statement "return strings.stream().map(s -> s == null ? null : function.apply(s)).collect(Collectors.toCollection(LinkedList::new));" is 121.,160
+myexcel,com.github.liaochong.myexcel.core,Csv,Csv,Magic Number,The method contains a magic number: 0xEF,36
+myexcel,com.github.liaochong.myexcel.core,Csv,Csv,Magic Number,The method contains a magic number: 0xBB,36
+myexcel,com.github.liaochong.myexcel.core,Csv,Csv,Magic Number,The method contains a magic number: 0xBF,36
+myexcel,com.github.liaochong.myexcel.core,Csv,write,Complex Conditional,The conditional expression append && Files.exists(target) && Files.size(target) > 0 is complex.,54
+myexcel,com.github.liaochong.myexcel.core,Csv,write,Long Statement,The length of the statement "try (FileInputStream fis=new FileInputStream(filePath.toFile());FileOutputStream fos=new FileOutputStream(target.toFile()`true)){" is 129.,54
+myexcel,com.github.liaochong.myexcel.core,Csv,write,Magic Number,The method contains a magic number: 3,54
+myexcel,com.github.liaochong.myexcel.core,Csv,write,Magic Number,The method contains a magic number: 3,54
+myexcel,com.github.liaochong.myexcel.core,Csv,write,Magic Number,The method contains a magic number: 8,54
+myexcel,com.github.liaochong.myexcel.core,Csv,write,Magic Number,The method contains a magic number: 1024,54
+myexcel,com.github.liaochong.myexcel.core,CsvReadHandler,read,Long Statement,The length of the statement "try (Reader reader=new InputStreamReader(new BOMInputStream(is)`readConfig.csvCharset);CSVParser parser=new CSVParser(reader`CSVFormat.EXCEL.withDelimiter(readConfig.csvDelimiter))){" is 182.,46
+myexcel,com.github.liaochong.myexcel.core,DefaultExcelBuilder,DefaultExcelBuilder,Long Statement,The length of the statement "streamExcelBuilder.style("title->" + STYLE_COMMON_TD + STYLE_TITLE`"even->" + STYLE_COMMON_TD`"odd->" + STYLE_COMMON_TD + "background-color:#f6f8fa;");" is 151.,42
+myexcel,com.github.liaochong.myexcel.core,DefaultExcelReader,readThenConsume,Complex Method,Cyclomatic complexity of the method is 10,333
+myexcel,com.github.liaochong.myexcel.core,DefaultExcelReader,getAllPictures,Long Statement,The length of the statement "xssfPicturesMap=xssfDrawing.getShapes().stream().filter(s -> s instanceof XSSFPicture).map(s -> (XSSFPicture)s).collect(Collectors.toMap(s -> {" is 143.,374
+myexcel,com.github.liaochong.myexcel.core,HSSFMergeReadHandler,processRecord,Complex Method,Cyclomatic complexity of the method is 10,48
+myexcel,com.github.liaochong.myexcel.core,HSSFMergeReadHandler,processRecord,Missing default,The following switch statement is missing a default case: switch (record.getSid()) {,48
+myexcel,com.github.liaochong.myexcel.core,HSSFMetaDataSaxReadHandler,processRecord,Complex Method,Cyclomatic complexity of the method is 16,62
+myexcel,com.github.liaochong.myexcel.core,HSSFMetaDataSaxReadHandler,processRecord,Missing default,The following switch statement is missing a default case: switch (record.getSid()) {,62
+myexcel,com.github.liaochong.myexcel.core,HSSFSaxReadHandler,processRecord,Complex Method,Cyclomatic complexity of the method is 28,129
+myexcel,com.github.liaochong.myexcel.core,HSSFSaxReadHandler,processRecord,Long Method,The method has 136 lines of code.,129
+myexcel,com.github.liaochong.myexcel.core,HSSFSaxReadHandler,processRecord,Long Statement,The length of the statement "mergeFirstCellMapping=mergeCellIndexMapping.getOrDefault(sheetIndex`Collections.emptyMap()).values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress`c -> ""));" is 183.,129
+myexcel,com.github.liaochong.myexcel.core,HSSFSaxReadHandler,processRecord,Missing default,The following switch statement is missing a default case: switch (record.getSid()) {,129
+myexcel,com.github.liaochong.myexcel.core,HtmlToExcelFactory,setTdOfTable,Long Statement,The length of the statement "maxColIndex=table.trList.parallelStream().mapToInt(tr -> tr.tdList.stream().mapToInt(td -> td.col).max().orElse(0)).max().orElse(0);" is 132.,226
+myexcel,com.github.liaochong.myexcel.core,HtmlToExcelStreamFactory,receive,Complex Method,Cyclomatic complexity of the method is 9,148
+myexcel,com.github.liaochong.myexcel.core,HtmlToExcelStreamFactory,getTrFromQueue,Magic Number,The method contains a magic number: 15,248
+myexcel,com.github.liaochong.myexcel.core,HtmlToExcelStreamFactory,buildAsPaths,Long Statement,The length of the statement "return tempFilePaths.stream().filter(path -> Objects.nonNull(path) && path.toFile().exists()).collect(Collectors.toList());" is 123.,264
+myexcel,com.github.liaochong.myexcel.core,ReadContext,reset,Long Parameter List,The method has 5 parameters. ,37
+myexcel,com.github.liaochong.myexcel.core,ReadOnlySharedStringsTable,startElement,Complex Method,Cyclomatic complexity of the method is 8,143
+myexcel,com.github.liaochong.myexcel.core,ReadOnlySharedStringsTable,startElement,Magic Number,The method contains a magic number: 64,143
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReader,doRead,Missing default,The following switch statement is missing a default case: switch (fm) {,274
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReader,doReadXls,Empty catch clause,The method has an empty catch block.,300
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReader,doReadXlsx,Empty catch clause,The method has an empty catch block.,319
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReader,doReadCsv,Empty catch clause,The method has an empty catch block.,333
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReader,process,Long Statement,The length of the statement "ContentHandler handler=new XSSFSheetXMLHandler(mergeCellIndexMapping.getOrDefault(index`Collections.emptyMap())`strings`new XSSFSaxReadHandler<>(result`readConfig));" is 165.,343
+myexcel,com.github.liaochong.myexcel.core,XSSFSheetXMLHandler,XSSFSheetXMLHandler,Long Statement,The length of the statement "this.mergeFirstCellMapping=mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress`c -> ""));" is 135.,86
+myexcel,com.github.liaochong.myexcel.core,XSSFSheetXMLHandler,startElement,Complex Method,Cyclomatic complexity of the method is 16,117
+myexcel,com.github.liaochong.myexcel.core,XSSFSheetXMLHandler,endElement,Complex Method,Cyclomatic complexity of the method is 15,174
+myexcel,com.github.liaochong.myexcel.core,XSSFSheetXMLHandler,endElement,Missing default,The following switch statement is missing a default case: switch (nextDataType) {,174
+myexcel,com.github.liaochong.myexcel.core,BeetlExcelBuilderTest,fileBuild,Long Statement,The length of the statement "Workbook workbook=excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates"`"beetlToExcelExample.btl").build(getDataMap());" is 124.,41
+myexcel,com.github.liaochong.myexcel.core,BeetlExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 10,50
+myexcel,com.github.liaochong.myexcel.core,BeetlExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 2,50
+myexcel,com.github.liaochong.myexcel.core,BeetlExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 100,50
+myexcel,com.github.liaochong.myexcel.core,BeetlExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 999,50
+myexcel,com.github.liaochong.myexcel.core,ColumnSaxExcelReaderTest,testRead,Long Statement,The length of the statement "List<String> strings=ColumnSaxExcelReader.columnNum(0).rowFilter(row -> row.getRowNum() > 1).readAsString(path.toFile());" is 121.,16
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,mapBuild,Magic Number,The method contains a magic number: 5,29
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,multiBuild,Magic Number,The method contains a magic number: 3,57
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,appendBuild,Magic Number,The method contains a magic number: 10,63
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,appendBuild,Magic Number,The method contains a magic number: 1000,63
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,appendBuild,Magic Number,The method contains a magic number: 10,63
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,appendBuild,Magic Number,The method contains a magic number: 1000,63
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,appendBuild,Magic Number,The method contains a magic number: 10,63
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,appendBuild,Magic Number,The method contains a magic number: 1000,63
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,noTitlesBuild,Magic Number,The method contains a magic number: 10,87
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,noTitlesBuild,Magic Number,The method contains a magic number: 1000,87
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,data,Magic Number,The method contains a magic number: 109898,97
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,data,Magic Number,The method contains a magic number: 66666,97
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,data,Magic Number,The method contains a magic number: 2,97
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,multiData,Magic Number,The method contains a magic number: 3,115
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,multiData,Magic Number,The method contains a magic number: 5,115
+myexcel,com.github.liaochong.myexcel.core,CsvBuilderTest,multiData,Magic Number,The method contains a magic number: 10,115
+myexcel,com.github.liaochong.myexcel.core,DefaultExcelReaderTest,readWithSheetName,Long Statement,The length of the statement "List<CommonPeople> list=DefaultExcelReader.of(CommonPeople.class).sheet("工作表2").rowFilter(row -> row.getRowNum() > 0).read(path.toFile());" is 144.,48
+myexcel,com.github.liaochong.myexcel.core,DefaultExcelReaderTest,readStartSheet,Long Statement,The length of the statement "List<CommonPeople> list=DefaultExcelReader.of(CommonPeople.class).sheet("工作表2").startSheet(sheet -> System.out.println(sheet.getLastRowNum())).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());" is 207.,57
+myexcel,com.github.liaochong.myexcel.core,DefaultExcelReaderTest,readThenStartSheet,Long Statement,The length of the statement "DefaultExcelReader.of(CommonPeople.class).sheet("工作表2").startSheet(sheet -> System.out.println(sheet.getLastRowNum())).rowFilter(row -> row.getRowNum() > 0).readThen(path.toFile()`d -> {" is 192.,68
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,mapBuild,Long Statement,The length of the statement "Workbook workbook=DefaultExcelBuilder.of(Map.class).style("cell&1->background-color:red;"`"title&2->color:green;font-weight:bold;background-color:yellow;").width(1`20).fieldDisplayOrder(titles).titles(titles).build(list);" is 221.,37
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,mapBuild,Magic Number,The method contains a magic number: 10,37
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,mapBuild,Magic Number,The method contains a magic number: 20,37
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,commonBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().start()){" is 130.,62
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,commonBuild,Magic Number,The method contains a magic number: 5,62
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,asyncCommonBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().threadPool(Executors.newFixedThreadPool(10)).start()){" is 175.,75
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,asyncCommonBuild,Magic Number,The method contains a magic number: 10,75
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,asyncCommonBuild,Magic Number,The method contains a magic number: 1000,75
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customWidthBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().widths(15`20`25`30).start()){" is 150.,89
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customWidthBuild,Magic Number,The method contains a magic number: 15,89
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customWidthBuild,Magic Number,The method contains a magic number: 20,89
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customWidthBuild,Magic Number,The method contains a magic number: 25,89
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customWidthBuild,Magic Number,The method contains a magic number: 30,89
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customWidthBuild,Magic Number,The method contains a magic number: 10000,89
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,continueBuild,Magic Number,The method contains a magic number: 15,101
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,continueBuild,Magic Number,The method contains a magic number: 20,101
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,continueBuild,Magic Number,The method contains a magic number: 25,101
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,continueBuild,Magic Number,The method contains a magic number: 30,101
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,continueBuild,Magic Number,The method contains a magic number: 10000,101
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,continueBuild,Magic Number,The method contains a magic number: 10000,101
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,cancelBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().widths(15`20`25`30).start()){" is 150.,125
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,cancelBuild,Magic Number,The method contains a magic number: 15,125
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,cancelBuild,Magic Number,The method contains a magic number: 20,125
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,cancelBuild,Magic Number,The method contains a magic number: 25,125
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,cancelBuild,Magic Number,The method contains a magic number: 30,125
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,cancelBuild,Magic Number,The method contains a magic number: 10000,125
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().widths(15`20`25`30).capacity(1000).start()){" is 165.,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Magic Number,The method contains a magic number: 15,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Magic Number,The method contains a magic number: 20,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Magic Number,The method contains a magic number: 25,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Magic Number,The method contains a magic number: 30,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Magic Number,The method contains a magic number: 1000,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsPaths,Magic Number,The method contains a magic number: 10000,136
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().widths(15`20`25`30).capacity(1000).start()){" is 165.,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Magic Number,The method contains a magic number: 15,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Magic Number,The method contains a magic number: 20,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Magic Number,The method contains a magic number: 25,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Magic Number,The method contains a magic number: 30,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Magic Number,The method contains a magic number: 1000,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,buildAsZip,Magic Number,The method contains a magic number: 10000,151
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,bigBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().start()){" is 130.,166
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,bigBuild,Magic Number,The method contains a magic number: 1650500,166
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CustomStylePeople> excelBuilder=DefaultStreamExcelBuilder.of(CustomStylePeople.class).fixedTitles().start()){" is 140.,177
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleBuild,Magic Number,The method contains a magic number: 1000,177
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,evenOddBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<OddEvenStylePeople> excelBuilder=DefaultStreamExcelBuilder.of(OddEvenStylePeople.class).fixedTitles().style("cell&1->color:green;").start()){" is 172.,188
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,evenOddBuild,Magic Number,The method contains a magic number: 10000,188
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,groupBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().groups(CommonPeople.class).widths(50).start()){" is 168.,200
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,groupBuild,Magic Number,The method contains a magic number: 50,200
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,groupBuild,Magic Number,The method contains a magic number: 10000,200
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<WidthPeople> excelBuilder=DefaultStreamExcelBuilder.of(WidthPeople.class).fixedTitles().start()){" is 128.,213
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthBuild,Magic Number,The method contains a magic number: 10000,213
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,formulaBuild,Magic Number,The method contains a magic number: 100,224
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,appendTemplateBuild,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class).fixedTitles().templateHandler(FreemarkerTemplateHandler.class).start()){" is 179.,235
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,appendTemplateBuild,Magic Number,The method contains a magic number: 100,235
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,appendExistExcel,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder=DefaultStreamExcelBuilder.of(CommonPeople.class`Paths.get(TEST_OUTPUT_DIR + "common_build.xlsx")).fixedTitles().start()){" is 179.,248
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,appendExistExcel,Magic Number,The method contains a magic number: 5000,248
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,testMultiColumn,Long Statement,The length of the statement "try (DefaultStreamExcelBuilder<MultiPeople> excelBuilder=DefaultStreamExcelBuilder.of(MultiPeople.class).fixedTitles().freezePane(new FreezePane(2`5)).start()){" is 160.,260
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,testMultiColumn,Magic Number,The method contains a magic number: 2,260
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,testMultiColumn,Magic Number,The method contains a magic number: 5,260
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,multiData,Magic Number,The method contains a magic number: 3,272
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,multiData,Magic Number,The method contains a magic number: 5,272
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,multiData,Magic Number,The method contains a magic number: 10,272
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,data,Magic Number,The method contains a magic number: 109898,288
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,data,Magic Number,The method contains a magic number: 66666,288
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,data,Magic Number,The method contains a magic number: 2,288
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,data,Magic Number,The method contains a magic number: 18,288
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,data,Magic Number,The method contains a magic number: 24,288
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,data,Magic Number,The method contains a magic number: 100L,288
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 109898,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 66666,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 1000,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 2,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 18,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 24,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,dataList,Magic Number,The method contains a magic number: 100L,316
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleData,Magic Number,The method contains a magic number: 109898,337
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleData,Magic Number,The method contains a magic number: 66666,337
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleData,Magic Number,The method contains a magic number: 2,337
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleData,Magic Number,The method contains a magic number: 18,337
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,customStyleData,Magic Number,The method contains a magic number: 24,337
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,oddEvenData,Magic Number,The method contains a magic number: 109898,351
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,oddEvenData,Magic Number,The method contains a magic number: 66666,351
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,oddEvenData,Magic Number,The method contains a magic number: 2,351
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,oddEvenData,Magic Number,The method contains a magic number: 18,351
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,oddEvenData,Magic Number,The method contains a magic number: 24,351
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthEvenData,Magic Number,The method contains a magic number: 109898,365
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthEvenData,Magic Number,The method contains a magic number: 66666,365
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthEvenData,Magic Number,The method contains a magic number: 2,365
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthEvenData,Magic Number,The method contains a magic number: 18,365
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,widthEvenData,Magic Number,The method contains a magic number: 24,365
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,formulaData,Magic Number,The method contains a magic number: 100,379
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 10,386
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 2,386
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 100,386
+myexcel,com.github.liaochong.myexcel.core,DefaultStreamExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 999,386
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,test,Long Statement,The length of the statement "Workbook workbook=excelBuilder.workbookType(WorkbookType.XLSX).classpathTemplate("/templates/freemarkerToExcelExample.ftl").build(dataMap);" is 139.,36
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,fileTest,Long Statement,The length of the statement "Workbook workbook=excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates"`"freemarkerToExcelExample.ftl").build(dataMap);" is 124.,45
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,oneSheetStrategyExample,Long Statement,The length of the statement "Workbook workbook=excelBuilder.classpathTemplate("/templates/freemarkerToExcelOneSheetStrategyExample.ftl").build(dataMap);" is 123.,54
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 10,66
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 2,66
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 100,66
+myexcel,com.github.liaochong.myexcel.core,FreemarkerExcelBuilderTest,getDataMap,Magic Number,The method contains a magic number: 999,66
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,csvReadContinuedException,Long Statement,The length of the statement "System.out.println(context.getField().getName() + "_" + context.getVal()+ "_"+ context.getRowNum()+ "_"+ context.getColNum());" is 126.,40
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,csvReadException,Long Statement,The length of the statement "System.out.println(context.getField().getName() + "_" + context.getVal()+ "_"+ context.getRowNum()+ "_"+ context.getColNum());" is 126.,51
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsxFile,Long Statement,The length of the statement "List<CommonPeople> commonPeoples=SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).sheets(0`1).read(path.toFile());" is 141.,66
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsFile,Long Statement,The length of the statement "List<CommonPeople> commonPeoples=SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).sheets(0`1).read(path.toFile());" is 141.,78
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsxFileWithName,Long Statement,The length of the statement "List<CommonPeople> commonPeoples=SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).sheets("人员信�?�"`"工作表1").read(path.toFile());" is 165.,89
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsFileWithName,Long Statement,The length of the statement "List<CommonPeople> commonPeoples=SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).sheets("人员信�?�"`"工作表2").read(path.toFile());" is 165.,101
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsxContinuedException,Long Statement,The length of the statement "System.out.println(context.getField().getName() + "_" + context.getVal()+ "_"+ context.getRowNum()+ "_"+ context.getColNum());" is 126.,112
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsxException,Long Statement,The length of the statement "System.out.println(context.getField().getName() + "_" + context.getVal()+ "_"+ context.getRowNum()+ "_"+ context.getColNum());" is 126.,123
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsContinuedException,Long Statement,The length of the statement "System.out.println(context.getField().getName() + "_" + context.getVal()+ "_"+ context.getRowNum()+ "_"+ context.getColNum());" is 126.,138
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readXlsException,Long Statement,The length of the statement "System.out.println(context.getField().getName() + "_" + context.getVal()+ "_"+ context.getRowNum()+ "_"+ context.getColNum());" is 126.,161
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readWithContextCustomer,Long Statement,The length of the statement "SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path)`(d`context) -> {" is 128.,245
+myexcel,com.github.liaochong.myexcel.core,SaxExcelReaderTest,readWithContextFunction,Long Statement,The length of the statement "SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path)`(d`context) -> {" is 128.,255
+myexcel,com.github.liaochong.myexcel.core,ThymeleafExcelBuilderTest,fileBuild,Long Statement,The length of the statement "Workbook workbook=excelBuilder.fileTemplate(TEST_RESOURCES_DIR + "templates"`"thymeleafToExcelExample.html").build(new HashMap<>());" is 132.,37
+myexcel,com.github.liaochong.myexcel.core.cache,StringsCache,writeToFile,Long Statement,The length of the statement "String content=Arrays.stream(cacheValues).filter(Objects::nonNull).map(RegexpUtil::escapeLineFeed).collect(Collectors.joining(LINE_SEPARATOR));" is 143.,165
+myexcel,com.github.liaochong.myexcel.core.container,Pair,equals,Complex Method,Cyclomatic complexity of the method is 8,56
+myexcel,com.github.liaochong.myexcel.core.container,Pair,hashCode,Magic Number,The method contains a magic number: 59,90
+myexcel,com.github.liaochong.myexcel.core.container,Pair,hashCode,Magic Number,The method contains a magic number: 43,90
+myexcel,com.github.liaochong.myexcel.core.container,Pair,hashCode,Magic Number,The method contains a magic number: 59,90
+myexcel,com.github.liaochong.myexcel.core.container,Pair,hashCode,Magic Number,The method contains a magic number: 43,90
+myexcel,com.github.liaochong.myexcel.core.converter,ReadConverterContext,convert,Long Statement,The length of the statement "throw new ExcelReadException("Failed to convert content`field:[" + context.getField().getDeclaringClass().getName() + "#"+ context.getField().getName()+ "]`content:["+ context.getVal()+ "]`rowNum:["+ context.getRowNum()+ "]"`e);" is 228.,110
+myexcel,com.github.liaochong.myexcel.core.converter,ReadConverterContext,convert,Long Statement,The length of the statement "throw new SaxReadException("Failed to set the " + context.getField().getDeclaringClass().getName() + "#"+ context.getField().getName()+ " field value to "+ context.getVal()`e);" is 176.,110
+myexcel,com.github.liaochong.myexcel.core.converter,WriteConverterContext,getWriteConverter,Long Parameter List,The method has 5 parameters. ,85
+myexcel,com.github.liaochong.myexcel.core.converter,WriteConverterContext,getWriteConverter,Long Statement,The length of the statement "WriteConverter writeConverter=convertContext.isConvertCsv ? CSV_CONVERTER_CACHE.get(Pair.of(field`fieldType)) : EXCEL_CONVERTER_CACHE.get(Pair.of(field`fieldType));" is 164.,85
+myexcel,com.github.liaochong.myexcel.core.converter,WriteConverterContext,getWriteConverter,Long Statement,The length of the statement "Optional<WriteConverter> writeConverterOptional=writeConverterContainer.stream().filter(pair -> (pair.getKey() == convertContext.converterType || pair.getKey() == AllConverter.class) && pair.getValue().support(field`fieldType`result`convertContext)).map(Pair::getValue).findFirst();" is 282.,85
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convert,Magic Number,The method contains a magic number: 2,59
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,getDateFormatPattern,Long Statement,The length of the statement "return field.getType() == LocalDate.class ? convertContext.configuration.dateFormat : field.getType() == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;" is 214.,89
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,getDateFormatPattern,Long Statement,The length of the statement "return field.getType() == LocalDate.class ? convertContext.configuration.dateFormat : field.getType() == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;" is 214.,89
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,getDateFormatFormatter,Long Identifier,The length of the field DATE_TIME_FORMATTER_WEAK_CACHE is 30.,128
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Long Statement,The length of the statement "LocalDateTime localDateTime=START_LOCAL_DATE_TIME.plusDays(days - 2).plusHours(hour).plusMinutes(minute).plusSeconds(second);" is 125.,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 24,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 3600,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 3600,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 3600,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 60,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 60,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,AbstractReadConverter,convertExcelNumberDateToMilli,Magic Number,The method contains a magic number: 2,154
+myexcel,com.github.liaochong.myexcel.core.converter.reader,BoolReadConverter,doConvert,Long Statement,The length of the statement "throw new IllegalStateException("Cell content does not match the type of field to be injected`field is " + field.getName() + "`value is \""+ v+ "\"");" is 150.,31
+myexcel,com.github.liaochong.myexcel.core.converter.writer,BigDecimalWriteConverter,convert,Magic Number,The method contains a magic number: 2,40
+myexcel,com.github.liaochong.myexcel.core.converter.writer,CustomWriteConverter,support,Long Statement,The length of the statement "return mapping != null && mapping.customWriteConverter != null && mapping.customWriteConverter != DefaultCustomWriteConverter.class;" is 132.,38
+myexcel,com.github.liaochong.myexcel.core.converter.writer,CustomWriteConverter,convert,Long Statement,The length of the statement "Class<? extends com.github.liaochong.myexcel.core.converter.CustomWriteConverter> converter=excelColumnMapping.customWriteConverter;" is 132.,44
+myexcel,com.github.liaochong.myexcel.core.converter.writer,CustomWriteConverter,convert,Long Statement,The length of the statement "Object result=((com.github.liaochong.myexcel.core.converter.CustomWriteConverter)target).convert(fieldVal`customWriteContext);" is 126.,44
+myexcel,com.github.liaochong.myexcel.core.converter.writer,DateTimeWriteConverter,getDateFormatPattern,Long Statement,The length of the statement "return fieldType == LocalDate.class ? convertContext.configuration.dateFormat : fieldType == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;" is 202.,69
+myexcel,com.github.liaochong.myexcel.core.converter.writer,DateTimeWriteConverter,getDateFormatPattern,Long Statement,The length of the statement "dateFormatPattern=fieldType == LocalDate.class ? convertContext.configuration.dateFormat : fieldType == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;" is 213.,69
+myexcel,com.github.liaochong.myexcel.core.converter.writer,DropDownListWriteConverter,convert,Complex Method,Cyclomatic complexity of the method is 9,42
+myexcel,com.github.liaochong.myexcel.core.converter.writer,DropDownListWriteConverter,support,Long Statement,The length of the statement "return field.getType().isArray() || (field.getType() == List.class && !field.isAnnotationPresent(MultiColumn.class)) || (field.getType() == List.class && fieldType == Array.class);" is 180.,80
+myexcel,com.github.liaochong.myexcel.core.converter.writer,LinkWriteConverter,convert,Missing default,The following switch statement is missing a default case: switch (linkType) {,35
+myexcel,com.github.liaochong.myexcel.core.converter.writer,MultiWriteConverter,convert,Long Statement,The length of the statement "WriteConverter writeConverter=WriteConverterContext.getWriteConverter(field`multiColumn.classType()`o`convertContext`writeConverterContainer);" is 142.,42
+myexcel,com.github.liaochong.myexcel.core.parser,HtmlTableParser,parseTdOfTr,Complex Method,Cyclomatic complexity of the method is 12,159
+myexcel,com.github.liaochong.myexcel.core.parser,HtmlTableParser,setSlant,Magic Number,The method contains a magic number: 3,252
+myexcel,com.github.liaochong.myexcel.core.parser,HtmlTableParser,setSlant,Magic Number,The method contains a magic number: 2,252
+myexcel,com.github.liaochong.myexcel.core.parser,HtmlTableParser,setTdContent,Complex Method,Cyclomatic complexity of the method is 13,293
+myexcel,com.github.liaochong.myexcel.core.parser,StyleParser,getCellStyle,Complex Method,Cyclomatic complexity of the method is 8,180
+myexcel,com.github.liaochong.myexcel.core.parser,Td,setRowSpan,Magic Number,The method contains a magic number: 2,109
+myexcel,com.github.liaochong.myexcel.core.parser,Td,setColSpan,Magic Number,The method contains a magic number: 2,116
+myexcel,com.github.liaochong.myexcel.core.reflect,ClassFieldContainer,getFieldsByAnnotation,Long Statement,The length of the statement "List<Field> annotationFields=classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());" is 162.,66
+myexcel,com.github.liaochong.myexcel.core.style,BackgroundStyle,setCustomColor,Long Statement,The length of the statement "xssfCellStyle.setFillForegroundColor(new XSSFColor(new Color(rgb[0]`rgb[1]`rgb[2])`customColor.getDefaultIndexedColorMap()));" is 125.,56
+myexcel,com.github.liaochong.myexcel.core.style,BackgroundStyle,setCustomColor,Magic Number,The method contains a magic number: 2,56
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Complex Method,Cyclomatic complexity of the method is 11,54
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Magic Number,The method contains a magic number: 2,54
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Magic Number,The method contains a magic number: 3,54
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Magic Number,The method contains a magic number: 2,54
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Magic Number,The method contains a magic number: 4,54
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Magic Number,The method contains a magic number: 2,54
+myexcel,com.github.liaochong.myexcel.core.style,BorderStyle,setBorder,Magic Number,The method contains a magic number: 3,54
+myexcel,com.github.liaochong.myexcel.core.style,FontStyle,setFont,Long Parameter List,The method has 5 parameters. ,60
+myexcel,com.github.liaochong.myexcel.core.style,FontStyle,getFont,Complex Method,Cyclomatic complexity of the method is 10,67
+myexcel,com.github.liaochong.myexcel.core.style,FontStyle,setFontColor,Magic Number,The method contains a magic number: 2,113
+myexcel,com.github.liaochong.myexcel.core.templatehandler,GroovyTemplateHandler,classpathTemplate,Long Statement,The length of the statement "try (InputStream is=Thread.currentThread().getContextClassLoader().getResourceAsStream(path);Reader reader=new InputStreamReader(is`StandardCharsets.UTF_8)){" is 157.,45
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Long Statement,The length of the statement "image=g.getDeviceConfiguration().createCompatibleImage(watermark.getWidth()`watermark.getHeight()`Transparency.TRANSLUCENT);" is 124.,30
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Magic Number,The method contains a magic number: 16,30
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Magic Number,The method contains a magic number: 0.5,30
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Magic Number,The method contains a magic number: 2,30
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Magic Number,The method contains a magic number: 2,30
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Magic Number,The method contains a magic number: 2,30
+myexcel,com.github.liaochong.myexcel.core.watermark,FontImage,createWatermarkImage,Magic Number,The method contains a magic number: 2,30
+myexcel,com.github.liaochong.myexcel.utils,AttachmentExportUtil,setAttachmentConfig,Long Statement,The length of the statement "response.addHeader("Content-Disposition"`"attachment;filename=" + URLEncoder.encode(fileName`CharEncoding.UTF_8).replace("+"`"%20"));" is 133.,150
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getCustomColorIndex,Magic Number,The method contains a magic number: 2,52
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 3,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 16,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 3,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 5,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 16,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 5,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 7,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 16,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 3,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 2,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 3,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 2,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 3,59
+myexcel,com.github.liaochong.myexcel.utils,ColorUtil,getRGBByColor,Magic Number,The method contains a magic number: 2,59
+myexcel,com.github.liaochong.myexcel.utils,ConfigurationUtil,parseConfiguration,Complex Method,Cyclomatic complexity of the method is 22,31
+myexcel,com.github.liaochong.myexcel.utils,PropertyUtil,getProperties,Magic Number,The method contains a magic number: 2,45
+myexcel,com.github.liaochong.myexcel.utils,ReflectUtil,getFieldMapOfExcelColumn,Complex Method,Cyclomatic complexity of the method is 8,59
+myexcel,com.github.liaochong.myexcel.utils,ReflectUtil,isNumber,Long Statement,The length of the statement "return clazz == Double.class || clazz == double.class || clazz == Float.class || clazz == float.class || clazz == Long.class || clazz == long.class || clazz == Integer.class || clazz == int.class || clazz == Short.class || clazz == short.class || clazz == Byte.class || clazz == byte.class || clazz == BigDecimal.class || clazz == BigInteger.class;" is 348.,160
+myexcel,com.github.liaochong.myexcel.utils,StyleUtil,parseStyle,Magic Number,The method contains a magic number: 2,41
+myexcel,com.github.liaochong.myexcel.utils,StyleUtil,mixStyle,Magic Number,The method contains a magic number: 2,72
+myexcel,com.github.liaochong.myexcel.utils,TdUtil,getStringWidth,Magic Number,The method contains a magic number: 0.5,64
+myexcel,com.github.liaochong.myexcel.utils,TempFileOperator,createTempFile,Long Statement,The length of the statement "return TempFile.createTempFile("liaochong$myexcel_" + prefix + "_"+ Thread.currentThread().getId()+ "_"`suffix).toPath();" is 121.,42
+myexcel,com.github.liaochong.myexcel.utils,TempFileOperator,convertToFile,Magic Number,The method contains a magic number: 8,92
+myexcel,com.github.liaochong.myexcel.utils,TempFileOperator,convertToFile,Magic Number,The method contains a magic number: 1024,92
+myexcel,com.github.liaochong.myexcel.utils,WatermarkUtil,addWatermark,Long Statement,The length of the statement "XSSFWorkbook xssfWorkbook=workbook instanceof SXSSFWorkbook ? ((SXSSFWorkbook)workbook).getXSSFWorkbook() : (XSSFWorkbook)workbook;" is 131.,50

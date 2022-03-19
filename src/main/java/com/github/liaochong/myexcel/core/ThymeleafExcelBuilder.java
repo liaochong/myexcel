@@ -14,6 +14,9 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.ThymeleafTemplateHandler;
 
 /**
@@ -26,5 +29,36 @@ public class ThymeleafExcelBuilder extends AbstractExcelBuilder {
 
     public ThymeleafExcelBuilder() {
         super(ThymeleafTemplateHandler.class);
+    }
+
+    @Override
+    public AbstractExcelBuilder useDefaultStyle() {
+        htmlToExcelFactory.useDefaultStyle();
+        return this;
+    }
+
+    @Override
+    public ExcelBuilder applyDefaultStyle() {
+        htmlToExcelFactory.applyDefaultStyle();
+        return this;
+    }
+
+    @Override
+    public AbstractExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
+        htmlToExcelFactory.widthStrategy(widthStrategy);
+        return this;
+    }
+
+    @Deprecated
+    @Override
+    public AbstractExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
+        htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
+        return this;
+    }
+
+    @Override
+    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy) {
+        htmlToExcelFactory.sheetStrategy(sheetStrategy);
+        return this;
     }
 }

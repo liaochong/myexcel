@@ -18,21 +18,11 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.ExcludeColumn;
 import com.github.liaochong.myexcel.core.annotation.IgnoreColumn;
 import com.github.liaochong.myexcel.core.annotation.MultiColumn;
-import com.github.liaochong.myexcel.core.constant.BooleanDropDownList;
-import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.constant.DropDownList;
-import com.github.liaochong.myexcel.core.constant.ImageFile;
-import com.github.liaochong.myexcel.core.constant.LinkEmail;
-import com.github.liaochong.myexcel.core.constant.LinkUrl;
-import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
+import com.github.liaochong.myexcel.core.constant.*;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
-import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
-import com.github.liaochong.myexcel.core.parser.StyleParser;
-import com.github.liaochong.myexcel.core.parser.Table;
-import com.github.liaochong.myexcel.core.parser.Td;
-import com.github.liaochong.myexcel.core.parser.Tr;
+import com.github.liaochong.myexcel.core.parser.*;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
@@ -41,21 +31,10 @@ import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
 import javax.lang.model.type.NullType;
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -63,7 +42,7 @@ import java.util.stream.IntStream;
  * @author liaochong
  * @version 1.0
  */
-abstract class AbstractSimpleExcelBuilder {
+public abstract class AbstractSimpleExcelBuilder {
     /**
      * 字段展示顺序
      */
@@ -71,7 +50,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 已排序字段
      */
-    protected List<Field> filteredFields = Collections.emptyList();
+    public List<Field> filteredFields = Collections.emptyList();
     /**
      * 标题
      */
@@ -101,9 +80,9 @@ abstract class AbstractSimpleExcelBuilder {
      */
     private final ConvertContext convertContext;
 
-    protected Configuration configuration;
+    public Configuration configuration;
 
-    private final Map<Field, ExcelColumnMapping> excelColumnMappingMap;
+    public final Map<Field, ExcelColumnMapping> excelColumnMappingMap;
 
     protected StyleParser styleParser = new StyleParser(customWidthMap);
 
@@ -126,7 +105,7 @@ abstract class AbstractSimpleExcelBuilder {
      * @param groups              分组
      * @return Field
      */
-    protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
+    public List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         ConfigurationUtil.parseConfiguration(classFieldContainer, configuration);
         this.parseGlobalStyle();
         List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
@@ -329,32 +308,17 @@ abstract class AbstractSimpleExcelBuilder {
             if (pair.getRepeatSize() != null) {
                 td.setRowSpan(pair.getRepeatSize());
             }
-            this.setTdContent(td, pair);
-            this.setTdContentType(td, pair.getKey());
+            td.setTdContent(pair);
+            td.setTdContentType(pair.getKey(), this);
             td.format = formats.get(index);
             this.setFormula(index, td);
-            this.setTdWidth(tr.colWidthMap, td);
+            td.setTdWidth(tr.colWidthMap, this);
             this.setPrompt(td, index);
             return td;
         }).collect(Collectors.toList());
         customWidthMap.forEach(tr.colWidthMap::put);
         tr.tdList = tdList;
         return tr;
-    }
-
-    private void setTdWidth(Map<Integer, Integer> colWidthMap, Td td) {
-        if (!configuration.computeAutoWidth) {
-            return;
-        }
-        if (td.format == null) {
-            colWidthMap.put(td.col, TdUtil.getStringWidth(td.content));
-        } else {
-            if (td.content != null && td.format.length() > td.content.length()) {
-                colWidthMap.put(td.col, TdUtil.getStringWidth(td.format));
-            } else if (td.date != null || td.localDate != null || td.localDateTime != null) {
-                colWidthMap.put(td.col, TdUtil.getStringWidth(td.format, -0.15));
-            }
-        }
     }
 
     private void setFormula(int i, Td td) {
@@ -379,68 +343,7 @@ abstract class AbstractSimpleExcelBuilder {
         }
     }
 
-    private void setTdContent(Td td, Pair<? extends Class, ?> pair) {
-        Class fieldType = pair.getKey();
-        if (fieldType == NullType.class) {
-            return;
-        }
-        if (fieldType == Date.class) {
-            td.date = (Date) pair.getValue();
-        } else if (fieldType == LocalDateTime.class) {
-            td.localDateTime = (LocalDateTime) pair.getValue();
-        } else if (fieldType == LocalDate.class) {
-            td.localDate = (LocalDate) pair.getValue();
-        } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
-            td.file = (File) pair.getValue();
-        } else {
-            td.content = String.valueOf(pair.getValue());
-        }
-    }
-
-    private void setTdContentType(Td td, Class fieldType) {
-        if (String.class == fieldType) {
-            return;
-        }
-        if (ReflectUtil.isNumber(fieldType)) {
-            td.tdContentType = ContentTypeEnum.DOUBLE;
-            return;
-        }
-        if (ReflectUtil.isDate(fieldType)) {
-            td.tdContentType = ContentTypeEnum.DATE;
-            return;
-        }
-        if (ReflectUtil.isBool(fieldType)) {
-            td.tdContentType = ContentTypeEnum.BOOLEAN;
-            return;
-        }
-        if (fieldType == DropDownList.class) {
-            td.tdContentType = ContentTypeEnum.DROP_DOWN_LIST;
-            return;
-        }
-        if (fieldType == NumberDropDownList.class) {
-            td.tdContentType = ContentTypeEnum.NUMBER_DROP_DOWN_LIST;
-            return;
-        }
-        if (fieldType == BooleanDropDownList.class) {
-            td.tdContentType = ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST;
-            return;
-        }
-        if (td.content != null && fieldType == LinkUrl.class) {
-            td.tdContentType = ContentTypeEnum.LINK_URL;
-            setLinkTd(td);
-            return;
-        }
-        if (td.content != null && fieldType == LinkEmail.class) {
-            td.tdContentType = ContentTypeEnum.LINK_EMAIL;
-            setLinkTd(td);
-            return;
-        }
-        if (td.file != null && fieldType == ImageFile.class) {
-            td.tdContentType = ContentTypeEnum.IMAGE;
-        }
-    }
-
-    private void setLinkTd(Td td) {
+    public void setLinkTd(Td td) {
         String[] splits = td.content.split(Constants.ARROW);
         if (splits.length == 1) {
             td.link = td.content;
@@ -611,4 +514,7 @@ abstract class AbstractSimpleExcelBuilder {
             contents.add(Pair.of(v == null ? NullType.class : v.getClass(), v));
         }
     }
+
+  //  protected abstract Table createTable();
+
 }

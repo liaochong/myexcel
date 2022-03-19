@@ -15,9 +15,14 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
+import com.github.liaochong.myexcel.core.AbstractSimpleExcelBuilder;
 import com.github.liaochong.myexcel.core.PromptContainer;
+import com.github.liaochong.myexcel.core.constant.*;
+import com.github.liaochong.myexcel.core.container.Pair;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
+import javax.lang.model.type.NullType;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -126,5 +131,82 @@ public class Td {
 
     public int getColBound() {
         return TdUtil.get(this.colSpan, this.col);
+    }
+
+    public void setTdWidth(Map<Integer, Integer> colWidthMap, AbstractSimpleExcelBuilder abstractSimpleExcelBuilder) {
+        if (!abstractSimpleExcelBuilder.configuration.computeAutoWidth) {
+            return;
+        }
+        if (format == null) {
+            colWidthMap.put(col, TdUtil.getStringWidth(content));
+        } else {
+            if (content != null && format.length() > content.length()) {
+                colWidthMap.put(col, TdUtil.getStringWidth(format));
+            } else if (date != null || localDate != null || localDateTime != null) {
+                colWidthMap.put(col, TdUtil.getStringWidth(format, -0.15));
+            }
+        }
+    }
+ // Move method /Move instance has been applied here and all the TD related functionality has been
+    // move from main abstract class AbstractSimpleExcelBuilder to Td.java inside mysql->core->parser->td
+    public void setTdContent(Pair<? extends Class, ?> pair) {
+        Class fieldType = pair.getKey();
+        if (fieldType == NullType.class) {
+            return;
+        }
+        if (fieldType == Date.class) {
+            date = (Date) pair.getValue();
+        } else if (fieldType == LocalDateTime.class) {
+            localDateTime = (LocalDateTime) pair.getValue();
+        } else if (fieldType == LocalDate.class) {
+            localDate = (LocalDate) pair.getValue();
+        } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
+            file = (File) pair.getValue();
+        } else {
+            content = String.valueOf(pair.getValue());
+        }
+    }
+
+    public void setTdContentType(Class fieldType, AbstractSimpleExcelBuilder abstractSimpleExcelBuilder) {
+        if (String.class == fieldType) {
+            return;
+        }
+        if (ReflectUtil.isNumber(fieldType)) {
+            tdContentType = ContentTypeEnum.DOUBLE;
+            return;
+        }
+        if (ReflectUtil.isDate(fieldType)) {
+            tdContentType = ContentTypeEnum.DATE;
+            return;
+        }
+        if (ReflectUtil.isBool(fieldType)) {
+            tdContentType = ContentTypeEnum.BOOLEAN;
+            return;
+        }
+        if (fieldType == DropDownList.class) {
+            tdContentType = ContentTypeEnum.DROP_DOWN_LIST;
+            return;
+        }
+        if (fieldType == NumberDropDownList.class) {
+            tdContentType = ContentTypeEnum.NUMBER_DROP_DOWN_LIST;
+            return;
+        }
+        if (fieldType == BooleanDropDownList.class) {
+            tdContentType = ContentTypeEnum.BOOLEAN_DROP_DOWN_LIST;
+            return;
+        }
+        if (content != null && fieldType == LinkUrl.class) {
+            tdContentType = ContentTypeEnum.LINK_URL;
+            abstractSimpleExcelBuilder.setLinkTd(this);
+            return;
+        }
+        if (content != null && fieldType == LinkEmail.class) {
+            tdContentType = ContentTypeEnum.LINK_EMAIL;
+            abstractSimpleExcelBuilder.setLinkTd(this);
+            return;
+        }
+        if (file != null && fieldType == ImageFile.class) {
+            tdContentType = ContentTypeEnum.IMAGE;
+        }
     }
 }

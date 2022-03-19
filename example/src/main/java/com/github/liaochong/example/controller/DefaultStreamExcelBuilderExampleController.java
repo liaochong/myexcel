@@ -1,6 +1,7 @@
 package com.github.liaochong.example.controller;
 
 import com.github.liaochong.example.pojo.ArtCrowd;
+import com.github.liaochong.example.pojo.Hobby;
 import com.github.liaochong.myexcel.core.DefaultStreamExcelBuilder;
 import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -28,12 +29,16 @@ public class DefaultStreamExcelBuilderExampleController {
         try (DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
                 .threadPool(executorService)
                 .start()) {
-            for (int i = 0; i < 100; i++) {
-                // defaultExcelBuilder.append(this.getDataList());
-                defaultExcelBuilder.asyncAppend(this::getDataList);
-            }
+            Getter(defaultExcelBuilder);
             Workbook workbook = defaultExcelBuilder.build();
             AttachmentExportUtil.export(workbook, "艺术生信息1", response);
+        }
+    }
+// Extract method implemented for getting all the data from excel and storing it to datalist
+    public void Getter(DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder) {
+        for (int i = 0; i < 100; i++) {
+            // defaultExcelBuilder.append(this.getDataList());
+            defaultExcelBuilder.asyncAppend(this::getDataList);
         }
     }
 
@@ -42,9 +47,7 @@ public class DefaultStreamExcelBuilderExampleController {
         DefaultStreamExcelBuilder<ArtCrowd> defaultExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class)
                 .threadPool(executorService)
                 .start();
-        for (int i = 0; i < 100; i++) {
-            defaultExcelBuilder.asyncAppend(this::getDataList);
-        }
+        Getter(defaultExcelBuilder);
         Workbook workbook = defaultExcelBuilder.build();
 
         DefaultStreamExcelBuilder<ArtCrowd> defaultStreamExcelBuilder = DefaultStreamExcelBuilder.of(ArtCrowd.class, workbook)
@@ -63,24 +66,36 @@ public class DefaultStreamExcelBuilderExampleController {
         for (int i = 0; i < 1000; i++) {
             ArtCrowd artCrowd = new ArtCrowd();
             if (i % 2 == 0) {
-                artCrowd.setName("Tom");
-                artCrowd.setAge(19);
-                artCrowd.setGender("Man");
-                artCrowd.setPaintingLevel("一级证书");
-                artCrowd.setDance(false);
-                artCrowd.setAssessmentTime(LocalDateTime.now());
-                artCrowd.setHobby("摔跤");
+                SetObjectEven(artCrowd);
             } else {
-                artCrowd.setName("Marry");
-                artCrowd.setAge(18);
-                artCrowd.setGender("Woman");
-                artCrowd.setPaintingLevel("一级证书");
-                artCrowd.setDance(true);
-                artCrowd.setAssessmentTime(LocalDateTime.now());
-                artCrowd.setHobby("钓鱼");
+                SetobjectOdd(artCrowd);
             }
             dataList.add(artCrowd);
         }
         return dataList;
     }
+ // Two objects listing were too long in the following if else conditional which can be modified to Evensetter
+    // Odd setter method by using Extract method.
+    private void SetobjectOdd(ArtCrowd artCrowd) {
+        artCrowd.setName("Marry");
+        artCrowd.setAge(18);
+        artCrowd.setGender("Woman");
+        artCrowd.setPaintingLevel("pro");
+        artCrowd.setDance(true);
+        artCrowd.setAssessmentTime(LocalDateTime.now());
+       // artCrowd.setHobby("钓鱼");
+        artCrowdnew.getHobby();
+    }
+    Hobby artCrowdnew = new Hobby();
+    private void SetObjectEven(ArtCrowd artCrowd) {
+        artCrowd.setName("Tom");
+        artCrowd.setAge(19);
+        artCrowd.setGender("Man");
+        artCrowd.setPaintingLevel("amateur");
+        artCrowd.setDance(false);
+        artCrowd.setAssessmentTime(LocalDateTime.now());
+       artCrowdnew.setHobby("cricket");
+       artCrowdnew.getHobby();
+    }
+
 }

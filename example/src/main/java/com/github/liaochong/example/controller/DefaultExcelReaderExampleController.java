@@ -34,17 +34,21 @@ public class DefaultExcelReaderExampleController {
 
     @GetMapping("/default/excel/read/example")
     public List<ArtCrowd> read() throws Exception {
-        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
-        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+        Path path = getPath();
 
         List<ArtCrowd> result = DefaultExcelReader.of(ArtCrowd.class).sheet(0).rowFilter(row -> row.getRowNum() > 0).read(path.toFile());
         return result;
     }
+// getPath() -Method Extract performed as we are going to use this function again and again
+    public Path getPath(Path p) {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+        return path;
+    }
 
     @GetMapping("/default/excel/readThen/example")
     public List<ArtCrowd> readThen() throws Exception {
-        URL htmlToExcelEampleURL = this.getClass().getResource("/templates/read_example.xlsx");
-        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+        Path path = getPath();
 
         List<ArtCrowd> container = new ArrayList<>();
         DefaultExcelReader.of(ArtCrowd.class).sheet(0).rowFilter(row -> row.getRowNum() > 0)

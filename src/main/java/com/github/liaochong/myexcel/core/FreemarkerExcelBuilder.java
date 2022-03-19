@@ -15,6 +15,9 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.core.templatehandler.FreemarkerTemplateHandler;
 
 /**
@@ -27,4 +30,5 @@ public class FreemarkerExcelBuilder extends AbstractExcelBuilder {
     public FreemarkerExcelBuilder() {
         super(FreemarkerTemplateHandler.class);
     }
+
 }

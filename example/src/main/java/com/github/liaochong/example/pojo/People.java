@@ -8,13 +8,13 @@ import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
  */
 public class People {
 
-    @ExcelColumn(order = 0, title = "姓名", index = 0)
+    @ExcelColumn(order = 0, title = "name", index = 0)
     private String name;
 
-    @ExcelColumn(order = 1, title = "年龄", index = 1)
+    @ExcelColumn(order = 1, title = "age", index = 1)
     private Integer age;
 
-    @ExcelColumn(order = 2, title = "性别", index = 2)
+    @ExcelColumn(order = 2, title = "gender", index = 2)
     private String gender;
 
     public String getName() {

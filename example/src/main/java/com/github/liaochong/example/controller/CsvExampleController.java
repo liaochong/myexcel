@@ -58,7 +58,7 @@ public class CsvExampleController {
                 artCrowd.setPaintingLevel("1");
                 artCrowd.setDance(false);
                 artCrowd.setAssessmentTime(LocalDateTime.now());
-                artCrowd.setHobby(null);
+
             } else {
                 artCrowd.setName("Marry");
                 artCrowd.setAge(18);
@@ -66,7 +66,7 @@ public class CsvExampleController {
                 artCrowd.setPaintingLevel("一级");
                 artCrowd.setDance(true);
                 artCrowd.setAssessmentTime(LocalDateTime.now());
-                artCrowd.setHobby("钓鱼");
+               // artCrowd.setHobby("钓鱼");
             }
             dataList.add(artCrowd);
         }

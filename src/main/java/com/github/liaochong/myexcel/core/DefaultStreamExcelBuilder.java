@@ -520,4 +520,8 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
             asyncAppendFutures.forEach(CompletableFuture::join);
         }
     }
+
+    protected Table createTable() {
+       return createTable();
+   }
 }

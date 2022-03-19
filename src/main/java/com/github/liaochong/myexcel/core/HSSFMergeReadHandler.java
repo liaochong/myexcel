@@ -46,6 +46,11 @@ class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
 
 
     @Override
+    protected void process() throws IOException {
+        super.process();
+    }
+
+    @Override
     public void processRecord(Record record) {
         switch (record.getSid()) {
             case BoundSheetRecord.sid:

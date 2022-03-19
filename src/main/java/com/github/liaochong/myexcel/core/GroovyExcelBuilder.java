@@ -26,4 +26,5 @@ public class GroovyExcelBuilder extends AbstractExcelBuilder {
     public GroovyExcelBuilder() {
         super(GroovyTemplateHandler.class);
     }
+
 }

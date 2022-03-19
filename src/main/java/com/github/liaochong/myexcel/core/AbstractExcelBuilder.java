@@ -51,37 +51,6 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
     }
 
     @Override
-    public AbstractExcelBuilder useDefaultStyle() {
-        htmlToExcelFactory.useDefaultStyle();
-        return this;
-    }
-
-    @Override
-    public ExcelBuilder applyDefaultStyle() {
-        htmlToExcelFactory.applyDefaultStyle();
-        return this;
-    }
-
-    @Override
-    public AbstractExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
-        htmlToExcelFactory.widthStrategy(widthStrategy);
-        return this;
-    }
-
-    @Deprecated
-    @Override
-    public AbstractExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
-        htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
-        return this;
-    }
-
-    @Override
-    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy) {
-        htmlToExcelFactory.sheetStrategy(sheetStrategy);
-        return this;
-    }
-
-    @Override
     public AbstractExcelBuilder freezePanes(FreezePane... freezePanes) {
         if (freezePanes == null || freezePanes.length == 0) {
             return this;
@@ -129,5 +98,36 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
         if (htmlToExcelFactory != null) {
             htmlToExcelFactory.closeWorkbook();
         }
+    }
+ // defaultstyle and applydefaultstyle methods are pulled of from Groovyexcel builder
+    @Override
+    public AbstractExcelBuilder useDefaultStyle() {
+        htmlToExcelFactory.useDefaultStyle();
+        return this;
+    }
+
+    @Override
+    public ExcelBuilder applyDefaultStyle() {
+        htmlToExcelFactory.applyDefaultStyle();
+        return this;
+    }
+
+    @Override
+    public AbstractExcelBuilder widthStrategy(WidthStrategy widthStrategy) {
+        htmlToExcelFactory.widthStrategy(widthStrategy);
+        return this;
+    }
+
+    @Deprecated
+    @Override
+    public AbstractExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
+        htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
+        return this;
+    }
+
+    @Override
+    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy) {
+        htmlToExcelFactory.sheetStrategy(sheetStrategy);
+        return this;
     }
 }
