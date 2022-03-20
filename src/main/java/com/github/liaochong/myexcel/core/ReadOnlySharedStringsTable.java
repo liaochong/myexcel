@@ -45,14 +45,14 @@ class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings
      * An integer representing the total count of strings in the workbook. This count does not
      * include any numbers, it counts only the total of text strings in the workbook.
      */
-    protected int count;
+    protected int stringcounter;
 
     /**
      * An integer representing the total count of unique strings in the Shared String Table.
      * A string is unique even if it is a copy of another string, but has different formatting applied
      * at the character level.
      */
-    private int uniqueCount;
+    private int uniqueStringcounter;
 
     /**
      * The shared strings table.
@@ -114,7 +114,7 @@ class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings
      */
     @Override
     public int getCount() {
-        return this.count;
+        return this.stringcounter;
     }
 
     /**
@@ -126,7 +126,7 @@ class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings
      */
     @Override
     public int getUniqueCount() {
-        return this.uniqueCount;
+        return this.uniqueStringcounter;
     }
 
     @Override
@@ -150,14 +150,14 @@ class ReadOnlySharedStringsTable extends DefaultHandler implements SharedStrings
         if ("sst".equals(localName)) {
             String count = attributes.getValue("count");
             if (count != null) {
-                this.count = Integer.parseInt(count);
+                this.stringcounter = Integer.parseInt(count);
             }
             String uniqueCount = attributes.getValue("uniqueCount");
             if (uniqueCount != null) {
-                this.uniqueCount = Integer.parseInt(uniqueCount);
+                this.uniqueStringcounter = Integer.parseInt(uniqueCount);
             }
             characters = new StringBuilder(64);
-            stringsCache.init(this.uniqueCount > 0 ? this.uniqueCount : this.count);
+            stringsCache.init(this.uniqueStringcounter > 0 ? this.uniqueStringcounter : this.stringcounter);
         } else if ("si".equals(localName)) {
             characters.setLength(0);
         } else if ("t".equals(localName)) {
