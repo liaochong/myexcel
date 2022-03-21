@@ -32,7 +32,7 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
     }
 
     // From AbstractExcelBuilder class four methods widthstrategy, autowidthstrategy, autowidthstrategy and styles into EnjoyExcelbuilder and BeetExcelBuilder
-    // 4 methods are pushed down
+    // 3 methods are pushed down
     @Override
     public AbstractExcelBuilder useDefaultStyle() {
         htmlToExcelFactory.useDefaultStyle();
@@ -51,16 +51,4 @@ public class BeetlExcelBuilder extends AbstractExcelBuilder {
         return this;
     }
 
-    @Deprecated
-    @Override
-    public AbstractExcelBuilder autoWidthStrategy(AutoWidthStrategy autoWidthStrategy) {
-        htmlToExcelFactory.widthStrategy(AutoWidthStrategy.map(autoWidthStrategy));
-        return this;
-    }
-
-    @Override
-    public AbstractExcelBuilder sheetStrategy(SheetStrategy sheetStrategy) {
-        htmlToExcelFactory.sheetStrategy(sheetStrategy);
-        return this;
-    }
 }
