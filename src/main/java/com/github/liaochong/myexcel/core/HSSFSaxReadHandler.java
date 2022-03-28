@@ -268,7 +268,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
                 String finalThisStr = thisStr;
                 mergeFirstCellMapping.computeIfPresent(cellAddress, (k, v) -> finalThisStr);
-                CellAddress firstCellAddress = mergeCellIndexMapping.get(sheetIndex).get(cellAddress);
+                CellAddress firstCellAddress = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).get(cellAddress);
                 if (firstCellAddress != null) {
                     thisStr = mergeFirstCellMapping.get(firstCellAddress);
                     mergeCellIndexMapping.get(sheetIndex).remove(cellAddress);
