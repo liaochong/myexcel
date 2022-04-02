@@ -219,21 +219,20 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             for (int i = 1; i < tables.size(); i++) {
                 for (Tr tr : tables.get(i).trList) {
                     this.updateTrIndex(tr, ++lastRowNum);
+                    trList.add(tr);
                 }
+                // 移除table
+                tables.set(i, null);
             }
         }
-        for (int i = 0; i < tables.size(); i++) {
-            Table table = tables.get(i);
-            boolean hasTd = table.trList.stream().map(tr -> tr.tdList).anyMatch(list -> !list.isEmpty());
-            if (!hasTd) {
-                continue;
-            }
-            // 设置单元格样式
-            this.setTdOfTable(table, sheet);
-            this.freezePane(i, sheet);
-            // 移除table
-            tables.set(i, null);
+        Table table = tables.get(0);
+        boolean hasTd = table.trList.stream().map(tr -> tr.tdList).anyMatch(list -> !list.isEmpty());
+        if (!hasTd) {
+            return;
         }
+        // 设置单元格样式
+        this.setTdOfTable(table, sheet);
+        this.freezePane(0, sheet);
     }
 
     /**
@@ -264,7 +263,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
      * @param sheetLastRowIndex sheet 最后行下标
      */
     private void updateTrIndex(Tr tr, int sheetLastRowIndex) {
-        tr.index = tr.index + sheetLastRowIndex;
+        tr.index = sheetLastRowIndex;
         tr.tdList.forEach(td -> td.row = tr.index);
     }
 }
