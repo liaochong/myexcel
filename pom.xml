@@ -26,7 +26,7 @@
         <jsoup.version>1.14.3</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
         <beetl.version>3.9.0.RELEASE</beetl.version>
-        <velocity.version>1.7</velocity.version>
+        <velocity.version>2.3</velocity.version>
         <freemarker.version>2.3.31</freemarker.version>
         <groovy-templates.version>3.0.9</groovy-templates.version>
         <thymeleaf.version>3.0.14.RELEASE</thymeleaf.version>
@@ -78,7 +78,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity</artifactId>
+            <artifactId>velocity-engine-core</artifactId>
             <version>${velocity.version}</version>
             <optional>true</optional>
         </dependency>

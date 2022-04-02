@@ -21,6 +21,7 @@ import org.apache.velocity.app.Velocity;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -35,7 +36,6 @@ public class VelocityTemplateHandler extends AbstractTemplateHandler<Template, T
         Velocity.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
         Velocity.setProperty(Velocity.ENCODING_DEFAULT, CharEncoding.UTF_8);
         Velocity.setProperty(Velocity.INPUT_ENCODING, CharEncoding.UTF_8);
-        Velocity.setProperty(Velocity.OUTPUT_ENCODING, CharEncoding.UTF_8);
         Velocity.init();
     }
 
@@ -62,7 +62,7 @@ public class VelocityTemplateHandler extends AbstractTemplateHandler<Template, T
 
     @Override
     protected <F> void render(Map<String, F> renderData, Writer out) throws Exception {
-        VelocityContext context = new VelocityContext(renderData);
+        VelocityContext context = new VelocityContext(new HashMap<>(renderData));
         templateEngine.merge(context, out);
     }
 }
