@@ -44,7 +44,14 @@ https://github.com/liaochong/myexcel/wiki
 
 **Velocity模板引擎注意事项**
 自MyExcel 4.0.2版本开始，Velocity依赖修改如下：
-![28CD179E8922AF5DEAF1CEE536ADCC1C](https://user-images.githubusercontent.com/8674986/161470397-4c0dc766-741c-4f32-b0d3-aa90316ca1f5.jpg)
+```xml
+<dependency>
+    <groupId>org.apache.velocity</groupId>
+    <artifactId>velocity-engine-core</artifactId>
+    <version>2.3</version>
+</dependency>
+```
+如仍然使用旧依赖，可能会有编码错乱问题。
 
 联系以及问题反馈 | Contact me
 --------------------------
