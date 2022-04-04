@@ -42,6 +42,10 @@ https://github.com/liaochong/myexcel/wiki
 2. 排除掉poi-ooxml-schemas依赖（POI 5.x以poi-ooxml-full作为代替）
 3. commons-io版本为2.11.0
 
+**Velocity模板引擎注意事项**
+自MyExcel 4.0.2版本开始，Velocity依赖修改如下：
+![28CD179E8922AF5DEAF1CEE536ADCC1C](https://user-images.githubusercontent.com/8674986/161470397-4c0dc766-741c-4f32-b0d3-aa90316ca1f5.jpg)
+
 联系以及问题反馈 | Contact me
 --------------------------
 * Email：liaochong8950@163.com
