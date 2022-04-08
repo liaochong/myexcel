@@ -307,6 +307,9 @@ public class SaxExcelReader<T> {
                 if (readConfig.detectedMerge) {
                     new HSSFMergeReadHandler(file, readConfig, mergeCellIndexMapping).process();
                 }
+                if (mergeCellIndexMapping.isEmpty()) {
+                    readConfig.detectedMerge = false;
+                }
                 new HSSFSaxReadHandler<>(file, result, readConfig, mergeCellIndexMapping).process();
             }
         } catch (StopReadException e) {
@@ -375,6 +378,9 @@ public class SaxExcelReader<T> {
             processSheet(new XSSFSheetMergeXMLHandler(mergeCellMapping), stream);
             mergeCellIndexMapping.put(index, mergeCellMapping);
         });
+        if (mergeCellIndexMapping.isEmpty()) {
+            readConfig.detectedMerge = false;
+        }
         return mergeCellIndexMapping;
     }
 
