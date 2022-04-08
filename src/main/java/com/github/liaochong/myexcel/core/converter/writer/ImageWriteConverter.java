@@ -42,8 +42,8 @@ public class ImageWriteConverter implements WriteConverter {
             String path = (String) fieldVal;
             if (path.startsWith(Constants.HTTP)) {
                 return Pair.of(ImageFile.class, ImageUtil.getImageFromNetByUrl(path));
-            } else if (path.startsWith("data")) {
-
+            } else if (path.startsWith(Constants.DATA)) {
+                return Pair.of(ImageFile.class, ImageUtil.generateImageFromBase64(path));
             }
         } else if (fieldVal instanceof Path) {
             return Pair.of(ImageFile.class, ((Path) fieldVal).toFile());

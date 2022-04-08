@@ -42,6 +42,8 @@ public class Constants {
 
     public static final String HTTP = "http";
 
+    public static final String DATA = "data";
+
     public static final String COMMA = ",";
 
     public static final String QUOTES = "\"";

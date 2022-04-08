@@ -14,9 +14,13 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
+
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Base64;
 
 /**
  * @author liaochong
@@ -40,6 +44,22 @@ public final class ImageUtil {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5 * 1000);
             return conn.getInputStream();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static InputStream generateImageFromBase64(String imgData) {
+        try {
+            // Base64解码
+            byte[] b = Base64.getDecoder().decode(imgData.substring(imgData.indexOf(Constants.COMMA) + 1));
+            for (int i = 0; i < b.length; ++i) {
+                if (b[i] < 0) {
+                    // 调整异常数据
+                    b[i] += 256;
+                }
+            }
+            return new ByteArrayInputStream(b);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

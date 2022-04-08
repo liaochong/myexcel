@@ -297,6 +297,8 @@ public class HtmlTableParser {
             String src = imgs.get(0).attr("src");
             if (src.startsWith(Constants.HTTP)) {
                 td.fileIs = ImageUtil.getImageFromNetByUrl(src);
+            } else if (src.startsWith(Constants.DATA)) {
+                td.fileIs = ImageUtil.generateImageFromBase64(src);
             } else {
                 td.file = new File(src);
             }
