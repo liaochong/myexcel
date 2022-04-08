@@ -40,6 +40,8 @@ public class Constants {
 
     public static final String HTML_SUFFIX = ".html";
 
+    public static final String HTTP = "http";
+
     public static final String COMMA = ",";
 
     public static final String QUOTES = "\"";

@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.style.FontStyle;
+import com.github.liaochong.myexcel.utils.ImageUtil;
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.StyleUtil;
@@ -294,7 +295,11 @@ public class HtmlTableParser {
         Elements imgs = tdElement.getElementsByTag(HtmlTag.img.name());
         if (!imgs.isEmpty()) {
             String src = imgs.get(0).attr("src");
-            td.file = new File(src);
+            if (src.startsWith(Constants.HTTP)) {
+                td.fileIs = ImageUtil.getImageFromNetByUrl(src);
+            } else {
+                td.file = new File(src);
+            }
             td.tdContentType = ContentTypeEnum.IMAGE;
             return;
         }
