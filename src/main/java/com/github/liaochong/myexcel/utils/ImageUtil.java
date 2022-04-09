@@ -53,12 +53,6 @@ public final class ImageUtil {
         try {
             // Base64解码
             byte[] b = Base64.getDecoder().decode(imgData.substring(imgData.indexOf(Constants.COMMA) + 1));
-            for (int i = 0; i < b.length; ++i) {
-                if (b[i] < 0) {
-                    // 调整异常数据
-                    b[i] += 256;
-                }
-            }
             return new ByteArrayInputStream(b);
         } catch (Exception e) {
             throw new RuntimeException(e);
