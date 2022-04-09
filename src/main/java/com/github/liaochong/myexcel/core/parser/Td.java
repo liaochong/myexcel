@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.PromptContainer;
 import com.github.liaochong.myexcel.utils.TdUtil;
 
 import java.io.File;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -75,6 +76,10 @@ public class Td {
      * 文件
      */
     public File file;
+    /**
+     * 文件流
+     */
+    public InputStream fileIs;
     /**
      * 格式化
      */

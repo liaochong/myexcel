@@ -42,6 +42,7 @@ import com.github.liaochong.myexcel.utils.TdUtil;
 
 import javax.lang.model.type.NullType;
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
@@ -391,7 +392,11 @@ abstract class AbstractSimpleExcelBuilder {
         } else if (fieldType == LocalDate.class) {
             td.localDate = (LocalDate) pair.getValue();
         } else if (com.github.liaochong.myexcel.core.constant.File.class.isAssignableFrom(fieldType)) {
-            td.file = (File) pair.getValue();
+            if (pair.getValue() instanceof File) {
+                td.file = (File) pair.getValue();
+            } else {
+                td.fileIs = (InputStream) pair.getValue();
+            }
         } else {
             td.content = String.valueOf(pair.getValue());
         }
@@ -435,7 +440,7 @@ abstract class AbstractSimpleExcelBuilder {
             setLinkTd(td);
             return;
         }
-        if (td.file != null && fieldType == ImageFile.class) {
+        if ((td.file != null || td.fileIs != null) && fieldType == ImageFile.class) {
             td.tdContentType = ContentTypeEnum.IMAGE;
         }
     }
