@@ -47,10 +47,6 @@ public class StringsCache implements Cache<Integer, String> {
     private static final int MAX_SIZE_PATH = 1000;
 
     private static final int MAX_PATH = 5;
-    /**
-     * mmap cleaner method
-     */
-    private static final Method clearMethod;
 
     private final List<Path> cacheFiles = new ArrayList<>();
 
@@ -66,15 +62,6 @@ public class StringsCache implements Cache<Integer, String> {
     private int totalCount;
 
     private int index;
-
-    static {
-        try {
-            clearMethod = MappedByteBuffer.class.getMethod("cleaner");
-            clearMethod.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 
     public void init(int stringCount) {
         if (stringCount == 0) {
@@ -136,7 +123,9 @@ public class StringsCache implements Cache<Integer, String> {
         } finally {
             if (mbb != null) {
                 try {
-                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) clearMethod.invoke(mbb, new Object[0]);
+                    Method getCleanerMethod = mbb.getClass().getMethod("cleaner");
+                    getCleanerMethod.setAccessible(true);
+                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(mbb, new Object[0]);
                     cleaner.clean();
                 } catch (Exception e) {
                     e.printStackTrace();
