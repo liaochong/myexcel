@@ -16,10 +16,10 @@ package com.github.liaochong.myexcel.core.cache;
 
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import sun.nio.ch.DirectBuffer;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +47,10 @@ public class StringsCache implements Cache<Integer, String> {
     private static final int MAX_SIZE_PATH = 1000;
 
     private static final int MAX_PATH = 5;
+    /**
+     * mmap cleaner method
+     */
+    private static final Method clearMethod;
 
     private final List<Path> cacheFiles = new ArrayList<>();
 
@@ -62,6 +66,15 @@ public class StringsCache implements Cache<Integer, String> {
     private int totalCount;
 
     private int index;
+
+    static {
+        try {
+            clearMethod = MappedByteBuffer.class.getMethod("cleaner");
+            clearMethod.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     public void init(int stringCount) {
         if (stringCount == 0) {
@@ -123,7 +136,8 @@ public class StringsCache implements Cache<Integer, String> {
         } finally {
             if (mbb != null) {
                 try {
-                    ((DirectBuffer) mbb).cleaner().clean();
+                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) clearMethod.invoke(mbb, new Object[0]);
+                    cleaner.clean();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
