@@ -152,29 +152,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return of(dataType, TempFileOperator.convertToFile(excelInputStream));
     }
 
-    /**
-     * 已过时，请使用of方法代替
-     * 4.0版本移除
-     *
-     * @return DefaultStreamExcelBuilder
-     */
-    @Deprecated
-    public static DefaultStreamExcelBuilder<Map> getInstance() {
-        return new DefaultStreamExcelBuilder<>(Map.class);
-    }
-
-    /**
-     * 已过时，请使用of方法代替
-     * 4.0版本移除
-     *
-     * @param workbook 工作簿
-     * @return DefaultStreamExcelBuilder
-     */
-    @Deprecated
-    public static DefaultStreamExcelBuilder<Map> getInstance(Workbook workbook) {
-        return new DefaultStreamExcelBuilder<>(Map.class, workbook);
-    }
-
     public DefaultStreamExcelBuilder<T> titles(List<String> titles) {
         this.titles = titles;
         return this;
