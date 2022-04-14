@@ -44,7 +44,7 @@ public class TemplateStreamExcelBuilder implements Closeable {
         defaultStreamExcelBuilder.append(templateFilePath, renderData);
     }
 
-    public <E> void append(String templateDir, String templateFileName, Map<String, E> renderData) {
+    public void append(String templateDir, String templateFileName, Map<String, Object> renderData) {
         defaultStreamExcelBuilder.append(templateDir, templateFileName, renderData);
     }
 

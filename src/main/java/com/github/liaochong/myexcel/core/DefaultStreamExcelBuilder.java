@@ -198,11 +198,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    /**
-     * 设置为无样式
-     *
-     * @return DefaultStreamExcelBuilder
-     */
     public DefaultStreamExcelBuilder<T> noStyle() {
         this.styleParser.setNoStyle(true);
         return this;
@@ -281,11 +276,6 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    @Deprecated
-    public DefaultStreamExcelBuilder<T> globalStyle(String... styles) {
-        return style(styles);
-    }
-
     public DefaultStreamExcelBuilder<T> style(String... styles) {
         this.styleParser.setNoStyle(false);
         configuration.style = Arrays.stream(styles).collect(Collectors.toSet());
@@ -297,7 +287,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
-    public DefaultStreamExcelBuilder<T> startSheet(Consumer<Sheet> startSheetConsumer) {
+    public DefaultStreamExcelBuilder<T> onStartSheet(Consumer<Sheet> startSheetConsumer) {
         this.context.startSheetConsumer = startSheetConsumer;
         return this;
     }
