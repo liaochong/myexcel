@@ -82,15 +82,15 @@ public class Configuration {
     /**
      * LocalDate类型数据全局格式化
      */
-    public String dateFormat = "yyyy-MM-dd";
+    public String dateFormat = Constants.DEFAULT_DATE_FORMAT;
     /**
      * Date、LocalDateTime类型数据全局格式化
      */
-    public String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+    public String dateTimeFormat = Constants.DEFAULT_DATE_TIME_FORMAT;
     /**
      * LocalTime格式化
      */
-    public String localTimeFormat = "HH:mm:ss";
+    public String localTimeFormat = Constants.DEFAULT_LOCAL_TIME_FORMAT;
     /**
      * 数值类全局格式化
      */

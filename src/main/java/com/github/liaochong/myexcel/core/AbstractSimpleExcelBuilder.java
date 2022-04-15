@@ -28,6 +28,7 @@ import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
+import com.github.liaochong.myexcel.core.converter.writer.DateTimeWriteConverter;
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.StyleParser;
 import com.github.liaochong.myexcel.core.parser.Table;
@@ -45,8 +46,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -613,7 +616,26 @@ abstract class AbstractSimpleExcelBuilder {
         if (v instanceof Pair && ((Pair) v).getKey() instanceof Class) {
             contents.add((Pair) v);
         } else {
-            contents.add(Pair.of(v == null ? NullType.class : v.getClass(), v));
+            if (v == null) {
+                contents.add(Pair.of(NullType.class, null));
+            } else if (ReflectUtil.isDate(v.getClass())) {
+                contents.add(convertDate(v));
+            } else {
+                contents.add(Pair.of(v.getClass(), v));
+            }
         }
+    }
+
+    private Pair<Class, Object> convertDate(Object v) {
+        Class<?> objectClass = v.getClass();
+        if (objectClass == LocalDateTime.class) {
+            return DateTimeWriteConverter.doConvertDate((LocalDateTime) v, Constants.DEFAULT_DATE_TIME_FORMAT);
+        } else if (objectClass == LocalDate.class) {
+            return DateTimeWriteConverter.doConvertDate((LocalDate) v, Constants.DEFAULT_DATE_FORMAT);
+        } else if (objectClass == LocalTime.class) {
+            return DateTimeWriteConverter.doConvertDate((LocalTime) v, Constants.DEFAULT_LOCAL_TIME_FORMAT);
+        }
+        SimpleDateFormat simpleDateFormat = DateTimeWriteConverter.getSimpleDateFormat(Constants.DEFAULT_DATE_TIME_FORMAT);
+        return Pair.of(String.class, simpleDateFormat.format((Date) v));
     }
 }
