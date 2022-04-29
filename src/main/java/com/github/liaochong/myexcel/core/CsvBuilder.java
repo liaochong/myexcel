@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class CsvBuilder<T> extends AbstractSimpleExcelBuilder implements Closeable {
 
-    private static final Pattern PATTERN_QUOTES_PREMISE = Pattern.compile("[,\"]+");
+    private static final Pattern PATTERN_QUOTES_PREMISE = Pattern.compile("[,\"\n\r]+");
 
     private static final Pattern PATTERN_QUOTES = Pattern.compile("\"");
 
