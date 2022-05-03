@@ -97,7 +97,7 @@ public class DateTimeWriteConverter implements WriteConverter {
         return tl.get();
     }
 
-    private static Pair<Class, Object> doConvertDate(Temporal v, String format) {
+    public static Pair<Class, Object> doConvertDate(Temporal v, String format) {
         DateTimeFormatter formatter = DateTimeWriteConverter.getDateTimeFormatter(format);
         return Pair.of(String.class, formatter.format(v));
     }

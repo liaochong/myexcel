@@ -28,6 +28,7 @@ import com.github.liaochong.myexcel.core.constant.NumberDropDownList;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.WriteConverterContext;
+import com.github.liaochong.myexcel.core.converter.writer.LocalTimeWriteConverter;
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.StyleParser;
 import com.github.liaochong.myexcel.core.parser.Table;
@@ -618,7 +619,13 @@ abstract class AbstractSimpleExcelBuilder {
         if (v instanceof Pair && ((Pair) v).getKey() instanceof Class) {
             contents.add((Pair) v);
         } else {
-            contents.add(Pair.of(v == null ? NullType.class : v.getClass(), v));
+            if (v == null) {
+                contents.add(Pair.of(NullType.class, null));
+            } else if (v.getClass() == LocalTime.class) {
+                contents.add(LocalTimeWriteConverter.doConvertDate((LocalTime) v, Constants.DEFAULT_LOCAL_TIME_FORMAT));
+            } else {
+                contents.add(Pair.of(v.getClass(), v));
+            }
         }
     }
 
@@ -627,8 +634,6 @@ abstract class AbstractSimpleExcelBuilder {
             td.format = Constants.DEFAULT_DATE_TIME_FORMAT;
         } else if (objectClass == LocalDate.class) {
             td.format = Constants.DEFAULT_DATE_FORMAT;
-        } else if (objectClass == LocalTime.class) {
-            td.format = Constants.DEFAULT_LOCAL_TIME_FORMAT;
         }
     }
 }
