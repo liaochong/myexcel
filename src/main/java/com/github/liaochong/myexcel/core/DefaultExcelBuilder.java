@@ -22,7 +22,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,7 +36,7 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     private static final String STYLE_TITLE = "font-weight:bold;font-size:14;text-align:center;vertical-align:middle;";
 
-    private DefaultStreamExcelBuilder<T> streamExcelBuilder;
+    private final DefaultStreamExcelBuilder<T> streamExcelBuilder;
 
     private DefaultExcelBuilder(DefaultStreamExcelBuilder<T> streamExcelBuilder) {
         streamExcelBuilder.widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH);
@@ -61,29 +60,6 @@ public class DefaultExcelBuilder<T> implements Closeable {
 
     public static <T> DefaultExcelBuilder<T> of(Class<T> dataType, Workbook workbook) {
         return new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.of(dataType, workbook));
-    }
-
-    /**
-     * 已过时，获取实例，请使用of方法代替
-     *
-     * @return DefaultExcelBuilder
-     */
-    @Deprecated
-    public static DefaultExcelBuilder<Map> getInstance() {
-        DefaultExcelBuilder<Map> defaultExcelBuilder = new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.getInstance());
-        defaultExcelBuilder.streamExcelBuilder.workbookType(WorkbookType.XLSX);
-        return defaultExcelBuilder;
-    }
-
-    /**
-     * 已过时，获取实例，请使用of方法代替
-     *
-     * @param workbook workbook
-     * @return DefaultExcelBuilder
-     */
-    @Deprecated
-    public static DefaultExcelBuilder<Map> getInstance(Workbook workbook) {
-        return new DefaultExcelBuilder<>(DefaultStreamExcelBuilder.getInstance(workbook));
     }
 
     public DefaultExcelBuilder<T> titles(List<String> titles) {

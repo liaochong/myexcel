@@ -763,19 +763,23 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     protected void setColWidth(Map<Integer, Integer> colMaxWidthMap, Sheet sheet, int maxColIndex) {
         if (WidthStrategy.isAutoWidth(widthStrategy)) {
             if (sheet instanceof SXSSFSheet) {
-                throw new UnsupportedOperationException("SXSSF does not support automatic width at this time");
+                ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
             }
             for (int i = 0; i <= maxColIndex; i++) {
                 sheet.autoSizeColumn(i);
             }
-        }
-        colMaxWidthMap.forEach((key, value) -> {
-            int contentLength = value << 1;
-            if (contentLength > 255) {
-                contentLength = 255;
+            if (sheet instanceof SXSSFSheet) {
+                ((SXSSFSheet) sheet).untrackAllColumnsForAutoSizing();
             }
-            sheet.setColumnWidth(key, contentLength << 8);
-        });
+        } else {
+            colMaxWidthMap.forEach((key, value) -> {
+                int contentLength = value << 1;
+                if (contentLength > 255) {
+                    contentLength = 255;
+                }
+                sheet.setColumnWidth(key, contentLength << 8);
+            });
+        }
     }
 
     /**

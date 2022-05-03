@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 import java.util.Date;
 
 /**
@@ -50,19 +51,13 @@ public class DateTimeWriteConverter implements WriteConverter {
         // 时间格式化
         String dateFormatPattern = getDateFormatPattern(convertContext, field, fieldType);
         if (fieldType == LocalDateTime.class) {
-            LocalDateTime localDateTime = (LocalDateTime) fieldVal;
-            DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return Pair.of(String.class, formatter.format(localDateTime));
+            return doConvertDate((LocalDateTime) fieldVal, dateFormatPattern);
         } else if (fieldType == LocalDate.class) {
-            LocalDate localDate = (LocalDate) fieldVal;
-            DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return Pair.of(String.class, formatter.format(localDate));
+            return doConvertDate((LocalDate) fieldVal, dateFormatPattern);
         } else if (fieldType == LocalTime.class) {
-            LocalTime localTime = (LocalTime) fieldVal;
-            DateTimeFormatter formatter = getDateTimeFormatter(dateFormatPattern);
-            return Pair.of(String.class, formatter.format(localTime));
+            return doConvertDate((LocalTime) fieldVal, dateFormatPattern);
         }
-        SimpleDateFormat simpleDateFormat = this.getSimpleDateFormat(dateFormatPattern);
+        SimpleDateFormat simpleDateFormat = getSimpleDateFormat(dateFormatPattern);
         return Pair.of(String.class, simpleDateFormat.format((Date) fieldVal));
     }
 
@@ -84,7 +79,7 @@ public class DateTimeWriteConverter implements WriteConverter {
      * @param dateFormat 时间格式化
      * @return DateTimeFormatter
      */
-    protected DateTimeFormatter getDateTimeFormatter(String dateFormat) {
+    protected static DateTimeFormatter getDateTimeFormatter(String dateFormat) {
         DateTimeFormatter formatter = DATETIME_FORMATTER_CONTAINER.get(dateFormat);
         if (formatter == null) {
             formatter = DateTimeFormatter.ofPattern(dateFormat);
@@ -93,12 +88,17 @@ public class DateTimeWriteConverter implements WriteConverter {
         return formatter;
     }
 
-    private SimpleDateFormat getSimpleDateFormat(String dateFormatPattern) {
+    private static SimpleDateFormat getSimpleDateFormat(String dateFormatPattern) {
         ThreadLocal<SimpleDateFormat> tl = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
         if (tl == null) {
             tl = ThreadLocal.withInitial(() -> new SimpleDateFormat(dateFormatPattern));
             SIMPLE_DATE_FORMAT_WEAK_CACHE.cache(dateFormatPattern, tl);
         }
         return tl.get();
+    }
+
+    public static Pair<Class, Object> doConvertDate(Temporal v, String format) {
+        DateTimeFormatter formatter = DateTimeWriteConverter.getDateTimeFormatter(format);
+        return Pair.of(String.class, formatter.format(v));
     }
 }
