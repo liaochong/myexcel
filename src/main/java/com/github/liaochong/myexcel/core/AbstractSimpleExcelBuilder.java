@@ -618,7 +618,7 @@ abstract class AbstractSimpleExcelBuilder {
         if (v instanceof Pair && ((Pair) v).getKey() instanceof Class) {
             contents.add((Pair) v);
         } else {
-            contents.add(Pair.of(v == null ? NullType.class : v.getClass(), null));
+            contents.add(Pair.of(v == null ? NullType.class : v.getClass(), v));
         }
     }
 
