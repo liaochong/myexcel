@@ -79,7 +79,7 @@ public class DateTimeWriteConverter implements WriteConverter {
      * @param dateFormat 时间格式化
      * @return DateTimeFormatter
      */
-    public static DateTimeFormatter getDateTimeFormatter(String dateFormat) {
+    protected static DateTimeFormatter getDateTimeFormatter(String dateFormat) {
         DateTimeFormatter formatter = DATETIME_FORMATTER_CONTAINER.get(dateFormat);
         if (formatter == null) {
             formatter = DateTimeFormatter.ofPattern(dateFormat);
@@ -88,7 +88,7 @@ public class DateTimeWriteConverter implements WriteConverter {
         return formatter;
     }
 
-    public static SimpleDateFormat getSimpleDateFormat(String dateFormatPattern) {
+    private static SimpleDateFormat getSimpleDateFormat(String dateFormatPattern) {
         ThreadLocal<SimpleDateFormat> tl = SIMPLE_DATE_FORMAT_WEAK_CACHE.get(dateFormatPattern);
         if (tl == null) {
             tl = ThreadLocal.withInitial(() -> new SimpleDateFormat(dateFormatPattern));
@@ -97,7 +97,7 @@ public class DateTimeWriteConverter implements WriteConverter {
         return tl.get();
     }
 
-    public static Pair<Class, Object> doConvertDate(Temporal v, String format) {
+    private static Pair<Class, Object> doConvertDate(Temporal v, String format) {
         DateTimeFormatter formatter = DateTimeWriteConverter.getDateTimeFormatter(format);
         return Pair.of(String.class, formatter.format(v));
     }
