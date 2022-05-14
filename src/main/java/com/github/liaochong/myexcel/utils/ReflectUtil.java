@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,12 +67,12 @@ public final class ReflectUtil {
             return fieldMap;
         }
         fieldMap = new HashMap<>();
-        getFieldDefinition(dataType, fieldMap);
+        getFieldDefinition(dataType, fieldMap, null, 0);
         FIELD_CACHE.cache(dataType, fieldMap);
         return fieldMap;
     }
 
-    private static void getFieldDefinition(Class<?> dataType, Map<Integer, FieldDefinition> fieldDefinitionMap) {
+    private static void getFieldDefinition(Class<?> dataType, Map<Integer, FieldDefinition> fieldDefinitionMap, List<Field> parentFields, int level) {
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class, MultiColumn.class);
         if (fields.isEmpty()) {
@@ -83,17 +84,31 @@ public final class ReflectUtil {
             }
         } else {
             for (Field field : fields) {
-                ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
-                int index = excelColumn.index();
-                if (index < 0) {
-                    continue;
+                if (level == 0) {
+                    parentFields = new LinkedList<>();
                 }
-                FieldDefinition f = fieldDefinitionMap.get(index);
-                if (Objects.nonNull(f)) {
-                    throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
+                if (field.isAnnotationPresent(MultiColumn.class)) {
+                    MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
+                    parentFields.add(field);
+                    getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, parentFields, level + 1);
+                } else {
+                    ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                    int index = excelColumn.index();
+                    if (index < 0) {
+                        continue;
+                    }
+                    FieldDefinition fieldDefinition = fieldDefinitionMap.get(index);
+                    if (Objects.nonNull(fieldDefinition)) {
+                        throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
+                    }
+                    field.setAccessible(true);
+                    fieldDefinition = new FieldDefinition(field);
+                    fieldDefinition.setParentFields(parentFields);
+                    fieldDefinitionMap.put(index, fieldDefinition);
+                    if (level != 0) {
+                        parentFields = new LinkedList<>(parentFields);
+                    }
                 }
-                field.setAccessible(true);
-                fieldDefinitionMap.put(index, new FieldDefinition(field));
             }
         }
     }
