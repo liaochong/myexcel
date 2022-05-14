@@ -90,6 +90,7 @@ public final class ReflectUtil {
                 if (field.isAnnotationPresent(MultiColumn.class)) {
                     MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
                     parentFields.add(field);
+                    parentFields = new LinkedList<>(parentFields);
                     getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, parentFields, level + 1);
                 } else {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
@@ -105,9 +106,6 @@ public final class ReflectUtil {
                     fieldDefinition = new FieldDefinition(field);
                     fieldDefinition.setParentFields(parentFields.isEmpty() ? Collections.emptyList() : parentFields);
                     fieldDefinitionMap.put(index, fieldDefinition);
-                    if (level != 0) {
-                        parentFields = new LinkedList<>(parentFields);
-                    }
                 }
             }
         }
