@@ -89,8 +89,8 @@ public final class ReflectUtil {
                 }
                 if (field.isAnnotationPresent(MultiColumn.class)) {
                     MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
-                    parentFields.add(field);
                     parentFields = new LinkedList<>(parentFields);
+                    parentFields.add(field);
                     getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, parentFields, level + 1);
                 } else {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
