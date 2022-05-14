@@ -42,10 +42,11 @@ public class ClassFieldContainer {
         return this.getFieldByName(fieldName, this);
     }
 
-    public List<Field> getFieldsByAnnotation(Class<? extends Annotation> annotationClass) {
-        Objects.requireNonNull(annotationClass);
+    @SafeVarargs
+    public final List<Field> getFieldsByAnnotation(Class<? extends Annotation>... annotationClazzs) {
+        Objects.requireNonNull(annotationClazzs);
         List<Field> annotationFields = new ArrayList<>();
-        this.getFieldsByAnnotation(this, annotationClass, annotationFields);
+        this.getFieldsByAnnotation(this, annotationFields, annotationClazzs);
         return annotationFields;
     }
 
@@ -63,12 +64,21 @@ public class ClassFieldContainer {
         filterFields(classFieldContainer.getDeclaredFields(), fields);
     }
 
-    private void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, Class<? extends Annotation> annotationClass, List<Field> annotationFieldContainer) {
+    @SafeVarargs
+    private final void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, List<Field> annotationFieldContainer, Class<? extends Annotation>... annotationClazzs) {
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (parentContainer != null) {
-            this.getFieldsByAnnotation(parentContainer, annotationClass, annotationFieldContainer);
+            this.getFieldsByAnnotation(parentContainer, annotationFieldContainer, annotationClazzs);
         }
-        List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> field.isAnnotationPresent(annotationClass)).collect(Collectors.toList());
+        List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> {
+            for (Class<? extends Annotation> annotationClazz : annotationClazzs) {
+                boolean isAnnotationPresent = field.isAnnotationPresent(annotationClazz);
+                if (isAnnotationPresent) {
+                    return true;
+                }
+            }
+            return false;
+        }).collect(Collectors.toList());
         filterFields(annotationFields, annotationFieldContainer);
     }
 

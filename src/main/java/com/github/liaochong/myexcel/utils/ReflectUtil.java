@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.utils;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public final class ReflectUtil {
 
-    private static final WeakCache<Class<?>, Map<Integer, Field>> FIELD_CACHE = new WeakCache<>();
+    private static final WeakCache<Class<?>, Map<Integer, FieldDefinition>> FIELD_CACHE = new WeakCache<>();
 
     private static final WeakCache<Class<?>, Map<String, Field>> TITLE_FIELD_CACHE = new WeakCache<>();
 
@@ -56,41 +57,45 @@ public final class ReflectUtil {
         return container;
     }
 
-    public static Map<Integer, Field> getFieldMapOfExcelColumn(Class<?> dataType) {
+    public static Map<Integer, FieldDefinition> getFieldMapOfExcelColumn(Class<?> dataType) {
         if (dataType == Map.class) {
             return Collections.emptyMap();
         }
-        Map<Integer, Field> fieldMap = FIELD_CACHE.get(dataType);
+        Map<Integer, FieldDefinition> fieldMap = FIELD_CACHE.get(dataType);
         if (fieldMap != null) {
             return fieldMap;
         }
+        fieldMap = new HashMap<>();
+        getFieldDefinition(dataType, fieldMap);
+        FIELD_CACHE.cache(dataType, fieldMap);
+        return fieldMap;
+    }
+
+    private static void getFieldDefinition(Class<?> dataType, Map<Integer, FieldDefinition> fieldDefinitionMap) {
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+        List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class, MultiColumn.class);
         if (fields.isEmpty()) {
             // If no field contains an ExcelColumn annotation, all fields are read in the default order
             List<Field> allFields = classFieldContainer.getFields();
-            fieldMap = new HashMap<>(allFields.size());
             for (int i = 0, size = allFields.size(); i < size; i++) {
-                fieldMap.put(i, allFields.get(i));
+                FieldDefinition fieldDefinition = new FieldDefinition(allFields.get(i));
+                fieldDefinitionMap.put(i, fieldDefinition);
             }
         } else {
-            fieldMap = new HashMap<>(fields.size());
             for (Field field : fields) {
                 ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
                 int index = excelColumn.index();
                 if (index < 0) {
                     continue;
                 }
-                Field f = fieldMap.get(index);
+                FieldDefinition f = fieldDefinitionMap.get(index);
                 if (Objects.nonNull(f)) {
                     throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
                 }
                 field.setAccessible(true);
-                fieldMap.put(index, field);
+                fieldDefinitionMap.put(index, new FieldDefinition(field));
             }
         }
-        FIELD_CACHE.cache(dataType, fieldMap);
-        return fieldMap;
     }
 
     public static Map<String, Field> getFieldMapOfTitleExcelColumn(Class<?> dataType) {

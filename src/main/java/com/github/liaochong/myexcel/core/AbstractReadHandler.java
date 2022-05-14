@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
  */
 abstract class AbstractReadHandler<T> {
 
-    private Map<Integer, Field> fieldMap;
+    private Map<Integer, FieldDefinition> fieldDefinitionMap;
 
     private T obj;
 
@@ -94,10 +95,10 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig) {
         convertContext = new ConvertContext(readCsv);
         Class<T> dataType = readConfig.dataType;
-        fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        fieldDefinitionMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
         boolean isMapType = dataType == Map.class;
-        readWithTitle = !isMapType && fieldMap.isEmpty();
+        readWithTitle = !isMapType && fieldDefinitionMap.isEmpty();
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
         setConfiguration(dataType, isMapType);
@@ -168,8 +169,8 @@ abstract class AbstractReadHandler<T> {
             };
         } else {
             fieldHandler = (colNum, content) -> {
-                Field field = fieldMap.get(colNum);
-                convert(content, currentRow.getRowNum(), colNum, field);
+                FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
+                convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
             };
         }
     }
@@ -244,11 +245,11 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void initFieldMap() {
-        if (currentRow.getRowNum() != titleRowNum || !fieldMap.isEmpty()) {
+        if (currentRow.getRowNum() != titleRowNum || !fieldDefinitionMap.isEmpty()) {
             return;
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.dataType);
-        fieldMap = new HashMap<>(titleFieldMap.size());
+        fieldDefinitionMap = new HashMap<>(titleFieldMap.size());
         // 获取最大列数
         List<Integer> colNums = titles.values().stream().flatMap(t -> t.keySet().stream()).collect(Collectors.toList());
         int maxColNum = Collections.max(colNums);
@@ -276,7 +277,7 @@ abstract class AbstractReadHandler<T> {
             if (StringUtil.isNotBlank(title)) {
                 realTitle.add(title);
             }
-            fieldMap.put(colNum, titleFieldMap.get(realTitle.toString()));
+            fieldDefinitionMap.put(colNum, new FieldDefinition(titleFieldMap.get(realTitle.toString())));
         }
         // 释放
         titles = null;
