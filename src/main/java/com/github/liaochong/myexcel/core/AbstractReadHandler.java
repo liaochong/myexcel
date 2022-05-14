@@ -95,7 +95,7 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig) {
         convertContext = new ConvertContext(readCsv);
         Class<T> dataType = readConfig.dataType;
-        fieldDefinitionMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
         boolean isMapType = dataType == Map.class;
         readWithTitle = !isMapType && fieldDefinitionMap.isEmpty();

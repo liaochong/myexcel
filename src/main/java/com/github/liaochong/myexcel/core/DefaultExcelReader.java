@@ -188,7 +188,7 @@ public class DefaultExcelReader<T> {
     }
 
     private List<T> doRead(Supplier<Sheet> sheetSupplier) {
-        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         if (fieldDefinitionMap.isEmpty()) {
             return Collections.emptyList();
         }
@@ -234,7 +234,7 @@ public class DefaultExcelReader<T> {
     }
 
     private void doReadThen(Supplier<Sheet> sheetSupplier, Consumer<T> consumer, Function<T, Boolean> function) {
-        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         if (fieldDefinitionMap.isEmpty()) {
             return;
         }

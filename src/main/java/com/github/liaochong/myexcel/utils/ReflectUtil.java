@@ -58,7 +58,7 @@ public final class ReflectUtil {
         return container;
     }
 
-    public static Map<Integer, FieldDefinition> getFieldMapOfExcelColumn(Class<?> dataType) {
+    public static Map<Integer, FieldDefinition> getFieldDefinitionMapOfExcelColumn(Class<?> dataType) {
         if (dataType == Map.class) {
             return Collections.emptyMap();
         }
@@ -103,7 +103,7 @@ public final class ReflectUtil {
                     }
                     field.setAccessible(true);
                     fieldDefinition = new FieldDefinition(field);
-                    fieldDefinition.setParentFields(parentFields);
+                    fieldDefinition.setParentFields(parentFields.isEmpty() ? Collections.emptyList() : parentFields);
                     fieldDefinitionMap.put(index, fieldDefinition);
                     if (level != 0) {
                         parentFields = new LinkedList<>(parentFields);
