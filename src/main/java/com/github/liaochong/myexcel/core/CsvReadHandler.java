@@ -51,7 +51,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
         try (Reader reader = new InputStreamReader(new BOMInputStream(is), readConfig.csvCharset);
              CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withDelimiter(readConfig.csvDelimiter))) {
             for (final CSVRecord record : parser) {
-                newRow((int) (record.getRecordNumber() - 1));
+                newRow((int) (record.getRecordNumber() - 1), true);
                 Iterator<String> iterator = record.stream().iterator();
                 int columnIndex = 0;
                 while (iterator.hasNext()) {

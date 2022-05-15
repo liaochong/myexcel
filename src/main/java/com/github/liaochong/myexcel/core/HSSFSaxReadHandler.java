@@ -260,7 +260,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
-            newRow(thisRow);
+            newRow(thisRow, true);
         }
         boolean isSelectedSheet = this.isSelectedSheet();
         if (isSelectedSheet && thisColumn != -1) {

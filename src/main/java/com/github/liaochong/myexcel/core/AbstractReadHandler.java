@@ -183,9 +183,11 @@ abstract class AbstractReadHandler<T> {
         ReadConverterContext.convert(obj, context, convertContext, readConfig.exceptionFunction);
     }
 
-    protected void newRow(int rowNum) {
+    protected void newRow(int rowNum, boolean newInstance) {
         currentRow.setRowNum(rowNum);
-        obj = newInstance.get();
+        if (newInstance) {
+            obj = this.newInstance.get();
+        }
         prevColNum = -1;
         isBlankRow = true;
     }

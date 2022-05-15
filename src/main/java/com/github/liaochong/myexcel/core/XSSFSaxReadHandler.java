@@ -37,8 +37,8 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     }
 
     @Override
-    public void startRow(int rowNum) {
-        newRow(rowNum);
+    public void startRow(int rowNum, boolean newInstance) {
+        newRow(rowNum, newInstance);
     }
 
     @Override
