@@ -78,7 +78,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     private String cellRef;
 
     private final boolean detectedMerge;
-    private long waitCount = 1;
+    private long waitCount = 0;
 
     // Gathers characters as they are seen.
     private final StringBuilder value = new StringBuilder(64);
@@ -163,10 +163,10 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                     output.endRow(blankRowNum);
                 }
             }
-            output.startRow(rowNum, !detectedMerge || --waitCount == 0);
             if (detectedMerge && waitCount == 0) {
-                waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum)).count() + 1;
+                waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum) && c.getColumn() == 0).count() + 1;
             }
+            output.startRow(rowNum, !detectedMerge || --waitCount == 0);
             this.preRowNum = rowNum;
         } else if ("is".equals(localName)) {
             // Inline string outer tag
@@ -248,7 +248,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
             if (firstCellAddress != null) {
                 output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
-                mergeCellMapping.remove(cellAddress);
+//                mergeCellMapping.remove(cellAddress);
             }
         } else if ("row".equals(localName)) {
             // Finish up the row

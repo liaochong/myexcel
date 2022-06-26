@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core;
 
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
@@ -25,11 +26,13 @@ import com.github.liaochong.myexcel.utils.ConfigurationUtil;
 import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
+import org.apache.poi.ss.util.CellAddress;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -89,6 +92,20 @@ abstract class AbstractReadHandler<T> {
      * is blank row
      */
     protected boolean isBlankRow;
+
+    protected Map<CellAddress, CellAddress> mergeCellMapping = Collections.emptyMap();
+
+    public AbstractReadHandler(boolean readCsv,
+                               List<T> result,
+                               SaxExcelReader.ReadConfig<T> readConfig,
+                               Map<CellAddress, CellAddress> mergeCellMapping) {
+        this(readCsv, result, readConfig);
+        Map<CellAddress, CellAddress> copy = new HashMap<>(mergeCellMapping);
+        for (CellAddress cellAddress : mergeCellMapping.values()) {
+            copy.put(cellAddress, cellAddress);
+        }
+        this.mergeCellMapping = copy;
+    }
 
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
@@ -170,9 +187,55 @@ abstract class AbstractReadHandler<T> {
         } else {
             fieldHandler = (colNum, content) -> {
                 FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
-                convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                if (fieldDefinition.getParentFields().isEmpty()) {
+                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                } else {
+                    Object prevObj = obj;
+                    Class<?> classType = null;
+                    for (Field parentField : fieldDefinition.getParentFields()) {
+                        if (parentField.getType().isAssignableFrom(List.class)) {
+                            try {
+                                List list = (List) parentField.get(prevObj);
+                                if (list == null) {
+                                    list = new LinkedList();
+                                    parentField.set(prevObj, list);
+                                    prevObj = list;
+                                    MultiColumn multiColumn = parentField.getAnnotation(MultiColumn.class);
+                                    classType = multiColumn.classType();
+                                    continue;
+                                }
+                                classType = null;
+                                CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum - 1);
+                                CellAddress target = mergeCellMapping.get(cellAddress);
+                                if (target != null) {
+                                    prevObj = list.get(list.size() - 1);
+                                }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+                    if (classType != null) {
+                        try {
+                            Object value = classType.newInstance();
+                            ((List) prevObj).add(value);
+                            prevObj = value;
+                        } catch (InstantiationException | IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    convert(prevObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                }
             };
         }
+    }
+
+    protected void convert(Object prevObj, String value, int rowNum, int colNum, Field field) {
+        if (value == null || field == null) {
+            return;
+        }
+        context.reset(obj, field, value, rowNum, colNum);
+        ReadConverterContext.convert(prevObj, context, convertContext, readConfig.exceptionFunction);
     }
 
     protected void convert(String value, int rowNum, int colNum, Field field) {
@@ -185,7 +248,7 @@ abstract class AbstractReadHandler<T> {
 
     protected void newRow(int rowNum, boolean newInstance) {
         currentRow.setRowNum(rowNum);
-        if (newInstance) {
+        if (obj == null || newInstance) {
             obj = this.newInstance.get();
         }
         prevColNum = -1;

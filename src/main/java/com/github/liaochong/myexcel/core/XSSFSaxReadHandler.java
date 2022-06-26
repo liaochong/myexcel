@@ -18,6 +18,7 @@ import org.apache.poi.ss.util.CellAddress;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * sax处理
@@ -32,8 +33,8 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     public XSSFSaxReadHandler(
             List<T> result,
-            SaxExcelReader.ReadConfig<T> readConfig) {
-        super(false, result, readConfig);
+            SaxExcelReader.ReadConfig<T> readConfig, Map<CellAddress, CellAddress> mergeCellMapping) {
+        super(false, result, readConfig, mergeCellMapping);
     }
 
     @Override
