@@ -35,7 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -101,11 +100,7 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig,
                                Map<CellAddress, CellAddress> mergeCellMapping) {
         this(readCsv, result, readConfig);
-        Map<CellAddress, CellAddress> copy = new HashMap<>(mergeCellMapping);
-        for (CellAddress cellAddress : mergeCellMapping.values()) {
-            copy.put(cellAddress, cellAddress);
-        }
-        this.mergeCellMapping = copy;
+        this.mergeCellMapping = mergeCellMapping;
     }
 
     public AbstractReadHandler(boolean readCsv,
@@ -188,25 +183,19 @@ abstract class AbstractReadHandler<T> {
         } else {
             fieldHandler = (colNum, content) -> {
                 FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
+                CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);
+                CellAddress target = mergeCellMapping.get(cellAddress);
                 if (fieldDefinition.getParentFields().isEmpty()) {
-                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                    if (target == null) {
+                        convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                    }
                 } else {
                     try {
                         Object prevObj = obj;
                         for (int i = 0, size = fieldDefinition.getParentFields().size(); i < size - 1; i++) {
                             Field parentField = fieldDefinition.getParentFields().get(i);
                             List<?> list = (List<?>) parentField.get(prevObj);
-                            if (list == null) {
-                                list = new LinkedList<>();
-                                parentField.set(prevObj, list);
-                                prevObj = list;
-                                continue;
-                            }
-                            CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum - 1);
-                            CellAddress target = mergeCellMapping.get(cellAddress);
-                            if (target != null) {
-                                prevObj = list.get(list.size() - 1);
-                            }
+                            prevObj = list.get(list.size() - 1);
                         }
                         Field lastField = fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
                         Object lastParent = lastField.get(prevObj);
@@ -217,9 +206,7 @@ abstract class AbstractReadHandler<T> {
                         } else {
                             prevObj = lastParent;
                         }
-                        CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);
-                        CellAddress target = mergeCellMapping.get(cellAddress);
-                        if (target == null || Objects.equals(cellAddress, target)) {
+                        if (target == null) {
                             MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
                             Object value = multiColumn.classType().newInstance();
                             ((List<Object>) prevObj).add(value);
