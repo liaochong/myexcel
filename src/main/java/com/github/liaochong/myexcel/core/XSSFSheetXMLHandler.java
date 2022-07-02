@@ -163,10 +163,10 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                     output.endRow(blankRowNum);
                 }
             }
+            output.startRow(rowNum, !detectedMerge || waitCount == 0);
             if (detectedMerge && waitCount == 0) {
                 waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum) && c.getColumn() == 0).count() + 1;
             }
-            output.startRow(rowNum, !detectedMerge || waitCount == 0);
             waitCount--;
             this.preRowNum = rowNum;
         } else if ("is".equals(localName)) {
