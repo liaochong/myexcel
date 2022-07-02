@@ -166,7 +166,8 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             if (detectedMerge && waitCount == 0) {
                 waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum) && c.getColumn() == 0).count() + 1;
             }
-            output.startRow(rowNum, !detectedMerge || --waitCount == 0);
+            output.startRow(rowNum, !detectedMerge || waitCount == 0);
+            waitCount--;
             this.preRowNum = rowNum;
         } else if ("is".equals(localName)) {
             // Inline string outer tag

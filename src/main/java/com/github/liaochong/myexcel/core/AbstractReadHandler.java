@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -190,41 +191,43 @@ abstract class AbstractReadHandler<T> {
                 if (fieldDefinition.getParentFields().isEmpty()) {
                     convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                 } else {
-                    Object prevObj = obj;
-                    Class<?> classType = null;
-                    for (Field parentField : fieldDefinition.getParentFields()) {
-                        if (parentField.getType().isAssignableFrom(List.class)) {
-                            try {
-                                List list = (List) parentField.get(prevObj);
-                                if (list == null) {
-                                    list = new LinkedList();
-                                    parentField.set(prevObj, list);
-                                    prevObj = list;
-                                    MultiColumn multiColumn = parentField.getAnnotation(MultiColumn.class);
-                                    classType = multiColumn.classType();
-                                    continue;
-                                }
-                                classType = null;
-                                CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum - 1);
-                                CellAddress target = mergeCellMapping.get(cellAddress);
-                                if (target != null) {
-                                    prevObj = list.get(list.size() - 1);
-                                }
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
+                    try {
+                        Object prevObj = obj;
+                        for (int i = 0, size = fieldDefinition.getParentFields().size(); i < size - 1; i++) {
+                            Field parentField = fieldDefinition.getParentFields().get(i);
+                            List<?> list = (List<?>) parentField.get(prevObj);
+                            if (list == null) {
+                                list = new LinkedList<>();
+                                parentField.set(prevObj, list);
+                                prevObj = list;
+                                continue;
+                            }
+                            CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum - 1);
+                            CellAddress target = mergeCellMapping.get(cellAddress);
+                            if (target != null) {
+                                prevObj = list.get(list.size() - 1);
                             }
                         }
-                    }
-                    if (classType != null) {
-                        try {
-                            Object value = classType.newInstance();
-                            ((List) prevObj).add(value);
-                            prevObj = value;
-                        } catch (InstantiationException | IllegalAccessException e) {
-                            throw new RuntimeException(e);
+                        Field lastField = fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
+                        Object lastParent = lastField.get(prevObj);
+                        if (lastParent == null) {
+                            List<?> list = new LinkedList<>();
+                            lastField.set(prevObj, list);
+                            prevObj = list;
+                        } else {
+                            prevObj = lastParent;
                         }
+                        CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);
+                        CellAddress target = mergeCellMapping.get(cellAddress);
+                        if (target == null || Objects.equals(cellAddress, target)) {
+                            MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
+                            Object value = multiColumn.classType().newInstance();
+                            ((List<Object>) prevObj).add(value);
+                            convert(value, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                    convert(prevObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                 }
             };
         }
