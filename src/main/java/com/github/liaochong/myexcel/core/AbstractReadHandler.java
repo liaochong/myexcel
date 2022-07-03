@@ -101,6 +101,10 @@ abstract class AbstractReadHandler<T> {
                                Map<CellAddress, CellAddress> mergeCellMapping) {
         this(readCsv, result, readConfig);
         this.mergeCellMapping = mergeCellMapping;
+        boolean hasMultiColumnToRead = fieldDefinitionMap.values().stream().anyMatch(fieldDefinition -> !fieldDefinition.getParentFields().isEmpty());
+        if (!hasMultiColumnToRead) {
+            this.mergeCellMapping = Collections.emptyMap();
+        }
     }
 
     public AbstractReadHandler(boolean readCsv,

@@ -15,6 +15,8 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.model.SharedStrings;
@@ -79,6 +81,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
 
     private final boolean detectedMerge;
     private long waitCount = 0;
+    private boolean needCount = true;
 
     // Gathers characters as they are seen.
     private final StringBuilder value = new StringBuilder(64);
@@ -96,13 +99,16 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     public XSSFSheetXMLHandler(
             Map<CellAddress, CellAddress> mergeCellMapping,
             SharedStrings strings,
-            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler) {
+            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
+            SaxExcelReader.ReadConfig readConfig) {
         this.mergeCellMapping = mergeCellMapping;
         this.detectedMerge = !mergeCellMapping.isEmpty();
         this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;
         this.nextDataType = xssfDataType.NUMBER;
+        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType);
+        this.needCount = fieldDefinitionMap.values().stream().anyMatch(fieldDefinition -> !fieldDefinition.getParentFields().isEmpty());
     }
 
     private boolean isTextTag(String name) {
@@ -163,8 +169,8 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                     output.endRow(blankRowNum);
                 }
             }
-            output.startRow(rowNum, !detectedMerge || waitCount == 0);
-            if (detectedMerge && waitCount == 0) {
+            output.startRow(rowNum, !detectedMerge || !needCount || waitCount == 0);
+            if (detectedMerge && needCount && waitCount == 0) {
                 waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum) && c.getColumn() == 0).count() + 1;
             }
             waitCount--;
@@ -253,7 +259,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             }
         } else if ("row".equals(localName)) {
             // Finish up the row
-            if (!detectedMerge || waitCount == 0) {
+            if (!detectedMerge || !needCount || waitCount == 0) {
                 output.endRow(rowNum);
             }
             // some sheets do not have rowNum set in the XML, Excel can read them so we should try to read them as well
