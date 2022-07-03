@@ -100,10 +100,9 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig,
                                Map<CellAddress, CellAddress> mergeCellMapping) {
         this(readCsv, result, readConfig);
-        this.mergeCellMapping = mergeCellMapping;
         boolean hasMultiColumnToRead = fieldDefinitionMap.values().stream().anyMatch(fieldDefinition -> !fieldDefinition.getParentFields().isEmpty());
-        if (!hasMultiColumnToRead) {
-            this.mergeCellMapping = Collections.emptyMap();
+        if (hasMultiColumnToRead) {
+            this.mergeCellMapping = mergeCellMapping;
         }
     }
 
@@ -187,6 +186,10 @@ abstract class AbstractReadHandler<T> {
         } else {
             fieldHandler = (colNum, content) -> {
                 FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
+                if (mergeCellMapping.isEmpty()) {
+                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                    return;
+                }
                 CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);
                 CellAddress target = mergeCellMapping.get(cellAddress);
                 if (fieldDefinition.getParentFields().isEmpty()) {
