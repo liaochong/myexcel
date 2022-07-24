@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.utils;
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 
 import java.lang.reflect.Field;
@@ -95,7 +96,7 @@ public final class ReflectUtil {
                     MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
                     List<Field> childrenParentFields = new LinkedList<>(topParentFields);
                     childrenParentFields.add(field);
-                    if (multiColumn.classType() == String.class) {
+                    if (ReadConverterContext.support(multiColumn.classType())) {
                         ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
                         int index = excelColumn.index();
                         if (index < 0) {

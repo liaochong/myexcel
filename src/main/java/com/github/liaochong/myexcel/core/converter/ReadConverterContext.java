@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.ReadContext;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
@@ -103,6 +104,10 @@ public class ReadConverterContext {
         READ_CONVERTERS.put(BigInteger.class, bigIntegerReadConverter);
     }
 
+    public static boolean support(Class<?> clazz) {
+        return READ_CONVERTERS.get(clazz) != null;
+    }
+
     public synchronized ReadConverterContext registering(Class<?> clazz, ReadConverter<String, ?> readConverter) {
         READ_CONVERTERS.putIfAbsent(clazz, readConverter);
         return this;
@@ -112,7 +117,10 @@ public class ReadConverterContext {
     public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(context.getField().getType());
         if (readConverter == null) {
-            readConverter = READ_CONVERTERS.get(null);
+            MultiColumn multiColumn = obj.getClass().getAnnotation(MultiColumn.class);
+            if (multiColumn != null) {
+                readConverter = READ_CONVERTERS.get(multiColumn.classType());
+            }
             if (readConverter == null) {
                 throw new IllegalStateException("No suitable type converter was found.");
             }
