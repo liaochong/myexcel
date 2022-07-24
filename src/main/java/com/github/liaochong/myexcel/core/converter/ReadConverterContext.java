@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiFunction;
@@ -107,10 +108,14 @@ public class ReadConverterContext {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(context.getField().getType());
         if (readConverter == null) {
-            throw new IllegalStateException("No suitable type converter was found.");
+            readConverter = READ_CONVERTERS.get(null);
+            if (readConverter == null) {
+                throw new IllegalStateException("No suitable type converter was found.");
+            }
         }
         Object value = null;
         try {
@@ -139,7 +144,11 @@ public class ReadConverterContext {
             return;
         }
         try {
-            context.getField().set(obj, value);
+            if (obj instanceof List) {
+                ((List) obj).add(value);
+            } else {
+                context.getField().set(obj, value);
+            }
         } catch (IllegalAccessException e) {
             throw new SaxReadException("Failed to set the " + context.getField().getDeclaringClass().getName() + "#" + context.getField().getName() + " field value to " + context.getVal(), e);
         }

@@ -75,7 +75,7 @@ public final class ReflectUtil {
     private static void getFieldDefinition(Class<?> dataType, Map<Integer, FieldDefinition> fieldDefinitionMap, List<Field> parentFields, int level) {
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class, MultiColumn.class);
-        if (fields.isEmpty()) {
+        if (level == 0 && fields.isEmpty()) {
             // If no field contains an ExcelColumn annotation, all fields are read in the default order
             List<Field> allFields = classFieldContainer.getFields();
             for (int i = 0, size = allFields.size(); i < size; i++) {
@@ -83,15 +83,35 @@ public final class ReflectUtil {
                 fieldDefinitionMap.put(i, fieldDefinition);
             }
         } else {
+            List<Field> topParentFields = new LinkedList<>();
+            if (parentFields != null) {
+                topParentFields.addAll(parentFields);
+            }
             for (Field field : fields) {
                 if (level == 0) {
                     parentFields = new LinkedList<>();
                 }
                 if (field.isAnnotationPresent(MultiColumn.class)) {
                     MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
-                    parentFields = new LinkedList<>(parentFields);
-                    parentFields.add(field);
-                    getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, parentFields, level + 1);
+                    List<Field> childrenParentFields = new LinkedList<>(topParentFields);
+                    childrenParentFields.add(field);
+                    if (multiColumn.classType() == String.class) {
+                        ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+                        int index = excelColumn.index();
+                        if (index < 0) {
+                            continue;
+                        }
+                        FieldDefinition fieldDefinition = fieldDefinitionMap.get(index);
+                        if (Objects.nonNull(fieldDefinition)) {
+                            throw new IllegalStateException("Index cannot be repeated: " + index + ". Please check it.");
+                        }
+                        field.setAccessible(true);
+                        fieldDefinition = new FieldDefinition(field);
+                        fieldDefinition.setParentFields(parentFields.isEmpty() ? Collections.emptyList() : parentFields);
+                        fieldDefinitionMap.put(index, fieldDefinition);
+                    } else {
+                        getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, parentFields, level + 1);
+                    }
                 } else {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
                     int index = excelColumn.index();
