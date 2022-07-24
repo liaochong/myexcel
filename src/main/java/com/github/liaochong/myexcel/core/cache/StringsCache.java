@@ -125,10 +125,12 @@ public class StringsCache implements Cache<Integer, String> {
                 try {
                     Method getCleanerMethod = mbb.getClass().getMethod("cleaner");
                     getCleanerMethod.setAccessible(true);
-                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(mbb, new Object[0]);
-                    cleaner.clean();
+                    Object cleaner = getCleanerMethod.invoke(mbb);
+                    Method clean = cleaner.getClass().getMethod("clean");
+                    clean.setAccessible(true);
+                    clean.invoke(cleaner);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // do nothing
                 }
             }
         }
