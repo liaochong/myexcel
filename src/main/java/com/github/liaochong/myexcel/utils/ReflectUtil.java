@@ -111,7 +111,7 @@ public final class ReflectUtil {
                         fieldDefinition.setParentFields(parentFields.isEmpty() ? Collections.emptyList() : parentFields);
                         fieldDefinitionMap.put(index, fieldDefinition);
                     } else {
-                        getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, parentFields, level + 1);
+                        getFieldDefinition(multiColumn.classType(), fieldDefinitionMap, childrenParentFields, level + 1);
                     }
                 } else {
                     ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
