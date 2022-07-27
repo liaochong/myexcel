@@ -100,10 +100,7 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig,
                                Map<CellAddress, CellAddress> mergeCellMapping) {
         this(readCsv, result, readConfig);
-        boolean hasMultiColumnToRead = fieldDefinitionMap.values().stream().anyMatch(fieldDefinition -> !fieldDefinition.getParentFields().isEmpty());
-        if (hasMultiColumnToRead) {
-            this.mergeCellMapping = mergeCellMapping;
-        }
+        this.mergeCellMapping = mergeCellMapping;
     }
 
     public AbstractReadHandler(boolean readCsv,
@@ -195,7 +192,8 @@ abstract class AbstractReadHandler<T> {
                 }
                 CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);
                 CellAddress target = mergeCellMapping.get(cellAddress);
-                if (fieldDefinition.getParentFields().isEmpty()) {
+                boolean isList = fieldDefinition.getField().getType() == List.class;
+                if (!isList && fieldDefinition.getParentFields().isEmpty()) {
                     if (target == null) {
                         convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                     }
@@ -207,7 +205,7 @@ abstract class AbstractReadHandler<T> {
                             List<?> list = (List<?>) parentField.get(prevObj);
                             prevObj = list.get(list.size() - 1);
                         }
-                        Field lastField = fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
+                        Field lastField = isList ? fieldDefinition.getField() : fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
                         Object lastParent = lastField.get(prevObj);
                         if (lastParent == null) {
                             List<?> list = new LinkedList<>();
@@ -218,18 +216,25 @@ abstract class AbstractReadHandler<T> {
                         }
                         if (target == null) {
                             if (fieldDefinition.getField().getType() == List.class) {
+                                boolean isBase = false;
                                 if (((List) prevObj).isEmpty()) {
                                     MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
-                                    Object value = multiColumn.classType().newInstance();
-                                    ((List) prevObj).add(value);
+                                    if (!(isBase = ReadConverterContext.support(multiColumn.classType()))) {
+                                        Object value = multiColumn.classType().newInstance();
+                                        ((List) prevObj).add(value);
+                                    }
                                 }
-                                Object targetParent = ((List) prevObj).get(((List) prevObj).size() - 1);
-                                Object targetObj = fieldDefinition.getField().get(targetParent);
-                                if (targetObj == null) {
-                                    targetObj = new LinkedList<>();
-                                    fieldDefinition.getField().set(targetParent, targetObj);
+                                if (isBase) {
+                                    convert(prevObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                                } else {
+                                    Object targetParent = ((List) prevObj).get(((List) prevObj).size() - 1);
+                                    Object targetObj = fieldDefinition.getField().get(targetParent);
+                                    if (targetObj == null) {
+                                        targetObj = new LinkedList<>();
+                                        fieldDefinition.getField().set(targetParent, targetObj);
+                                    }
+                                    convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                                 }
-                                convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                             } else {
                                 MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
                                 Object value = multiColumn.classType().newInstance();

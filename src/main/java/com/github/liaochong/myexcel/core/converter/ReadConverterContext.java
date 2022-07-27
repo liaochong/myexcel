@@ -117,7 +117,7 @@ public class ReadConverterContext {
     public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
         ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(context.getField().getType());
         if (readConverter == null) {
-            MultiColumn multiColumn = obj.getClass().getAnnotation(MultiColumn.class);
+            MultiColumn multiColumn = context.getField().getAnnotation(MultiColumn.class);
             if (multiColumn != null) {
                 readConverter = READ_CONVERTERS.get(multiColumn.classType());
             }
@@ -157,7 +157,7 @@ public class ReadConverterContext {
             } else {
                 context.getField().set(obj, value);
             }
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new SaxReadException("Failed to set the " + context.getField().getDeclaringClass().getName() + "#" + context.getField().getName() + " field value to " + context.getVal(), e);
         }
     }
