@@ -81,8 +81,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
 
     private final boolean detectedMerge;
     private long waitCount = 0;
-    private boolean needCount = true;
-
     // Gathers characters as they are seen.
     private final StringBuilder value = new StringBuilder(64);
 
@@ -108,7 +106,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
         this.output = sheetContentsHandler;
         this.nextDataType = xssfDataType.NUMBER;
         Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType);
-        this.needCount = fieldDefinitionMap.values().stream().anyMatch(fieldDefinition -> !fieldDefinition.getParentFields().isEmpty());
     }
 
     private boolean isTextTag(String name) {
@@ -169,8 +166,8 @@ class XSSFSheetXMLHandler extends DefaultHandler {
                     output.endRow(blankRowNum);
                 }
             }
-            output.startRow(rowNum, !detectedMerge || !needCount || waitCount == 0);
-            if (detectedMerge && needCount && waitCount == 0) {
+            output.startRow(rowNum, !detectedMerge || waitCount == 0);
+            if (detectedMerge && waitCount == 0) {
                 waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum) && c.getColumn() == 0).count() + 1;
             }
             waitCount--;
@@ -259,7 +256,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             }
         } else if ("row".equals(localName)) {
             // Finish up the row
-            if (!detectedMerge || !needCount || waitCount == 0) {
+            if (!detectedMerge || waitCount == 0) {
                 output.endRow(rowNum);
             }
             // some sheets do not have rowNum set in the XML, Excel can read them so we should try to read them as well
