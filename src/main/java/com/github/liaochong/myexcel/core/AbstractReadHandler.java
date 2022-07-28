@@ -205,7 +205,7 @@ abstract class AbstractReadHandler<T> {
                             List<?> list = (List<?>) parentField.get(prevObj);
                             prevObj = list.get(list.size() - 1);
                         }
-                        Field lastField = isList ? fieldDefinition.getField() : fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
+                        Field lastField = isList && fieldDefinition.getParentFields().isEmpty() ? fieldDefinition.getField() : fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
                         Object lastParent = lastField.get(prevObj);
                         if (lastParent == null) {
                             List<?> list = new LinkedList<>();
@@ -215,11 +215,11 @@ abstract class AbstractReadHandler<T> {
                             prevObj = lastParent;
                         }
                         if (target == null) {
-                            if (fieldDefinition.getField().getType() == List.class) {
-                                boolean isBase = false;
+                            MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
+                            if (isList) {
+                                boolean isBase = ReadConverterContext.support(multiColumn.classType());
                                 if (((List) prevObj).isEmpty()) {
-                                    MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
-                                    if (!(isBase = ReadConverterContext.support(multiColumn.classType()))) {
+                                    if (!isBase) {
                                         Object value = multiColumn.classType().newInstance();
                                         ((List) prevObj).add(value);
                                     }
@@ -236,7 +236,6 @@ abstract class AbstractReadHandler<T> {
                                     convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                                 }
                             } else {
-                                MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
                                 Object value = multiColumn.classType().newInstance();
                                 ((List<Object>) prevObj).add(value);
                                 convert(value, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
