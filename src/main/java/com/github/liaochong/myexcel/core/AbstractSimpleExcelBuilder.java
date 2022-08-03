@@ -300,15 +300,15 @@ abstract class AbstractSimpleExcelBuilder {
         boolean isComputeAutoWidth = WidthStrategy.isComputeAutoWidth(configuration.widthStrategy);
         rowTds.forEach((k, v) -> {
             Tr tr = new Tr(k, configuration.titleRowHeight);
-            tr.colWidthMap = isComputeAutoWidth ? new HashMap<>(titles.size()) : Collections.emptyMap();
-            List<Td> tds = v.stream().sorted(Comparator.comparing(td -> td.col))
+            tr.colWidthMap = isComputeAutoWidth || !customWidthMap.isEmpty() ? new HashMap<>(titles.size()) : Collections.emptyMap();
+            tr.tdList = v.stream().sorted(Comparator.comparing(td -> td.col))
                     .peek(td -> {
                         if (isComputeAutoWidth) {
                             tr.colWidthMap.put(td.col, TdUtil.getStringWidth(td.content, 0.25));
                         }
                     })
                     .collect(Collectors.toList());
-            tr.tdList = tds;
+            tr.colWidthMap.putAll(customWidthMap);
             trs.add(tr);
         });
         return trs;
@@ -344,7 +344,7 @@ abstract class AbstractSimpleExcelBuilder {
             this.setTdWidth(tr.colWidthMap, td);
             return td;
         }).collect(Collectors.toList());
-        customWidthMap.forEach(tr.colWidthMap::put);
+        tr.colWidthMap.putAll(customWidthMap);
         tr.tdList = tdList;
         return tr;
     }
