@@ -241,13 +241,11 @@ abstract class AbstractSimpleExcelBuilder {
             }
             tdLists.add(tds);
         }
-
         // 调整rowSpan
         for (List<Td> tdList : tdLists) {
             Td last = tdList.get(tdList.size() - 1);
             last.setRowSpan(titleLevel - last.row);
         }
-
         // 调整colSpan
         for (int i = 0; i < titleLevel; i++) {
             int level = i;
