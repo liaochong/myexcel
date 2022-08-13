@@ -93,30 +93,26 @@ abstract class AbstractReadHandler<T> {
      */
     protected boolean isBlankRow;
 
-    protected Map<CellAddress, CellAddress> mergeCellMapping = Collections.emptyMap();
+    protected Map<CellAddress, CellAddress> mergeCellMapping;
+
+    private final boolean isMapType;
 
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
                                SaxExcelReader.ReadConfig<T> readConfig,
                                Map<CellAddress, CellAddress> mergeCellMapping) {
-        this(readCsv, result, readConfig);
         this.mergeCellMapping = mergeCellMapping;
-    }
-
-    public AbstractReadHandler(boolean readCsv,
-                               List<T> result,
-                               SaxExcelReader.ReadConfig<T> readConfig) {
         convertContext = new ConvertContext(readCsv);
         Class<T> dataType = readConfig.dataType;
         fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
-        boolean isMapType = dataType == Map.class;
+        this.isMapType = dataType == Map.class;
         readWithTitle = !isMapType && fieldDefinitionMap.isEmpty();
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
         setConfiguration(dataType, isMapType);
         setResultHandlerFunction(result, readConfig);
-        setFieldHandlerFunction(isMapType);
+        setFieldHandlerFunction();
     }
 
     private void setResultHandlerFunction(List<T> result, SaxExcelReader.ReadConfig<T> readConfig) {
@@ -171,7 +167,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void setFieldHandlerFunction(boolean isMapType) {
+    protected void setFieldHandlerFunction() {
         if (isMapType) {
             fieldHandler = (colNum, content) -> {
                 for (int i = prevColNum + 1; i < colNum; i++) {
@@ -180,14 +176,17 @@ abstract class AbstractReadHandler<T> {
                 ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
                 prevColNum = colNum;
             };
+        } else if (mergeCellMapping.isEmpty()) {
+            fieldHandler = (colNum, content) -> {
+                FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
+                if (fieldDefinition != null) {
+                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                }
+            };
         } else {
             fieldHandler = (colNum, content) -> {
                 FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
                 if (fieldDefinition == null) {
-                    return;
-                }
-                if (mergeCellMapping.isEmpty()) {
-                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                     return;
                 }
                 CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);

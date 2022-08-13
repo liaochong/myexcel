@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,7 +40,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
-        super(true, result, readConfig);
+        super(true, result, readConfig, Collections.emptyMap());
         this.is = is;
     }
 

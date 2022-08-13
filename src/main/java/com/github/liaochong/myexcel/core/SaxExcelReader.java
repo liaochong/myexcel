@@ -359,7 +359,7 @@ public class SaxExcelReader<T> {
                 readConfig.startSheetConsumer.accept(sheetName, index);
                 Map<CellAddress, CellAddress> mergeCellMapping = mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap());
                 ContentHandler handler = new XSSFSheetXMLHandler(
-                        mergeCellMapping, strings, new XSSFSaxReadHandler<>(result, readConfig, mergeCellMapping), readConfig);
+                        mergeCellMapping, strings, new XSSFSaxReadHandler<>(result, readConfig, mergeCellMapping));
                 processSheet(handler, stream);
                 mergeCellIndexMapping.remove(index);
             });

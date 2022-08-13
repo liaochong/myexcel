@@ -15,8 +15,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.utils.FieldDefinition;
-import com.github.liaochong.myexcel.utils.ReflectUtil;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.model.SharedStrings;
@@ -97,15 +95,13 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     public XSSFSheetXMLHandler(
             Map<CellAddress, CellAddress> mergeCellMapping,
             SharedStrings strings,
-            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler,
-            SaxExcelReader.ReadConfig readConfig) {
+            XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler) {
         this.mergeCellMapping = mergeCellMapping;
         this.detectedMerge = !mergeCellMapping.isEmpty();
         this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;
         this.nextDataType = xssfDataType.NUMBER;
-        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType);
     }
 
     private boolean isTextTag(String name) {
@@ -252,7 +248,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
             if (firstCellAddress != null) {
                 output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
-//                mergeCellMapping.remove(cellAddress);
             }
         } else if ("row".equals(localName)) {
             // Finish up the row
