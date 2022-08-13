@@ -284,7 +284,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 CellAddress firstCellAddress = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).get(cellAddress);
                 if (firstCellAddress != null) {
                     thisStr = mergeFirstCellMapping.get(firstCellAddress);
-                    mergeCellIndexMapping.get(sheetIndex).remove(cellAddress);
                 }
             }
             handleField(thisColumn, thisStr);
