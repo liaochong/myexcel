@@ -27,6 +27,8 @@ public class FieldDefinition {
 
     private List<Field> parentFields;
 
+    private boolean firstFieldOfGroup;
+
     public FieldDefinition(Field field) {
         this.field = field;
     }
@@ -45,5 +47,13 @@ public class FieldDefinition {
 
     public void setParentFields(List<Field> parentFields) {
         this.parentFields = parentFields;
+    }
+
+    public boolean isFirstFieldOfGroup() {
+        return firstFieldOfGroup;
+    }
+
+    public void setFirstFieldOfGroup(boolean firstFieldOfGroup) {
+        this.firstFieldOfGroup = firstFieldOfGroup;
     }
 }

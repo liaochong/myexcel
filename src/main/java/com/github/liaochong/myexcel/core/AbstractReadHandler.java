@@ -235,8 +235,13 @@ abstract class AbstractReadHandler<T> {
                                     convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                                 }
                             } else {
-                                Object value = multiColumn.classType().newInstance();
-                                ((List<Object>) prevObj).add(value);
+                                Object value;
+                                if (fieldDefinition.isFirstFieldOfGroup()) {
+                                    value = multiColumn.classType().newInstance();
+                                    ((List<Object>) prevObj).add(value);
+                                } else {
+                                    value = ((List<Object>) prevObj).get(((List<Object>) prevObj).size() - 1);
+                                }
                                 convert(value, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
                             }
                         }

@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -70,6 +71,17 @@ public final class ReflectUtil {
         fieldMap = new HashMap<>();
         getFieldDefinition(dataType, fieldMap, null, 0);
         FIELD_CACHE.cache(dataType, fieldMap);
+        // set first field flag of group
+        Map<Class<?>, List<Map.Entry<Integer, FieldDefinition>>> group = fieldMap.entrySet().stream()
+                .collect(Collectors.groupingBy(fieldDefinition -> fieldDefinition.getValue().getField().getDeclaringClass()));
+        group.forEach((k, v) -> {
+            v.stream()
+                    .sorted(Comparator.comparing(Map.Entry::getKey))
+                    .findFirst()
+                    .get()
+                    .getValue()
+                    .setFirstFieldOfGroup(true);
+        });
         return fieldMap;
     }
 
