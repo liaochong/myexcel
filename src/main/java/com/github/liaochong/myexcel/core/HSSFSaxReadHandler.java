@@ -158,6 +158,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
                     mergeCellMapping = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap());
                     detectedMergeOfThisSheet = !mergeCellMapping.isEmpty();
+                    waitCount = 0;
                     mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
                     setFieldHandlerFunction();
                 }
