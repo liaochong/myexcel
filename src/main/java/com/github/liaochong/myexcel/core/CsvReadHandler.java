@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,7 +40,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
     public CsvReadHandler(InputStream is,
                           SaxExcelReader.ReadConfig<T> readConfig,
                           List<T> result) {
-        super(true, result, readConfig);
+        super(true, result, readConfig, Collections.emptyMap());
         this.is = is;
     }
 
@@ -51,7 +52,7 @@ class CsvReadHandler<T> extends AbstractReadHandler<T> {
         try (Reader reader = new InputStreamReader(new BOMInputStream(is), readConfig.csvCharset);
              CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withDelimiter(readConfig.csvDelimiter))) {
             for (final CSVRecord record : parser) {
-                newRow((int) (record.getRecordNumber() - 1));
+                newRow((int) (record.getRecordNumber() - 1), true);
                 Iterator<String> iterator = record.stream().iterator();
                 int columnIndex = 0;
                 while (iterator.hasNext()) {

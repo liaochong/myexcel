@@ -20,6 +20,7 @@ import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import org.apache.poi.EncryptedDocumentException;
@@ -83,7 +84,7 @@ public class DefaultExcelReader<T> {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (e, c) -> false;
 
-    private ReadContext<T> context = new ReadContext<>();
+    private final ReadContext<T> context = new ReadContext<>();
 
     private Map<String, XSSFPicture> xssfPicturesMap = Collections.emptyMap();
 
@@ -93,7 +94,7 @@ public class DefaultExcelReader<T> {
 
     private String sheetName;
 
-    private ConvertContext convertContext = new ConvertContext(false);
+    private final ConvertContext convertContext = new ConvertContext(false);
 
     private Function<String, String> trim = v -> {
         if (v == null) {
@@ -187,14 +188,14 @@ public class DefaultExcelReader<T> {
     }
 
     private List<T> doRead(Supplier<Sheet> sheetSupplier) {
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        if (fieldMap.isEmpty()) {
+        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
+        if (fieldDefinitionMap.isEmpty()) {
             return Collections.emptyList();
         }
         try {
             Sheet sheet = sheetSupplier.get();
             this.startSheetConsumer.accept(sheet);
-            return getDataFromFile(sheet, fieldMap);
+            return getDataFromFile(sheet, fieldDefinitionMap);
         } finally {
             clearWorkbook();
         }
@@ -233,13 +234,13 @@ public class DefaultExcelReader<T> {
     }
 
     private void doReadThen(Supplier<Sheet> sheetSupplier, Consumer<T> consumer, Function<T, Boolean> function) {
-        Map<Integer, Field> fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
-        if (fieldMap.isEmpty()) {
+        Map<Integer, FieldDefinition> fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
+        if (fieldDefinitionMap.isEmpty()) {
             return;
         }
         try {
             Sheet sheet = sheetSupplier.get();
-            readThenConsume(sheet, fieldMap, consumer, function);
+            readThenConsume(sheet, fieldDefinitionMap, consumer, function);
         } finally {
             clearWorkbook();
         }
@@ -295,7 +296,7 @@ public class DefaultExcelReader<T> {
         return sheet;
     }
 
-    private List<T> getDataFromFile(Sheet sheet, Map<Integer, Field> fieldMap) {
+    private List<T> getDataFromFile(Sheet sheet, Map<Integer, FieldDefinition> fieldDefinitionMap) {
         long startTime = System.currentTimeMillis();
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
@@ -321,7 +322,7 @@ public class DefaultExcelReader<T> {
             if (lastColNum < 0) {
                 continue;
             }
-            T obj = instanceObj(fieldMap, formatter, row);
+            T obj = instanceObj(fieldDefinitionMap, formatter, row);
             if (beanFilter.test(obj)) {
                 result.add(obj);
             }
@@ -330,7 +331,7 @@ public class DefaultExcelReader<T> {
         return result;
     }
 
-    private void readThenConsume(Sheet sheet, Map<Integer, Field> fieldMap, Consumer<T> consumer, Function<T, Boolean> function) {
+    private void readThenConsume(Sheet sheet, Map<Integer, FieldDefinition> fieldDefinitionMap, Consumer<T> consumer, Function<T, Boolean> function) {
         long startTime = System.currentTimeMillis();
         final int firstRowNum = sheet.getFirstRowNum();
         final int lastRowNum = sheet.getLastRowNum();
@@ -356,7 +357,7 @@ public class DefaultExcelReader<T> {
             if (lastColNum < 0) {
                 continue;
             }
-            T obj = instanceObj(fieldMap, formatter, row);
+            T obj = instanceObj(fieldDefinitionMap, formatter, row);
             if (beanFilter.test(obj)) {
                 if (consumer != null) {
                     consumer.accept(obj);
@@ -407,11 +408,11 @@ public class DefaultExcelReader<T> {
         }
     }
 
-    private T instanceObj(Map<Integer, Field> fieldMap, DataFormatter formatter, Row row) {
+    private T instanceObj(Map<Integer, FieldDefinition> fieldDefinitionMap, DataFormatter formatter, Row row) {
         T obj = ReflectUtil.newInstance(dataType);
-        fieldMap.forEach((index, field) -> {
-            if (field.getType() == InputStream.class) {
-                convertPicture(row, obj, index, field);
+        fieldDefinitionMap.forEach((index, fieldDefinition) -> {
+            if (fieldDefinition.getField().getType() == InputStream.class) {
+                convertPicture(row, obj, index, fieldDefinition.getField());
                 return;
             }
             Cell cell = row.getCell(index, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
@@ -423,7 +424,7 @@ public class DefaultExcelReader<T> {
                 return;
             }
             content = trim.apply(content);
-            context.reset(obj, field, content, row.getRowNum(), index);
+            context.reset(obj, fieldDefinition.getField(), content, row.getRowNum(), index);
             ReadConverterContext.convert(obj, context, convertContext, exceptionFunction);
         });
         return obj;

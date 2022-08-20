@@ -16,19 +16,23 @@ package com.github.liaochong.myexcel.core;
 
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.ReadConverterContext;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
+import org.apache.poi.ss.util.CellAddress;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -45,7 +49,7 @@ import java.util.stream.Collectors;
  */
 abstract class AbstractReadHandler<T> {
 
-    private Map<Integer, Field> fieldMap;
+    private Map<Integer, FieldDefinition> fieldDefinitionMap;
 
     private T obj;
 
@@ -89,20 +93,31 @@ abstract class AbstractReadHandler<T> {
      */
     protected boolean isBlankRow;
 
+    protected Map<CellAddress, CellAddress> mergeCellMapping;
+
+    private final boolean isMapType;
+
+    private final Map<Class<?>, Integer> fieldParentIndexMapping;
+
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
-                               SaxExcelReader.ReadConfig<T> readConfig) {
+                               SaxExcelReader.ReadConfig<T> readConfig,
+                               Map<CellAddress, CellAddress> mergeCellMapping) {
+        this.mergeCellMapping = mergeCellMapping;
         convertContext = new ConvertContext(readCsv);
         Class<T> dataType = readConfig.dataType;
-        fieldMap = ReflectUtil.getFieldMapOfExcelColumn(dataType);
+        fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
-        boolean isMapType = dataType == Map.class;
-        readWithTitle = !isMapType && fieldMap.isEmpty();
+        this.isMapType = dataType == Map.class;
+        readWithTitle = !isMapType && fieldDefinitionMap.isEmpty();
         setNewInstanceFunction(dataType, isMapType);
         // 全局配置获取
         setConfiguration(dataType, isMapType);
         setResultHandlerFunction(result, readConfig);
-        setFieldHandlerFunction(isMapType);
+        setFieldHandlerFunction();
+        fieldParentIndexMapping = fieldDefinitionMap.values().stream().map(f -> f.getField().getDeclaringClass())
+                .distinct()
+                .collect(Collectors.toMap(c -> c, c -> 9999999));
     }
 
     private void setResultHandlerFunction(List<T> result, SaxExcelReader.ReadConfig<T> readConfig) {
@@ -157,7 +172,7 @@ abstract class AbstractReadHandler<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void setFieldHandlerFunction(boolean isMapType) {
+    protected void setFieldHandlerFunction() {
         if (isMapType) {
             fieldHandler = (colNum, content) -> {
                 for (int i = prevColNum + 1; i < colNum; i++) {
@@ -166,12 +181,90 @@ abstract class AbstractReadHandler<T> {
                 ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);
                 prevColNum = colNum;
             };
+        } else if (mergeCellMapping.isEmpty()) {
+            fieldHandler = (colNum, content) -> {
+                FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
+                if (fieldDefinition != null) {
+                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                }
+            };
         } else {
             fieldHandler = (colNum, content) -> {
-                Field field = fieldMap.get(colNum);
-                convert(content, currentRow.getRowNum(), colNum, field);
+                FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
+                if (fieldDefinition == null) {
+                    return;
+                }
+                CellAddress cellAddress = new CellAddress(currentRow.getRowNum(), colNum);
+                CellAddress target = mergeCellMapping.get(cellAddress);
+                boolean isList = fieldDefinition.getField().getType() == List.class;
+                if (!isList && fieldDefinition.getParentFields().isEmpty()) {
+                    if (target == null) {
+                        convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                    }
+                } else {
+                    try {
+                        Object prevObj = obj;
+                        for (int i = 0, size = fieldDefinition.getParentFields().size(); i < size - 1; i++) {
+                            Field parentField = fieldDefinition.getParentFields().get(i);
+                            List<?> list = (List<?>) parentField.get(prevObj);
+                            prevObj = list.get(list.size() - 1);
+                        }
+                        Field lastField = isList && fieldDefinition.getParentFields().isEmpty() ? fieldDefinition.getField() : fieldDefinition.getParentFields().get(fieldDefinition.getParentFields().size() - 1);
+                        Object lastParent = lastField.get(prevObj);
+                        if (lastParent == null) {
+                            List<?> list = new LinkedList<>();
+                            lastField.set(prevObj, list);
+                            prevObj = list;
+                        } else {
+                            prevObj = lastParent;
+                        }
+                        if (target == null) {
+                            MultiColumn multiColumn = lastField.getAnnotation(MultiColumn.class);
+                            if (isList) {
+                                boolean isBase = ReadConverterContext.support(multiColumn.classType());
+                                if (((List) prevObj).isEmpty()) {
+                                    if (!isBase) {
+                                        Object value = multiColumn.classType().newInstance();
+                                        ((List) prevObj).add(value);
+                                    }
+                                }
+                                if (isBase) {
+                                    convert(prevObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                                } else {
+                                    Object targetParent = ((List) prevObj).get(((List) prevObj).size() - 1);
+                                    Object targetObj = fieldDefinition.getField().get(targetParent);
+                                    if (targetObj == null) {
+                                        targetObj = new LinkedList<>();
+                                        fieldDefinition.getField().set(targetParent, targetObj);
+                                    }
+                                    convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                                }
+                            } else {
+                                Object value;
+                                if (fieldParentIndexMapping.get(fieldDefinition.getField().getDeclaringClass()) >= colNum) {
+                                    value = multiColumn.classType().newInstance();
+                                    ((List<Object>) prevObj).add(value);
+                                } else {
+                                    value = ((List<Object>) prevObj).get(((List<Object>) prevObj).size() - 1);
+                                }
+                                convert(value, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    fieldParentIndexMapping.put(fieldDefinition.getField().getDeclaringClass(), colNum);
+                }
             };
         }
+    }
+
+    protected void convert(Object prevObj, String value, int rowNum, int colNum, Field field) {
+        if (value == null || field == null) {
+            return;
+        }
+        context.reset(obj, field, value, rowNum, colNum);
+        ReadConverterContext.convert(prevObj, context, convertContext, readConfig.exceptionFunction);
     }
 
     protected void convert(String value, int rowNum, int colNum, Field field) {
@@ -182,9 +275,11 @@ abstract class AbstractReadHandler<T> {
         ReadConverterContext.convert(obj, context, convertContext, readConfig.exceptionFunction);
     }
 
-    protected void newRow(int rowNum) {
+    protected void newRow(int rowNum, boolean newInstance) {
         currentRow.setRowNum(rowNum);
-        obj = newInstance.get();
+        if (obj == null || newInstance) {
+            obj = this.newInstance.get();
+        }
         prevColNum = -1;
         isBlankRow = true;
     }
@@ -244,11 +339,11 @@ abstract class AbstractReadHandler<T> {
     }
 
     private void initFieldMap() {
-        if (currentRow.getRowNum() != titleRowNum || !fieldMap.isEmpty()) {
+        if (currentRow.getRowNum() != titleRowNum || !fieldDefinitionMap.isEmpty()) {
             return;
         }
         Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.dataType);
-        fieldMap = new HashMap<>(titleFieldMap.size());
+        fieldDefinitionMap = new HashMap<>(titleFieldMap.size());
         // 获取最大列数
         List<Integer> colNums = titles.values().stream().flatMap(t -> t.keySet().stream()).collect(Collectors.toList());
         int maxColNum = Collections.max(colNums);
@@ -276,7 +371,7 @@ abstract class AbstractReadHandler<T> {
             if (StringUtil.isNotBlank(title)) {
                 realTitle.add(title);
             }
-            fieldMap.put(colNum, titleFieldMap.get(realTitle.toString()));
+            fieldDefinitionMap.put(colNum, new FieldDefinition(titleFieldMap.get(realTitle.toString())));
         }
         // 释放
         titles = null;

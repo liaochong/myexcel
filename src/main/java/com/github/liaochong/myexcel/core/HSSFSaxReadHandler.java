@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -98,11 +99,15 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
     private Map<CellAddress, String> mergeFirstCellMapping;
 
+    private boolean detectedMergeOfThisSheet;
+
+    private long waitCount = 0;
+
     public HSSFSaxReadHandler(File file,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig,
                               Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) throws IOException {
-        super(false, result, readConfig);
+        super(false, result, readConfig, Collections.emptyMap());
         this.fs = new POIFSFileSystem(new FileInputStream(file));
         this.mergeCellIndexMapping = mergeCellIndexMapping;
     }
@@ -151,7 +156,11 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     }
                     sheetName = orderedBSRs[sheetIndex].getSheetname();
                     readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
-                    mergeFirstCellMapping = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
+                    mergeCellMapping = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap());
+                    detectedMergeOfThisSheet = !mergeCellMapping.isEmpty();
+                    waitCount = 0;
+                    mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
+                    setFieldHandlerFunction();
                 }
                 break;
 
@@ -260,7 +269,11 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         // Handle new row
         if (thisRow != -1 && thisRow != lastRowNumber) {
             lastRowNumber = thisRow;
-            newRow(thisRow);
+            newRow(thisRow, !detectedMergeOfThisSheet || waitCount == 0);
+            if (detectedMergeOfThisSheet && waitCount == 0) {
+                waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), lastRowNumber) && c.getColumn() == 0).count() + 1;
+            }
+            waitCount--;
         }
         boolean isSelectedSheet = this.isSelectedSheet();
         if (isSelectedSheet && thisColumn != -1) {
@@ -271,7 +284,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 CellAddress firstCellAddress = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).get(cellAddress);
                 if (firstCellAddress != null) {
                     thisStr = mergeFirstCellMapping.get(firstCellAddress);
-                    mergeCellIndexMapping.get(sheetIndex).remove(cellAddress);
                 }
             }
             handleField(thisColumn, thisStr);
@@ -282,7 +294,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 this.titles.clear();
                 return;
             }
-            handleResult();
+            if (!detectedMergeOfThisSheet || waitCount == 0) {
+                handleResult();
+            }
         }
     }
 

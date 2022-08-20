@@ -357,8 +357,9 @@ public class SaxExcelReader<T> {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
             this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
                 readConfig.startSheetConsumer.accept(sheetName, index);
+                Map<CellAddress, CellAddress> mergeCellMapping = mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap());
                 ContentHandler handler = new XSSFSheetXMLHandler(
-                        mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap()), strings, new XSSFSaxReadHandler<>(result, readConfig));
+                        mergeCellMapping, strings, new XSSFSaxReadHandler<>(result, readConfig, mergeCellMapping));
                 processSheet(handler, stream);
                 mergeCellIndexMapping.remove(index);
             });

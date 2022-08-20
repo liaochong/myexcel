@@ -4,6 +4,7 @@ sudo: false
 jdk:
   - openjdk8
   - openjdk11
+  - openjdk17
 
 before_script:
   - ./mvnw install -q -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true

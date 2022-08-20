@@ -26,6 +26,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.poi.xssf.usermodel.XSSFRelation.NS_SPREADSHEETML;
@@ -76,6 +77,8 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     private int nextRowNum;      // some sheets do not have rowNums, Excel can read them so we should try to handle them correctly as well
     private String cellRef;
 
+    private final boolean detectedMerge;
+    private long waitCount = 0;
     // Gathers characters as they are seen.
     private final StringBuilder value = new StringBuilder(64);
 
@@ -94,6 +97,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             SharedStrings strings,
             XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler) {
         this.mergeCellMapping = mergeCellMapping;
+        this.detectedMerge = !mergeCellMapping.isEmpty();
         this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;
@@ -154,11 +158,15 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             }
             if (rowNum - 1 != preRowNum) {
                 for (int blankRowNum = preRowNum + 1; blankRowNum < rowNum; blankRowNum++) {
-                    output.startRow(blankRowNum);
+                    output.startRow(blankRowNum, true);
                     output.endRow(blankRowNum);
                 }
             }
-            output.startRow(rowNum);
+            output.startRow(rowNum, !detectedMerge || waitCount == 0);
+            if (detectedMerge && waitCount == 0) {
+                waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), rowNum) && c.getColumn() == 0).count() + 1;
+            }
+            waitCount--;
             this.preRowNum = rowNum;
         } else if ("is".equals(localName)) {
             // Inline string outer tag
@@ -240,11 +248,12 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
             if (firstCellAddress != null) {
                 output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
-                mergeCellMapping.remove(cellAddress);
             }
         } else if ("row".equals(localName)) {
             // Finish up the row
-            output.endRow(rowNum);
+            if (!detectedMerge || waitCount == 0) {
+                output.endRow(rowNum);
+            }
             // some sheets do not have rowNum set in the XML, Excel can read them so we should try to read them as well
             nextRowNum = rowNum + 1;
         } else if ("sheetData".equals(localName)) {
@@ -275,9 +284,10 @@ class XSSFSheetXMLHandler extends DefaultHandler {
         /**
          * A row with the (zero based) row number has started
          *
-         * @param rowNum rowNum
+         * @param rowNum      rowNum
+         * @param newInstance newInstance
          */
-        void startRow(int rowNum);
+        void startRow(int rowNum, boolean newInstance);
 
         /**
          * A row with the (zero based) row number has ended

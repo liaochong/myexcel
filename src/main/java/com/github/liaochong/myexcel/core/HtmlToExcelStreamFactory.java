@@ -434,7 +434,7 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
      */
     static class HtmlToExcelStreamFactoryContext {
 
-        BlockingQueue<Tr> trWaitQueue = new LinkedBlockingQueue<>(Runtime.getRuntime().availableProcessors() * 2);
+        BlockingQueue<Tr> trWaitQueue = new LinkedBlockingQueue<>(Math.max(Runtime.getRuntime().availableProcessors() * 10, 100));
         /**
          * 线程池
          */
