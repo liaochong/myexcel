@@ -97,6 +97,8 @@ abstract class AbstractReadHandler<T> {
 
     private final boolean isMapType;
 
+    private final Map<Class<?>, Integer> fieldParentIndexMapping;
+
     public AbstractReadHandler(boolean readCsv,
                                List<T> result,
                                SaxExcelReader.ReadConfig<T> readConfig,
@@ -113,6 +115,9 @@ abstract class AbstractReadHandler<T> {
         setConfiguration(dataType, isMapType);
         setResultHandlerFunction(result, readConfig);
         setFieldHandlerFunction();
+        fieldParentIndexMapping = fieldDefinitionMap.values().stream().map(f -> f.getField().getDeclaringClass())
+                .distinct()
+                .collect(Collectors.toMap(c -> c, c -> 9999999));
     }
 
     private void setResultHandlerFunction(List<T> result, SaxExcelReader.ReadConfig<T> readConfig) {
@@ -236,7 +241,7 @@ abstract class AbstractReadHandler<T> {
                                 }
                             } else {
                                 Object value;
-                                if (fieldDefinition.isFirstFieldOfGroup()) {
+                                if (fieldParentIndexMapping.get(fieldDefinition.getField().getDeclaringClass()) >= colNum) {
                                     value = multiColumn.classType().newInstance();
                                     ((List<Object>) prevObj).add(value);
                                 } else {
@@ -248,6 +253,7 @@ abstract class AbstractReadHandler<T> {
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
+                    fieldParentIndexMapping.put(fieldDefinition.getField().getDeclaringClass(), colNum);
                 }
             };
         }
