@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -252,6 +253,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             this.createRow(tr, sheet);
             tr.tdList = null;
         }
+        stagingTds = new LinkedList<>();
         table.trList = null;
         this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
     }
