@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>4.3.0.RC</version>
+    <version>4.3.0.RC1</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -22,8 +22,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <poi.version>5.2.2</poi.version>
-        <jsoup.version>1.15.2</jsoup.version>
+        <poi.version>5.2.3</poi.version>
+        <jsoup.version>1.15.3</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
         <beetl.version>3.9.0.RELEASE</beetl.version>
         <velocity.version>2.3</velocity.version>
