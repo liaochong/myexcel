@@ -271,7 +271,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
             lastRowNumber = thisRow;
             newRow(thisRow, !detectedMergeOfThisSheet || waitCount == 0);
             if (detectedMergeOfThisSheet && waitCount == 0) {
-                waitCount = mergeCellMapping.values().stream().filter(c -> Objects.equals(c.getRow(), lastRowNumber) && c.getColumn() == 0).count() + 1;
+                waitCount = mergeCellMapping.entrySet().stream().filter(c -> c.getValue().getColumn() == 0
+                        && Objects.equals(c.getValue().getRow(), lastRowNumber)
+                        && c.getKey().getRow() != c.getValue().getRow()).count() + 1;
             }
             waitCount--;
         }
