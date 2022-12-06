@@ -5,22 +5,29 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class DropDownLists {
 
-    private DropDownLists(){
+    private static final Map<String, Index> INDEX = new ConcurrentHashMap<>();
+
+    private DropDownLists() {
     }
 
     public static Index getHiddenSheetIndex(String input, Workbook workbook) {
-        return SingleCase.s.index.computeIfAbsent(input, hash -> createAndWriteHiddenSheet(input, workbook));
+        return INDEX.computeIfAbsent(input, hash -> createAndWriteHiddenSheet(input, workbook));
     }
 
     private static Index createAndWriteHiddenSheet(String input, Workbook workbook) {
         String sheetName = "MyExcel_HiddenDat@List-0";
-        Sheet sheet = SingleCase.s.hiddenSheet.computeIfAbsent(workbook, w -> workbook.createSheet(sheetName));
-        Integer index = SingleCase.s.hiddenSheetIndex.computeIfAbsent(workbook, w -> workbook.getSheetIndex(sheetName));
+        Sheet sheet = workbook.getSheet(sheetName);
+        if (sheet == null) {
+            sheet = workbook.createSheet(sheetName);
+            int index = workbook.getSheetIndex(sheet);
+            workbook.setSheetHidden(index, true);
+        }
         int rowNum = sheet.getLastRowNum() + 1;
         Row row = sheet.createRow(rowNum);
         String[] list = input.split(",");
@@ -28,19 +35,8 @@ public final class DropDownLists {
             Cell cell = row.createCell(i);
             cell.setCellValue(list[i]);
         }
-        workbook.setSheetHidden(index, true);
         int displayRowNum = rowNum + 1;
-        return new Index(list[0], rowNum, "'" +sheetName + "'!$" + displayRowNum + ":$" + displayRowNum);
-    }
-
-    private static class SingleCase {
-        private final ConcurrentHashMap<String, Index> index = new ConcurrentHashMap<>();
-
-        private final ConcurrentHashMap<Workbook, Sheet> hiddenSheet = new ConcurrentHashMap<>();
-
-        private final ConcurrentHashMap<Workbook, Integer> hiddenSheetIndex = new ConcurrentHashMap<>();
-
-        public static final SingleCase s = new SingleCase();
+        return new Index(list[0], rowNum, "'" + sheetName + "'!$" + displayRowNum + ":$" + displayRowNum);
     }
 
     public static class Index {
