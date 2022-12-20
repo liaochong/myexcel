@@ -16,6 +16,7 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
+import com.github.liaochong.myexcel.core.parser.DropDownLists;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
@@ -564,29 +565,38 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     private String setDropDownList(Td td, Sheet sheet, String content) {
-        if (content.length() > 250) {
-            throw new IllegalArgumentException("The total number of words in the drop-down list should not exceed 250.");
-        }
-        CellRangeAddressList addressList = new CellRangeAddressList(
+        if (content != null && !content.isEmpty()) {
+            CellRangeAddressList addressList = new CellRangeAddressList(
                 td.row, td.getRowBound(), td.col, td.getColBound());
-        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-        String[] list = content.split(",");
-        DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
-        DataValidation validation = dvHelper.createValidation(
-                dvConstraint, addressList);
-        if (td.promptContainer != null) {
-            validation.createPromptBox(td.promptContainer.title, td.promptContainer.text);
-            validation.setShowPromptBox(true);
-        }
-        if (validation instanceof XSSFDataValidation) {
-            validation.setSuppressDropDownArrow(true);
-            validation.setShowErrorBox(true);
-        } else {
-            validation.setSuppressDropDownArrow(false);
-        }
-        sheet.addValidationData(validation);
-        if (list.length > 0) {
-            return list[0];
+            DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+            String[] list;
+            DataValidation validation;
+            if (content.length() <= 250) {
+                list = content.split(",");
+                DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
+                validation = dvHelper.createValidation(
+                    dvConstraint, addressList);
+
+            } else {
+                DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
+                list = new String[]{index.firstLine};
+                validation = dvHelper.createValidation(dvHelper.createFormulaListConstraint(index.path), addressList);
+            }
+
+            if (td.promptContainer != null) {
+                validation.createPromptBox(td.promptContainer.title, td.promptContainer.text);
+                validation.setShowPromptBox(true);
+            }
+            if (validation instanceof XSSFDataValidation) {
+                validation.setSuppressDropDownArrow(true);
+                validation.setShowErrorBox(true);
+            } else {
+                validation.setSuppressDropDownArrow(false);
+            }
+            sheet.addValidationData(validation);
+            if (list.length > 0) {
+                return list[0];
+            }
         }
         return null;
     }
