@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core;
+package com.github.liaochong.myexcel.core.context;
 
 /**
  * @author liaochong
@@ -26,7 +26,7 @@ public final class RowContext {
         return rowNum;
     }
 
-    void setRowNum(int rowNum) {
+    public void setRowNum(int rowNum) {
         this.rowNum = rowNum;
     }
 }
