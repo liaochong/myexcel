@@ -34,12 +34,18 @@ public class ReadContext<T> {
 
     private int colNum;
 
+    private Hyperlink hyperlink;
+
     public void reset(T object, Field field, String val, int rowNum, int colNum) {
         this.object = object;
         this.field = field;
         this.val = val;
         this.rowNum = rowNum;
         this.colNum = colNum;
+    }
+
+    public void revert() {
+        this.hyperlink = null;
     }
 
     public T getObject() {
@@ -80,5 +86,13 @@ public class ReadContext<T> {
 
     public void setColNum(int colNum) {
         this.colNum = colNum;
+    }
+
+    public Hyperlink getHyperlink() {
+        return hyperlink;
+    }
+
+    public void setHyperlink(Hyperlink hyperlink) {
+        this.hyperlink = hyperlink;
     }
 }

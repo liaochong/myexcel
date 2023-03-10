@@ -59,7 +59,7 @@ abstract class AbstractReadHandler<T> {
 
     protected SaxExcelReader.ReadConfig<T> readConfig;
 
-    private final ReadContext<T> context = new ReadContext<>();
+    protected final ReadContext<T> readContext = new ReadContext<>();
 
     private final RowContext rowContext = new RowContext();
 
@@ -265,16 +265,18 @@ abstract class AbstractReadHandler<T> {
         if (value == null || field == null) {
             return;
         }
-        context.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(prevObj, context, convertContext, readConfig.exceptionFunction);
+        readContext.reset(obj, field, value, rowNum, colNum);
+        ReadConverterContext.convert(prevObj, readContext, convertContext, readConfig.exceptionFunction);
+        readContext.revert();
     }
 
     protected void convert(String value, int rowNum, int colNum, Field field) {
         if (value == null || field == null) {
             return;
         }
-        context.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(obj, context, convertContext, readConfig.exceptionFunction);
+        readContext.reset(obj, field, value, rowNum, colNum);
+        ReadConverterContext.convert(obj, readContext, convertContext, readConfig.exceptionFunction);
+        readContext.revert();
     }
 
     protected void newRow(int rowNum, boolean newInstance) {

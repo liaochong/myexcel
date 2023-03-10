@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
@@ -28,6 +29,7 @@ import org.apache.poi.hssf.record.BlankRecord;
 import org.apache.poi.hssf.record.BoolErrRecord;
 import org.apache.poi.hssf.record.BoundSheetRecord;
 import org.apache.poi.hssf.record.FormulaRecord;
+import org.apache.poi.hssf.record.HyperlinkRecord;
 import org.apache.poi.hssf.record.LabelRecord;
 import org.apache.poi.hssf.record.LabelSSTRecord;
 import org.apache.poi.hssf.record.NoteRecord;
@@ -249,6 +251,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 thisRow = rkrec.getRow();
                 thisColumn = rkrec.getColumn();
                 break;
+            case HyperlinkRecord.sid:
+                HyperlinkRecord hr = (HyperlinkRecord) record;
+                this.readContext.setHyperlink(new Hyperlink(hr.getAddress(), hr.getTextMark(), hr));
             default:
                 break;
         }
