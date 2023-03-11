@@ -14,8 +14,10 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import org.apache.poi.hssf.record.BOFRecord;
 import org.apache.poi.hssf.record.BoundSheetRecord;
+import org.apache.poi.hssf.record.HyperlinkRecord;
 import org.apache.poi.hssf.record.MergeCellsRecord;
 import org.apache.poi.hssf.record.Record;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -32,15 +34,13 @@ import java.util.Map;
  * @author liaochong
  * @version 1.0
  */
-class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
+class HSSFPreReadHandler extends AbstractHSSFReadHandler {
 
-    private final Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping;
+    private final HSSFPreData hssfPreData = new HSSFPreData();
 
-    public HSSFMergeReadHandler(File file,
-                                SaxExcelReader.ReadConfig<?> readConfig,
-                                Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) throws IOException {
+    public HSSFPreReadHandler(File file,
+                              SaxExcelReader.ReadConfig<?> readConfig) throws IOException {
         this.readConfig = readConfig;
-        this.mergeCellIndexMapping = mergeCellIndexMapping;
         this.fs = new POIFSFileSystem(new FileInputStream(file));
     }
 
@@ -67,7 +67,7 @@ class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
                 }
                 MergeCellsRecord mergeCellsRecord = (MergeCellsRecord) record;
                 int numAreas = mergeCellsRecord.getNumAreas();
-                Map<CellAddress, CellAddress> mergeCellMapping = new HashMap<>();
+                Map<CellAddress, CellAddress> mergeCellMapping = hssfPreData.mergeCellIndexMapping.computeIfAbsent(sheetIndex, k -> new HashMap<>());
                 for (int i = 0; i < numAreas; i++) {
                     Iterator<CellAddress> iterator = mergeCellsRecord.getAreaAt(i).iterator();
                     CellAddress firstCellAddress = null;
@@ -80,7 +80,12 @@ class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
                         }
                     }
                 }
-                mergeCellIndexMapping.put(sheetIndex, mergeCellMapping);
+                break;
+            case HyperlinkRecord.sid:
+                HyperlinkRecord hr = (HyperlinkRecord) record;
+                Map<CellAddress, Hyperlink> hyperlinkMapping = hssfPreData.hyperlinkMapping.computeIfAbsent(sheetIndex, k -> new HashMap<>());
+                hyperlinkMapping.put(new CellAddress(hr.getFirstRow(), hr.getLastColumn()), new Hyperlink(hr.getAddress(), hr.getLabel(), hr));
+                hssfPreData.hyperlinkMapping.put(sheetIndex, hyperlinkMapping);
                 break;
             default:
                 break;
@@ -95,5 +100,31 @@ class HSSFMergeReadHandler extends AbstractHSSFReadHandler {
             return readConfig.sheetNames.contains(sheetName);
         }
         return readConfig.sheetIndexs.contains(sheetIndex);
+    }
+
+    public HSSFPreData getHssfPreData() {
+        return hssfPreData;
+    }
+
+    public static class HSSFPreData {
+        private Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
+
+        private Map<Integer, Map<CellAddress, Hyperlink>> hyperlinkMapping = new HashMap<>();
+
+        public Map<Integer, Map<CellAddress, CellAddress>> getMergeCellIndexMapping() {
+            return mergeCellIndexMapping;
+        }
+
+        public void setMergeCellIndexMapping(Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) {
+            this.mergeCellIndexMapping = mergeCellIndexMapping;
+        }
+
+        public Map<Integer, Map<CellAddress, Hyperlink>> getHyperlinkMapping() {
+            return hyperlinkMapping;
+        }
+
+        public void setHyperlinkMapping(Map<Integer, Map<CellAddress, Hyperlink>> hyperlinkMapping) {
+            this.hyperlinkMapping = hyperlinkMapping;
+        }
     }
 }

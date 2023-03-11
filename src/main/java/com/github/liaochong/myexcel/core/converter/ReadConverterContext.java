@@ -17,6 +17,7 @@ package com.github.liaochong.myexcel.core.converter;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import com.github.liaochong.myexcel.core.context.ReadContext;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
@@ -115,6 +116,14 @@ public class ReadConverterContext {
 
     @SuppressWarnings("unchecked")
     public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+        if (context.getField().getType() == Hyperlink.class && context.getHyperlink() != null) {
+            try {
+                context.getField().set(obj, context.getHyperlink());
+            } catch (IllegalAccessException e) {
+                throw new SaxReadException("Failed to set the " + context.getField().getDeclaringClass().getName() + "#" + context.getField().getName() + " field value to " + context.getVal(), e);
+            }
+            return;
+        }
         ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(context.getField().getType());
         if (readConverter == null) {
             MultiColumn multiColumn = context.getField().getAnnotation(MultiColumn.class);

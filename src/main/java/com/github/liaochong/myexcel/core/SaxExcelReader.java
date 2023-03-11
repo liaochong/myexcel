@@ -15,11 +15,13 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.cache.StringsCache;
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import com.github.liaochong.myexcel.core.context.ReadContext;
 import com.github.liaochong.myexcel.core.context.RowContext;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -305,14 +307,17 @@ public class SaxExcelReader<T> {
                 workbookMetaData = new WorkbookMetaData();
                 new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
             } else {
-                Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
-                if (readConfig.detectedMerge) {
-                    new HSSFMergeReadHandler(file, readConfig, mergeCellIndexMapping).process();
+                HSSFPreReadHandler.HSSFPreData hssfPreData = null;
+                boolean hasHyperlink = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType).values().stream().anyMatch(f -> f.getField().getType() == Hyperlink.class);
+                if (readConfig.detectedMerge || hasHyperlink) {
+                    HSSFPreReadHandler hssfPreReadHandler = new HSSFPreReadHandler(file, readConfig);
+                    hssfPreReadHandler.process();
+                    hssfPreData = hssfPreReadHandler.getHssfPreData();
                 }
-                if (mergeCellIndexMapping.isEmpty()) {
+                if (hssfPreData == null || hssfPreData.getMergeCellIndexMapping() == null) {
                     readConfig.detectedMerge = false;
                 }
-                new HSSFSaxReadHandler<>(file, result, readConfig, mergeCellIndexMapping).process();
+                new HSSFSaxReadHandler<>(file, result, readConfig, hssfPreData).process();
             }
         } catch (StopReadException e) {
             // do nothing

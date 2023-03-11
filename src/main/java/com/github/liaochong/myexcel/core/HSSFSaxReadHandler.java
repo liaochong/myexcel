@@ -29,7 +29,6 @@ import org.apache.poi.hssf.record.BlankRecord;
 import org.apache.poi.hssf.record.BoolErrRecord;
 import org.apache.poi.hssf.record.BoundSheetRecord;
 import org.apache.poi.hssf.record.FormulaRecord;
-import org.apache.poi.hssf.record.HyperlinkRecord;
 import org.apache.poi.hssf.record.LabelRecord;
 import org.apache.poi.hssf.record.LabelSSTRecord;
 import org.apache.poi.hssf.record.NoteRecord;
@@ -105,13 +104,16 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
     private long waitCount = 0;
 
+    private final HSSFPreReadHandler.HSSFPreData hssfPreData;
+
     public HSSFSaxReadHandler(File file,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig,
-                              Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) throws IOException {
+                              HSSFPreReadHandler.HSSFPreData hssfPreData) throws IOException {
         super(false, result, readConfig, Collections.emptyMap());
         this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.mergeCellIndexMapping = mergeCellIndexMapping;
+        this.hssfPreData = hssfPreData;
+        this.mergeCellIndexMapping = hssfPreData != null ? hssfPreData.getMergeCellIndexMapping() : Collections.emptyMap();
     }
 
     public void process() throws IOException {
@@ -251,9 +253,6 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 thisRow = rkrec.getRow();
                 thisColumn = rkrec.getColumn();
                 break;
-            case HyperlinkRecord.sid:
-                HyperlinkRecord hr = (HyperlinkRecord) record;
-                this.readContext.setHyperlink(new Hyperlink(hr.getAddress(), hr.getTextMark(), hr));
             default:
                 break;
         }
@@ -291,6 +290,14 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                 CellAddress firstCellAddress = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).get(cellAddress);
                 if (firstCellAddress != null) {
                     thisStr = mergeFirstCellMapping.get(firstCellAddress);
+                }
+            }
+            if (hssfPreData != null && !hssfPreData.getHyperlinkMapping().isEmpty()) {
+                Map<CellAddress, Hyperlink> hyperlinkMapping = hssfPreData.getHyperlinkMapping().get(sheetIndex);
+                if (hyperlinkMapping != null) {
+                    CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
+                    Hyperlink hyperlink = hyperlinkMapping.get(cellAddress);
+                    readContext.setHyperlink(hyperlink);
                 }
             }
             handleField(thisColumn, thisStr);

@@ -21,12 +21,12 @@ package com.github.liaochong.myexcel.core.context;
 public class Hyperlink {
 
     private String address;
-    private String textMark;
+    private String label;
     private Object source;
 
-    public Hyperlink(String address, String textMark, Object source) {
+    public Hyperlink(String address, String label, Object source) {
         this.address = address;
-        this.textMark = textMark;
+        this.label = label;
         this.source = source;
     }
 
@@ -38,12 +38,12 @@ public class Hyperlink {
         this.address = address;
     }
 
-    public String getTextMark() {
-        return textMark;
+    public String getLabel() {
+        return label;
     }
 
-    public void setTextMark(String textMark) {
-        this.textMark = textMark;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public Object getSource() {
