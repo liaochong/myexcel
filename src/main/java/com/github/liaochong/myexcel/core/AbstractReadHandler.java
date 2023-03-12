@@ -62,8 +62,6 @@ abstract class AbstractReadHandler<T> {
     protected final ReadContext<T> readContext = new ReadContext<>();
 
     private final RowContext rowContext = new RowContext();
-
-    private final ConvertContext convertContext;
     /**
      * Row object currently being processed
      */
@@ -106,7 +104,7 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig,
                                Map<CellAddress, CellAddress> mergeCellMapping) {
         this.mergeCellMapping = mergeCellMapping;
-        convertContext = new ConvertContext(readCsv);
+        readContext.setConvertContext(new ConvertContext(readCsv));
         Class<T> dataType = readConfig.dataType;
         fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         this.readConfig = readConfig;
@@ -160,7 +158,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.configuration);
+        ConfigurationUtil.parseConfiguration(classFieldContainer, readContext.getConvertContext().configuration);
 
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
         fields.forEach(field -> {
@@ -169,7 +167,7 @@ abstract class AbstractReadHandler<T> {
                 return;
             }
             ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-            convertContext.excelColumnMappingMap.put(field, mapping);
+            readContext.getConvertContext().excelColumnMappingMap.put(field, mapping);
         });
     }
 
@@ -266,7 +264,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         readContext.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(prevObj, readContext, convertContext, readConfig.exceptionFunction);
+        ReadConverterContext.convert(prevObj, readContext, readConfig.exceptionFunction);
         readContext.revert();
     }
 
@@ -275,7 +273,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         readContext.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(obj, readContext, convertContext, readConfig.exceptionFunction);
+        ReadConverterContext.convert(obj, readContext, readConfig.exceptionFunction);
         readContext.revert();
     }
 

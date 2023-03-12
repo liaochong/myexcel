@@ -14,7 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
+import com.github.liaochong.myexcel.core.context.ReadContext;
 import com.github.liaochong.myexcel.utils.RegexpUtil;
 
 import java.lang.reflect.Field;
@@ -33,7 +33,7 @@ public class NumberReadConverter<R extends Number> extends AbstractReadConverter
 
     private static final Pattern PATTERN_ZERO = Pattern.compile("(.+)\\.0*");
 
-    private Function<String, R> func;
+    private final Function<String, R> func;
 
     private NumberReadConverter(Function<String, R> func, boolean isInteger) {
         if (isInteger) {
@@ -48,7 +48,7 @@ public class NumberReadConverter<R extends Number> extends AbstractReadConverter
     }
 
     @Override
-    protected R doConvert(String v, Field field, ConvertContext convertContext) {
+    protected R doConvert(String v, Field field, ReadContext<?> readContext) {
         v = RegexpUtil.removeComma(v);
         BigDecimal bigDecimal = new BigDecimal(v);
         String realValue = bigDecimal.toPlainString();

@@ -85,7 +85,7 @@ public class DefaultExcelReader<T> {
 
     private BiFunction<Throwable, ReadContext, Boolean> exceptionFunction = (e, c) -> false;
 
-    private final ReadContext<T> context = new ReadContext<>();
+    private final ReadContext<T> readContext = new ReadContext<>(new ConvertContext(false));
 
     private Map<String, XSSFPicture> xssfPicturesMap = Collections.emptyMap();
 
@@ -94,8 +94,6 @@ public class DefaultExcelReader<T> {
     private boolean isXSSFSheet;
 
     private String sheetName;
-
-    private final ConvertContext convertContext = new ConvertContext(false);
 
     private Function<String, String> trim = v -> {
         if (v == null) {
@@ -115,7 +113,7 @@ public class DefaultExcelReader<T> {
         // 全局配置获取
         if (dataType != Map.class) {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-            ConfigurationUtil.parseConfiguration(classFieldContainer, convertContext.configuration);
+            ConfigurationUtil.parseConfiguration(classFieldContainer, readContext.getConvertContext().configuration);
 
             List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
             fields.forEach(field -> {
@@ -124,7 +122,7 @@ public class DefaultExcelReader<T> {
                     return;
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                convertContext.excelColumnMappingMap.put(field, mapping);
+                readContext.getConvertContext().excelColumnMappingMap.put(field, mapping);
             });
         }
     }
@@ -425,8 +423,8 @@ public class DefaultExcelReader<T> {
                 return;
             }
             content = trim.apply(content);
-            context.reset(obj, fieldDefinition.getField(), content, row.getRowNum(), index);
-            ReadConverterContext.convert(obj, context, convertContext, exceptionFunction);
+            readContext.reset(obj, fieldDefinition.getField(), content, row.getRowNum(), index);
+            ReadConverterContext.convert(obj, readContext, exceptionFunction);
         });
         return obj;
     }

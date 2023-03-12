@@ -14,21 +14,19 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import com.github.liaochong.myexcel.core.context.ReadContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
 
 import java.lang.reflect.Field;
 
 /**
- * String读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String, String> {
+public class HyperlinkReadConverter extends AbstractReadConverter<Hyperlink> {
 
     @Override
-    public String convert(String obj, Field field, ReadContext<?> readContext) {
-        return obj;
+    protected Hyperlink doConvert(String v, Field field, ReadContext readContext) {
+        return readContext.getHyperlink();
     }
 }

@@ -14,10 +14,12 @@
  */
 package com.github.liaochong.myexcel.core.context;
 
+import com.github.liaochong.myexcel.core.converter.ConvertContext;
+
 import java.lang.reflect.Field;
 
 /**
- * 读取异常上下文
+ * 读取上下文
  *
  * @author liaochong
  * @version 1.0
@@ -35,6 +37,15 @@ public class ReadContext<T> {
     private int colNum;
 
     private Hyperlink hyperlink;
+
+    private ConvertContext convertContext;
+
+    public ReadContext() {
+    }
+
+    public ReadContext(ConvertContext convertContext) {
+        this.convertContext = convertContext;
+    }
 
     public void reset(T object, Field field, String val, int rowNum, int colNum) {
         this.object = object;
@@ -94,5 +105,13 @@ public class ReadContext<T> {
 
     public void setHyperlink(Hyperlink hyperlink) {
         this.hyperlink = hyperlink;
+    }
+
+    public ConvertContext getConvertContext() {
+        return convertContext;
+    }
+
+    public void setConvertContext(ConvertContext convertContext) {
+        this.convertContext = convertContext;
     }
 }
