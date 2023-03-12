@@ -43,8 +43,8 @@ import org.apache.poi.ss.util.CellAddress;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -111,7 +111,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                               SaxExcelReader.ReadConfig<T> readConfig,
                               HSSFPreReadHandler.HSSFPreData hssfPreData) throws IOException {
         super(false, result, readConfig, Collections.emptyMap());
-        this.fs = new POIFSFileSystem(new FileInputStream(file));
+        this.fs = new POIFSFileSystem(Files.newInputStream(file.toPath()));
         this.hssfPreData = hssfPreData;
         this.mergeCellIndexMapping = hssfPreData != null ? hssfPreData.mergeCellIndexMapping : Collections.emptyMap();
     }

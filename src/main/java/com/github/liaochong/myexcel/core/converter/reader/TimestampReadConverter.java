@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core.converter.reader;
 
 import com.github.liaochong.myexcel.core.context.ReadContext;
 
-import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,12 +29,13 @@ import java.text.SimpleDateFormat;
 public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
 
     @Override
-    protected Timestamp doConvert(String v, Field field, ReadContext<?> readContext) {
+    protected Timestamp doConvert(ReadContext<?> readContext) {
+        String v = readContext.getVal();
         if (isDateNumber(v)) {
             final long time = Long.parseLong(v);
             return new Timestamp(time);
         }
-        String dateFormatPattern = getDateFormatPattern(field, readContext);
+        String dateFormatPattern = getDateFormatPattern(readContext.getField(), readContext);
         SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
         try {
             return new Timestamp(sdf.parse(v).getTime());

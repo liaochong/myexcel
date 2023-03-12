@@ -16,23 +16,19 @@ package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.context.ReadContext;
 
-import java.lang.reflect.Field;
-
 /**
  * 转换接口
  *
  * @author liaochong
  * @version 1.0
  */
-public interface ReadConverter<E, T> {
+public interface ReadConverter<T> {
 
     /**
      * 转换
      *
-     * @param obj         被转换对象
-     * @param field       字段，提供额外信息
      * @param readContext 读取转换上下文
      * @return 转换结果
      */
-    T convert(E obj, Field field, ReadContext<?> readContext);
+    T convert(ReadContext<?> readContext);
 }

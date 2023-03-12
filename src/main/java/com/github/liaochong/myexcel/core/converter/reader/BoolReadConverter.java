@@ -17,7 +17,6 @@ package com.github.liaochong.myexcel.core.converter.reader;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.context.ReadContext;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 
 /**
@@ -29,13 +28,13 @@ import java.util.Objects;
 public class BoolReadConverter extends AbstractReadConverter<Boolean> {
 
     @Override
-    public Boolean doConvert(String v, Field field, ReadContext<?> readContext) {
-        if (Objects.equals(Constants.ONE, v) || v.equalsIgnoreCase(Constants.TRUE)) {
+    public Boolean doConvert(ReadContext<?> readContext) {
+        if (Objects.equals(Constants.ONE, readContext.getVal()) || readContext.getVal().equalsIgnoreCase(Constants.TRUE)) {
             return Boolean.TRUE;
         }
-        if (Objects.equals(Constants.ZERO, v) || v.equalsIgnoreCase(Constants.FALSE)) {
+        if (Objects.equals(Constants.ZERO, readContext.getVal()) || readContext.getVal().equalsIgnoreCase(Constants.FALSE)) {
             return Boolean.FALSE;
         }
-        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + field.getName() + ",value is \"" + v + "\"");
+        throw new IllegalStateException("Cell content does not match the type of field to be injected,field is " + readContext.getField().getName() + ",value is \"" + readContext.getVal() + "\"");
     }
 }

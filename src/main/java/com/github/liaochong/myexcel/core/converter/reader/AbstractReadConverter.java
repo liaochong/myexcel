@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * @author chd.y
  * @since 2.3.1
  */
-public abstract class AbstractReadConverter<R> implements ReadConverter<String, R> {
+public abstract class AbstractReadConverter<R> implements ReadConverter<R> {
 
     protected static final WeakCache<String, DateTimeFormatter> DATE_TIME_FORMATTER_WEAK_CACHE = new WeakCache<>();
 
@@ -57,11 +57,11 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<String, 
     private static final LocalDateTime START_LOCAL_DATE_TIME = LocalDateTime.of(1900, 1, 1, 0, 0, 0);
 
     @Override
-    public R convert(String obj, Field field, ReadContext<?> readContext) {
-        if (StringUtil.isBlank(obj)) {
+    public R convert(ReadContext<?> readContext) {
+        if (StringUtil.isBlank(readContext.getVal())) {
             return null;
         }
-        String trimContent = obj.trim();
+        String trimContent = readContext.getVal().trim();
         // negative
         if (trimContent.startsWith(Constants.LEFT_BRACKET)) {
             if (trimContent.endsWith(Constants.RIGHT_BRACKET)) {
@@ -71,19 +71,18 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<String, 
                 }
             }
         }
-        return doConvert(trimContent, field, readContext);
+        readContext.setVal(trimContent);
+        return doConvert(readContext);
     }
 
 
     /**
      * 把输入参数进行处理后，转换。
      *
-     * @param v           待转换值
-     * @param field       待转换值所属字段
      * @param readContext 读取转换上下文
      * @return 目标值
      */
-    protected abstract R doConvert(String v, Field field, ReadContext<?> readContext);
+    protected abstract R doConvert(ReadContext<?> readContext);
 
 
     /**

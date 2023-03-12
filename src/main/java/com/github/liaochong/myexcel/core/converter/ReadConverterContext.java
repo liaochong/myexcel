@@ -55,7 +55,7 @@ import java.util.function.BiFunction;
  */
 public class ReadConverterContext {
 
-    private static final Map<Class<?>, ReadConverter<String, ?>> READ_CONVERTERS = new HashMap<>();
+    private static final Map<Class<?>, ReadConverter<?>> READ_CONVERTERS = new HashMap<>();
 
     private static final WeakCache<Field, Properties> MAPPING_CACHE = new WeakCache<>();
 
@@ -110,14 +110,14 @@ public class ReadConverterContext {
         return READ_CONVERTERS.get(clazz) != null;
     }
 
-    public synchronized ReadConverterContext registering(Class<?> clazz, ReadConverter<String, ?> readConverter) {
+    public synchronized ReadConverterContext registering(Class<?> clazz, ReadConverter<?> readConverter) {
         READ_CONVERTERS.putIfAbsent(clazz, readConverter);
         return this;
     }
 
     @SuppressWarnings("unchecked")
     public static void convert(Object obj, ReadContext<?> readContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
-        ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(readContext.getField().getType());
+        ReadConverter<?> readConverter = READ_CONVERTERS.get(readContext.getField().getType());
         if (readConverter == null) {
             MultiColumn multiColumn = readContext.getField().getAnnotation(MultiColumn.class);
             if (multiColumn != null) {
@@ -143,7 +143,7 @@ public class ReadConverterContext {
             if (mappingVal != null) {
                 readContext.setVal(mappingVal);
             }
-            value = readConverter.convert(readContext.getVal(), readContext.getField(), readContext);
+            value = readConverter.convert(readContext);
         } catch (Exception e) {
             Boolean toContinue = exceptionFunction.apply(e, readContext);
             if (!toContinue) {

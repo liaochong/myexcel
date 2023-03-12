@@ -17,8 +17,6 @@ package com.github.liaochong.myexcel.core.converter.reader;
 import com.github.liaochong.myexcel.core.context.Hyperlink;
 import com.github.liaochong.myexcel.core.context.ReadContext;
 
-import java.lang.reflect.Field;
-
 /**
  * @author liaochong
  * @version 1.0
@@ -26,7 +24,7 @@ import java.lang.reflect.Field;
 public class HyperlinkReadConverter extends AbstractReadConverter<Hyperlink> {
 
     @Override
-    protected Hyperlink doConvert(String v, Field field, ReadContext readContext) {
+    protected Hyperlink doConvert(ReadContext readContext) {
         return readContext.getHyperlink();
     }
 }

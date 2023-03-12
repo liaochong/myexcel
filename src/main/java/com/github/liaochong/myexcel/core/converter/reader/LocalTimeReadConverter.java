@@ -16,7 +16,6 @@ package com.github.liaochong.myexcel.core.converter.reader;
 
 import com.github.liaochong.myexcel.core.context.ReadContext;
 
-import java.lang.reflect.Field;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -29,8 +28,8 @@ import java.time.format.DateTimeFormatter;
 public class LocalTimeReadConverter extends AbstractReadConverter<LocalTime> {
 
     @Override
-    protected LocalTime doConvert(String v, Field field, ReadContext<?> readContext) {
-        DateTimeFormatter dateTimeFormatter = this.getDateFormatFormatter(field, readContext);
-        return LocalTime.parse(v, dateTimeFormatter);
+    protected LocalTime doConvert(ReadContext<?> readContext) {
+        DateTimeFormatter dateTimeFormatter = this.getDateFormatFormatter(readContext.getField(), readContext);
+        return LocalTime.parse(readContext.getVal(), dateTimeFormatter);
     }
 }
