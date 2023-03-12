@@ -314,7 +314,7 @@ public class SaxExcelReader<T> {
                     hssfPreReadHandler.process();
                     hssfPreData = hssfPreReadHandler.getHssfPreData();
                 }
-                if (hssfPreData == null || hssfPreData.getMergeCellIndexMapping() == null) {
+                if (hssfPreData == null || hssfPreData.mergeCellIndexMapping == null) {
                     readConfig.detectedMerge = false;
                 }
                 new HSSFSaxReadHandler<>(file, result, readConfig, hssfPreData).process();

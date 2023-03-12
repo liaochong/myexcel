@@ -24,8 +24,8 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.util.CellAddress;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -41,7 +41,7 @@ class HSSFPreReadHandler extends AbstractHSSFReadHandler {
     public HSSFPreReadHandler(File file,
                               SaxExcelReader.ReadConfig<?> readConfig) throws IOException {
         this.readConfig = readConfig;
-        this.fs = new POIFSFileSystem(new FileInputStream(file));
+        this.fs = new POIFSFileSystem(Files.newInputStream(file.toPath()));
     }
 
 
@@ -107,24 +107,8 @@ class HSSFPreReadHandler extends AbstractHSSFReadHandler {
     }
 
     public static class HSSFPreData {
-        private Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
+        public Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
 
-        private Map<Integer, Map<CellAddress, Hyperlink>> hyperlinkMapping = new HashMap<>();
-
-        public Map<Integer, Map<CellAddress, CellAddress>> getMergeCellIndexMapping() {
-            return mergeCellIndexMapping;
-        }
-
-        public void setMergeCellIndexMapping(Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) {
-            this.mergeCellIndexMapping = mergeCellIndexMapping;
-        }
-
-        public Map<Integer, Map<CellAddress, Hyperlink>> getHyperlinkMapping() {
-            return hyperlinkMapping;
-        }
-
-        public void setHyperlinkMapping(Map<Integer, Map<CellAddress, Hyperlink>> hyperlinkMapping) {
-            this.hyperlinkMapping = hyperlinkMapping;
-        }
+        public Map<Integer, Map<CellAddress, Hyperlink>> hyperlinkMapping = new HashMap<>();
     }
 }

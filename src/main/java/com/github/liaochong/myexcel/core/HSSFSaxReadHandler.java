@@ -113,7 +113,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         super(false, result, readConfig, Collections.emptyMap());
         this.fs = new POIFSFileSystem(new FileInputStream(file));
         this.hssfPreData = hssfPreData;
-        this.mergeCellIndexMapping = hssfPreData != null ? hssfPreData.getMergeCellIndexMapping() : Collections.emptyMap();
+        this.mergeCellIndexMapping = hssfPreData != null ? hssfPreData.mergeCellIndexMapping : Collections.emptyMap();
     }
 
     public void process() throws IOException {
@@ -151,7 +151,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     if (workbookBuildingListener != null && stubWorkbook == null) {
                         stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
                     }
-                    hssfPreData.getHyperlinkMapping().remove(sheetIndex);
+                    hssfPreData.hyperlinkMapping.remove(sheetIndex);
                     sheetIndex++;
                     setRecordAsNull();
                     lastRowNumber = -1;
@@ -293,8 +293,8 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     thisStr = mergeFirstCellMapping.get(firstCellAddress);
                 }
             }
-            if (hssfPreData != null && !hssfPreData.getHyperlinkMapping().isEmpty()) {
-                Map<CellAddress, Hyperlink> hyperlinkMapping = hssfPreData.getHyperlinkMapping().get(sheetIndex);
+            if (hssfPreData != null && !hssfPreData.hyperlinkMapping.isEmpty()) {
+                Map<CellAddress, Hyperlink> hyperlinkMapping = hssfPreData.hyperlinkMapping.get(sheetIndex);
                 if (hyperlinkMapping != null) {
                     CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
                     Hyperlink hyperlink = hyperlinkMapping.get(cellAddress);
