@@ -424,7 +424,7 @@ public class DefaultExcelReader<T> {
             }
             content = trim.apply(content);
             readContext.reset(obj, fieldDefinition.getField(), content, row.getRowNum(), index);
-            ReadConverterContext.convert(obj, readContext, exceptionFunction);
+            ReadConverterContext.convert(obj, readContext);
         });
         return obj;
     }

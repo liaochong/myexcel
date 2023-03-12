@@ -35,7 +35,7 @@ public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
             final long time = Long.parseLong(v);
             return new Timestamp(time);
         }
-        String dateFormatPattern = getDateFormatPattern(readContext.getField(), readContext);
+        String dateFormatPattern = getDateFormatPattern(readContext);
         SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
         try {
             return new Timestamp(sdf.parse(v).getTime());

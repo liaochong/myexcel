@@ -42,7 +42,7 @@ public class LocalDateTimeReadConverter extends AbstractReadConverter<LocalDateT
             return LocalDateTime.ofInstant(Instant.ofEpochMilli(time), TimeZone
                     .getDefault().toZoneId());
         }
-        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(readContext.getField(), readContext);
+        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(readContext);
         return LocalDateTime.parse(v, dateTimeFormatter);
     }
 }

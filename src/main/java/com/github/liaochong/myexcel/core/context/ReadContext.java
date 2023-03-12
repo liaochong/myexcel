@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core.context;
 
+import com.github.liaochong.myexcel.core.SaxExcelReader;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 
 import java.lang.reflect.Field;
@@ -39,6 +40,8 @@ public class ReadContext<T> {
     private Hyperlink hyperlink;
 
     private ConvertContext convertContext;
+
+    public SaxExcelReader.ReadConfig<T> readConfig;
 
     public ReadContext() {
     }

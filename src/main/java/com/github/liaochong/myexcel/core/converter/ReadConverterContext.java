@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.BiFunction;
 
 /**
  * 读取转换器上下文
@@ -116,7 +115,7 @@ public class ReadConverterContext {
     }
 
     @SuppressWarnings("unchecked")
-    public static void convert(Object obj, ReadContext<?> readContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
+    public static void convert(Object obj, ReadContext<?> readContext) {
         ReadConverter<?> readConverter = READ_CONVERTERS.get(readContext.getField().getType());
         if (readConverter == null) {
             MultiColumn multiColumn = readContext.getField().getAnnotation(MultiColumn.class);
@@ -145,7 +144,7 @@ public class ReadConverterContext {
             }
             value = readConverter.convert(readContext);
         } catch (Exception e) {
-            Boolean toContinue = exceptionFunction.apply(e, readContext);
+            Boolean toContinue = readContext.readConfig.exceptionFunction.apply(e, readContext);
             if (!toContinue) {
                 throw new ExcelReadException("Failed to convert content,field:[" + readContext.getField().getDeclaringClass().getName() + "#" + readContext.getField().getName() + "],content:[" + readContext.getVal() + "],rowNum:[" + readContext.getRowNum() + "]", e);
             }

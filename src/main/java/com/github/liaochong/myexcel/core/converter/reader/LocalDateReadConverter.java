@@ -45,7 +45,7 @@ public class LocalDateReadConverter extends AbstractReadConverter<LocalDate> {
                     .getDefault().toZoneId());
             return localDateTime.toLocalDate();
         }
-        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(readContext.getField(), readContext);
+        DateTimeFormatter dateTimeFormatter = getDateFormatFormatter(readContext);
         return LocalDate.parse(v, dateTimeFormatter);
     }
 }

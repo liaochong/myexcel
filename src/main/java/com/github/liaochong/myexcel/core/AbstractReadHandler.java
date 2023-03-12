@@ -57,8 +57,6 @@ abstract class AbstractReadHandler<T> {
 
     protected Map<Integer, Map<Integer, String>> titles = new LinkedHashMap<>();
 
-    protected SaxExcelReader.ReadConfig<T> readConfig;
-
     protected final ReadContext<T> readContext = new ReadContext<>();
 
     private final RowContext rowContext = new RowContext();
@@ -107,7 +105,7 @@ abstract class AbstractReadHandler<T> {
         readContext.setConvertContext(new ConvertContext(readCsv));
         Class<T> dataType = readConfig.dataType;
         fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
-        this.readConfig = readConfig;
+        readContext.readConfig = readConfig;
         this.isMapType = dataType == Map.class;
         readWithTitle = !isMapType && fieldDefinitionMap.isEmpty();
         setNewInstanceFunction(dataType, isMapType);
@@ -264,7 +262,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         readContext.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(prevObj, readContext, readConfig.exceptionFunction);
+        ReadConverterContext.convert(prevObj, readContext);
         readContext.revert();
     }
 
@@ -273,7 +271,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         readContext.reset(obj, field, value, rowNum, colNum);
-        ReadConverterContext.convert(obj, readContext, readConfig.exceptionFunction);
+        ReadConverterContext.convert(obj, readContext);
         readContext.revert();
     }
 
@@ -295,8 +293,8 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         isBlankRow = false;
-        content = readConfig.trim.apply(content);
-        if (readConfig.rowFilter.test(currentRow)) {
+        content = readContext.readConfig.trim.apply(content);
+        if (readContext.readConfig.rowFilter.test(currentRow)) {
             fieldHandler.accept(colNum, content);
         } else if (readWithTitle) {
             Map<Integer, String> rowMapping = titles.computeIfAbsent(currentRow.getRowNum(), rowNum -> new HashMap<>());
@@ -304,7 +302,7 @@ abstract class AbstractReadHandler<T> {
             if (titleRowNum == -1) {
                 // 尝试下一行是否为标题行
                 Row nextRow = new Row(currentRow.getRowNum() + 1);
-                if (readConfig.rowFilter.test(nextRow)) {
+                if (readContext.readConfig.rowFilter.test(nextRow)) {
                     titleRowNum = currentRow.getRowNum();
                 }
             }
@@ -313,19 +311,19 @@ abstract class AbstractReadHandler<T> {
 
     protected void handleResult() {
         if (isBlankRow) {
-            if (readConfig.stopReadingOnBlankRow) {
+            if (readContext.readConfig.stopReadingOnBlankRow) {
                 throw new StopReadException();
             }
             // 忽略空白行
-            if (readConfig.ignoreBlankRow) {
+            if (readContext.readConfig.ignoreBlankRow) {
                 return;
             }
         }
         this.initFieldMap();
-        if (!readConfig.rowFilter.test(currentRow)) {
+        if (!readContext.readConfig.rowFilter.test(currentRow)) {
             return;
         }
-        if (!readConfig.beanFilter.test(obj)) {
+        if (!readContext.readConfig.beanFilter.test(obj)) {
             return;
         }
         if (readWithTitle && currentRow.getRowNum() == 0) {
@@ -344,7 +342,7 @@ abstract class AbstractReadHandler<T> {
         if (currentRow.getRowNum() != titleRowNum || !fieldDefinitionMap.isEmpty()) {
             return;
         }
-        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readConfig.dataType);
+        Map<String, Field> titleFieldMap = ReflectUtil.getFieldMapOfTitleExcelColumn(readContext.readConfig.dataType);
         fieldDefinitionMap = new HashMap<>(titleFieldMap.size());
         // 获取最大列数
         List<Integer> colNums = titles.values().stream().flatMap(t -> t.keySet().stream()).collect(Collectors.toList());

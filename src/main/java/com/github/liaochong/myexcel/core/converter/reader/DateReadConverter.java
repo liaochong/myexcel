@@ -39,7 +39,7 @@ public class DateReadConverter extends AbstractReadConverter<Date> {
             final long time = convertExcelNumberDateToMilli(v);
             return new Date(time);
         }
-        String dateFormatPattern = getDateFormatPattern(readContext.getField(), readContext);
+        String dateFormatPattern = getDateFormatPattern(readContext);
         SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
         try {
             return sdf.parse(v);

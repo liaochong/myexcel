@@ -160,7 +160,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
                     sheetName = orderedBSRs[sheetIndex].getSheetname();
-                    readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
+                    readContext.readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
                     mergeCellMapping = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap());
                     detectedMergeOfThisSheet = !mergeCellMapping.isEmpty();
                     waitCount = 0;
@@ -284,7 +284,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         }
         boolean isSelectedSheet = this.isSelectedSheet();
         if (isSelectedSheet && thisColumn != -1) {
-            if (readConfig.detectedMerge) {
+            if (readContext.readConfig.detectedMerge) {
                 CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
                 String finalThisStr = thisStr;
                 mergeFirstCellMapping.computeIfPresent(cellAddress, (k, v) -> finalThisStr);
@@ -316,12 +316,12 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     }
 
     private boolean isSelectedSheet() {
-        if (readConfig.readAllSheet) {
+        if (readContext.readConfig.readAllSheet) {
             return true;
         }
-        if (!readConfig.sheetNames.isEmpty()) {
-            return readConfig.sheetNames.contains(sheetName);
+        if (!readContext.readConfig.sheetNames.isEmpty()) {
+            return readContext.readConfig.sheetNames.contains(sheetName);
         }
-        return readConfig.sheetIndexs.contains(sheetIndex);
+        return readContext.readConfig.sheetIndexs.contains(sheetIndex);
     }
 }

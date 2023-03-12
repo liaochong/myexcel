@@ -29,7 +29,7 @@ public class LocalTimeReadConverter extends AbstractReadConverter<LocalTime> {
 
     @Override
     protected LocalTime doConvert(ReadContext<?> readContext) {
-        DateTimeFormatter dateTimeFormatter = this.getDateFormatFormatter(readContext.getField(), readContext);
+        DateTimeFormatter dateTimeFormatter = this.getDateFormatFormatter(readContext);
         return LocalTime.parse(readContext.getVal(), dateTimeFormatter);
     }
 }
