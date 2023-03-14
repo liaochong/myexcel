@@ -69,4 +69,10 @@ public class Constants {
     public static final String DEFAULT_LOCAL_TIME_FORMAT = "HH:mm:ss";
 
     public static final Pair<Class, Object> NULL_PAIR = Pair.of(NullType.class, null);
+
+    public static final String ATTRIBUTE_REF = "ref";
+
+    public static final String ATTRIBUTE_LOCATION = "location";
+
+    public static final String ATTRIBUTE_RID = "r:id";
 }

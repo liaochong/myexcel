@@ -25,6 +25,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -82,7 +84,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
     // Gathers characters as they are seen.
     private final StringBuilder value = new StringBuilder(64);
 
-    private final Map<CellAddress, CellAddress> mergeCellMapping;
+    private final XSSFSheetPreXMLHandler.XSSFPreData xssfPreData;
 
     private final Map<CellAddress, String> mergeFirstCellMapping;
 
@@ -93,12 +95,13 @@ class XSSFSheetXMLHandler extends DefaultHandler {
      * @param sheetContentsHandler sheetContentsHandler
      */
     public XSSFSheetXMLHandler(
-            Map<CellAddress, CellAddress> mergeCellMapping,
+            XSSFSheetPreXMLHandler.XSSFPreData xssfPreData,
             SharedStrings strings,
             XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler) {
-        this.mergeCellMapping = mergeCellMapping;
-        this.detectedMerge = !mergeCellMapping.isEmpty();
-        this.mergeFirstCellMapping = mergeCellMapping.values().stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
+        this.xssfPreData = xssfPreData;
+        this.detectedMerge = xssfPreData != null && !xssfPreData.mergeCellMapping.isEmpty();
+        List<CellAddress> cellAddresses = xssfPreData != null ? (List<CellAddress>) xssfPreData.mergeCellMapping.values() : Collections.emptyList();
+        this.mergeFirstCellMapping = cellAddresses.stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;
         this.nextDataType = xssfDataType.NUMBER;
@@ -164,7 +167,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             }
             output.startRow(rowNum, !detectedMerge || waitCount == 0);
             if (detectedMerge && waitCount == 0) {
-                waitCount = mergeCellMapping.entrySet().stream().filter(c -> c.getValue().getColumn() == 0
+                waitCount = xssfPreData.mergeCellMapping.entrySet().stream().filter(c -> c.getValue().getColumn() == 0
                         && Objects.equals(c.getValue().getRow(), rowNum)
                         && c.getKey().getRow() != c.getValue().getRow()).count() + 1;
             }
@@ -247,7 +250,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             output.cell(cellAddress, thisStr);
         } else if ("c".equals(localName)) {
             CellAddress cellAddress = new CellAddress(cellRef);
-            CellAddress firstCellAddress = mergeCellMapping.get(cellAddress);
+            CellAddress firstCellAddress = xssfPreData.mergeCellMapping.get(cellAddress);
             if (firstCellAddress != null) {
                 output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
             }
