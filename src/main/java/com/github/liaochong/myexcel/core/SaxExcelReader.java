@@ -23,9 +23,11 @@ import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.openxml4j.opc.PackageRelationshipCollection;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
@@ -49,6 +51,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -357,7 +360,7 @@ public class SaxExcelReader<T> {
      */
     private void process(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
         long startTime = System.currentTimeMillis();
-        Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> preDataIndexMapping = this.processMerge(xlsxPackage);
+        Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> preDataIndexMapping = this.processPreData(xlsxPackage);
         StringsCache stringsCache = new StringsCache();
         try {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
@@ -375,12 +378,21 @@ public class SaxExcelReader<T> {
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
-    private Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> processMerge(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
-        if (!readConfig.detectedMerge) {
+    private Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> processPreData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
+        boolean hasHyperlink = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType).values().stream().anyMatch(f -> f.getField().getType() == Hyperlink.class);
+        if (!readConfig.detectedMerge && !hasHyperlink) {
             return Collections.emptyMap();
         }
         Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> preDataIndexMapping = new HashMap<>();
         this.doReadSheet(xlsxPackage, xssfReadContext -> {
+            xssfReadContext.packageRelationshipCollection = Optional.ofNullable(xssfReadContext.sheetIterator.getSheetPart())
+                    .map(packagePart -> {
+                        try {
+                            return packagePart.getRelationships();
+                        } catch (InvalidFormatException e) {
+                            throw new SaxReadException("Get relationships failure.", e);
+                        }
+                    }).orElse(null);
             XSSFSheetPreXMLHandler xssfSheetPreXMLHandler = new XSSFSheetPreXMLHandler(xssfReadContext);
             processSheet(xssfSheetPreXMLHandler, xssfReadContext.inputStream);
             preDataIndexMapping.put(xssfReadContext.sheetIndex, xssfSheetPreXMLHandler.getXssfPreData());
@@ -516,6 +528,8 @@ public class SaxExcelReader<T> {
         public InputStream inputStream;
         public Integer sheetIndex;
         public String sheetName;
+
+        public PackageRelationshipCollection packageRelationshipCollection;
 
         public XSSFReadContext(XSSFReader.SheetIterator sheetIterator, InputStream inputStream, Integer sheetIndex, String sheetName) {
             this.sheetIterator = sheetIterator;

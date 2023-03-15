@@ -17,9 +17,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.context.Hyperlink;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.PackageRelationship;
-import org.apache.poi.openxml4j.opc.PackageRelationshipCollection;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.xml.sax.Attributes;
@@ -52,7 +50,7 @@ class XSSFSheetPreXMLHandler extends DefaultHandler {
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         this.doProcessMerge(uri, localName, attributes);
-
+        this.doProcessHyperlink(attributes);
     }
 
     private void doProcessMerge(String uri, String localName, Attributes attributes) {
@@ -84,27 +82,19 @@ class XSSFSheetPreXMLHandler extends DefaultHandler {
         String location = attributes.getValue(Constants.ATTRIBUTE_LOCATION);
         if (location != null) {
             Hyperlink hyperlink = new Hyperlink(location, null, null);
-//            xssfPreData.hyperlinkMapping.put();
+            xssfPreData.hyperlinkMapping.put(new CellAddress(ref), hyperlink);
             return;
         }
         // case 2, In the 'r:id' tag, Then go to 'PackageRelationshipCollection' to get inside
         String rId = attributes.getValue(Constants.ATTRIBUTE_RID);
-        PackageRelationshipCollection packageRelationshipCollection = Optional.ofNullable(xssfReadContext.sheetIterator.getSheetPart())
-                .map(packagePart -> {
-                    try {
-                        return packagePart.getRelationships();
-                    } catch (InvalidFormatException e) {
-                        return null;
-                    }
-                }).orElse(null);
-        if (rId == null || packageRelationshipCollection == null) {
+        if (rId == null || xssfReadContext.packageRelationshipCollection == null) {
             return;
         }
-        Optional.ofNullable(packageRelationshipCollection.getRelationshipByID(rId))
+        Optional.ofNullable(xssfReadContext.packageRelationshipCollection.getRelationshipByID(rId))
                 .map(PackageRelationship::getTargetURI)
                 .ifPresent(uri -> {
                     Hyperlink hyperlink = new Hyperlink(uri.toString(), null, null);
-//                    xssfPreData.hyperlinkMapping.put(, hyperlink);
+                    xssfPreData.hyperlinkMapping.put(new CellAddress(ref), hyperlink);
                 });
     }
 
