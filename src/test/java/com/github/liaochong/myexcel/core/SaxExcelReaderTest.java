@@ -4,6 +4,7 @@ import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
 import com.github.liaochong.myexcel.core.pojo.ExceptionPeople;
 import com.github.liaochong.myexcel.core.pojo.Hyperlink;
+import com.github.liaochong.myexcel.core.pojo.School;
 import com.github.liaochong.myexcel.core.pojo.TitlePeople;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -291,5 +292,27 @@ class SaxExcelReaderTest {
 
         List<Hyperlink> hyperlinks = SaxExcelReader.of(Hyperlink.class).read(path);
         Assertions.assertTrue(hyperlinks.size() == 4 && hyperlinks.get(0).getHyperlink() != null);
+    }
+
+    @Test
+    void readMultiForXls() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/multi.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<School> schools = SaxExcelReader.of(School.class)
+                .detectedMerge()
+                .rowFilter(row -> row.getRowNum() > 0).read(path);
+        Assertions.assertEquals(2, schools.size());
+    }
+
+    @Test
+    void readMultiForXlsx() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/multi.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<School> schools = SaxExcelReader.of(School.class)
+                .detectedMerge()
+                .rowFilter(row -> row.getRowNum() > 0).read(path);
+        Assertions.assertEquals(2, schools.size());
     }
 }
