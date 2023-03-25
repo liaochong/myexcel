@@ -91,15 +91,15 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<R> {
      * @return 时间格式
      */
     protected String getDateFormatPattern(ReadContext<?> readContext) {
-        ExcelColumnMapping mapping = readContext.getConvertContext().excelColumnMappingMap.get(readContext.getField());
+        ExcelColumnMapping mapping = readContext.convertContext.excelColumnMappingMap.get(readContext.getField());
         if (mapping == null) {
-            return readContext.getField().getType() == LocalDate.class ? readContext.getConvertContext().configuration.dateFormat : readContext.getField().getType() == LocalTime.class ? readContext.getConvertContext().configuration.localTimeFormat : readContext.getConvertContext().configuration.dateTimeFormat;
+            return readContext.getField().getType() == LocalDate.class ? readContext.convertContext.configuration.dateFormat : readContext.getField().getType() == LocalTime.class ? readContext.convertContext.configuration.localTimeFormat : readContext.convertContext.configuration.dateTimeFormat;
         }
         String format = mapping.format;
         if (!format.isEmpty()) {
             return format;
         }
-        return readContext.getField().getType() == LocalDate.class ? readContext.getConvertContext().configuration.dateFormat : readContext.getField().getType() == LocalTime.class ? readContext.getConvertContext().configuration.localTimeFormat : readContext.getConvertContext().configuration.dateTimeFormat;
+        return readContext.getField().getType() == LocalDate.class ? readContext.convertContext.configuration.dateFormat : readContext.getField().getType() == LocalTime.class ? readContext.convertContext.configuration.localTimeFormat : readContext.convertContext.configuration.dateTimeFormat;
     }
 
     /**

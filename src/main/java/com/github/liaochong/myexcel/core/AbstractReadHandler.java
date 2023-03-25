@@ -102,7 +102,7 @@ abstract class AbstractReadHandler<T> {
                                SaxExcelReader.ReadConfig<T> readConfig,
                                Map<CellAddress, CellAddress> mergeCellMapping) {
         this.mergeCellMapping = mergeCellMapping;
-        readContext.setConvertContext(new ConvertContext(readCsv));
+        readContext.convertContext = new ConvertContext(readCsv);
         Class<T> dataType = readConfig.dataType;
         fieldDefinitionMap = ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType);
         readContext.readConfig = readConfig;
@@ -156,7 +156,7 @@ abstract class AbstractReadHandler<T> {
             return;
         }
         ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
-        ConfigurationUtil.parseConfiguration(classFieldContainer, readContext.getConvertContext().configuration);
+        ConfigurationUtil.parseConfiguration(classFieldContainer, readContext.convertContext.configuration);
 
         List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
         fields.forEach(field -> {
@@ -165,7 +165,7 @@ abstract class AbstractReadHandler<T> {
                 return;
             }
             ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-            readContext.getConvertContext().excelColumnMappingMap.put(field, mapping);
+            readContext.convertContext.excelColumnMappingMap.put(field, mapping);
         });
     }
 

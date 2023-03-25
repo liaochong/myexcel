@@ -39,7 +39,7 @@ public class ReadContext<T> {
 
     private Hyperlink hyperlink;
 
-    private ConvertContext convertContext;
+    public ConvertContext convertContext;
 
     public SaxExcelReader.ReadConfig<T> readConfig;
 
@@ -108,13 +108,5 @@ public class ReadContext<T> {
 
     public void setHyperlink(Hyperlink hyperlink) {
         this.hyperlink = hyperlink;
-    }
-
-    public ConvertContext getConvertContext() {
-        return convertContext;
-    }
-
-    public void setConvertContext(ConvertContext convertContext) {
-        this.convertContext = convertContext;
     }
 }
