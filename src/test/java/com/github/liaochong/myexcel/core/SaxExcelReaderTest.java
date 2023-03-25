@@ -281,7 +281,7 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<Hyperlink> hyperlinks = SaxExcelReader.of(Hyperlink.class).read(path);
-        Assertions.assertTrue(hyperlinks.size() == 1 && hyperlinks.get(0).getHyperlink() != null);
+        Assertions.assertTrue(hyperlinks.size() == 3 && hyperlinks.get(0).getHyperlink() != null);
     }
 
     @Test
@@ -290,6 +290,6 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<Hyperlink> hyperlinks = SaxExcelReader.of(Hyperlink.class).read(path);
-        Assertions.assertTrue(hyperlinks.size() == 1 && hyperlinks.get(0).getHyperlink() != null);
+        Assertions.assertTrue(hyperlinks.size() == 4 && hyperlinks.get(0).getHyperlink() != null);
     }
 }
