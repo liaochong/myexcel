@@ -85,7 +85,6 @@ class HSSFPreReadHandler extends AbstractHSSFReadHandler {
                 HyperlinkRecord hr = (HyperlinkRecord) record;
                 Map<CellAddress, Hyperlink> hyperlinkMapping = hssfPreData.hyperlinkMapping.computeIfAbsent(sheetIndex, k -> new HashMap<>());
                 hyperlinkMapping.put(new CellAddress(hr.getFirstRow(), hr.getLastColumn()), new Hyperlink(hr.getAddress(), hr.getLabel(), hr));
-                hssfPreData.hyperlinkMapping.put(sheetIndex, hyperlinkMapping);
                 break;
             default:
                 break;

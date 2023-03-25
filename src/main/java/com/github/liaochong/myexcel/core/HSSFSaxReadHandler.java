@@ -153,6 +153,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     }
                     if (hssfPreData != null) {
                         hssfPreData.hyperlinkMapping.remove(sheetIndex);
+                        hssfPreData.mergeCellIndexMapping.remove(sheetIndex);
                     }
                     sheetIndex++;
                     setRecordAsNull();
