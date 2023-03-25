@@ -25,8 +25,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -100,7 +100,7 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             XSSFSheetXMLHandler.SheetContentsHandler sheetContentsHandler) {
         this.xssfPreData = xssfPreData;
         this.detectedMerge = xssfPreData != null && !xssfPreData.mergeCellMapping.isEmpty();
-        List<CellAddress> cellAddresses = xssfPreData != null ? (List<CellAddress>) xssfPreData.mergeCellMapping.values() : Collections.emptyList();
+        Collection<CellAddress> cellAddresses = xssfPreData != null ? xssfPreData.mergeCellMapping.values() : Collections.emptyList();
         this.mergeFirstCellMapping = cellAddresses.stream().distinct().collect(Collectors.toMap(cellAddress -> cellAddress, c -> ""));
         this.sharedStringsTable = strings;
         this.output = sheetContentsHandler;

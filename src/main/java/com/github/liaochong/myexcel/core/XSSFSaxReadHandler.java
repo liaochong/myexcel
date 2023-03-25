@@ -55,6 +55,9 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
     public void cell(CellAddress cellAddress, String formattedValue) {
         if (xssfPreData != null) {
             Hyperlink hyperlink = xssfPreData.hyperlinkMapping.get(cellAddress);
+            if (hyperlink != null) {
+                hyperlink.setLabel(formattedValue);
+            }
             this.readContext.setHyperlink(hyperlink);
         }
         int thisCol = cellAddress.getColumn();
