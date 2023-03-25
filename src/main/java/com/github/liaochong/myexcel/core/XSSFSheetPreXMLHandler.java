@@ -41,16 +41,23 @@ class XSSFSheetPreXMLHandler extends DefaultHandler {
 
     private final XSSFPreData xssfPreData = new XSSFPreData();
 
+    private final SaxExcelReader.ReadConfig<?> readConfig;
+
     private final SaxExcelReader.XSSFReadContext xssfReadContext;
 
-    public XSSFSheetPreXMLHandler(SaxExcelReader.XSSFReadContext xssfReadContext) {
+    public XSSFSheetPreXMLHandler(SaxExcelReader.ReadConfig<?> readConfig, SaxExcelReader.XSSFReadContext xssfReadContext) {
+        this.readConfig = readConfig;
         this.xssfReadContext = xssfReadContext;
     }
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        this.doProcessMerge(uri, localName, attributes);
-        this.doProcessHyperlink(attributes);
+        if (readConfig.detectedMerge) {
+            this.doProcessMerge(uri, localName, attributes);
+        }
+        if (readConfig.detectedHyperlink()) {
+            this.doProcessHyperlink(attributes);
+        }
     }
 
     private void doProcessMerge(String uri, String localName, Attributes attributes) {

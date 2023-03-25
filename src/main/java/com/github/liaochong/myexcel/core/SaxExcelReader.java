@@ -310,8 +310,7 @@ public class SaxExcelReader<T> {
                 new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
             } else {
                 HSSFPreReadHandler.HSSFPreData hssfPreData = null;
-                boolean hasHyperlink = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType).values().stream().anyMatch(f -> f.getField().getType() == Hyperlink.class);
-                if (readConfig.detectedMerge || hasHyperlink) {
+                if (readConfig.detectedMerge || readConfig.detectedHyperlink()) {
                     HSSFPreReadHandler hssfPreReadHandler = new HSSFPreReadHandler(file, readConfig);
                     hssfPreReadHandler.process();
                     hssfPreData = hssfPreReadHandler.getHssfPreData();
@@ -379,8 +378,7 @@ public class SaxExcelReader<T> {
     }
 
     private Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> processPreData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
-        boolean hasHyperlink = ReflectUtil.getFieldDefinitionMapOfExcelColumn(readConfig.dataType).values().stream().anyMatch(f -> f.getField().getType() == Hyperlink.class);
-        if (!readConfig.detectedMerge && !hasHyperlink) {
+        if (!readConfig.detectedMerge && !readConfig.detectedHyperlink()) {
             return Collections.emptyMap();
         }
         Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> preDataIndexMapping = new HashMap<>();
@@ -393,7 +391,7 @@ public class SaxExcelReader<T> {
                             throw new SaxReadException("Get relationships failure.", e);
                         }
                     }).orElse(null);
-            XSSFSheetPreXMLHandler xssfSheetPreXMLHandler = new XSSFSheetPreXMLHandler(xssfReadContext);
+            XSSFSheetPreXMLHandler xssfSheetPreXMLHandler = new XSSFSheetPreXMLHandler(readConfig, xssfReadContext);
             processSheet(xssfSheetPreXMLHandler, xssfReadContext.inputStream);
             preDataIndexMapping.put(xssfReadContext.sheetIndex, xssfSheetPreXMLHandler.getXssfPreData());
         });
@@ -519,6 +517,13 @@ public class SaxExcelReader<T> {
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
+        }
+
+        public boolean detectedHyperlink() {
+            if (dataType == Map.class) {
+                return false;
+            }
+            return ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType).values().stream().anyMatch(f -> f.getField().getType() == Hyperlink.class);
         }
     }
 
