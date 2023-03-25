@@ -15,12 +15,14 @@
 package com.github.liaochong.myexcel.core.converter;
 
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
-import com.github.liaochong.myexcel.core.ReadContext;
 import com.github.liaochong.myexcel.core.annotation.MultiColumn;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
+import com.github.liaochong.myexcel.core.context.Hyperlink;
+import com.github.liaochong.myexcel.core.context.ReadContext;
 import com.github.liaochong.myexcel.core.converter.reader.BigDecimalReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.BoolReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.DateReadConverter;
+import com.github.liaochong.myexcel.core.converter.reader.HyperlinkReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.LocalDateReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.LocalDateTimeReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.LocalTimeReadConverter;
@@ -30,7 +32,6 @@ import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.utils.PropertyUtil;
-import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -44,7 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.BiFunction;
 
 /**
  * 读取转换器上下文
@@ -54,14 +54,15 @@ import java.util.function.BiFunction;
  */
 public class ReadConverterContext {
 
-    private static final Map<Class<?>, ReadConverter<String, ?>> READ_CONVERTERS = new HashMap<>();
+    private static final Map<Class<?>, ReadConverter<?>> READ_CONVERTERS = new HashMap<>();
 
     private static final WeakCache<Field, Properties> MAPPING_CACHE = new WeakCache<>();
 
     private static final Properties EMPTY_PROPERTIES = new Properties();
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(ReadConverterContext.class);
 
     static {
+        READ_CONVERTERS.put(Hyperlink.class, new HyperlinkReadConverter());
+
         BoolReadConverter boolReadConverter = new BoolReadConverter();
         READ_CONVERTERS.put(Boolean.class, boolReadConverter);
         READ_CONVERTERS.put(boolean.class, boolReadConverter);
@@ -108,44 +109,44 @@ public class ReadConverterContext {
         return READ_CONVERTERS.get(clazz) != null;
     }
 
-    public synchronized ReadConverterContext registering(Class<?> clazz, ReadConverter<String, ?> readConverter) {
+    public synchronized ReadConverterContext registering(Class<?> clazz, ReadConverter<?> readConverter) {
         READ_CONVERTERS.putIfAbsent(clazz, readConverter);
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public static void convert(Object obj, ReadContext context, ConvertContext convertContext, BiFunction<Throwable, ReadContext, Boolean> exceptionFunction) {
-        ReadConverter<String, ?> readConverter = READ_CONVERTERS.get(context.getField().getType());
+    public static void convert(Object obj, ReadContext<?> readContext) {
+        ReadConverter<?> readConverter = READ_CONVERTERS.get(readContext.getField().getType());
         if (readConverter == null) {
-            MultiColumn multiColumn = context.getField().getAnnotation(MultiColumn.class);
+            MultiColumn multiColumn = readContext.getField().getAnnotation(MultiColumn.class);
             if (multiColumn != null) {
                 readConverter = READ_CONVERTERS.get(multiColumn.classType());
             }
             if (readConverter == null) {
-                throw new IllegalStateException("No suitable type converter was found.");
+                throw new IllegalStateException("No suitable type converter was found,Field=" + readContext.getField().getName() + ".");
             }
         }
         Object value = null;
         try {
-            Properties properties = MAPPING_CACHE.get(context.getField());
+            Properties properties = MAPPING_CACHE.get(readContext.getField());
             if (properties == null) {
-                ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(context.getField());
+                ExcelColumnMapping mapping = readContext.convertContext.excelColumnMappingMap.get(readContext.getField());
                 if (mapping != null && !mapping.mapping.isEmpty()) {
                     properties = PropertyUtil.getReverseProperties(mapping);
                 } else {
                     properties = EMPTY_PROPERTIES;
                 }
-                MAPPING_CACHE.cache(context.getField(), properties);
+                MAPPING_CACHE.cache(readContext.getField(), properties);
             }
-            String mappingVal = properties.getProperty(context.getVal());
+            String mappingVal = properties.getProperty(readContext.getVal());
             if (mappingVal != null) {
-                context.setVal(mappingVal);
+                readContext.setVal(mappingVal);
             }
-            value = readConverter.convert(context.getVal(), context.getField(), convertContext);
+            value = readConverter.convert(readContext);
         } catch (Exception e) {
-            Boolean toContinue = exceptionFunction.apply(e, context);
+            Boolean toContinue = readContext.readConfig.exceptionFunction.apply(e, readContext);
             if (!toContinue) {
-                throw new ExcelReadException("Failed to convert content,field:[" + context.getField().getDeclaringClass().getName() + "#" + context.getField().getName() + "],content:[" + context.getVal() + "],rowNum:[" + context.getRowNum() + "]", e);
+                throw new ExcelReadException("Failed to convert content,field:[" + readContext.getField().getDeclaringClass().getName() + "#" + readContext.getField().getName() + "],content:[" + readContext.getVal() + "],rowNum:[" + readContext.getRowNum() + "]", e);
             }
         }
         if (value == null) {
@@ -155,10 +156,10 @@ public class ReadConverterContext {
             if (obj instanceof List) {
                 ((List) obj).add(value);
             } else {
-                context.getField().set(obj, value);
+                readContext.getField().set(obj, value);
             }
         } catch (Exception e) {
-            throw new SaxReadException("Failed to set the " + context.getField().getDeclaringClass().getName() + "#" + context.getField().getName() + " field value to " + context.getVal(), e);
+            throw new SaxReadException("Failed to set the " + readContext.getField().getDeclaringClass().getName() + "#" + readContext.getField().getName() + " field value to " + readContext.getVal(), e);
         }
     }
 }

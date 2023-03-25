@@ -14,11 +14,12 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import org.apache.poi.ss.util.CellAddress;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * sax处理
@@ -30,11 +31,13 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(XSSFSaxReadHandler.class);
     private int count;
+    private final XSSFSheetPreXMLHandler.XSSFPreData xssfPreData;
 
     public XSSFSaxReadHandler(
             List<T> result,
-            SaxExcelReader.ReadConfig<T> readConfig, Map<CellAddress, CellAddress> mergeCellMapping) {
-        super(false, result, readConfig, mergeCellMapping);
+            SaxExcelReader.ReadConfig<T> readConfig, XSSFSheetPreXMLHandler.XSSFPreData xssfPreData) {
+        super(false, result, readConfig, xssfPreData != null ? xssfPreData.mergeCellMapping : Collections.emptyMap());
+        this.xssfPreData = xssfPreData;
     }
 
     @Override
@@ -50,6 +53,13 @@ class XSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements XSSFSheetX
 
     @Override
     public void cell(CellAddress cellAddress, String formattedValue) {
+        if (xssfPreData != null) {
+            Hyperlink hyperlink = xssfPreData.hyperlinkMapping.get(cellAddress);
+            if (hyperlink != null) {
+                hyperlink.setLabel(formattedValue);
+            }
+            this.readContext.setHyperlink(hyperlink);
+        }
         int thisCol = cellAddress.getColumn();
         handleField(thisCol, formattedValue);
     }

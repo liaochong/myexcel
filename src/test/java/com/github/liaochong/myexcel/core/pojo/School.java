@@ -12,21 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core;
+package com.github.liaochong.myexcel.core.pojo;
+
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import com.github.liaochong.myexcel.core.annotation.MultiColumn;
+
+import java.util.List;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public final class RowContext {
+public class School {
+    @ExcelColumn(index = 0)
+    private String name;
 
-    private int rowNum;
-
-    public int getRowNum() {
-        return rowNum;
-    }
-
-    void setRowNum(int rowNum) {
-        this.rowNum = rowNum;
-    }
+    @MultiColumn(classType = Grade.class)
+    private List<Grade> grades;
 }

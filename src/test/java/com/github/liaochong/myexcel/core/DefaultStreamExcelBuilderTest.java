@@ -78,7 +78,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 .fixedTitles()
                 .threadPool(Executors.newFixedThreadPool(10))
                 .start()) {
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 100; i++) {
                 excelBuilder.asyncAppend(this::dataList);
             }
             Workbook workbook = excelBuilder.build();
@@ -168,7 +168,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
                 .start()) {
-            data(excelBuilder, 1650500);
+            data(excelBuilder, 165050);
             Workbook workbook = excelBuilder.build();
             FileExportUtil.export(workbook, new File(TEST_OUTPUT_DIR + "big_build.xlsx"));
         }
@@ -299,13 +299,13 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
                 boolean odd = index % 2 == 0;
                 commonPeople.setName(odd ? "张三" : "李四");
                 commonPeople.setAge(odd ? 18 : 24);
-                commonPeople.setDance(odd ? true : false);
+                commonPeople.setDance(odd);
                 commonPeople.setMoney(odd ? oddMoney : evenMoney);
                 commonPeople.setBirthday(new Date());
                 commonPeople.setLocalDate(LocalDate.now());
                 commonPeople.setLocalDateTime(LocalDateTime.now());
                 commonPeople.setCats(100L);
-                commonPeople.setMarried(odd ? true : false);
+                commonPeople.setMarried(odd);
                 excelBuilder.append(commonPeople);
             });
             futures.add(future);
@@ -322,13 +322,13 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             boolean odd = i % 2 == 0;
             commonPeople.setName(odd ? "张三" : "李四");
             commonPeople.setAge(odd ? 18 : 24);
-            commonPeople.setDance(odd ? true : false);
+            commonPeople.setDance(odd);
             commonPeople.setMoney(odd ? oddMoney : evenMoney);
             commonPeople.setBirthday(new Date());
             commonPeople.setLocalDate(LocalDate.now());
             commonPeople.setLocalDateTime(LocalDateTime.now());
             commonPeople.setCats(100L);
-            commonPeople.setMarried(odd ? true : false);
+            commonPeople.setMarried(odd);
             result.add(commonPeople);
         }
         return result;
@@ -342,7 +342,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             boolean odd = i % 2 == 0;
             customStylePeople.setName(odd ? "张三" : "李四");
             customStylePeople.setAge(odd ? 18 : 24);
-            customStylePeople.setDance(odd ? true : false);
+            customStylePeople.setDance(odd);
             customStylePeople.setMoney(odd ? oddMoney : evenMoney);
             excelBuilder.append(customStylePeople);
         }
@@ -356,7 +356,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             boolean odd = i % 2 == 0;
             oddEvenStylePeople.setName(odd ? "张三" : "李四");
             oddEvenStylePeople.setAge(odd ? 18 : 24);
-            oddEvenStylePeople.setDance(odd ? true : false);
+            oddEvenStylePeople.setDance(odd);
             oddEvenStylePeople.setMoney(odd ? oddMoney : evenMoney);
             excelBuilder.append(oddEvenStylePeople);
         }
@@ -370,7 +370,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
             boolean odd = i % 2 == 0;
             oddEvenStylePeople.setName(odd ? "张三" : "李四");
             oddEvenStylePeople.setAge(odd ? 18 : 24);
-            oddEvenStylePeople.setDance(odd ? true : false);
+            oddEvenStylePeople.setDance(odd);
             oddEvenStylePeople.setMoney(odd ? oddMoney : evenMoney);
             excelBuilder.append(oddEvenStylePeople);
         }

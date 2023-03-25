@@ -3,7 +3,10 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CsvPeople;
 import com.github.liaochong.myexcel.core.pojo.ExceptionPeople;
+import com.github.liaochong.myexcel.core.pojo.Hyperlink;
+import com.github.liaochong.myexcel.core.pojo.School;
 import com.github.liaochong.myexcel.core.pojo.TitlePeople;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
@@ -239,7 +242,7 @@ class SaxExcelReaderTest {
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
         List<Map> result = SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).read(Files.newInputStream(path));
-        System.out.println("");
+        System.out.println();
     }
 
     @Test
@@ -271,5 +274,45 @@ class SaxExcelReaderTest {
         SaxExcelReader.of(Map.class).rowFilter(row -> row.getRowNum() > 0).readThen(path.toFile(), d -> {
             System.out.println(d);
         });
+    }
+
+    @Test
+    void readHyperlinkForXls() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/hyperlink.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<Hyperlink> hyperlinks = SaxExcelReader.of(Hyperlink.class).read(path);
+        Assertions.assertTrue(hyperlinks.size() == 3 && hyperlinks.get(0).getHyperlink() != null);
+    }
+
+    @Test
+    void readHyperlinkForXlsx() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/hyperlink.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<Hyperlink> hyperlinks = SaxExcelReader.of(Hyperlink.class).read(path);
+        Assertions.assertTrue(hyperlinks.size() == 4 && hyperlinks.get(0).getHyperlink() != null);
+    }
+
+    @Test
+    void readMultiForXls() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/multi.xls");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<School> schools = SaxExcelReader.of(School.class)
+                .detectedMerge()
+                .rowFilter(row -> row.getRowNum() > 0).read(path);
+        Assertions.assertEquals(2, schools.size());
+    }
+
+    @Test
+    void readMultiForXlsx() throws Exception {
+        URL htmlToExcelEampleURL = this.getClass().getResource("/multi.xlsx");
+        Path path = Paths.get(htmlToExcelEampleURL.toURI());
+
+        List<School> schools = SaxExcelReader.of(School.class)
+                .detectedMerge()
+                .rowFilter(row -> row.getRowNum() > 0).read(path);
+        Assertions.assertEquals(2, schools.size());
     }
 }

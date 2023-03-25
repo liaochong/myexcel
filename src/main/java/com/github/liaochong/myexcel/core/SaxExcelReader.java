@@ -15,15 +15,20 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.cache.StringsCache;
+import com.github.liaochong.myexcel.core.context.Hyperlink;
+import com.github.liaochong.myexcel.core.context.ReadContext;
+import com.github.liaochong.myexcel.core.context.RowContext;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
+import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.openxml4j.opc.PackageRelationshipCollection;
 import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.slf4j.Logger;
@@ -46,6 +51,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -303,14 +309,16 @@ public class SaxExcelReader<T> {
                 workbookMetaData = new WorkbookMetaData();
                 new HSSFMetaDataSaxReadHandler(file, workbookMetaData).process();
             } else {
-                Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
-                if (readConfig.detectedMerge) {
-                    new HSSFMergeReadHandler(file, readConfig, mergeCellIndexMapping).process();
+                HSSFPreReadHandler.HSSFPreData hssfPreData = null;
+                if (readConfig.detectedMerge || readConfig.detectedHyperlink()) {
+                    HSSFPreReadHandler hssfPreReadHandler = new HSSFPreReadHandler(file, readConfig);
+                    hssfPreReadHandler.process();
+                    hssfPreData = hssfPreReadHandler.getHssfPreData();
                 }
-                if (mergeCellIndexMapping.isEmpty()) {
+                if (hssfPreData == null || hssfPreData.mergeCellIndexMapping == null) {
                     readConfig.detectedMerge = false;
                 }
-                new HSSFSaxReadHandler<>(file, result, readConfig, mergeCellIndexMapping).process();
+                new HSSFSaxReadHandler<>(file, result, readConfig, hssfPreData).process();
             }
         } catch (StopReadException e) {
             // do nothing
@@ -351,17 +359,17 @@ public class SaxExcelReader<T> {
      */
     private void process(OPCPackage xlsxPackage) throws IOException, OpenXML4JException, SAXException {
         long startTime = System.currentTimeMillis();
-        Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = this.processMerge(xlsxPackage);
+        Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> preDataIndexMapping = this.processPreData(xlsxPackage);
         StringsCache stringsCache = new StringsCache();
         try {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(xlsxPackage, stringsCache);
-            this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
-                readConfig.startSheetConsumer.accept(sheetName, index);
-                Map<CellAddress, CellAddress> mergeCellMapping = mergeCellIndexMapping.getOrDefault(index, Collections.emptyMap());
+            this.doReadSheet(xlsxPackage, xssfReadContext -> {
+                readConfig.startSheetConsumer.accept(xssfReadContext.sheetName, xssfReadContext.sheetIndex);
+                XSSFSheetPreXMLHandler.XSSFPreData xssfPreData = preDataIndexMapping.get(xssfReadContext.sheetIndex);
                 ContentHandler handler = new XSSFSheetXMLHandler(
-                        mergeCellMapping, strings, new XSSFSaxReadHandler<>(result, readConfig, mergeCellMapping));
-                processSheet(handler, stream);
-                mergeCellIndexMapping.remove(index);
+                        xssfPreData, strings, new XSSFSaxReadHandler<>(result, readConfig, xssfPreData));
+                processSheet(handler, xssfReadContext.inputStream);
+                preDataIndexMapping.remove(xssfReadContext.sheetIndex);
             });
         } finally {
             stringsCache.clearAll();
@@ -369,28 +377,36 @@ public class SaxExcelReader<T> {
         log.info("Sax import takes {} ms", System.currentTimeMillis() - startTime);
     }
 
-    private Map<Integer, Map<CellAddress, CellAddress>> processMerge(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
-        if (!readConfig.detectedMerge) {
+    private Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> processPreData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
+        if (!readConfig.detectedMerge && !readConfig.detectedHyperlink()) {
             return Collections.emptyMap();
         }
-        Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping = new HashMap<>();
-        this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
-            Map<CellAddress, CellAddress> mergeCellMapping = new HashMap<>();
-            processSheet(new XSSFSheetMergeXMLHandler(mergeCellMapping), stream);
-            mergeCellIndexMapping.put(index, mergeCellMapping);
+        Map<Integer, XSSFSheetPreXMLHandler.XSSFPreData> preDataIndexMapping = new HashMap<>();
+        this.doReadSheet(xlsxPackage, xssfReadContext -> {
+            xssfReadContext.packageRelationshipCollection = Optional.ofNullable(xssfReadContext.sheetIterator.getSheetPart())
+                    .map(packagePart -> {
+                        try {
+                            return packagePart.getRelationships();
+                        } catch (InvalidFormatException e) {
+                            throw new SaxReadException("Get relationships failure.", e);
+                        }
+                    }).orElse(null);
+            XSSFSheetPreXMLHandler xssfSheetPreXMLHandler = new XSSFSheetPreXMLHandler(readConfig, xssfReadContext);
+            processSheet(xssfSheetPreXMLHandler, xssfReadContext.inputStream);
+            preDataIndexMapping.put(xssfReadContext.sheetIndex, xssfSheetPreXMLHandler.getXssfPreData());
         });
-        if (mergeCellIndexMapping.isEmpty()) {
+        if (preDataIndexMapping.isEmpty()) {
             readConfig.detectedMerge = false;
         }
-        return mergeCellIndexMapping;
+        return preDataIndexMapping;
     }
 
     private void processMetaData(OPCPackage xlsxPackage) throws IOException, OpenXML4JException {
         workbookMetaData = new WorkbookMetaData();
         readConfig.readAllSheet = true;
-        int lastIndex = this.doReadSheet(xlsxPackage, (stream, index, sheetName) -> {
-            SheetMetaData sheetMetaData = new SheetMetaData(sheetName, index);
-            this.processSheet(new XSSFSheetMetaDataXMLHandler(sheetMetaData), stream);
+        int lastIndex = this.doReadSheet(xlsxPackage, xssfReadContext -> {
+            SheetMetaData sheetMetaData = new SheetMetaData(xssfReadContext.sheetName, xssfReadContext.sheetIndex);
+            this.processSheet(new XSSFSheetMetaDataXMLHandler(sheetMetaData), xssfReadContext.inputStream);
             // 设置元数据信息
             workbookMetaData.getSheetMetaDataList().add(sheetMetaData);
         });
@@ -399,15 +415,16 @@ public class SaxExcelReader<T> {
         }
     }
 
-    private int doReadSheet(OPCPackage xlsxPackage, CiConsumer<InputStream, Integer, String> ciConsumer) throws IOException, OpenXML4JException {
+    private int doReadSheet(OPCPackage xlsxPackage, Consumer<XSSFReadContext> consumer) throws IOException, OpenXML4JException {
         XSSFReader.SheetIterator iter = this.getSheetIterator(xlsxPackage);
-        CiFunction<InputStream, Integer, String, Boolean> acceptFunction = this.getSheetAcceptFunction();
+        Function<XSSFReadContext, Boolean> acceptFunction = this.getSheetAcceptFunction();
         int index = -1;
         while (iter.hasNext()) {
             ++index;
             try (InputStream stream = iter.next()) {
-                if (acceptFunction.apply(stream, index, iter.getSheetName())) {
-                    ciConsumer.accept(stream, index, iter.getSheetName());
+                XSSFReadContext xssfReadContext = new XSSFReadContext(iter, stream, index, iter.getSheetName());
+                if (acceptFunction.apply(xssfReadContext)) {
+                    consumer.accept(xssfReadContext);
                 }
             }
         }
@@ -419,14 +436,14 @@ public class SaxExcelReader<T> {
         return (XSSFReader.SheetIterator) xssfReader.getSheetsData();
     }
 
-    private CiFunction<InputStream, Integer, String, Boolean> getSheetAcceptFunction() {
-        CiFunction<InputStream, Integer, String, Boolean> acceptFunction = (is, index, sheetName) -> true;
+    private Function<XSSFReadContext, Boolean> getSheetAcceptFunction() {
+        Function<XSSFReadContext, Boolean> acceptFunction = xssfReadContext -> true;
         if (readConfig.readAllSheet) {
-            acceptFunction = (is, index, sheetName) -> true;
+            acceptFunction = xssfReadContext -> true;
         } else if (!readConfig.sheetNames.isEmpty()) {
-            acceptFunction = (is, index, sheetName) -> readConfig.sheetNames.contains(sheetName);
+            acceptFunction = xssfReadContext -> readConfig.sheetNames.contains(xssfReadContext.sheetName);
         } else if (!readConfig.sheetIndexs.isEmpty()) {
-            acceptFunction = (is, index, sheetName) -> readConfig.sheetIndexs.contains(index);
+            acceptFunction = xssfReadContext -> readConfig.sheetIndexs.contains(xssfReadContext.sheetIndex);
         }
         return acceptFunction;
     }
@@ -500,6 +517,30 @@ public class SaxExcelReader<T> {
 
         public ReadConfig(int sheetIndex) {
             sheetIndexs.add(sheetIndex);
+        }
+
+        public boolean detectedHyperlink() {
+            if (dataType == Map.class) {
+                return false;
+            }
+            return ReflectUtil.getFieldDefinitionMapOfExcelColumn(dataType).values().stream().anyMatch(f -> f.getField().getType() == Hyperlink.class);
+        }
+    }
+
+    public static class XSSFReadContext {
+
+        public XSSFReader.SheetIterator sheetIterator;
+        public InputStream inputStream;
+        public Integer sheetIndex;
+        public String sheetName;
+
+        public PackageRelationshipCollection packageRelationshipCollection;
+
+        public XSSFReadContext(XSSFReader.SheetIterator sheetIterator, InputStream inputStream, Integer sheetIndex, String sheetName) {
+            this.sheetIterator = sheetIterator;
+            this.inputStream = inputStream;
+            this.sheetIndex = sheetIndex;
+            this.sheetName = sheetName;
         }
     }
 }

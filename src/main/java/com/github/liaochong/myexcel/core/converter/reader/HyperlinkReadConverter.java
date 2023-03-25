@@ -14,33 +14,17 @@
  */
 package com.github.liaochong.myexcel.core.converter.reader;
 
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import com.github.liaochong.myexcel.core.context.ReadContext;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-
 /**
- * 时间戳读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class TimestampReadConverter extends AbstractReadConverter<Timestamp> {
+public class HyperlinkReadConverter extends AbstractReadConverter<Hyperlink> {
 
     @Override
-    protected Timestamp doConvert(ReadContext<?> readContext) {
-        String v = readContext.getVal();
-        if (isDateNumber(v)) {
-            final long time = Long.parseLong(v);
-            return new Timestamp(time);
-        }
-        String dateFormatPattern = getDateFormatPattern(readContext);
-        SimpleDateFormat sdf = this.getSimpleDateFormat(dateFormatPattern);
-        try {
-            return new Timestamp(sdf.parse(v).getTime());
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+    protected Hyperlink doConvert(ReadContext readContext) {
+        return readContext.getHyperlink();
     }
 }

@@ -12,21 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
-
-import com.github.liaochong.myexcel.core.context.ReadContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
+package com.github.liaochong.myexcel.core.context;
 
 /**
- * String读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String> {
+public final class RowContext {
 
-    @Override
-    public String convert(ReadContext<?> readContext) {
-        return readContext.getVal();
+    private int rowNum;
+
+    public int getRowNum() {
+        return rowNum;
+    }
+
+    public void setRowNum(int rowNum) {
+        this.rowNum = rowNum;
     }
 }

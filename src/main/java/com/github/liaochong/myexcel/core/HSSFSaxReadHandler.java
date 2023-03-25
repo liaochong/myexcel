@@ -14,6 +14,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.context.Hyperlink;
 import org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder;
 import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
 import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
@@ -42,8 +43,8 @@ import org.apache.poi.ss.util.CellAddress;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -103,13 +104,16 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
 
     private long waitCount = 0;
 
+    private final HSSFPreReadHandler.HSSFPreData hssfPreData;
+
     public HSSFSaxReadHandler(File file,
                               List<T> result,
                               SaxExcelReader.ReadConfig<T> readConfig,
-                              Map<Integer, Map<CellAddress, CellAddress>> mergeCellIndexMapping) throws IOException {
+                              HSSFPreReadHandler.HSSFPreData hssfPreData) throws IOException {
         super(false, result, readConfig, Collections.emptyMap());
-        this.fs = new POIFSFileSystem(new FileInputStream(file));
-        this.mergeCellIndexMapping = mergeCellIndexMapping;
+        this.fs = new POIFSFileSystem(Files.newInputStream(file.toPath()));
+        this.hssfPreData = hssfPreData;
+        this.mergeCellIndexMapping = hssfPreData != null ? hssfPreData.mergeCellIndexMapping : Collections.emptyMap();
     }
 
     public void process() throws IOException {
@@ -147,6 +151,10 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     if (workbookBuildingListener != null && stubWorkbook == null) {
                         stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
                     }
+                    if (hssfPreData != null) {
+                        hssfPreData.hyperlinkMapping.remove(sheetIndex);
+                        hssfPreData.mergeCellIndexMapping.remove(sheetIndex);
+                    }
                     sheetIndex++;
                     setRecordAsNull();
                     lastRowNumber = -1;
@@ -155,7 +163,7 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                         orderedBSRs = BoundSheetRecord.orderByBofPosition(boundSheetRecords);
                     }
                     sheetName = orderedBSRs[sheetIndex].getSheetname();
-                    readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
+                    readContext.readConfig.startSheetConsumer.accept(sheetName, sheetIndex);
                     mergeCellMapping = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap());
                     detectedMergeOfThisSheet = !mergeCellMapping.isEmpty();
                     waitCount = 0;
@@ -279,13 +287,21 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
         }
         boolean isSelectedSheet = this.isSelectedSheet();
         if (isSelectedSheet && thisColumn != -1) {
-            if (readConfig.detectedMerge) {
+            if (readContext.readConfig.detectedMerge) {
                 CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
                 String finalThisStr = thisStr;
                 mergeFirstCellMapping.computeIfPresent(cellAddress, (k, v) -> finalThisStr);
                 CellAddress firstCellAddress = mergeCellIndexMapping.getOrDefault(sheetIndex, Collections.emptyMap()).get(cellAddress);
                 if (firstCellAddress != null) {
                     thisStr = mergeFirstCellMapping.get(firstCellAddress);
+                }
+            }
+            if (hssfPreData != null && !hssfPreData.hyperlinkMapping.isEmpty()) {
+                Map<CellAddress, Hyperlink> hyperlinkMapping = hssfPreData.hyperlinkMapping.get(sheetIndex);
+                if (hyperlinkMapping != null) {
+                    CellAddress cellAddress = new CellAddress(thisRow, thisColumn);
+                    Hyperlink hyperlink = hyperlinkMapping.get(cellAddress);
+                    readContext.setHyperlink(hyperlink);
                 }
             }
             handleField(thisColumn, thisStr);
@@ -303,12 +319,12 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
     }
 
     private boolean isSelectedSheet() {
-        if (readConfig.readAllSheet) {
+        if (readContext.readConfig.readAllSheet) {
             return true;
         }
-        if (!readConfig.sheetNames.isEmpty()) {
-            return readConfig.sheetNames.contains(sheetName);
+        if (!readContext.readConfig.sheetNames.isEmpty()) {
+            return readContext.readConfig.sheetNames.contains(sheetName);
         }
-        return readConfig.sheetIndexs.contains(sheetIndex);
+        return readContext.readConfig.sheetIndexs.contains(sheetIndex);
     }
 }

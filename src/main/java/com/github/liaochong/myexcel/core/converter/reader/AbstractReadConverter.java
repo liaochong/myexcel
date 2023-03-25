@@ -17,11 +17,10 @@ package com.github.liaochong.myexcel.core.converter.reader;
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
 import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.converter.ConvertContext;
+import com.github.liaochong.myexcel.core.context.ReadContext;
 import com.github.liaochong.myexcel.core.converter.ReadConverter;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
  * @author chd.y
  * @since 2.3.1
  */
-public abstract class AbstractReadConverter<R> implements ReadConverter<String, R> {
+public abstract class AbstractReadConverter<R> implements ReadConverter<R> {
 
     protected static final WeakCache<String, DateTimeFormatter> DATE_TIME_FORMATTER_WEAK_CACHE = new WeakCache<>();
 
@@ -57,11 +56,11 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<String, 
     private static final LocalDateTime START_LOCAL_DATE_TIME = LocalDateTime.of(1900, 1, 1, 0, 0, 0);
 
     @Override
-    public R convert(String obj, Field field, ConvertContext convertContext) {
-        if (StringUtil.isBlank(obj)) {
+    public R convert(ReadContext<?> readContext) {
+        if (StringUtil.isBlank(readContext.getVal())) {
             return null;
         }
-        String trimContent = obj.trim();
+        String trimContent = readContext.getVal().trim();
         // negative
         if (trimContent.startsWith(Constants.LEFT_BRACKET)) {
             if (trimContent.endsWith(Constants.RIGHT_BRACKET)) {
@@ -71,38 +70,36 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<String, 
                 }
             }
         }
-        return doConvert(trimContent, field, convertContext);
+        readContext.setVal(trimContent);
+        return doConvert(readContext);
     }
 
 
     /**
      * 把输入参数进行处理后，转换。
      *
-     * @param v              待转换值
-     * @param field          待转换值所属字段
-     * @param convertContext 转换上下文
+     * @param readContext 读取转换上下文
      * @return 目标值
      */
-    protected abstract R doConvert(String v, Field field, ConvertContext convertContext);
+    protected abstract R doConvert(ReadContext<?> readContext);
 
 
     /**
      * 取得DateFormatPattern
      *
-     * @param field          待转换值所属字段
-     * @param convertContext 转换上下文
+     * @param readContext 转换上下文
      * @return 时间格式
      */
-    protected String getDateFormatPattern(Field field, ConvertContext convertContext) {
-        ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
+    protected String getDateFormatPattern(ReadContext<?> readContext) {
+        ExcelColumnMapping mapping = readContext.convertContext.excelColumnMappingMap.get(readContext.getField());
         if (mapping == null) {
-            return field.getType() == LocalDate.class ? convertContext.configuration.dateFormat : field.getType() == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;
+            return readContext.getField().getType() == LocalDate.class ? readContext.convertContext.configuration.dateFormat : readContext.getField().getType() == LocalTime.class ? readContext.convertContext.configuration.localTimeFormat : readContext.convertContext.configuration.dateTimeFormat;
         }
         String format = mapping.format;
         if (!format.isEmpty()) {
             return format;
         }
-        return field.getType() == LocalDate.class ? convertContext.configuration.dateFormat : field.getType() == LocalTime.class ? convertContext.configuration.localTimeFormat : convertContext.configuration.dateTimeFormat;
+        return readContext.getField().getType() == LocalDate.class ? readContext.convertContext.configuration.dateFormat : readContext.getField().getType() == LocalTime.class ? readContext.convertContext.configuration.localTimeFormat : readContext.convertContext.configuration.dateTimeFormat;
     }
 
     /**
@@ -128,12 +125,11 @@ public abstract class AbstractReadConverter<R> implements ReadConverter<String, 
     /**
      * 获取DateTimeFormatter
      *
-     * @param field          字段
-     * @param convertContext 转换上下文
+     * @param readContext 转换上下文
      * @return DateTimeFormatter
      */
-    protected DateTimeFormatter getDateFormatFormatter(Field field, ConvertContext convertContext) {
-        String dateFormatPattern = getDateFormatPattern(field, convertContext);
+    protected DateTimeFormatter getDateFormatFormatter(ReadContext<?> readContext) {
+        String dateFormatPattern = getDateFormatPattern(readContext);
         DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER_WEAK_CACHE.get(dateFormatPattern);
         if (Objects.isNull(dateTimeFormatter)) {
             dateTimeFormatter = DateTimeFormatter.ofPattern(dateFormatPattern);

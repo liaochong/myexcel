@@ -12,12 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core;
+package com.github.liaochong.myexcel.core.context;
+
+import com.github.liaochong.myexcel.core.SaxExcelReader;
+import com.github.liaochong.myexcel.core.converter.ConvertContext;
 
 import java.lang.reflect.Field;
 
 /**
- * 读取异常上下文
+ * 读取上下文
  *
  * @author liaochong
  * @version 1.0
@@ -34,12 +37,29 @@ public class ReadContext<T> {
 
     private int colNum;
 
+    private Hyperlink hyperlink;
+
+    public ConvertContext convertContext;
+
+    public SaxExcelReader.ReadConfig<T> readConfig;
+
+    public ReadContext() {
+    }
+
+    public ReadContext(ConvertContext convertContext) {
+        this.convertContext = convertContext;
+    }
+
     public void reset(T object, Field field, String val, int rowNum, int colNum) {
         this.object = object;
         this.field = field;
         this.val = val;
         this.rowNum = rowNum;
         this.colNum = colNum;
+    }
+
+    public void revert() {
+        this.hyperlink = null;
     }
 
     public T getObject() {
@@ -80,5 +100,13 @@ public class ReadContext<T> {
 
     public void setColNum(int colNum) {
         this.colNum = colNum;
+    }
+
+    public Hyperlink getHyperlink() {
+        return hyperlink;
+    }
+
+    public void setHyperlink(Hyperlink hyperlink) {
+        this.hyperlink = hyperlink;
     }
 }

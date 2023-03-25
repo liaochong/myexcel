@@ -12,21 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.liaochong.myexcel.core.converter.reader;
+package com.github.liaochong.myexcel.core.pojo;
 
-import com.github.liaochong.myexcel.core.context.ReadContext;
-import com.github.liaochong.myexcel.core.converter.ReadConverter;
+import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
+import lombok.Getter;
 
 /**
- * String读取转换器
- *
  * @author liaochong
  * @version 1.0
  */
-public class StringReadConverter implements ReadConverter<String> {
+@Getter
+public class Hyperlink {
 
-    @Override
-    public String convert(ReadContext<?> readContext) {
-        return readContext.getVal();
-    }
+    @ExcelColumn(index = 0)
+    private com.github.liaochong.myexcel.core.context.Hyperlink hyperlink;
 }
