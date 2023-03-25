@@ -77,15 +77,14 @@ class XSSFSheetPreXMLHandler extends DefaultHandler {
         if (StringUtils.isEmpty(ref)) {
             return;
         }
-        // Hyperlink has 2 case:
-        // case 1，In the 'location' tag
+        // 1.In the 'location' tag
         String location = attributes.getValue(Constants.ATTRIBUTE_LOCATION);
         if (location != null) {
             Hyperlink hyperlink = new Hyperlink(location, null, null);
             xssfPreData.hyperlinkMapping.put(new CellAddress(ref), hyperlink);
             return;
         }
-        // case 2, In the 'r:id' tag, Then go to 'PackageRelationshipCollection' to get inside
+        //  2.In the 'r:id' tag
         String rId = attributes.getValue(Constants.ATTRIBUTE_RID);
         if (rId == null || xssfReadContext.packageRelationshipCollection == null) {
             return;

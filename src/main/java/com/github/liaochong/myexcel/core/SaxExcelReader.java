@@ -368,7 +368,7 @@ public class SaxExcelReader<T> {
                 readConfig.startSheetConsumer.accept(xssfReadContext.sheetName, xssfReadContext.sheetIndex);
                 XSSFSheetPreXMLHandler.XSSFPreData xssfPreData = preDataIndexMapping.get(xssfReadContext.sheetIndex);
                 ContentHandler handler = new XSSFSheetXMLHandler(
-                        xssfPreData, strings, new XSSFSaxReadHandler<>(result, readConfig, xssfPreData != null ? xssfPreData.mergeCellMapping : Collections.emptyMap()));
+                        xssfPreData, strings, new XSSFSaxReadHandler<>(result, readConfig, xssfPreData));
                 processSheet(handler, xssfReadContext.inputStream);
                 preDataIndexMapping.remove(xssfReadContext.sheetIndex);
             });
