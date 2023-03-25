@@ -151,7 +151,9 @@ class HSSFSaxReadHandler<T> extends AbstractReadHandler<T> implements HSSFListen
                     if (workbookBuildingListener != null && stubWorkbook == null) {
                         stubWorkbook = workbookBuildingListener.getStubHSSFWorkbook();
                     }
-                    hssfPreData.hyperlinkMapping.remove(sheetIndex);
+                    if (hssfPreData != null) {
+                        hssfPreData.hyperlinkMapping.remove(sheetIndex);
+                    }
                     sheetIndex++;
                     setRecordAsNull();
                     lastRowNumber = -1;

@@ -249,10 +249,12 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             // Output
             output.cell(cellAddress, thisStr);
         } else if ("c".equals(localName)) {
-            CellAddress cellAddress = new CellAddress(cellRef);
-            CellAddress firstCellAddress = xssfPreData.mergeCellMapping.get(cellAddress);
-            if (firstCellAddress != null) {
-                output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
+            if (xssfPreData != null) {
+                CellAddress cellAddress = new CellAddress(cellRef);
+                CellAddress firstCellAddress = xssfPreData.mergeCellMapping.get(cellAddress);
+                if (firstCellAddress != null) {
+                    output.cell(cellAddress, mergeFirstCellMapping.get(firstCellAddress));
+                }
             }
         } else if ("row".equals(localName)) {
             // Finish up the row
