@@ -14,7 +14,6 @@
  */
 package com.github.liaochong.myexcel.utils;
 
-import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -40,7 +39,7 @@ public class FieldDefinition {
             PropertyDescriptor propertyDescriptor = new PropertyDescriptor(field.getName(), field.getDeclaringClass());
             this.getMethod = propertyDescriptor.getReadMethod();
             this.setMethod = propertyDescriptor.getWriteMethod();
-        } catch (IntrospectionException e) {
+        } catch (Exception e) {
             // do nothing
         }
     }

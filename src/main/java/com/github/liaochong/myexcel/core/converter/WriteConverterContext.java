@@ -31,6 +31,7 @@ import com.github.liaochong.myexcel.core.converter.writer.MappingWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.MultiWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.OriginalWriteConverter;
 import com.github.liaochong.myexcel.core.converter.writer.StringWriteConverter;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -73,13 +74,13 @@ public class WriteConverterContext {
         }
     }
 
-    public static Pair<? extends Class, Object> convert(Field field, Object object, ConvertContext convertContext) {
-        Object result = ReflectUtil.getFieldValue(object, field);
+    public static Pair<? extends Class, Object> convert(FieldDefinition fieldDefinition, Object object, ConvertContext convertContext) {
+        Object result = ReflectUtil.getFieldValue(object, fieldDefinition);
         if (result == null) {
             return Constants.NULL_PAIR;
         }
-        WriteConverter writeConverter = getWriteConverter(field, field.getType(), result, convertContext, WRITE_CONVERTER_CONTAINER);
-        return writeConverter.convert(field, field.getType(), result, convertContext);
+        WriteConverter writeConverter = getWriteConverter(fieldDefinition.getField(), fieldDefinition.getField().getType(), result, convertContext, WRITE_CONVERTER_CONTAINER);
+        return writeConverter.convert(fieldDefinition.getField(), fieldDefinition.getField().getType(), result, convertContext);
     }
 
     public static WriteConverter getWriteConverter(Field field, Class<?> fieldType, Object result, ConvertContext convertContext, List<Pair<Class, WriteConverter>> writeConverterContainer) {

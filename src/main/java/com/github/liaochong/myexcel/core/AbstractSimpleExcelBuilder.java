@@ -37,6 +37,7 @@ import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.reflect.ClassFieldContainer;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.ConfigurationUtil;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
@@ -74,7 +75,7 @@ abstract class AbstractSimpleExcelBuilder {
     /**
      * 已排序字段
      */
-    protected List<Field> filteredFields = Collections.emptyList();
+    protected List<FieldDefinition> filteredFields = Collections.emptyList();
     /**
      * 标题
      */
@@ -129,16 +130,17 @@ abstract class AbstractSimpleExcelBuilder {
      * @param groups              分组
      * @return Field
      */
-    protected List<Field> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
+    protected List<FieldDefinition> getFilteredFields(ClassFieldContainer classFieldContainer, Class<?>... groups) {
         ConfigurationUtil.parseConfiguration(classFieldContainer, configuration);
         this.parseGlobalStyle();
-        List<Field> preElectionFields = this.getPreElectionFields(classFieldContainer);
-        List<Field> buildFields = this.getGroupFields(preElectionFields, groups);
+        List<FieldDefinition> preElectionFields = this.getPreElectionFields(classFieldContainer);
+        List<FieldDefinition> buildFields = this.getGroupFields(preElectionFields, groups);
         // 初始化标题容器
         List<String> titles = new ArrayList<>(buildFields.size());
 
         for (int i = 0, size = buildFields.size(); i < size; i++) {
-            Field field = buildFields.get(i);
+            FieldDefinition fieldDefinition = buildFields.get(i);
+            Field field = fieldDefinition.getField();
             ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
             String[] columnStyles = null;
             if (excelColumn != null) {
@@ -164,7 +166,7 @@ abstract class AbstractSimpleExcelBuilder {
                     formats.put(i, excelColumn.dateFormatPattern());
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                excelColumnMappingMap.put(field, mapping);
+                excelColumnMappingMap.put(fieldDefinition.getField(), mapping);
             } else {
                 if (configuration.useFieldNameAsTitle) {
                     titles.add(field.getName());
@@ -176,7 +178,7 @@ abstract class AbstractSimpleExcelBuilder {
             setGlobalFormat(i, field);
         }
         setTitles(titles);
-        hasMultiColumn = buildFields.stream().anyMatch(field -> field.isAnnotationPresent(MultiColumn.class));
+        hasMultiColumn = buildFields.stream().anyMatch(fieldDefinition -> fieldDefinition.getField().isAnnotationPresent(MultiColumn.class));
         return buildFields;
     }
 
@@ -366,7 +368,7 @@ abstract class AbstractSimpleExcelBuilder {
         if (filteredFields.isEmpty()) {
             return;
         }
-        Field field = filteredFields.get(i);
+        FieldDefinition field = filteredFields.get(i);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.formula) {
             td.formula = true;
@@ -377,7 +379,7 @@ abstract class AbstractSimpleExcelBuilder {
         if (filteredFields == null || filteredFields.isEmpty()) {
             return;
         }
-        Field field = filteredFields.get(index);
+        FieldDefinition field = filteredFields.get(index);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
         if (excelColumnMapping != null && excelColumnMapping.promptContainer != null) {
             td.promptContainer = excelColumnMapping.promptContainer;
@@ -468,22 +470,22 @@ abstract class AbstractSimpleExcelBuilder {
         }
     }
 
-    protected List<Field> getGroupFields(List<Field> preElectionFields, Class<?>[] groups) {
+    protected List<FieldDefinition> getGroupFields(List<FieldDefinition> preElectionFields, Class<?>[] groups) {
         List<Class<?>> selectedGroupList = Objects.nonNull(groups) ? Arrays.stream(groups).filter(Objects::nonNull).collect(Collectors.toList()) : Collections.emptyList();
         return preElectionFields.stream()
-                .filter(field -> (!field.isAnnotationPresent(ExcludeColumn.class) && !field.isAnnotationPresent(IgnoreColumn.class)) && ReflectUtil.isFieldSelected(selectedGroupList, field))
+                .filter(fieldDefinition -> (!fieldDefinition.getField().isAnnotationPresent(ExcludeColumn.class) && !fieldDefinition.getField().isAnnotationPresent(IgnoreColumn.class)) && ReflectUtil.isFieldSelected(selectedGroupList, fieldDefinition))
                 .sorted(ReflectUtil::sortFields)
                 .collect(Collectors.toList());
     }
 
-    protected List<Field> getPreElectionFields(ClassFieldContainer classFieldContainer) {
+    protected List<FieldDefinition> getPreElectionFields(ClassFieldContainer classFieldContainer) {
         if (Objects.nonNull(fieldDisplayOrder) && !fieldDisplayOrder.isEmpty()) {
             this.selfAdaption();
             return fieldDisplayOrder.stream()
                     .map(classFieldContainer::getFieldByName)
                     .collect(Collectors.toList());
         }
-        List<Field> preElectionFields;
+        List<FieldDefinition> preElectionFields;
         if (configuration.includeAllField) {
             if (configuration.excludeParent) {
                 preElectionFields = classFieldContainer.getDeclaredFields();
@@ -493,7 +495,7 @@ abstract class AbstractSimpleExcelBuilder {
         } else {
             if (configuration.excludeParent) {
                 preElectionFields = classFieldContainer.getDeclaredFields().stream()
-                        .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
+                        .filter(fieldDefinition -> fieldDefinition.getField().isAnnotationPresent(ExcelColumn.class))
                         .collect(Collectors.toList());
             } else {
                 preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
@@ -501,7 +503,7 @@ abstract class AbstractSimpleExcelBuilder {
         }
         if (configuration.ignoreStaticFields) {
             preElectionFields = preElectionFields.stream()
-                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                    .filter(fieldDefinition -> !Modifier.isStatic(fieldDefinition.getField().getModifiers()))
                     .collect(Collectors.toList());
         }
         return preElectionFields;
@@ -529,7 +531,7 @@ abstract class AbstractSimpleExcelBuilder {
      * @param <T>          泛型
      * @return 结果集
      */
-    protected <T> List<List<Pair<? extends Class, ?>>> getMultiRenderContent(T data, List<Field> sortedFields) {
+    protected <T> List<List<Pair<? extends Class, ?>>> getMultiRenderContent(T data, List<FieldDefinition> sortedFields) {
         List<Pair<? extends Class, ?>> convertResult = this.getOriginalRenderContent(data, sortedFields);
 
         // 获取最大长度
@@ -576,7 +578,7 @@ abstract class AbstractSimpleExcelBuilder {
      * @param <T>          泛型
      * @return 结果集
      */
-    protected <T> LinkedList<Pair<? extends Class, ?>> getOriginalRenderContent(T data, List<Field> sortedFields) {
+    protected <T> LinkedList<Pair<? extends Class, ?>> getOriginalRenderContent(T data, List<FieldDefinition> sortedFields) {
         return sortedFields.stream()
                 .map(field -> {
                     Pair<? extends Class, Object> value = WriteConverterContext.convert(field, data, convertContext);
