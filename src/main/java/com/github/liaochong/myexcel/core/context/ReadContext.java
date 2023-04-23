@@ -16,6 +16,7 @@ package com.github.liaochong.myexcel.core.context;
 
 import com.github.liaochong.myexcel.core.SaxExcelReader;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 
 import java.lang.reflect.Field;
 
@@ -30,6 +31,8 @@ public class ReadContext<T> {
     private T object;
 
     private Field field;
+
+    private FieldDefinition fieldDefinition;
 
     private String val;
 
@@ -50,9 +53,10 @@ public class ReadContext<T> {
         this.convertContext = convertContext;
     }
 
-    public void reset(T object, Field field, String val, int rowNum, int colNum) {
+    public void reset(T object, FieldDefinition fieldDefinition, String val, int rowNum, int colNum) {
         this.object = object;
-        this.field = field;
+        this.fieldDefinition = fieldDefinition;
+        this.field = fieldDefinition.getField();
         this.val = val;
         this.rowNum = rowNum;
         this.colNum = colNum;
@@ -64,10 +68,6 @@ public class ReadContext<T> {
 
     public T getObject() {
         return this.object;
-    }
-
-    public Field getField() {
-        return this.field;
     }
 
     public String getVal() {
@@ -84,10 +84,6 @@ public class ReadContext<T> {
 
     public void setObject(T object) {
         this.object = object;
-    }
-
-    public void setField(Field field) {
-        this.field = field;
     }
 
     public void setVal(String val) {
@@ -108,5 +104,21 @@ public class ReadContext<T> {
 
     public void setHyperlink(Hyperlink hyperlink) {
         this.hyperlink = hyperlink;
+    }
+
+    public FieldDefinition getFieldDefinition() {
+        return fieldDefinition;
+    }
+
+    public void setFieldDefinition(FieldDefinition fieldDefinition) {
+        this.fieldDefinition = fieldDefinition;
+    }
+
+    public Field getField() {
+        return field;
+    }
+
+    public void setField(Field field) {
+        this.field = field;
     }
 }

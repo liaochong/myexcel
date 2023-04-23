@@ -31,9 +31,11 @@ import com.github.liaochong.myexcel.core.converter.reader.StringReadConverter;
 import com.github.liaochong.myexcel.core.converter.reader.TimestampReadConverter;
 import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
+import com.github.liaochong.myexcel.utils.FieldDefinition;
 import com.github.liaochong.myexcel.utils.PropertyUtil;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -156,7 +158,13 @@ public class ReadConverterContext {
             if (obj instanceof List) {
                 ((List) obj).add(value);
             } else {
-                readContext.getField().set(obj, value);
+                FieldDefinition fieldDefinition = readContext.getFieldDefinition();
+                Method setMethod = fieldDefinition.getSetMethod();
+                if (setMethod != null) {
+                    setMethod.invoke(obj, value);
+                } else {
+                    fieldDefinition.getField().set(obj, value);
+                }
             }
         } catch (Exception e) {
             throw new SaxReadException("Failed to set the " + readContext.getField().getDeclaringClass().getName() + "#" + readContext.getField().getName() + " field value to " + readContext.getVal(), e);

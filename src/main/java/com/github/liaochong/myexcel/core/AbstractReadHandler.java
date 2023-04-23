@@ -183,7 +183,7 @@ abstract class AbstractReadHandler<T> {
             fieldHandler = (colNum, content) -> {
                 FieldDefinition fieldDefinition = fieldDefinitionMap.get(colNum);
                 if (fieldDefinition != null) {
-                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                    convert(content, currentRow.getRowNum(), colNum, fieldDefinition);
                 }
             };
         } else {
@@ -197,7 +197,7 @@ abstract class AbstractReadHandler<T> {
                 boolean isList = fieldDefinition.getField().getType() == List.class;
                 if (!isList && fieldDefinition.getParentFields().isEmpty()) {
                     if (target == null) {
-                        convert(content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                        convert(content, currentRow.getRowNum(), colNum, fieldDefinition);
                     }
                 } else {
                     try {
@@ -227,7 +227,7 @@ abstract class AbstractReadHandler<T> {
                                     }
                                 }
                                 if (isBase) {
-                                    convert(prevObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                                    convert(prevObj, content, currentRow.getRowNum(), colNum, fieldDefinition);
                                 } else {
                                     Object targetParent = ((List) prevObj).get(((List) prevObj).size() - 1);
                                     Object targetObj = fieldDefinition.getField().get(targetParent);
@@ -235,7 +235,7 @@ abstract class AbstractReadHandler<T> {
                                         targetObj = new LinkedList<>();
                                         fieldDefinition.getField().set(targetParent, targetObj);
                                     }
-                                    convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                                    convert(targetObj, content, currentRow.getRowNum(), colNum, fieldDefinition);
                                 }
                             } else {
                                 Object value;
@@ -245,7 +245,7 @@ abstract class AbstractReadHandler<T> {
                                 } else {
                                     value = ((List<Object>) prevObj).get(((List<Object>) prevObj).size() - 1);
                                 }
-                                convert(value, content, currentRow.getRowNum(), colNum, fieldDefinition.getField());
+                                convert(value, content, currentRow.getRowNum(), colNum, fieldDefinition);
                             }
                         }
                     } catch (Exception e) {
@@ -257,20 +257,20 @@ abstract class AbstractReadHandler<T> {
         }
     }
 
-    protected void convert(Object prevObj, String value, int rowNum, int colNum, Field field) {
-        if (value == null || field == null) {
+    protected void convert(Object prevObj, String value, int rowNum, int colNum, FieldDefinition fieldDefinition) {
+        if (value == null || fieldDefinition.getField() == null) {
             return;
         }
-        readContext.reset(obj, field, value, rowNum, colNum);
+        readContext.reset(obj, fieldDefinition, value, rowNum, colNum);
         ReadConverterContext.convert(prevObj, readContext);
         readContext.revert();
     }
 
-    protected void convert(String value, int rowNum, int colNum, Field field) {
-        if (value == null || field == null) {
+    protected void convert(String value, int rowNum, int colNum, FieldDefinition fieldDefinition) {
+        if (value == null || fieldDefinition.getField() == null) {
             return;
         }
-        readContext.reset(obj, field, value, rowNum, colNum);
+        readContext.reset(obj, fieldDefinition, value, rowNum, colNum);
         ReadConverterContext.convert(obj, readContext);
         readContext.revert();
     }
