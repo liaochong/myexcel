@@ -368,19 +368,19 @@ abstract class AbstractSimpleExcelBuilder {
         if (filteredFields.isEmpty()) {
             return;
         }
-        FieldDefinition field = filteredFields.get(i);
-        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
+        FieldDefinition fieldDefinition = filteredFields.get(i);
+        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
         if (excelColumnMapping != null && excelColumnMapping.formula) {
             td.formula = true;
         }
     }
 
     protected void setPrompt(Td td, int index) {
-        if (filteredFields == null || filteredFields.isEmpty()) {
+        if (filteredFields.isEmpty()) {
             return;
         }
-        FieldDefinition field = filteredFields.get(index);
-        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(field);
+        FieldDefinition fieldDefinition = filteredFields.get(index);
+        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
         if (excelColumnMapping != null && excelColumnMapping.promptContainer != null) {
             td.promptContainer = excelColumnMapping.promptContainer;
         }
