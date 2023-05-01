@@ -141,7 +141,6 @@ class XSSFSheetXMLHandler extends DefaultHandler {
             this.nextDataType = xssfDataType.NUMBER;
             cellRef = attributes.getValue("r");
             String cellType = attributes.getValue("t");
-            String cellStyleStr = attributes.getValue("s");
             if ("b".equals(cellType))
                 nextDataType = xssfDataType.BOOLEAN;
             else if ("e".equals(cellType))
