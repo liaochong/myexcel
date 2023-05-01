@@ -115,14 +115,14 @@ public class DefaultExcelReader<T> {
             ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
             ConfigurationUtil.parseConfiguration(classFieldContainer, readContext.convertContext.configuration);
 
-            List<Field> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
-            fields.forEach(field -> {
-                ExcelColumn excelColumn = field.getAnnotation(ExcelColumn.class);
+            List<FieldDefinition> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+            fields.forEach(fieldDefinition -> {
+                ExcelColumn excelColumn = fieldDefinition.getField().getAnnotation(ExcelColumn.class);
                 if (excelColumn == null) {
                     return;
                 }
                 ExcelColumnMapping mapping = ExcelColumnMapping.mapping(excelColumn);
-                readContext.convertContext.excelColumnMappingMap.put(field, mapping);
+                readContext.convertContext.excelColumnMappingMap.put(fieldDefinition.getField(), mapping);
             });
         }
     }
@@ -423,7 +423,7 @@ public class DefaultExcelReader<T> {
                 return;
             }
             content = trim.apply(content);
-            readContext.reset(obj, fieldDefinition.getField(), content, row.getRowNum(), index);
+            readContext.reset(obj, fieldDefinition, content, row.getRowNum(), index);
             ReadConverterContext.convert(obj, readContext);
         });
         return obj;

@@ -59,7 +59,7 @@
         <dependency>
             <groupId>com.github.liaochong</groupId>
             <artifactId>myexcel</artifactId>
-            <version>4.3.0.RC</version>
+            <version>4.3.0.RC5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

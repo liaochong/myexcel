@@ -14,7 +14,9 @@
  */
 package com.github.liaochong.myexcel.utils;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -27,8 +29,19 @@ public class FieldDefinition {
 
     private List<Field> parentFields;
 
+    private Method getMethod;
+
+    private Method setMethod;
+
     public FieldDefinition(Field field) {
         this.field = field;
+        try {
+            PropertyDescriptor propertyDescriptor = new PropertyDescriptor(field.getName(), field.getDeclaringClass());
+            this.getMethod = propertyDescriptor.getReadMethod();
+            this.setMethod = propertyDescriptor.getWriteMethod();
+        } catch (Exception e) {
+            // do nothing
+        }
     }
 
     public Field getField() {
@@ -45,5 +58,21 @@ public class FieldDefinition {
 
     public void setParentFields(List<Field> parentFields) {
         this.parentFields = parentFields;
+    }
+
+    public Method getGetMethod() {
+        return getMethod;
+    }
+
+    public void setGetMethod(Method getMethod) {
+        this.getMethod = getMethod;
+    }
+
+    public Method getSetMethod() {
+        return setMethod;
+    }
+
+    public void setSetMethod(Method setMethod) {
+        this.setMethod = setMethod;
     }
 }

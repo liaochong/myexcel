@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>4.3.0.RC4</version>
+    <version>4.3.0.RC5</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -23,9 +23,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <poi.version>5.2.3</poi.version>
-        <jsoup.version>1.15.4</jsoup.version>
+        <jsoup.version>1.16.1</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
-        <beetl.version>3.15.0.RELEASE</beetl.version>
+        <beetl.version>3.15.4.RELEASE</beetl.version>
         <velocity.version>2.3</velocity.version>
         <freemarker.version>2.3.32</freemarker.version>
         <groovy-templates.version>3.0.9</groovy-templates.version>
@@ -33,7 +33,7 @@
         <enjoy.version>5.0.3</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
         <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
-        <imageio-jpeg.version>3.8.2</imageio-jpeg.version>
+        <imageio-jpeg.version>3.9.4</imageio-jpeg.version>
         <commons-csv.version>1.10.0</commons-csv.version>
     </properties>
 

@@ -15,8 +15,9 @@
  */
 package com.github.liaochong.myexcel.core.reflect;
 
+import com.github.liaochong.myexcel.utils.FieldDefinition;
+
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,31 +33,31 @@ public class ClassFieldContainer {
 
     private Class<?> clazz;
 
-    private final List<Field> declaredFields = new ArrayList<>();
+    private final List<FieldDefinition> declaredFields = new ArrayList<>();
 
-    private final Map<String, Field> fieldMap = new HashMap<>();
+    private final Map<String, FieldDefinition> fieldMap = new HashMap<>();
 
     private ClassFieldContainer parent;
 
-    public Field getFieldByName(String fieldName) {
+    public FieldDefinition getFieldByName(String fieldName) {
         return this.getFieldByName(fieldName, this);
     }
 
     @SafeVarargs
-    public final List<Field> getFieldsByAnnotation(Class<? extends Annotation>... annotationClazzs) {
+    public final List<FieldDefinition> getFieldsByAnnotation(Class<? extends Annotation>... annotationClazzs) {
         Objects.requireNonNull(annotationClazzs);
-        List<Field> annotationFields = new ArrayList<>();
+        List<FieldDefinition> annotationFields = new ArrayList<>();
         this.getFieldsByAnnotation(this, annotationFields, annotationClazzs);
         return annotationFields;
     }
 
-    public List<Field> getFields() {
-        List<Field> fields = new ArrayList<>();
+    public List<FieldDefinition> getFields() {
+        List<FieldDefinition> fields = new ArrayList<>();
         this.getFieldsByContainer(this, fields);
         return fields;
     }
 
-    private void getFieldsByContainer(ClassFieldContainer classFieldContainer, List<Field> fields) {
+    private void getFieldsByContainer(ClassFieldContainer classFieldContainer, List<FieldDefinition> fields) {
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (parentContainer != null) {
             this.getFieldsByContainer(parentContainer, fields);
@@ -65,14 +66,14 @@ public class ClassFieldContainer {
     }
 
     @SafeVarargs
-    private final void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, List<Field> annotationFieldContainer, Class<? extends Annotation>... annotationClazzs) {
+    private final void getFieldsByAnnotation(ClassFieldContainer classFieldContainer, List<FieldDefinition> annotationFieldContainer, Class<? extends Annotation>... annotationClazzs) {
         ClassFieldContainer parentContainer = classFieldContainer.getParent();
         if (parentContainer != null) {
             this.getFieldsByAnnotation(parentContainer, annotationFieldContainer, annotationClazzs);
         }
-        List<Field> annotationFields = classFieldContainer.declaredFields.stream().filter(field -> {
+        List<FieldDefinition> annotationFields = classFieldContainer.declaredFields.stream().filter(fieldDefinition -> {
             for (Class<? extends Annotation> annotationClazz : annotationClazzs) {
-                boolean isAnnotationPresent = field.isAnnotationPresent(annotationClazz);
+                boolean isAnnotationPresent = fieldDefinition.getField().isAnnotationPresent(annotationClazz);
                 if (isAnnotationPresent) {
                     return true;
                 }
@@ -82,24 +83,24 @@ public class ClassFieldContainer {
         filterFields(annotationFields, annotationFieldContainer);
     }
 
-    private void filterFields(List<Field> declaredFields, List<Field> fieldContainer) {
+    private void filterFields(List<FieldDefinition> declaredFields, List<FieldDefinition> fieldDefinitionsContainer) {
         to:
-        for (Field field : declaredFields) {
-            for (int j = 0; j < fieldContainer.size(); j++) {
-                Field f = fieldContainer.get(j);
-                if (f.getName().equals(field.getName())) {
-                    fieldContainer.set(j, field);
+        for (FieldDefinition fieldDefinition : declaredFields) {
+            for (int j = 0; j < fieldDefinitionsContainer.size(); j++) {
+                FieldDefinition f = fieldDefinitionsContainer.get(j);
+                if (f.getField().getName().equals(fieldDefinition.getField().getName())) {
+                    fieldDefinitionsContainer.set(j, fieldDefinition);
                     continue to;
                 }
             }
-            fieldContainer.add(field);
+            fieldDefinitionsContainer.add(fieldDefinition);
         }
     }
 
-    private Field getFieldByName(String fieldName, ClassFieldContainer container) {
-        Field field = container.getFieldMap().get(fieldName);
-        if (field != null) {
-            return field;
+    private FieldDefinition getFieldByName(String fieldName, ClassFieldContainer container) {
+        FieldDefinition fieldDefinition = container.getFieldMap().get(fieldName);
+        if (fieldDefinition != null) {
+            return fieldDefinition;
         }
         ClassFieldContainer parentContainer = container.getParent();
         if (parentContainer == null) {
@@ -112,11 +113,11 @@ public class ClassFieldContainer {
         return this.clazz;
     }
 
-    public List<Field> getDeclaredFields() {
+    public List<FieldDefinition> getDeclaredFields() {
         return this.declaredFields;
     }
 
-    public Map<String, Field> getFieldMap() {
+    public Map<String, FieldDefinition> getFieldMap() {
         return this.fieldMap;
     }
 
