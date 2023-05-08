@@ -30,7 +30,7 @@ import java.util.Properties;
  */
 public class MappingWriteConverter implements WriteConverter {
 
-    private WeakCache<String, Pair<Class, Object>> mappingCache = new WeakCache<>();
+    private final WeakCache<String, Pair<Class, Object>> mappingCache = new WeakCache<>();
 
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {

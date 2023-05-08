@@ -14,5 +14,5 @@ public enum FileType {
     /**
      * 图片
      */
-    IMAGE;
+    IMAGE
 }

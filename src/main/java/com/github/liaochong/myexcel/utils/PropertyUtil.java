@@ -28,9 +28,9 @@ import java.util.Properties;
  */
 public final class PropertyUtil {
 
-    private static WeakCache<ExcelColumnMapping, Properties> mappingCache = new WeakCache<>();
+    private static final WeakCache<ExcelColumnMapping, Properties> mappingCache = new WeakCache<>();
 
-    private static WeakCache<ExcelColumnMapping, Properties> reverseMappingCache = new WeakCache<>();
+    private static final WeakCache<ExcelColumnMapping, Properties> reverseMappingCache = new WeakCache<>();
 
     private static final Properties EMPTY_PROPERTIES = new Properties();
 

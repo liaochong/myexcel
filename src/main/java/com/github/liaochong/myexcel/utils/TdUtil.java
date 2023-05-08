@@ -27,11 +27,11 @@ import java.util.regex.Pattern;
  */
 public final class TdUtil {
 
-    private static Pattern chineseOrCapitalPattern = Pattern.compile("[\u4e00-\u9fa5|A-Z]");
+    private static final Pattern chineseOrCapitalPattern = Pattern.compile("[\u4e00-\u9fa5|A-Z]");
 
-    private static Pattern digitalPattern = Pattern.compile("^\\d+$");
+    private static final Pattern digitalPattern = Pattern.compile("^\\d+$");
 
-    private static Pattern nonDigitalPattern = Pattern.compile("[^\\d]+");
+    private static final Pattern nonDigitalPattern = Pattern.compile("[^\\d]+");
 
     private static final Cache<String, Integer> SPAN_CACHE = new WeakCache<>();
 
