@@ -28,10 +28,11 @@
         <beetl.version>3.15.4.RELEASE</beetl.version>
         <velocity.version>2.3</velocity.version>
         <freemarker.version>2.3.32</freemarker.version>
-        <groovy-templates.version>4.0.11</groovy-templates.version>
+        <groovy-templates.version>4.0.12</groovy-templates.version>
         <thymeleaf.version>3.1.1.RELEASE</thymeleaf.version>
         <enjoy.version>5.0.3</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+        <jakarta.servlet-api>6.0.0</jakarta.servlet-api>
         <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
         <imageio-jpeg.version>3.9.4</imageio-jpeg.version>
         <commons-csv.version>1.10.0</commons-csv.version>
@@ -109,6 +110,12 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>${javax.servlet-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet-api}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
