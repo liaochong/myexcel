@@ -23,7 +23,7 @@ import java.util.WeakHashMap;
  */
 public class WeakCache<K, V> implements Cache<K, V> {
 
-    private volatile WeakHashMap<K, V> cacheMap;
+    private final WeakHashMap<K, V> cacheMap;
 
     public WeakCache() {
         cacheMap = new WeakHashMap<>();

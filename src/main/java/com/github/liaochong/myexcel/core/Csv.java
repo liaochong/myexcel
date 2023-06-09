@@ -31,7 +31,7 @@ public class Csv {
     /**
      * csv文件路径
      */
-    private Path filePath;
+    private final Path filePath;
 
     Csv(Path filePath) {
         this.filePath = filePath;

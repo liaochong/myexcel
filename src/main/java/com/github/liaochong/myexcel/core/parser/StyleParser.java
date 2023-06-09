@@ -61,11 +61,11 @@ public final class StyleParser {
     /**
      * 各个列样式
      */
-    private Map<String, Map<String, String>> eachColumnStyle = new HashMap<>();
+    private final Map<String, Map<String, String>> eachColumnStyle = new HashMap<>();
     /**
      * 格式样式Map
      */
-    private Map<String, Map<String, String>> formatsStyleMap = new HashMap<>();
+    private final Map<String, Map<String, String>> formatsStyleMap = new HashMap<>();
     /**
      * 自定义宽度
      */

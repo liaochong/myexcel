@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>4.3.0.RC5</version>
+    <version>4.3.0.RELEASE</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -28,7 +28,7 @@
         <beetl.version>3.15.4.RELEASE</beetl.version>
         <velocity.version>2.3</velocity.version>
         <freemarker.version>2.3.32</freemarker.version>
-        <groovy-templates.version>3.0.9</groovy-templates.version>
+        <groovy-templates.version>4.0.12</groovy-templates.version>
         <thymeleaf.version>3.1.1.RELEASE</thymeleaf.version>
         <enjoy.version>5.0.3</enjoy.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -89,7 +89,7 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
+            <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-templates</artifactId>
             <version>${groovy-templates.version}</version>
             <optional>true</optional>

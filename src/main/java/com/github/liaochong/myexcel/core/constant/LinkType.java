@@ -18,5 +18,5 @@ public enum LinkType {
     /**
      * email，如liaochong9=8950@163.com
      */
-    EMAIL;
+    EMAIL
 }
