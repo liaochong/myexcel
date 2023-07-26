@@ -315,10 +315,18 @@ public class HtmlTableParser {
             return;
         }
         String content = this.parseContent(tdElement, td);
-        td.content = content;
         if (StringUtil.isBlank(content)) {
+            // <td>标签中没有空格以外的内容
+            if (tdElement.hasAttr("keepBlank")) {
+                // 有keepBlank属性，则保留<td></td>中的包含空格的内容
+                td.content = content;
+            }else{
+                // 否则, 清空content, 不然公式引用当前列进行计算时, 公式会报错
+                td.content = null;
+            }
             return;
         }
+        td.content = content;
         if (tdElement.hasAttr("string")) {
             return;
         }
