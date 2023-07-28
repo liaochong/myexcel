@@ -17,11 +17,7 @@ package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.style.FontStyle;
-import com.github.liaochong.myexcel.utils.ImageUtil;
-import com.github.liaochong.myexcel.utils.RegexpUtil;
-import com.github.liaochong.myexcel.utils.StringUtil;
-import com.github.liaochong.myexcel.utils.StyleUtil;
-import com.github.liaochong.myexcel.utils.TdUtil;
+import com.github.liaochong.myexcel.utils.*;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.jsoup.Jsoup;
@@ -32,13 +28,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -315,21 +305,14 @@ public class HtmlTableParser {
             return;
         }
         String content = this.parseContent(tdElement, td);
+        if (tdElement.hasAttr("string")) {
+            td.content = content;
+            return;
+        }
         if (StringUtil.isBlank(content)) {
-            // <td>标签中没有空格以外的内容
-            if (tdElement.hasAttr("keepBlank")) {
-                // 有keepBlank属性，则保留<td></td>中的包含空格的内容
-                td.content = content;
-            }else{
-                // 否则, 清空content, 不然公式引用当前列进行计算时, 公式会报错
-                td.content = null;
-            }
             return;
         }
         td.content = content;
-        if (tdElement.hasAttr("string")) {
-            return;
-        }
         if (tdElement.hasAttr("double")) {
             td.tdContentType = ContentTypeEnum.DOUBLE;
             td.content = RegexpUtil.removeComma(td.content);
