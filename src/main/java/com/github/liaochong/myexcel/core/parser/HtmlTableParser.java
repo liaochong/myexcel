@@ -17,7 +17,11 @@ package com.github.liaochong.myexcel.core.parser;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.style.FontStyle;
-import com.github.liaochong.myexcel.utils.*;
+import com.github.liaochong.myexcel.utils.ImageUtil;
+import com.github.liaochong.myexcel.utils.RegexpUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
+import com.github.liaochong.myexcel.utils.StyleUtil;
+import com.github.liaochong.myexcel.utils.TdUtil;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.jsoup.Jsoup;
@@ -28,7 +32,13 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -302,6 +312,10 @@ public class HtmlTableParser {
             String href = a.attr("href").trim();
             td.link = href;
             td.tdContentType = href.startsWith("mailto:") ? ContentTypeEnum.LINK_EMAIL : ContentTypeEnum.LINK_URL;
+            return;
+        }
+        if (tdElement.hasAttr("blank")) {
+            td.content = null;
             return;
         }
         String content = this.parseContent(tdElement, td);
