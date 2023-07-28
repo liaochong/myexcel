@@ -22,6 +22,7 @@ import com.github.liaochong.myexcel.exception.ExcelReadException;
 import com.github.liaochong.myexcel.exception.SaxReadException;
 import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
+import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
@@ -139,6 +140,11 @@ public class SaxExcelReader<T> {
 
     public SaxExcelReader<T> noTrim() {
         this.readConfig.trim = v -> v;
+        return this;
+    }
+
+    public SaxExcelReader<T> trimToNull() {
+        this.readConfig.trim = StringUtil::trimToNull;
         return this;
     }
 

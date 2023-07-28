@@ -165,6 +165,11 @@ public class DefaultExcelReader<T> {
         return this;
     }
 
+    public DefaultExcelReader<T> trimToNull() {
+        this.trim = StringUtil::trimToNull;
+        return this;
+    }
+
     public DefaultExcelReader<T> startSheet(Consumer<Sheet> startSheetConsumer) {
         this.startSheetConsumer = startSheetConsumer;
         return this;

@@ -29,4 +29,9 @@ public final class StringUtil {
         return content != null && content.trim().length() > 0;
     }
 
+    public static String trimToNull(String content) {
+        String ts = content == null ? null : content.trim();
+        return ts == null || ts.length() == 0 ? null : ts;
+    }
+
 }
