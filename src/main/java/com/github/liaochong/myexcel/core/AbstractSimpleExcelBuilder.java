@@ -512,6 +512,13 @@ abstract class AbstractSimpleExcelBuilder {
                 .filter(preElectionField -> preElectionField.getField().isAnnotationPresent(MultiColumn.class) && preElectionField.getField().getType() != List.class)
                 .flatMap(preElectionField ->
                         ReflectUtil.getWriteFieldDefinitionsOfExcelColumn(preElectionField.getField().getType()).stream()
+                                .peek(fieldDefinition -> {
+                                    if (fieldDefinition.getParentFields() == null || fieldDefinition.getParentFields().isEmpty()) {
+                                        fieldDefinition.setParentFields(Collections.singletonList(preElectionField.getField()));
+                                    } else {
+                                        fieldDefinition.getParentFields().add(fieldDefinition.getParentFields().size(), preElectionField.getField());
+                                    }
+                                })
                 ).collect(Collectors.toList());
         preElectionFields.removeIf(preElectionField -> preElectionField.getField().isAnnotationPresent(MultiColumn.class) && preElectionField.getField().getType() != List.class);
         preElectionFields.addAll(multiFieldDefinitions);
