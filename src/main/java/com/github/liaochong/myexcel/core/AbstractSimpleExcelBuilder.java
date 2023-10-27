@@ -495,10 +495,12 @@ abstract class AbstractSimpleExcelBuilder {
         } else {
             if (configuration.excludeParent) {
                 preElectionFields = classFieldContainer.getDeclaredFields().stream()
-                        .filter(fieldDefinition -> fieldDefinition.getField().isAnnotationPresent(ExcelColumn.class))
+                        .filter(fieldDefinition ->
+                                fieldDefinition.getField().isAnnotationPresent(ExcelColumn.class)
+                                        || fieldDefinition.getField().isAnnotationPresent(MultiColumn.class))
                         .collect(Collectors.toList());
             } else {
-                preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+                preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class, MultiColumn.class);
             }
         }
         if (configuration.ignoreStaticFields) {
@@ -506,6 +508,13 @@ abstract class AbstractSimpleExcelBuilder {
                     .filter(fieldDefinition -> !Modifier.isStatic(fieldDefinition.getField().getModifiers()))
                     .collect(Collectors.toList());
         }
+        List<FieldDefinition> multiFieldDefinitions = preElectionFields.stream()
+                .filter(preElectionField -> preElectionField.getField().isAnnotationPresent(MultiColumn.class) && preElectionField.getField().getType() != List.class)
+                .flatMap(preElectionField ->
+                        ReflectUtil.getWriteFieldDefinitionsOfExcelColumn(preElectionField.getField().getType()).stream()
+                ).collect(Collectors.toList());
+        preElectionFields.removeIf(preElectionField -> preElectionField.getField().isAnnotationPresent(MultiColumn.class) && preElectionField.getField().getType() != List.class);
+        preElectionFields.addAll(multiFieldDefinitions);
         return preElectionFields;
     }
 

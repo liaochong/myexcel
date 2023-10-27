@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -58,6 +59,56 @@ public final class ReflectUtil {
         ClassFieldContainer container = new ClassFieldContainer();
         getAllFieldsOfClass(clazz, container);
         return container;
+    }
+
+    public static List<FieldDefinition> getWriteFieldDefinitionsOfExcelColumn(Class<?> dataType) {
+        if (dataType == Map.class) {
+            return Collections.emptyList();
+        }
+        List<FieldDefinition> fieldDefinitions = new ArrayList<>();
+        getWriteFieldDefinition(dataType, fieldDefinitions, null, 0);
+        return fieldDefinitions;
+    }
+
+    private static void getWriteFieldDefinition(Class<?> dataType, List<FieldDefinition> fieldDefinitions, List<Field> parentFields, int level) {
+        ClassFieldContainer classFieldContainer = ReflectUtil.getAllFieldsOfClass(dataType);
+        List<FieldDefinition> fields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class, MultiColumn.class);
+        if (level == 0 && fields.isEmpty()) {
+            // If no field contains an ExcelColumn annotation, all fields are read in the default order
+            List<FieldDefinition> allFields = classFieldContainer.getFields();
+            for (int i = 0, size = allFields.size(); i < size; i++) {
+                fieldDefinitions.add(allFields.get(i));
+            }
+        } else {
+            List<Field> topParentFields = new LinkedList<>();
+            if (parentFields != null) {
+                topParentFields.addAll(parentFields);
+            }
+            for (FieldDefinition fieldDefinition : fields) {
+                if (level == 0) {
+                    parentFields = new LinkedList<>();
+                }
+                Field field = fieldDefinition.getField();
+                if (field.isAnnotationPresent(MultiColumn.class)) {
+                    MultiColumn multiColumn = field.getAnnotation(MultiColumn.class);
+                    List<Field> childrenParentFields = new LinkedList<>(topParentFields);
+                    childrenParentFields.add(field);
+                    if (ReadConverterContext.support(multiColumn.classType())) {
+                        field.setAccessible(true);
+                        fieldDefinition = new FieldDefinition(field);
+                        fieldDefinition.setParentFields(parentFields.isEmpty() ? Collections.emptyList() : parentFields);
+                        fieldDefinitions.add(fieldDefinition);
+                    } else {
+                        getWriteFieldDefinition(multiColumn.classType(), fieldDefinitions, childrenParentFields, level + 1);
+                    }
+                } else {
+                    field.setAccessible(true);
+                    fieldDefinition = new FieldDefinition(field);
+                    fieldDefinition.setParentFields(parentFields.isEmpty() ? Collections.emptyList() : parentFields);
+                    fieldDefinitions.add(fieldDefinition);
+                }
+            }
+        }
     }
 
     public static Map<Integer, FieldDefinition> getFieldDefinitionMapOfExcelColumn(Class<?> dataType) {
