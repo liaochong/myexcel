@@ -516,7 +516,7 @@ abstract class AbstractSimpleExcelBuilder {
                                     if (fieldDefinition.getParentFields() == null || fieldDefinition.getParentFields().isEmpty()) {
                                         fieldDefinition.setParentFields(Collections.singletonList(preElectionField.getField()));
                                     } else {
-                                        fieldDefinition.getParentFields().add(fieldDefinition.getParentFields().size(), preElectionField.getField());
+                                        fieldDefinition.getParentFields().add(0, preElectionField.getField());
                                     }
                                 })
                 ).collect(Collectors.toList());
