@@ -83,7 +83,7 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0)
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 1)
                 .sheets(0, 1)
                 .read(path.toFile());
         System.out.println(commonPeoples.size());
@@ -106,7 +106,7 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0)
+        List<CommonPeople> commonPeoples = SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 1)
                 .sheets("人员信息", "工作表2")
                 .read(path.toFile());
         System.out.println(commonPeoples.size());
@@ -250,7 +250,7 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), (d, context) -> {
+        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 1).readThen(Files.newInputStream(path), (d, context) -> {
             System.out.println(d);
         });
     }
@@ -260,7 +260,7 @@ class SaxExcelReaderTest {
         URL htmlToExcelEampleURL = this.getClass().getResource("/common_build.xls");
         Path path = Paths.get(htmlToExcelEampleURL.toURI());
 
-        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 0).readThen(Files.newInputStream(path), (d, context) -> {
+        SaxExcelReader.of(CommonPeople.class).rowFilter(row -> row.getRowNum() > 1).readThen(Files.newInputStream(path), (d, context) -> {
             System.out.println(d);
             return true;
         });

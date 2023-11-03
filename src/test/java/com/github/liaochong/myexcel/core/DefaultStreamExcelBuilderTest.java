@@ -2,6 +2,7 @@ package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.pojo.CommonPeople;
 import com.github.liaochong.myexcel.core.pojo.CustomStylePeople;
+import com.github.liaochong.myexcel.core.pojo.Extention;
 import com.github.liaochong.myexcel.core.pojo.Formula;
 import com.github.liaochong.myexcel.core.pojo.MultiPeople;
 import com.github.liaochong.myexcel.core.pojo.OddEvenStylePeople;
@@ -25,7 +26,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 /**
@@ -63,6 +63,7 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     void commonBuild() throws Exception {
         try (DefaultStreamExcelBuilder<CommonPeople> excelBuilder = DefaultStreamExcelBuilder.of(CommonPeople.class)
                 .fixedTitles()
+                .autoMerge()
 //                .hideColumns(0, 1)
 //                .globalStyle("background-color:red;", "title->background-color:yellow;")
                 .start()) {
@@ -288,29 +289,32 @@ class DefaultStreamExcelBuilderTest extends BasicTest {
     private void data(DefaultStreamExcelBuilder<CommonPeople> excelBuilder, int size) {
         BigDecimal oddMoney = new BigDecimal(109898);
         BigDecimal evenMoney = new BigDecimal(66666);
-        List<CompletableFuture> futures = new LinkedList<>();
         List<String> ss = new ArrayList<>();
         ss.add("1");
         ss.add("2");
         for (int i = 0; i < size; i++) {
             int index = i;
-            CompletableFuture future = CompletableFuture.runAsync(() -> {
-                CommonPeople commonPeople = new CommonPeople();
-                boolean odd = index % 2 == 0;
-                commonPeople.setName(odd ? "张三" : "李四");
-                commonPeople.setAge(odd ? 18 : 24);
-                commonPeople.setDance(odd);
-                commonPeople.setMoney(odd ? oddMoney : evenMoney);
-                commonPeople.setBirthday(new Date());
-                commonPeople.setLocalDate(LocalDate.now());
-                commonPeople.setLocalDateTime(LocalDateTime.now());
-                commonPeople.setCats(100L);
-                commonPeople.setMarried(odd);
-                excelBuilder.append(commonPeople);
-            });
-            futures.add(future);
+            CommonPeople commonPeople = new CommonPeople();
+            boolean odd = index % 2 == 0;
+            commonPeople.setName(odd ? "张三" : "李四");
+            commonPeople.setAge(odd ? 18 : 24);
+            commonPeople.setDance(odd);
+            commonPeople.setMoney(odd ? oddMoney : evenMoney);
+            commonPeople.setBirthday(new Date());
+            commonPeople.setLocalDate(LocalDate.now());
+            commonPeople.setLocalDateTime(LocalDateTime.now());
+            commonPeople.setCats(100L);
+            commonPeople.setMarried(odd);
+            Extention extention = new Extention();
+            commonPeople.setExtention(extention);
+            extention.setName1("name1" + index);
+            List<Integer> list = new LinkedList<>();
+            for (int j = 0; j < 10; j++) {
+                list.add(j * 20);
+            }
+            extention.setAge1(list);
+            excelBuilder.append(commonPeople);
         }
-        futures.forEach(CompletableFuture::join);
     }
 
     private List<CommonPeople> dataList() {

@@ -86,7 +86,7 @@ public class WriteConverterContext {
     private static Object getFieldVal(FieldDefinition fieldDefinition, Object object) {
         Object result;
         if (fieldDefinition.getParentFields() == null
-                || fieldDefinition.getParentFields().isEmpty() || fieldDefinition.getField().getType() == List.class) {
+                || fieldDefinition.getParentFields().isEmpty()) {
             result = ReflectUtil.getFieldValue(object, fieldDefinition);
         } else {
             Object prevObj;
