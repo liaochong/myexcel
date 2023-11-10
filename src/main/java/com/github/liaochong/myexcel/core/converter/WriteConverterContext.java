@@ -75,12 +75,36 @@ public class WriteConverterContext {
     }
 
     public static Pair<? extends Class, Object> convert(FieldDefinition fieldDefinition, Object object, ConvertContext convertContext) {
-        Object result = ReflectUtil.getFieldValue(object, fieldDefinition);
+        Object result = getFieldVal(fieldDefinition, object);
         if (result == null) {
             return Constants.NULL_PAIR;
         }
         WriteConverter writeConverter = getWriteConverter(fieldDefinition.getField(), fieldDefinition.getField().getType(), result, convertContext, WRITE_CONVERTER_CONTAINER);
         return writeConverter.convert(fieldDefinition.getField(), fieldDefinition.getField().getType(), result, convertContext);
+    }
+
+    private static Object getFieldVal(FieldDefinition fieldDefinition, Object object) {
+        Object result;
+        if (fieldDefinition.getParentFields() == null
+                || fieldDefinition.getParentFields().isEmpty()) {
+            result = ReflectUtil.getFieldValue(object, fieldDefinition);
+        } else {
+            Object prevObj;
+            try {
+                prevObj = object;
+                for (int i = 0, size = fieldDefinition.getParentFields().size(); i < size; i++) {
+                    Field parentField = fieldDefinition.getParentFields().get(i);
+                    prevObj = parentField.get(prevObj);
+                }
+                if (prevObj == null) {
+                    return null;
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            result = ReflectUtil.getFieldValue(prevObj, fieldDefinition);
+        }
+        return result;
     }
 
     public static WriteConverter getWriteConverter(Field field, Class<?> fieldType, Object result, ConvertContext convertContext, List<Pair<Class, WriteConverter>> writeConverterContainer) {

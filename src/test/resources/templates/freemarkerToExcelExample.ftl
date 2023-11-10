@@ -2,7 +2,7 @@
     <caption>${sheetName}</caption>
     <thead>
     <tr style="background-color: #6495ED;height: 100px">
-        <th colspan="3" style="text-align: center;vertical-align: middle;font-weight: bold;font-size: 14px;">产品介绍</th>
+        <th colspan="3"><span style="color: red">*</span><span style="font-weight: bold;">产品介绍</span></th>
     </tr>
     <tr>
         <#list titles as title>

@@ -16,32 +16,23 @@ package com.github.liaochong.myexcel.core.pojo;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
 import com.github.liaochong.myexcel.core.annotation.MultiColumn;
-import com.github.liaochong.myexcel.core.annotation.Prompt;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class CommonPeople extends Person {
+@Setter
+@Getter
+public class Extention {
 
-    @ExcelColumn(title = "当前日期", format = "yyyy/MM/dd", index = 5)
-    LocalDate localDate;
+    @ExcelColumn(title = "name1")
+    private String name1;
 
-    @ExcelColumn(title = "当前时间", index = 6)
-    LocalDateTime localDateTime;
-
-    @ExcelColumn(prompt = @Prompt(title = "提示", text = "这是我的提示哦"))
-    Long cats;
-
-    @MultiColumn(classType = Extention.class)
-    Extention extention;
-
+    @MultiColumn(classType = Integer.class)
+    @ExcelColumn(title = "age1")
+    private List<Integer> age1;
 }

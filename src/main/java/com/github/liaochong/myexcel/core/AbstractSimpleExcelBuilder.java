@@ -495,10 +495,12 @@ abstract class AbstractSimpleExcelBuilder {
         } else {
             if (configuration.excludeParent) {
                 preElectionFields = classFieldContainer.getDeclaredFields().stream()
-                        .filter(fieldDefinition -> fieldDefinition.getField().isAnnotationPresent(ExcelColumn.class))
+                        .filter(fieldDefinition ->
+                                fieldDefinition.getField().isAnnotationPresent(ExcelColumn.class)
+                                        || fieldDefinition.getField().isAnnotationPresent(MultiColumn.class))
                         .collect(Collectors.toList());
             } else {
-                preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class);
+                preElectionFields = classFieldContainer.getFieldsByAnnotation(ExcelColumn.class, MultiColumn.class);
             }
         }
         if (configuration.ignoreStaticFields) {
@@ -506,7 +508,34 @@ abstract class AbstractSimpleExcelBuilder {
                     .filter(fieldDefinition -> !Modifier.isStatic(fieldDefinition.getField().getModifiers()))
                     .collect(Collectors.toList());
         }
+        this.extractedMultiFieldDefinitions(preElectionFields);
         return preElectionFields;
+    }
+
+    /**
+     * 提取嵌套的MultiColumn中导出列到顶层
+     *
+     * @param preElectionFields 预选字段
+     */
+    private void extractedMultiFieldDefinitions(List<FieldDefinition> preElectionFields) {
+        List<FieldDefinition> multiFieldDefinitions = preElectionFields.stream()
+                .filter(preElectionField -> preElectionField.getField().isAnnotationPresent(MultiColumn.class) && preElectionField.getField().getType() != List.class)
+                .flatMap(preElectionField ->
+                        // 这种方式会导致缺失第一个父字段，需要补全
+                        ReflectUtil.getWriteFieldDefinitionsOfExcelColumn(preElectionField.getField().getType()).stream()
+                                .peek(fieldDefinition -> {
+                                    if (fieldDefinition.getParentFields() == null || fieldDefinition.getParentFields().isEmpty()) {
+                                        fieldDefinition.setParentFields(Collections.singletonList(preElectionField.getField()));
+                                    } else {
+                                        fieldDefinition.getParentFields().add(0, preElectionField.getField());
+                                    }
+                                })
+                ).collect(Collectors.toList());
+        if (multiFieldDefinitions.isEmpty()) {
+            return;
+        }
+        preElectionFields.removeIf(preElectionField -> preElectionField.getField().isAnnotationPresent(MultiColumn.class) && preElectionField.getField().getType() != List.class);
+        preElectionFields.addAll(multiFieldDefinitions);
     }
 
     /**
