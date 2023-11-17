@@ -3,12 +3,17 @@
 </p>
 
 # MyExcel--Excel操作新方式
-[![Build Status](https://travis-ci.org/liaochong/myexcel.svg?branch=master)](https://travis-ci.org/liaochong/myexcel)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/myexcel/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.liaochong/myexcel)
 [![License](http://img.shields.io/:license-apache-brightgreen.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/liaochong/myexcel.svg)](http://isitmaintained.com/project/liaochong/myexcel "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/liaochong/myexcel.svg)](http://isitmaintained.com/project/liaochong/myexcel "Percentage of issues still open")
 <img src="https://img.shields.io/badge/JDK-1.8+-green.svg" ></img>
+[![GitHub Contributors](https://img.shields.io/github/contributors/liaochong/myexcel)](https://github.com/liaochong/myexcel/graphs/contributors)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=liaochong/myexcel&type=Date)](https://star-history.com/#liaochong/myexcel&Date)
+
 
 > 使用示例参考请移步：[示例](https://github.com/liaochong/myexcel/tree/master/example/src/main/java/com/github/liaochong/example/controller)
 
