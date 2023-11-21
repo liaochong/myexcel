@@ -43,9 +43,7 @@ https://github.com/liaochong/myexcel/wiki
 
 ![å¿æ¬å¨å¨](https://github.com/liaochong/myexcel/assets/8674986/247a4e93-7ff9-488b-a902-893b6aa2fcd5)
 
-或者直接访问文档：
-
-[国内文档地址](https://m.toutiao.com/article_series/7303094494256235008?app=news_article&group_id=7303068015670264320&pseries_style_type=2&pseries_type=0&share_token=150DF85F-4B6F-493E-B0CF-39F9477501F7&tt_from=copy_link&utm_campaign=client_share&utm_medium=toutiao_ios&utm_source=copy_link)
+或者直接访问文档：[国内文档地址](https://m.toutiao.com/article_series/7303094494256235008?app=news_article&group_id=7303068015670264320&pseries_style_type=2&pseries_type=0&share_token=150DF85F-4B6F-493E-B0CF-39F9477501F7&tt_from=copy_link&utm_campaign=client_share&utm_medium=toutiao_ios&utm_source=copy_link)
 
 **升级4.x版本注意事项**
 
