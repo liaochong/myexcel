@@ -38,6 +38,8 @@ MyExcel，是一个集导入、导出、加密Excel等多项功能的工具包�
 文档 | Document
 --------------
 https://github.com/liaochong/myexcel/wiki
+国内用户建议关注作者头条号访问文档，避免github访问不通畅
+![å¿æ¬å¨å¨](https://github.com/liaochong/myexcel/assets/8674986/247a4e93-7ff9-488b-a902-893b6aa2fcd5)
 
 **升级4.x版本注意事项**
 
