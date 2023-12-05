@@ -156,4 +156,11 @@ public @interface ExcelColumn {
      * @return 提示语
      */
     Prompt prompt() default @Prompt();
+
+    /**
+     * 图片相关配置
+     *
+     * @return 图片配置
+     */
+    Image image() default @Image();
 }
