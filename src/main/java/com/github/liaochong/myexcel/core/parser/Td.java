@@ -106,6 +106,8 @@ public class Td {
      */
     public Comment comment;
 
+    public Picture picture;
+
     public Td(int row, int col) {
         this.row = row;
         this.col = col;
@@ -131,5 +133,13 @@ public class Td {
 
     public int getColBound() {
         return TdUtil.get(this.colSpan, this.col);
+    }
+
+    public Picture getPicture() {
+        return picture;
+    }
+
+    public void setPicture(Picture picture) {
+        this.picture = picture;
     }
 }

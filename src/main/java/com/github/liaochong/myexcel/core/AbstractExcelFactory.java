@@ -54,6 +54,7 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.ShapeTypes;
@@ -546,7 +547,11 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (drawing == null) {
             drawing = sheet.createDrawingPatriarch();
         }
-        drawing.createPicture(anchor, pictureIdx);
+        Picture pict = drawing.createPicture(anchor, pictureIdx);
+        // only support JPEG and PNG
+        if (td.getPicture() != null) {
+            pict.resize(td.getPicture().getScaleX(), td.getPicture().getScaleY());
+        }
     }
 
     private Cell setLink(Td td, Row currentRow, HyperlinkType hyperlinkType) {
@@ -567,7 +572,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private String setDropDownList(Td td, Sheet sheet, String content) {
         if (content != null && !content.isEmpty()) {
             CellRangeAddressList addressList = new CellRangeAddressList(
-                td.row, td.getRowBound(), td.col, td.getColBound());
+                    td.row, td.getRowBound(), td.col, td.getColBound());
             DataValidationHelper dvHelper = sheet.getDataValidationHelper();
             String[] list;
             DataValidation validation;
@@ -575,7 +580,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 list = content.split(",");
                 DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
                 validation = dvHelper.createValidation(
-                    dvConstraint, addressList);
+                        dvConstraint, addressList);
 
             } else {
                 DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);

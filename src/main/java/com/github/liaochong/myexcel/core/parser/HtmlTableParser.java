@@ -302,6 +302,17 @@ public class HtmlTableParser {
             } else {
                 td.file = new File(src);
             }
+            String scale = imgs.get(0).attr("scale");
+            if (StringUtil.isNotBlank(scale)) {
+                String[] scales = scale.trim().split(Constants.COMMA);
+                if (scales.length != 2) {
+                    throw new IllegalArgumentException("Scale parameter error, must be two double type parameters separated by commas.");
+                }
+                Picture picture = new Picture();
+                picture.setScaleX(Double.parseDouble(scales[0]));
+                picture.setScaleY(Double.parseDouble(scales[1]));
+                td.setPicture(picture);
+            }
             td.tdContentType = ContentTypeEnum.IMAGE;
             return;
         }
