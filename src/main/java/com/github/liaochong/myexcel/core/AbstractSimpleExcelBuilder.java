@@ -394,8 +394,8 @@ abstract class AbstractSimpleExcelBuilder {
         }
         FieldDefinition fieldDefinition = filteredFields.get(index);
         ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
-        if (excelColumnMapping != null && excelColumnMapping.picture != null) {
-            td.picture = excelColumnMapping.picture;
+        if (excelColumnMapping != null && excelColumnMapping.image != null) {
+            td.image = excelColumnMapping.image;
         }
     }
 

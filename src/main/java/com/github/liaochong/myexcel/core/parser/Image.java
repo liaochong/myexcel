@@ -18,7 +18,7 @@ package com.github.liaochong.myexcel.core.parser;
  * @author liaochong
  * @version 1.0
  */
-public class Picture {
+public class Image {
 
     private double scaleX;
 

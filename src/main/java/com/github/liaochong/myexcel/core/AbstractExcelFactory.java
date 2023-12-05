@@ -549,8 +549,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         Picture pict = drawing.createPicture(anchor, pictureIdx);
         // only support JPEG and PNG
-        if (td.getPicture() != null) {
-            pict.resize(td.getPicture().getScaleX(), td.getPicture().getScaleY());
+        if (td.getImage() != null) {
+            pict.resize(td.getImage().getScaleX(), td.getImage().getScaleY());
         }
     }
 

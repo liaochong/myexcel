@@ -106,7 +106,7 @@ public class Td {
      */
     public Comment comment;
 
-    public Picture picture;
+    public Image image;
 
     public Td(int row, int col) {
         this.row = row;
@@ -135,11 +135,11 @@ public class Td {
         return TdUtil.get(this.colSpan, this.col);
     }
 
-    public Picture getPicture() {
-        return picture;
+    public Image getImage() {
+        return image;
     }
 
-    public void setPicture(Picture picture) {
-        this.picture = picture;
+    public void setImage(Image image) {
+        this.image = image;
     }
 }

@@ -15,12 +15,11 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.annotation.ExcelColumn;
-import com.github.liaochong.myexcel.core.annotation.Image;
 import com.github.liaochong.myexcel.core.annotation.Prompt;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
-import com.github.liaochong.myexcel.core.parser.Picture;
+import com.github.liaochong.myexcel.core.parser.Image;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 /**
@@ -103,7 +102,7 @@ public final class ExcelColumnMapping {
      */
     public PromptContainer promptContainer;
 
-    public Picture picture;
+    public Image image;
 
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
@@ -137,12 +136,12 @@ public final class ExcelColumnMapping {
             promptContainer.text = prompt.text();
             result.promptContainer = promptContainer;
         }
-        Image image = excelColumn.image();
+        com.github.liaochong.myexcel.core.annotation.Image image = excelColumn.image();
         if (image.scaleX() > 0 && image.scaleY() > 0) {
-            Picture pic = new Picture();
+            Image pic = new Image();
             pic.setScaleX(image.scaleX());
             pic.setScaleY(image.scaleY());
-            result.picture = pic;
+            result.image = pic;
         }
         return result;
     }

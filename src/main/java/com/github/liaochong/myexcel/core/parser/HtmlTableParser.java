@@ -308,10 +308,10 @@ public class HtmlTableParser {
                 if (scales.length != 2) {
                     throw new IllegalArgumentException("Scale parameter error, must be two double type parameters separated by commas.");
                 }
-                Picture picture = new Picture();
-                picture.setScaleX(Double.parseDouble(scales[0]));
-                picture.setScaleY(Double.parseDouble(scales[1]));
-                td.setPicture(picture);
+                Image image = new Image();
+                image.setScaleX(Double.parseDouble(scales[0]));
+                image.setScaleY(Double.parseDouble(scales[1]));
+                td.setImage(image);
             }
             td.tdContentType = ContentTypeEnum.IMAGE;
             return;
