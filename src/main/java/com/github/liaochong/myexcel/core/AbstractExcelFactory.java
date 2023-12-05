@@ -536,13 +536,15 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
         anchor.setDx1(0);
         anchor.setDy1(0);
-        final int emuPerMm = 36000;
-        anchor.setDx2(isHssf ? 1023 : 100 * emuPerMm);
-        anchor.setDy2(isHssf ? 1023 : 99 * emuPerMm);
         anchor.setCol1(td.col);
         anchor.setRow1(td.row);
-        anchor.setCol2(td.getColBound());
-        anchor.setRow2(td.getRowBound());
+        if (td.getImage() == null) {
+            final int emuPerMm = 36000;
+            anchor.setDx2(isHssf ? 1023 : 100 * emuPerMm);
+            anchor.setDy2(isHssf ? 1023 : 99 * emuPerMm);
+            anchor.setCol2(td.getColBound());
+            anchor.setRow2(td.getRowBound());
+        }
         Drawing<?> drawing = sheet.getDrawingPatriarch();
         if (drawing == null) {
             drawing = sheet.createDrawingPatriarch();

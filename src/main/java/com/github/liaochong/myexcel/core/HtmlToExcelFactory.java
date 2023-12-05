@@ -248,6 +248,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
                     .orElse(0);
         }
         Map<Integer, Integer> colMaxWidthMap = this.getColMaxWidthMap(table.trList);
+        this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
         for (int i = 0, size = table.trList.size(); i < size; i++) {
             Tr tr = table.trList.get(i);
             this.createRow(tr, sheet);
@@ -255,7 +256,6 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         }
         stagingTds = new LinkedList<>();
         table.trList = null;
-        this.setColWidth(colMaxWidthMap, sheet, maxColIndex);
     }
 
     /**
