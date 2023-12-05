@@ -251,6 +251,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (!tr.visibility) {
             row.setZeroHeight(true);
         }
+        if (tr.height > 0) {
+            row.setHeightInPoints(tr.height);
+        } else {
+            // 设置行高，最小12
+            if (maxTdHeightMap.get(row.getRowNum()) == null) {
+                row.setHeightInPoints(row.getHeightInPoints() + 5);
+            } else {
+                row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
+                maxTdHeightMap.remove(row.getRowNum());
+            }
+        }
         stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.row, tr.index)).forEach(td -> {
             if (tr.tdList == Collections.EMPTY_LIST) {
                 tr.tdList = new LinkedList<>();
@@ -273,17 +284,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         // 移除暂存区空白单元格
         stagingTds.removeIf(td -> Objects.equals(td.row, tr.index));
-        if (tr.height > 0) {
-            row.setHeightInPoints(tr.height);
-        } else {
-            // 设置行高，最小12
-            if (maxTdHeightMap.get(row.getRowNum()) == null) {
-                row.setHeightInPoints(row.getHeightInPoints() + 5);
-            } else {
-                row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
-                maxTdHeightMap.remove(row.getRowNum());
-            }
-        }
     }
 
     /**
