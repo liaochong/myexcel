@@ -63,6 +63,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.util.IOUtils;
+import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
@@ -534,14 +535,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
-        anchor.setDx1(0);
-        anchor.setDy1(0);
+        anchor.setDx1(isHssf ? 2 : Units.pixelToEMU(3));
+        anchor.setDy1(isHssf ? 1 : Units.pixelToEMU(3));
         anchor.setCol1(td.col);
         anchor.setRow1(td.row);
         if (td.getImage() == null) {
             final int emuPerMm = 36000;
-            anchor.setDx2(isHssf ? 1023 : 100 * emuPerMm);
-            anchor.setDy2(isHssf ? 1023 : 99 * emuPerMm);
+            anchor.setDx2(isHssf ? 1023 : 1000 * emuPerMm);
+            anchor.setDy2(isHssf ? 1023 : 1000 * emuPerMm);
             anchor.setCol2(td.getColBound());
             anchor.setRow2(td.getRowBound());
         }
