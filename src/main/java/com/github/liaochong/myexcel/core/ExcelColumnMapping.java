@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.annotation.Prompt;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
+import com.github.liaochong.myexcel.core.parser.Image;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
 /**
@@ -101,6 +102,8 @@ public final class ExcelColumnMapping {
      */
     public PromptContainer promptContainer;
 
+    public Image image;
+
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
         result.title = excelColumn.title();
@@ -132,6 +135,13 @@ public final class ExcelColumnMapping {
             promptContainer.title = prompt.title();
             promptContainer.text = prompt.text();
             result.promptContainer = promptContainer;
+        }
+        com.github.liaochong.myexcel.core.annotation.Image image = excelColumn.image();
+        if (image.scaleX() > 0 && image.scaleY() > 0) {
+            Image pic = new Image();
+            pic.setScaleX(image.scaleX());
+            pic.setScaleY(image.scaleY());
+            result.image = pic;
         }
         return result;
     }

@@ -54,6 +54,7 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.ShapeTypes;
@@ -62,6 +63,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.util.IOUtils;
+import org.apache.poi.util.Units;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
@@ -250,6 +252,17 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (!tr.visibility) {
             row.setZeroHeight(true);
         }
+        if (tr.height > 0) {
+            row.setHeightInPoints(tr.height);
+        } else {
+            // 设置行高，最小12
+            if (maxTdHeightMap.get(row.getRowNum()) == null) {
+                row.setHeightInPoints(row.getHeightInPoints() + 5);
+            } else {
+                row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
+                maxTdHeightMap.remove(row.getRowNum());
+            }
+        }
         stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.row, tr.index)).forEach(td -> {
             if (tr.tdList == Collections.EMPTY_LIST) {
                 tr.tdList = new LinkedList<>();
@@ -272,17 +285,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         // 移除暂存区空白单元格
         stagingTds.removeIf(td -> Objects.equals(td.row, tr.index));
-        if (tr.height > 0) {
-            row.setHeightInPoints(tr.height);
-        } else {
-            // 设置行高，最小12
-            if (maxTdHeightMap.get(row.getRowNum()) == null) {
-                row.setHeightInPoints(row.getHeightInPoints() + 5);
-            } else {
-                row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
-                maxTdHeightMap.remove(row.getRowNum());
-            }
-        }
     }
 
     /**
@@ -533,20 +535,26 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
-        anchor.setDx1(0);
-        anchor.setDy1(0);
-        final int emuPerMm = 36000;
-        anchor.setDx2(isHssf ? 1023 : 100 * emuPerMm);
-        anchor.setDy2(isHssf ? 1023 : 99 * emuPerMm);
+        anchor.setDx1(isHssf ? 2 : Units.pixelToEMU(3));
+        anchor.setDy1(isHssf ? 1 : Units.pixelToEMU(3));
         anchor.setCol1(td.col);
         anchor.setRow1(td.row);
-        anchor.setCol2(td.getColBound());
-        anchor.setRow2(td.getRowBound());
+        if (td.getImage() == null) {
+            final int emuPerMm = 36000;
+            anchor.setDx2(isHssf ? 1023 : 1000 * emuPerMm);
+            anchor.setDy2(isHssf ? 1023 : 1000 * emuPerMm);
+            anchor.setCol2(td.getColBound());
+            anchor.setRow2(td.getRowBound());
+        }
         Drawing<?> drawing = sheet.getDrawingPatriarch();
         if (drawing == null) {
             drawing = sheet.createDrawingPatriarch();
         }
-        drawing.createPicture(anchor, pictureIdx);
+        Picture pict = drawing.createPicture(anchor, pictureIdx);
+        // only support JPEG and PNG
+        if (td.getImage() != null) {
+            pict.resize(td.getImage().getScaleX(), td.getImage().getScaleY());
+        }
     }
 
     private Cell setLink(Td td, Row currentRow, HyperlinkType hyperlinkType) {
@@ -567,7 +575,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     private String setDropDownList(Td td, Sheet sheet, String content) {
         if (content != null && !content.isEmpty()) {
             CellRangeAddressList addressList = new CellRangeAddressList(
-                td.row, td.getRowBound(), td.col, td.getColBound());
+                    td.row, td.getRowBound(), td.col, td.getColBound());
             DataValidationHelper dvHelper = sheet.getDataValidationHelper();
             String[] list;
             DataValidation validation;
@@ -575,7 +583,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 list = content.split(",");
                 DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
                 validation = dvHelper.createValidation(
-                    dvConstraint, addressList);
+                        dvConstraint, addressList);
 
             } else {
                 DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
