@@ -111,10 +111,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      */
     protected boolean isHssf;
     /**
-     * 每行的单元格最大高度map
-     */
-    private Map<Integer, Short> maxTdHeightMap = new HashMap<>();
-    /**
      * 是否使用默认样式
      */
     private boolean useDefaultStyle;
@@ -254,14 +250,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         if (tr.height > 0) {
             row.setHeightInPoints(tr.height);
-        } else {
-            // 设置行高，最小12
-            if (maxTdHeightMap.get(row.getRowNum()) == null) {
-                row.setHeightInPoints(row.getHeightInPoints() + 5);
-            } else {
-                row.setHeightInPoints((short) (maxTdHeightMap.get(row.getRowNum()) + 5));
-                maxTdHeightMap.remove(row.getRowNum());
-            }
         }
         stagingTds.stream().filter(blankTd -> Objects.equals(blankTd.row, tr.index)).forEach(td -> {
             if (tr.tdList == Collections.EMPTY_LIST) {
@@ -631,13 +619,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (td.style.isEmpty() && !applyDefaultStyle) {
                 return;
             }
-            String fs = td.style.get("font-size");
-            if (fs != null) {
-                short fontSize = (short) TdUtil.getValue(fs);
-                if (fontSize > maxTdHeightMap.getOrDefault(row.getRowNum(), FontStyle.DEFAULT_FONT_SIZE)) {
-                    maxTdHeightMap.put(row.getRowNum(), fontSize);
-                }
-            }
             if (applyDefaultStyle) {
                 if (td.th) {
                     DEFAULT_TH_STYLE.forEach((k, v) -> td.style.putIfAbsent(k, v));
@@ -806,7 +787,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     protected void clearCache() {
         cellStyleMap = new HashMap<>();
         fontMap = new HashMap<>();
-        maxTdHeightMap = new HashMap<>();
         format = null;
         createHelper = null;
         imageMapping = null;
