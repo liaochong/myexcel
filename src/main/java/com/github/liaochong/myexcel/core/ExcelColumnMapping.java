@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.annotation.Prompt;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
+import com.github.liaochong.myexcel.core.parser.DropdownList;
 import com.github.liaochong.myexcel.core.parser.Image;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
@@ -104,6 +105,8 @@ public final class ExcelColumnMapping {
 
     public Image image;
 
+    public DropdownList dropdownList;
+
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
         result.title = excelColumn.title();
@@ -154,6 +157,11 @@ public final class ExcelColumnMapping {
         if (image.height() > 0) {
             result.image.setHeight(image.height());
         }
+        com.github.liaochong.myexcel.core.annotation.DropdownList dr = excelColumn.dropdownList();
+        DropdownList drList = new DropdownList();
+        drList.setName(dr.name());
+        drList.setParent(dr.parent());
+        result.dropdownList = drList;
         return result;
     }
 }

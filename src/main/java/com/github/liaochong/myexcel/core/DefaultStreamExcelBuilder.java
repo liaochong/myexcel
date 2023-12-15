@@ -304,6 +304,11 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         return this;
     }
 
+    public DefaultStreamExcelBuilder<T> nameManager(Map<String, List<?>> nameMapping) {
+        this.configuration.nameMapping = nameMapping;
+        return this;
+    }
+
     /**
      * 流式构建启动，包含一些初始化操作
      *
@@ -320,6 +325,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         context.styleParser = styleParser;
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(context);
         htmlToExcelStreamFactory.widthStrategy(configuration.widthStrategy);
+        htmlToExcelStreamFactory.nameMapping(configuration.nameMapping);
         if (workbook == null) {
             htmlToExcelStreamFactory.workbookType(configuration.workbookType);
         }

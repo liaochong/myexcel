@@ -163,4 +163,6 @@ public @interface ExcelColumn {
      * @return 图片配置
      */
     Image image() default @Image();
+
+    DropdownList dropdownList() default @DropdownList;
 }
