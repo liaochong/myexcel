@@ -169,6 +169,14 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 int tdSize = tr.tdList.size();
                 maxColIndex = tdSize > 0 ? tdSize - 1 : 0;
             }
+            // 如果设置了width，首先初始化一次，避免图片缩放问题
+            tr.colWidthMap.forEach((key, value) -> {
+                int contentLength = value << 1;
+                if (contentLength > 255) {
+                    contentLength = 255;
+                }
+                sheet.setColumnWidth(key, contentLength << 8);
+            });
             int totalSize = 0;
             while (tr != STOP_FLAG) {
                 if (context.capacity > 0 && count == context.capacity) {
