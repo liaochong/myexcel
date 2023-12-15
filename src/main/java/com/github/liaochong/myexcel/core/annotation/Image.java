@@ -22,4 +22,8 @@ public @interface Image {
     int marginTop() default -1;
 
     int marginLeft() default -1;
+
+    int width() default -1;
+
+    int height() default -1;
 }

@@ -148,6 +148,12 @@ public final class ExcelColumnMapping {
         if ((image.marginLeft() > 0)) {
             result.image.setMarginLeft(image.marginLeft());
         }
+        if (image.width() > 0) {
+            result.image.setWidth(image.width());
+        }
+        if (image.height() > 0) {
+            result.image.setHeight(image.height());
+        }
         return result;
     }
 }
