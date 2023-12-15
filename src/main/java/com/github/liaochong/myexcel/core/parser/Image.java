@@ -20,9 +20,17 @@ package com.github.liaochong.myexcel.core.parser;
  */
 public class Image {
 
-    private double scaleX;
+    private double scaleX = -1d;
 
-    private double scaleY;
+    private double scaleY = -1d;
+
+    private int marginTop = -1;
+
+    private int marginLeft = -1;
+
+    private int width = -1;
+
+    private int height = -1;
 
     public double getScaleX() {
         return scaleX;
@@ -38,5 +46,37 @@ public class Image {
 
     public void setScaleY(double scaleY) {
         this.scaleY = scaleY;
+    }
+
+    public int getMarginTop() {
+        return marginTop;
+    }
+
+    public void setMarginTop(int marginTop) {
+        this.marginTop = marginTop;
+    }
+
+    public int getMarginLeft() {
+        return marginLeft;
+    }
+
+    public void setMarginLeft(int marginLeft) {
+        this.marginLeft = marginLeft;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 }

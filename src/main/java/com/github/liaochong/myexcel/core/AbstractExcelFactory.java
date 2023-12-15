@@ -18,6 +18,7 @@ package com.github.liaochong.myexcel.core;
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.DropDownLists;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
+import com.github.liaochong.myexcel.core.parser.Image;
 import com.github.liaochong.myexcel.core.parser.Td;
 import com.github.liaochong.myexcel.core.parser.Tr;
 import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
@@ -523,14 +524,16 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
-        anchor.setDx1(isHssf ? 2 : Units.pixelToEMU(3));
-        anchor.setDy1(isHssf ? 1 : Units.pixelToEMU(3));
+        Image image = td.getImage();
+        anchor.setDx1(isHssf ? (image.getMarginLeft() > 0 ? image.getMarginLeft() : 2) : Units.pixelToEMU(image.getMarginLeft() > 0 ? image.getMarginLeft() : 3));
+        anchor.setDy1(isHssf ? (image.getMarginTop() > 0 ? image.getMarginTop() : 1) : Units.pixelToEMU(image.getMarginTop() > 0 ? image.getMarginTop() : 3));
         anchor.setCol1(td.col);
         anchor.setRow1(td.row);
-        if (td.getImage() == null) {
+        boolean hasScale = image.getScaleX() > 0 && image.getScaleY() > 0;
+        if (!hasScale) {
             final int emuPerMm = 36000;
-            anchor.setDx2(isHssf ? 1023 : 1000 * emuPerMm);
-            anchor.setDy2(isHssf ? 1023 : 1000 * emuPerMm);
+            anchor.setDx2(isHssf ? (image.getWidth() > 0 ? image.getWidth() : 1023) : (image.getWidth() > 0 ? Units.pixelToEMU(image.getWidth()) : 1000 * emuPerMm));
+            anchor.setDy2(isHssf ? (image.getHeight() > 0 ? image.getHeight() : 1023) : (image.getHeight() > 0 ? Units.pixelToEMU(image.getHeight()) : 1000 * emuPerMm));
             anchor.setCol2(td.getColBound());
             anchor.setRow2(td.getRowBound());
         }
@@ -540,7 +543,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         }
         Picture pict = drawing.createPicture(anchor, pictureIdx);
         // only support JPEG and PNG
-        if (td.getImage() != null) {
+        if (hasScale) {
             pict.resize(td.getImage().getScaleX(), td.getImage().getScaleY());
         }
     }
