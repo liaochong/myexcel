@@ -158,10 +158,12 @@ public final class ExcelColumnMapping {
             result.image.setHeight(image.height());
         }
         com.github.liaochong.myexcel.core.annotation.DropdownList dr = excelColumn.dropdownList();
-        DropdownList drList = new DropdownList();
-        drList.setName(dr.name());
-        drList.setParent(dr.parent());
-        result.dropdownList = drList;
+        if (StringUtil.isNotBlank(dr.name()) || StringUtil.isNotBlank(dr.parent())) {
+            DropdownList drList = new DropdownList();
+            drList.setName(dr.name());
+            drList.setParent(dr.parent());
+            result.dropdownList = drList;
+        }
         return result;
     }
 }
