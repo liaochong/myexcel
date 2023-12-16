@@ -152,8 +152,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             if (this.workbook == null) {
                 workbookType(WorkbookType.SXLSX);
             }
-            // 构建名称管理器
-            this.createNameManager();
             if (isHssf) {
                 maxRowCountOfSheet = XLS_MAX_ROW_COUNT;
             }
@@ -181,6 +179,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 }
                 sheet.setColumnWidth(key, contentLength << 8);
             });
+            // 构建名称管理器
+            this.createNameManager();
             int totalSize = 0;
             while (tr != STOP_FLAG) {
                 if (context.capacity > 0 && count == context.capacity) {
