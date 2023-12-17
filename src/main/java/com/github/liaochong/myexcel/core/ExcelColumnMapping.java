@@ -137,11 +137,22 @@ public final class ExcelColumnMapping {
             result.promptContainer = promptContainer;
         }
         com.github.liaochong.myexcel.core.annotation.Image image = excelColumn.image();
+        result.image = new Image();
         if (image.scaleX() > 0 && image.scaleY() > 0) {
-            Image pic = new Image();
-            pic.setScaleX(image.scaleX());
-            pic.setScaleY(image.scaleY());
-            result.image = pic;
+            result.image.setScaleX(image.scaleX());
+            result.image.setScaleY(image.scaleY());
+        }
+        if ((image.marginTop() > 0)) {
+            result.image.setMarginTop(image.marginTop());
+        }
+        if ((image.marginLeft() > 0)) {
+            result.image.setMarginLeft(image.marginLeft());
+        }
+        if (image.width() > 0) {
+            result.image.setWidth(image.width());
+        }
+        if (image.height() > 0) {
+            result.image.setHeight(image.height());
         }
         return result;
     }
