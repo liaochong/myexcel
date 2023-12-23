@@ -140,21 +140,33 @@ public final class ExcelColumnMapping {
             result.promptContainer = promptContainer;
         }
         com.github.liaochong.myexcel.core.annotation.Image image = excelColumn.image();
-        result.image = new Image();
         if (image.scaleX() > 0 && image.scaleY() > 0) {
             result.image.setScaleX(image.scaleX());
             result.image.setScaleY(image.scaleY());
+            result.image = new Image();
         }
         if ((image.marginTop() > 0)) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setMarginTop(image.marginTop());
         }
         if ((image.marginLeft() > 0)) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setMarginLeft(image.marginLeft());
         }
         if (image.width() > 0) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setWidth(image.width());
         }
         if (image.height() > 0) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setHeight(image.height());
         }
         com.github.liaochong.myexcel.core.annotation.DropdownList dr = excelColumn.dropdownList();

@@ -565,6 +565,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
         Image image = td.getImage();
+        if (image == null) {
+            image = new Image();
+        }
         anchor.setDx1(isHssf ? (image.getMarginLeft() > 0 ? image.getMarginLeft() : 2) : Units.pixelToEMU(image.getMarginLeft() > 0 ? image.getMarginLeft() : 3));
         anchor.setDy1(isHssf ? (image.getMarginTop() > 0 ? image.getMarginTop() : 1) : Units.pixelToEMU(image.getMarginTop() > 0 ? image.getMarginTop() : 3));
         anchor.setCol1(td.col);
