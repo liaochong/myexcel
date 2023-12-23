@@ -21,6 +21,7 @@ import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.Closeable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -111,6 +112,16 @@ public interface ExcelBuilder extends Closeable {
      * @return ExcelBuilder
      */
     ExcelBuilder fileTemplate(String dirPath, String fileName);
+
+    /**
+     * 指定名称管理器
+     *
+     * @param nameMapping 名称映射
+     * @return ExcelFactory
+     */
+    default ExcelBuilder nameMapping(Map<String, List<?>> nameMapping) {
+        return this;
+    }
 
     /**
      * 构建

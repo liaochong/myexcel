@@ -385,8 +385,21 @@ public class HtmlTableParser {
             td.link = link;
             return;
         }
-        if (tdElement.hasAttr("dropDownList")) {
+        if (tdElement.hasAttr("dropdownList") || tdElement.hasAttr("dropDownList")) {
             td.tdContentType = ContentTypeEnum.DROP_DOWN_LIST;
+            String dropdownListName = tdElement.attr("dropdownList-name");
+            if (StringUtil.isNotBlank(dropdownListName)) {
+                DropdownList dropdownList = new DropdownList();
+                dropdownList.setName(dropdownListName);
+                td.dropdownList = dropdownList;
+            }
+            String dropdownListParent = tdElement.attr("dropdownList-parent");
+            if (StringUtil.isNotBlank(dropdownListParent)) {
+                if (td.dropdownList == null) {
+                    td.dropdownList = new DropdownList();
+                }
+                td.dropdownList.setParent(dropdownListParent);
+            }
             return;
         }
         if (Constants.TRUE.equals(content) || Constants.FALSE.equals(content)) {

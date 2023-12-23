@@ -24,6 +24,7 @@ import com.github.liaochong.myexcel.utils.ReflectUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -87,6 +88,12 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
             return this;
         }
         htmlToExcelFactory.freezePanes(freezePanes);
+        return this;
+    }
+
+    @Override
+    public ExcelBuilder nameMapping(Map<String, List<?>> nameMapping) {
+        htmlToExcelFactory.nameMapping(nameMapping);
         return this;
     }
 

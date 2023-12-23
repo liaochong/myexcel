@@ -170,6 +170,8 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
         } else {
             buildTablesWithOneSheet(tables);
         }
+        // 3.创建名称管理
+        this.createNameManager();
         log.info("Build excel takes {} ms", System.currentTimeMillis() - startTime);
         return workbook;
     }

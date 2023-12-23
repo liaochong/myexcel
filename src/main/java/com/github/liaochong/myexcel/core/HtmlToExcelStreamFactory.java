@@ -16,7 +16,6 @@
 package com.github.liaochong.myexcel.core;
 
 import com.github.liaochong.myexcel.core.constant.Constants;
-import com.github.liaochong.myexcel.core.parser.DropDownLists;
 import com.github.liaochong.myexcel.core.parser.StyleParser;
 import com.github.liaochong.myexcel.core.parser.Table;
 import com.github.liaochong.myexcel.core.parser.Td;
@@ -26,7 +25,6 @@ import com.github.liaochong.myexcel.utils.FileExportUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
-import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -210,19 +208,6 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
             clear();
             log.error("An exception occurred while processing", e);
             throw new ExcelBuildException("An exception occurred while processing", e);
-        }
-    }
-
-    private void createNameManager() {
-        if (nameMapping.isEmpty()) {
-            return;
-        }
-        for (Map.Entry<String, List<?>> entry : nameMapping.entrySet()) {
-            Name name = workbook.createName();
-            name.setNameName(entry.getKey());
-            String content = entry.getValue().stream().map(String::valueOf).collect(Collectors.joining(Constants.COMMA));
-            DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
-            name.setRefersToFormula(index.path);
         }
     }
 

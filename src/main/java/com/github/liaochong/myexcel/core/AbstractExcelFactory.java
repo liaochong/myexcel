@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.DropDownLists;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
@@ -55,6 +56,7 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
@@ -88,6 +90,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -237,6 +240,20 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         this.nameMapping = nameMapping;
         return this;
     }
+
+    protected void createNameManager() {
+        if (nameMapping.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, List<?>> entry : nameMapping.entrySet()) {
+            Name name = workbook.createName();
+            name.setNameName(entry.getKey());
+            String content = entry.getValue().stream().map(String::valueOf).collect(Collectors.joining(Constants.COMMA));
+            DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
+            name.setRefersToFormula(index.path);
+        }
+    }
+
 
     protected String getRealSheetName(String sheetName) {
         if (sheetName == null) {
