@@ -369,47 +369,51 @@ abstract class AbstractSimpleExcelBuilder {
     }
 
     private void setFormula(int i, Td td) {
-        if (filteredFields.isEmpty()) {
+        ExcelColumnMapping excelColumnMapping = getExcelColumnMapping(i);
+        if (excelColumnMapping == null) {
             return;
         }
-        FieldDefinition fieldDefinition = filteredFields.get(i);
-        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
-        if (excelColumnMapping != null && excelColumnMapping.formula) {
+        if (excelColumnMapping.formula) {
             td.formula = true;
         }
     }
 
     protected void setPrompt(Td td, int index) {
-        if (filteredFields.isEmpty()) {
+        ExcelColumnMapping excelColumnMapping = getExcelColumnMapping(index);
+        if (excelColumnMapping == null) {
             return;
         }
-        FieldDefinition fieldDefinition = filteredFields.get(index);
-        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
-        if (excelColumnMapping != null && excelColumnMapping.promptContainer != null) {
+        if (excelColumnMapping.promptContainer != null) {
             td.promptContainer = excelColumnMapping.promptContainer;
         }
     }
 
     protected void setImage(Td td, int index) {
-        if (filteredFields.isEmpty()) {
+        ExcelColumnMapping excelColumnMapping = getExcelColumnMapping(index);
+        if (excelColumnMapping == null) {
             return;
         }
-        FieldDefinition fieldDefinition = filteredFields.get(index);
-        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
-        if (excelColumnMapping != null && excelColumnMapping.image != null) {
+        if (excelColumnMapping.image != null) {
             td.image = excelColumnMapping.image;
         }
     }
 
     protected void setDropdownList(Td td, int index) {
-        if (filteredFields.isEmpty()) {
+        ExcelColumnMapping excelColumnMapping = getExcelColumnMapping(index);
+        if (excelColumnMapping == null) {
             return;
         }
-        FieldDefinition fieldDefinition = filteredFields.get(index);
-        ExcelColumnMapping excelColumnMapping = excelColumnMappingMap.get(fieldDefinition.getField());
-        if (excelColumnMapping != null && excelColumnMapping.dropdownList != null) {
+        if (excelColumnMapping.dropdownList != null) {
             td.dropdownList = excelColumnMapping.dropdownList;
         }
+    }
+
+    private ExcelColumnMapping getExcelColumnMapping(int index) {
+        if (filteredFields.isEmpty()) {
+            return null;
+        }
+        FieldDefinition fieldDefinition = filteredFields.get(index);
+        return excelColumnMappingMap.get(fieldDefinition.getField());
     }
 
     private void setTdContent(Td td, Pair<? extends Class, ?> pair) {

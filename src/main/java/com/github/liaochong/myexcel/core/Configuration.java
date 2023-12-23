@@ -107,7 +107,9 @@ public class Configuration {
      * 绑定的上下文，适用spring等容器环境
      */
     public Map<Class<?>, Object> applicationBeans = Collections.emptyMap();
-
+    /**
+     * 名称管理映射
+     */
     public Map<String, List<?>> nameMapping = Collections.emptyMap();
 
     public void setWidthStrategy(WidthStrategy widthStrategy) {

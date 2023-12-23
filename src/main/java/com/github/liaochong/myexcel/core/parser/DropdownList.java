@@ -15,6 +15,8 @@
 package com.github.liaochong.myexcel.core.parser;
 
 /**
+ * 下拉列表配置
+ *
  * @author liaochong
  * @version 1.0
  */

@@ -164,5 +164,10 @@ public @interface ExcelColumn {
      */
     Image image() default @Image();
 
+    /**
+     * 下拉列表配置
+     *
+     * @return 下拉列表配置
+     */
     DropdownList dropdownList() default @DropdownList;
 }

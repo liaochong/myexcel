@@ -148,9 +148,13 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 生成sheet策略，默认生成多个sheet
      */
     protected SheetStrategy sheetStrategy = SheetStrategy.MULTI_SHEET;
-
+    /**
+     * 用于保存名称管理
+     */
     protected Map<String, List<?>> nameMapping = Collections.emptyMap();
-
+    /**
+     * 用于保存下拉列表所需引用
+     */
     protected Map<String, CellAddress> referMapping = new HashMap<>();
     /**
      * 暂存单元格，由后续行认领
@@ -300,7 +304,6 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             cell = currentRow.createCell(td.col, CellType.FORMULA);
             cell.setCellFormula(td.content);
         } else {
-            CellAddress cellAddress;
             String content = td.content;
             switch (td.tdContentType) {
                 case DOUBLE:
@@ -327,33 +330,21 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     break;
                 case NUMBER_DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.col, CellType.NUMERIC);
-                    cellAddress = cell.getAddress();
-                    if (td.dropdownList != null) {
-                        referMapping.putIfAbsent(td.dropdownList.getName(), cellAddress);
-                    }
-                    String firstEle = setDropDownList(td, sheet, content, cellAddress);
+                    String firstEle = this.process(td, sheet, cell, content);
                     if (firstEle != null) {
                         cell.setCellValue(Double.parseDouble(firstEle));
                     }
                     break;
                 case BOOLEAN_DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.col, CellType.BOOLEAN);
-                    cellAddress = cell.getAddress();
-                    if (td.dropdownList != null) {
-                        referMapping.putIfAbsent(td.dropdownList.getName(), cellAddress);
-                    }
-                    firstEle = setDropDownList(td, sheet, content, cellAddress);
+                    firstEle = this.process(td, sheet, cell, content);
                     if (firstEle != null) {
                         cell.setCellValue(Boolean.parseBoolean(firstEle));
                     }
                     break;
                 case DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.col, CellType.STRING);
-                    cellAddress = cell.getAddress();
-                    if (td.dropdownList != null) {
-                        referMapping.putIfAbsent(td.dropdownList.getName(), cellAddress);
-                    }
-                    firstEle = setDropDownList(td, sheet, content, cellAddress);
+                    firstEle = this.process(td, sheet, cell, content);
                     if (firstEle != null) {
                         cell.setCellValue(firstEle);
                     }
@@ -390,6 +381,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.colSpan > 0 || td.rowSpan > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.row, td.getRowBound(), td.col, td.getColBound()));
         }
+    }
+
+    private String process(Td td, Sheet sheet, Cell cell, String content) {
+        CellAddress cellAddress = cell.getAddress();
+        if (td.dropdownList != null) {
+            referMapping.putIfAbsent(td.dropdownList.getName(), cellAddress);
+        }
+        return this.setDropDownList(td, sheet, content, cellAddress);
     }
 
     private void setComment(Td td, Sheet sheet, Cell cell) {
