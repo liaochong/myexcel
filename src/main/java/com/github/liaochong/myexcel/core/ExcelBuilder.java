@@ -119,7 +119,7 @@ public interface ExcelBuilder extends Closeable {
      * @param nameMapping 名称映射
      * @return ExcelFactory
      */
-    default ExcelBuilder nameMapping(Map<String, List<?>> nameMapping) {
+    default ExcelBuilder nameManager(Map<String, List<?>> nameMapping) {
         return this;
     }
 
