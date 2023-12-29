@@ -236,7 +236,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
     }
 
     @Override
-    public ExcelFactory nameMapping(Map<String, List<?>> nameMapping) {
+    public ExcelFactory nameManager(Map<String, List<?>> nameMapping) {
         this.nameMapping = nameMapping;
         return this;
     }

@@ -325,7 +325,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
         context.styleParser = styleParser;
         htmlToExcelStreamFactory = new HtmlToExcelStreamFactory(context);
         htmlToExcelStreamFactory.widthStrategy(configuration.widthStrategy);
-        htmlToExcelStreamFactory.nameMapping(configuration.nameMapping);
+        htmlToExcelStreamFactory.nameManager(configuration.nameMapping);
         if (workbook == null) {
             htmlToExcelStreamFactory.workbookType(configuration.workbookType);
         }

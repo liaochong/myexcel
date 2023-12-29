@@ -80,7 +80,7 @@ public interface ExcelFactory {
      * @param nameMapping 名称映射
      * @return ExcelFactory
      */
-    default ExcelFactory nameMapping(Map<String, List<?>> nameMapping) {
+    default ExcelFactory nameManager(Map<String, List<?>> nameMapping) {
         return this;
     }
 

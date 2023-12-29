@@ -93,7 +93,7 @@ public abstract class AbstractExcelBuilder implements ExcelBuilder {
 
     @Override
     public ExcelBuilder nameManager(Map<String, List<?>> nameMapping) {
-        htmlToExcelFactory.nameMapping(nameMapping);
+        htmlToExcelFactory.nameManager(nameMapping);
         return this;
     }
 
