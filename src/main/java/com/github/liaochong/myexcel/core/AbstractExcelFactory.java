@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core;
 
+import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.parser.ContentTypeEnum;
 import com.github.liaochong.myexcel.core.parser.DropDownLists;
 import com.github.liaochong.myexcel.core.parser.HtmlTableParser;
@@ -55,12 +56,14 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.ShapeTypes;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.util.IOUtils;
@@ -87,6 +90,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
@@ -147,6 +151,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
      * 生成sheet策略，默认生成多个sheet
      */
     protected SheetStrategy sheetStrategy = SheetStrategy.MULTI_SHEET;
+    /**
+     * 用于保存名称管理
+     */
+    protected Map<String, List<?>> nameMapping = Collections.emptyMap();
+    /**
+     * 用于保存下拉列表所需引用
+     */
+    protected Map<String, CellAddress> referMapping = new HashMap<>();
     /**
      * 暂存单元格，由后续行认领
      */
@@ -222,6 +234,26 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         this.sheetStrategy = sheetStrategy;
         return this;
     }
+
+    @Override
+    public ExcelFactory nameManager(Map<String, List<?>> nameMapping) {
+        this.nameMapping = nameMapping;
+        return this;
+    }
+
+    protected void createNameManager() {
+        if (nameMapping.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, List<?>> entry : nameMapping.entrySet()) {
+            Name name = workbook.createName();
+            name.setNameName(entry.getKey());
+            String content = entry.getValue().stream().map(String::valueOf).collect(Collectors.joining(Constants.COMMA));
+            DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
+            name.setRefersToFormula(index.path);
+        }
+    }
+
 
     protected String getRealSheetName(String sheetName) {
         if (sheetName == null) {
@@ -315,21 +347,21 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                     break;
                 case NUMBER_DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.col, CellType.NUMERIC);
-                    String firstEle = setDropDownList(td, sheet, content);
+                    String firstEle = this.process(td, sheet, cell, content);
                     if (firstEle != null) {
                         cell.setCellValue(Double.parseDouble(firstEle));
                     }
                     break;
                 case BOOLEAN_DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.col, CellType.BOOLEAN);
-                    firstEle = setDropDownList(td, sheet, content);
+                    firstEle = this.process(td, sheet, cell, content);
                     if (firstEle != null) {
                         cell.setCellValue(Boolean.parseBoolean(firstEle));
                     }
                     break;
                 case DROP_DOWN_LIST:
                     cell = currentRow.createCell(td.col, CellType.STRING);
-                    firstEle = setDropDownList(td, sheet, content);
+                    firstEle = this.process(td, sheet, cell, content);
                     if (firstEle != null) {
                         cell.setCellValue(firstEle);
                     }
@@ -366,6 +398,14 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         if (td.colSpan > 0 || td.rowSpan > 0) {
             sheet.addMergedRegion(new CellRangeAddress(td.row, td.getRowBound(), td.col, td.getColBound()));
         }
+    }
+
+    private String process(Td td, Sheet sheet, Cell cell, String content) {
+        CellAddress cellAddress = cell.getAddress();
+        if (td.dropdownList != null) {
+            referMapping.putIfAbsent(td.dropdownList.getName(), cellAddress);
+        }
+        return this.setDropDownList(td, sheet, content, cellAddress);
     }
 
     private void setComment(Td td, Sheet sheet, Cell cell) {
@@ -525,6 +565,9 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         ClientAnchor anchor = createHelper.createClientAnchor();
         anchor.setAnchorType(ClientAnchor.AnchorType.MOVE_AND_RESIZE);
         Image image = td.getImage();
+        if (image == null) {
+            image = new Image();
+        }
         anchor.setDx1(isHssf ? (image.getMarginLeft() > 0 ? image.getMarginLeft() : 2) : Units.pixelToEMU(image.getMarginLeft() > 0 ? image.getMarginLeft() : 3));
         anchor.setDy1(isHssf ? (image.getMarginTop() > 0 ? image.getMarginTop() : 1) : Units.pixelToEMU(image.getMarginTop() > 0 ? image.getMarginTop() : 3));
         anchor.setCol1(td.col);
@@ -563,25 +606,22 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
         return cell;
     }
 
-    private String setDropDownList(Td td, Sheet sheet, String content) {
+    private String setDropDownList(Td td, Sheet sheet, String content, CellAddress cellAddress) {
         if (content != null && !content.isEmpty()) {
             CellRangeAddressList addressList = new CellRangeAddressList(
                     td.row, td.getRowBound(), td.col, td.getColBound());
             DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-            String[] list;
+            DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
+            String[] list = new String[]{index.firstLine};
             DataValidation validation;
-            if (content.length() <= 250) {
-                list = content.split(",");
-                DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(list);
-                validation = dvHelper.createValidation(
-                        dvConstraint, addressList);
-
+            boolean linkage = td.dropdownList != null && StringUtil.isNotBlank(td.dropdownList.getParent());
+            if (linkage) {
+                CellAddress parentCellAddress = referMapping.get(td.dropdownList.getParent());
+                String refer = new CellAddress(cellAddress.getRow(), parentCellAddress.getColumn()).formatAsString();
+                validation = dvHelper.createValidation(dvHelper.createFormulaListConstraint("=INDIRECT($" + refer + ")"), addressList);
             } else {
-                DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
-                list = new String[]{index.firstLine};
                 validation = dvHelper.createValidation(dvHelper.createFormulaListConstraint(index.path), addressList);
             }
-
             if (td.promptContainer != null) {
                 validation.createPromptBox(td.promptContainer.title, td.promptContainer.text);
                 validation.setShowPromptBox(true);
@@ -593,9 +633,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 validation.setSuppressDropDownArrow(false);
             }
             sheet.addValidationData(validation);
-            if (list.length > 0) {
-                return list[0];
-            }
+            return linkage ? null : list[0];
         }
         return null;
     }

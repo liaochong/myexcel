@@ -105,8 +105,14 @@ public class Td {
      * 批注
      */
     public Comment comment;
-
+    /**
+     * 图片配置
+     */
     public Image image;
+    /**
+     * 下拉列表配置
+     */
+    public DropdownList dropdownList;
 
     public Td(int row, int col) {
         this.row = row;

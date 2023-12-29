@@ -177,6 +177,8 @@ class HtmlToExcelStreamFactory extends AbstractExcelFactory {
                 }
                 sheet.setColumnWidth(key, contentLength << 8);
             });
+            // 构建名称管理器
+            this.createNameManager();
             int totalSize = 0;
             while (tr != STOP_FLAG) {
                 if (context.capacity > 0 && count == context.capacity) {

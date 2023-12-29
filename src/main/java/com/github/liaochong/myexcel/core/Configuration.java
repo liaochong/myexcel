@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -106,6 +107,10 @@ public class Configuration {
      * 绑定的上下文，适用spring等容器环境
      */
     public Map<Class<?>, Object> applicationBeans = Collections.emptyMap();
+    /**
+     * 名称管理映射
+     */
+    public Map<String, List<?>> nameMapping = Collections.emptyMap();
 
     public void setWidthStrategy(WidthStrategy widthStrategy) {
         this.widthStrategy = widthStrategy;

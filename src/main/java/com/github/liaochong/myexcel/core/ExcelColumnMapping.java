@@ -19,6 +19,7 @@ import com.github.liaochong.myexcel.core.annotation.Prompt;
 import com.github.liaochong.myexcel.core.constant.FileType;
 import com.github.liaochong.myexcel.core.constant.LinkType;
 import com.github.liaochong.myexcel.core.converter.CustomWriteConverter;
+import com.github.liaochong.myexcel.core.parser.DropdownList;
 import com.github.liaochong.myexcel.core.parser.Image;
 import com.github.liaochong.myexcel.utils.StringUtil;
 
@@ -104,6 +105,8 @@ public final class ExcelColumnMapping {
 
     public Image image;
 
+    public DropdownList dropdownList;
+
     public static ExcelColumnMapping mapping(ExcelColumn excelColumn) {
         ExcelColumnMapping result = new ExcelColumnMapping();
         result.title = excelColumn.title();
@@ -137,22 +140,41 @@ public final class ExcelColumnMapping {
             result.promptContainer = promptContainer;
         }
         com.github.liaochong.myexcel.core.annotation.Image image = excelColumn.image();
-        result.image = new Image();
         if (image.scaleX() > 0 && image.scaleY() > 0) {
             result.image.setScaleX(image.scaleX());
             result.image.setScaleY(image.scaleY());
+            result.image = new Image();
         }
         if ((image.marginTop() > 0)) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setMarginTop(image.marginTop());
         }
         if ((image.marginLeft() > 0)) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setMarginLeft(image.marginLeft());
         }
         if (image.width() > 0) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setWidth(image.width());
         }
         if (image.height() > 0) {
+            if (result.image == null) {
+                result.image = new Image();
+            }
             result.image.setHeight(image.height());
+        }
+        com.github.liaochong.myexcel.core.annotation.DropdownList dr = excelColumn.dropdownList();
+        if (StringUtil.isNotBlank(dr.name()) || StringUtil.isNotBlank(dr.parent())) {
+            DropdownList drList = new DropdownList();
+            drList.setName(dr.name());
+            drList.setParent(dr.parent());
+            result.dropdownList = drList;
         }
         return result;
     }

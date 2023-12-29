@@ -19,6 +19,9 @@ import com.github.liaochong.myexcel.core.strategy.SheetStrategy;
 import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author liaochong
  * @version 1.0
@@ -70,6 +73,16 @@ public interface ExcelFactory {
      * @return ExcelFactory
      */
     ExcelFactory sheetStrategy(SheetStrategy sheetStrategy);
+
+    /**
+     * 指定名称管理器
+     *
+     * @param nameMapping 名称映射
+     * @return ExcelFactory
+     */
+    default ExcelFactory nameManager(Map<String, List<?>> nameMapping) {
+        return this;
+    }
 
     /**
      * 构建
