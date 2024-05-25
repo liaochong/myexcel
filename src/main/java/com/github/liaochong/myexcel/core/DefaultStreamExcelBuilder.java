@@ -111,7 +111,7 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
      * @return empty workbook
      */
     public static Workbook createEmptyWorkbook() {
-        DefaultStreamExcelBuilder<Cell> emptyStreamExcelBuilder = DefaultStreamExcelBuilder.of(Cell.class).start();
+        DefaultStreamExcelBuilder<Map> emptyStreamExcelBuilder = DefaultStreamExcelBuilder.of(Map.class).start();
         return emptyStreamExcelBuilder.build();
     }
 
