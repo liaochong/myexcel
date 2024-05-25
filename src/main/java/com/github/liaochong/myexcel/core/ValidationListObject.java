@@ -15,41 +15,32 @@
 package com.github.liaochong.myexcel.core;
 
 import javax.validation.ConstraintViolation;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author liaochong
  * @version 1.0
  */
-public class ValidationObject<T> {
+public class ValidationListObject<T> {
 
-    private T object;
+    private List<ValidationObject<T>> validationObjects = new LinkedList<>();
 
-    private int rowNum;
-
-    private Set<ConstraintViolation<T>> constraintViolations;
-
-    public T getObject() {
-        return object;
+    public List<ValidationObject<T>> getValidationObjects() {
+        return validationObjects;
     }
 
-    public void setObject(T object) {
-        this.object = object;
+    public void setValidationObjects(List<ValidationObject<T>> validationObjects) {
+        this.validationObjects = validationObjects;
     }
 
-    public int getRowNum() {
-        return rowNum;
+    public List<T> getObjectList() {
+        return validationObjects.stream().map(ValidationObject::getObject).collect(Collectors.toList());
     }
 
-    public void setRowNum(int rowNum) {
-        this.rowNum = rowNum;
-    }
-
-    public Set<ConstraintViolation<T>> getConstraintViolations() {
-        return constraintViolations;
-    }
-
-    public void setConstraintViolations(Set<ConstraintViolation<T>> constraintViolations) {
-        this.constraintViolations = constraintViolations;
+    public List<Set<ConstraintViolation<T>>> getViolations() {
+        return validationObjects.stream().map(ValidationObject::getConstraintViolations).collect(Collectors.toList());
     }
 }

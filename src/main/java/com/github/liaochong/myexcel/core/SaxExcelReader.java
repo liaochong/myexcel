@@ -190,12 +190,12 @@ public class SaxExcelReader<T> {
         return result;
     }
 
-    public ValidationObject<T> validRead(InputStream fileInputStream) {
-        ValidationObject<T> validationObject = new ValidationObject<>();
+    public ValidationListObject<T> validRead(InputStream fileInputStream) {
+        ValidationListObject<T> validationListObject = new ValidationListObject<>();
         this.readThen(fileInputStream, (t, rowContext) -> {
-            doValidRead(t, rowContext, validationObject);
+            doValidRead(t, rowContext, validationListObject);
         });
-        return validationObject;
+        return validationListObject;
     }
 
     public List<T> read(File file) {
@@ -203,21 +203,21 @@ public class SaxExcelReader<T> {
         return result;
     }
 
-    public ValidationObject<T> validRead(File file) {
-        ValidationObject<T> validationObject = new ValidationObject<>();
+    public ValidationListObject<T> validRead(File file) {
+        ValidationListObject<T> validationListObject = new ValidationListObject<>();
         this.readThen(file, (t, rowContext) -> {
-            doValidRead(t, rowContext, validationObject);
+            doValidRead(t, rowContext, validationListObject);
         });
-        return validationObject;
+        return validationListObject;
     }
 
-    private void doValidRead(T t, RowContext rowContext, ValidationObject<T> validationObject) {
-        validationObject.getObjects().add(t);
+    private void doValidRead(T t, RowContext rowContext, ValidationListObject<T> validationListObject) {
+        ValidationObject<T> validationObject = new ValidationObject<>();
         Set<ConstraintViolation<T>> violations = getValidator().validate(t, t.getClass());
-        ValidationObject.ValidationInfo<T> validationInfo = new ValidationObject.ValidationInfo<>();
-        validationInfo.setRowNum(rowContext.getRowNum());
-        validationInfo.setConstraintViolations(violations);
-        validationObject.getValidationInfos().add(validationInfo);
+        validationObject.setRowNum(rowContext.getRowNum());
+        validationObject.setConstraintViolations(violations);
+        validationListObject.getValidationObjects().add(validationObject);
+        validationListObject.getValidationObjects().add(validationObject);
     }
 
     public void readThen(InputStream fileInputStream, Consumer<T> consumer) {
