@@ -106,6 +106,16 @@ public class DefaultStreamExcelBuilder<T> extends AbstractSimpleExcelBuilder imp
     }
 
     /**
+     * 创建空的workbook
+     *
+     * @return empty workbook
+     */
+    public static Workbook createEmptyWorkbook() {
+        DefaultStreamExcelBuilder<Cell> emptyStreamExcelBuilder = DefaultStreamExcelBuilder.of(Cell.class).start();
+        return emptyStreamExcelBuilder.build();
+    }
+
+    /**
      * 获取实例，设定需要渲染的数据的类类型
      *
      * @param dataType 数据的类类型
