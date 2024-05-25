@@ -217,7 +217,6 @@ public class SaxExcelReader<T> {
         validationObject.setRowNum(rowContext.getRowNum());
         validationObject.setConstraintViolations(violations);
         validationListObject.getValidationObjects().add(validationObject);
-        validationListObject.getValidationObjects().add(validationObject);
     }
 
     public void readThen(InputStream fileInputStream, Consumer<T> consumer) {
