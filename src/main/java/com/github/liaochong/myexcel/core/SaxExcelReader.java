@@ -213,7 +213,7 @@ public class SaxExcelReader<T> {
 
     private void doValidRead(T t, RowContext rowContext, ValidationObject<T> validationObject) {
         validationObject.getObjects().add(t);
-        Set<ConstraintViolation<T>> violations = validator.validate(t, t.getClass());
+        Set<ConstraintViolation<T>> violations = getValidator().validate(t, t.getClass());
         ValidationObject.ValidationInfo<T> validationInfo = new ValidationObject.ValidationInfo<>();
         validationInfo.setRowNum(rowContext.getRowNum());
         validationInfo.setConstraintViolations(violations);
@@ -300,11 +300,12 @@ public class SaxExcelReader<T> {
 
     private synchronized Validator getValidator() {
         if (validator == null) {
-            ValidatorFactory validatorFactory = Validation
+            try (ValidatorFactory validatorFactory = Validation
                     .byProvider(HibernateValidator.class)
                     .configure()
-                    .buildValidatorFactory();
-            validator = validatorFactory.getValidator();
+                    .buildValidatorFactory()) {
+                validator = validatorFactory.getValidator();
+            }
         }
         return validator;
     }

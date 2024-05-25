@@ -11,7 +11,7 @@
 
     <groupId>com.github.liaochong</groupId>
     <artifactId>myexcel</artifactId>
-    <version>4.5.0</version>
+    <version>4.6.0</version>
     <packaging>jar</packaging>
 
     <name>myexcel</name>
@@ -36,6 +36,7 @@
         <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
         <imageio-jpeg.version>3.9.4</imageio-jpeg.version>
         <commons-csv.version>1.10.0</commons-csv.version>
+        <hibernate-validator.version>6.0.18.Final</hibernate-validator.version>
     </properties>
 
     <dependencies>
@@ -121,7 +122,7 @@
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>6.0.18.Final</version>
+            <version>${hibernate-validator.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
