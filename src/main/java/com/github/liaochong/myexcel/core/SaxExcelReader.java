@@ -24,6 +24,7 @@ import com.github.liaochong.myexcel.exception.StopReadException;
 import com.github.liaochong.myexcel.utils.ReflectUtil;
 import com.github.liaochong.myexcel.utils.StringUtil;
 import com.github.liaochong.myexcel.utils.TempFileOperator;
+import com.github.liaochong.myexcel.utils.ValidatorUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -32,7 +33,6 @@ import org.apache.poi.openxml4j.opc.PackageRelationshipCollection;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
-import org.hibernate.validator.HibernateValidator;
 import org.slf4j.Logger;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -40,9 +40,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,7 +97,6 @@ public class SaxExcelReader<T> {
         return sheets(sheetName);
     }
 
-    public Validator validator;
 
     public SaxExcelReader<T> sheets(Integer... sheetIndexs) {
         this.readConfig.sheetIndexs.clear();
@@ -213,7 +209,7 @@ public class SaxExcelReader<T> {
 
     private void doValidRead(T t, RowContext rowContext, ValidationListObject<T> validationListObject) {
         ValidationObject<T> validationObject = new ValidationObject<>();
-        Set<ConstraintViolation<T>> violations = getValidator().validate(t, t.getClass());
+        Set<ConstraintViolation<T>> violations = ValidatorUtil.getValidator().validate(t, t.getClass());
         validationObject.setRowNum(rowContext.getRowNum());
         validationObject.setConstraintViolations(violations);
         validationListObject.getValidationObjects().add(validationObject);
@@ -295,18 +291,6 @@ public class SaxExcelReader<T> {
         SaxExcelReader<Void> saxExcelReader = new SaxExcelReader<>(null);
         saxExcelReader.doRead(file, true);
         return saxExcelReader.workbookMetaData;
-    }
-
-    private synchronized Validator getValidator() {
-        if (validator == null) {
-            try (ValidatorFactory validatorFactory = Validation
-                    .byProvider(HibernateValidator.class)
-                    .configure()
-                    .buildValidatorFactory()) {
-                validator = validatorFactory.getValidator();
-            }
-        }
-        return validator;
     }
 
     private void doRead(InputStream fileInputStream) {
