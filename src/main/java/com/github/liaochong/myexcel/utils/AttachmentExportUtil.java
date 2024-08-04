@@ -150,5 +150,6 @@ public final class AttachmentExportUtil {
     private static void setAttachmentConfig(String fileName, HttpServletResponse response) throws UnsupportedEncodingException {
         response.setCharacterEncoding(CharEncoding.UTF_8);
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, CharEncoding.UTF_8).replace("+", "%20"));
+        response.addHeader("Access-Control-Expose-Headers", "Content-Disposition");
     }
 }
