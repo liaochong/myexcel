@@ -25,7 +25,7 @@
         <poi.version>5.2.5</poi.version>
         <jsoup.version>1.16.2</jsoup.version>
         <lombok.version>1.18.22</lombok.version>
-        <beetl.version>3.15.4.RELEASE</beetl.version>
+        <beetl.version>3.15.13.RELEASE</beetl.version>
         <velocity.version>2.3</velocity.version>
         <freemarker.version>2.3.32</freemarker.version>
         <groovy-templates.version>4.0.12</groovy-templates.version>
