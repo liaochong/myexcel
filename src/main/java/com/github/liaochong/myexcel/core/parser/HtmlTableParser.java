@@ -287,6 +287,12 @@ public class HtmlTableParser {
             int width = TdUtil.getValue(widthStr);
             if (width >= 0) {
                 colWidthMap.put(td.col, width);
+                if (td.colSpan > 1) {
+                    for (int j = 1, span = td.colSpan; j < span; j++) {
+                        int colIndex = td.col + j;
+                        colWidthMap.put(colIndex, width);
+                    }
+                }
             }
         }
     }
