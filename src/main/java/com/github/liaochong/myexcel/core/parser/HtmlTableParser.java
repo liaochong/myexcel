@@ -15,6 +15,7 @@
  */
 package com.github.liaochong.myexcel.core.parser;
 
+import com.github.liaochong.myexcel.core.PromptContainer;
 import com.github.liaochong.myexcel.core.constant.Constants;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.utils.ImageUtil;
@@ -233,9 +234,23 @@ public class HtmlTableParser {
             this.setColumnWidth(colWidthMap, td);
             // 批注
             this.setComment(tdElement, td);
+            // 提示
+            this.setPrompt(tdElement, td);
         }
         tr.tdList = tdList;
         tr.colWidthMap = colWidthMap;
+    }
+
+    private void setPrompt(Element tdElement, Td td) {
+        String title = tdElement.attr("prompt-title");
+        String text = tdElement.attr("prompt-text");
+        if (StringUtil.isBlank(title) || StringUtil.isBlank(text)) {
+            return;
+        }
+        PromptContainer promptContainer = new PromptContainer();
+        promptContainer.title = title;
+        promptContainer.text = text;
+        td.promptContainer = promptContainer;
     }
 
     private void setComment(Element tdElement, Td td) {
@@ -287,6 +302,12 @@ public class HtmlTableParser {
             int width = TdUtil.getValue(widthStr);
             if (width >= 0) {
                 colWidthMap.put(td.col, width);
+                if (td.colSpan > 1) {
+                    for (int j = 1, span = td.colSpan; j < span; j++) {
+                        int colIndex = td.col + j;
+                        colWidthMap.put(colIndex, width);
+                    }
+                }
             }
         }
     }
