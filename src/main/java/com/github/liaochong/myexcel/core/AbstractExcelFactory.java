@@ -402,7 +402,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private String process(Td td, Sheet sheet, Cell cell, String content) {
         CellAddress cellAddress = cell.getAddress();
-        if (td.dropdownList != null) {
+        if (td.dropdownList.getName() != null) {
             referMapping.putIfAbsent(td.dropdownList.getName(), cellAddress);
         }
         return this.setDropDownList(td, sheet, content, cellAddress);
@@ -608,13 +608,19 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
 
     private String setDropDownList(Td td, Sheet sheet, String content, CellAddress cellAddress) {
         if (content != null && !content.isEmpty()) {
-            CellRangeAddressList addressList = new CellRangeAddressList(
-                    td.row, td.getRowBound(), td.col, td.getColBound());
+            CellRangeAddressList addressList;
+            if (td.dropdownList.isFullColumnReference()) {
+                addressList = new CellRangeAddressList(
+                        td.row, (isHssf ? XLS_MAX_ROW_COUNT : XLSX_MAX_ROW_COUNT) - td.row, td.col, td.getColBound());
+            } else {
+                addressList = new CellRangeAddressList(
+                        td.row, td.getRowBound(), td.col, td.getColBound());
+            }
             DataValidationHelper dvHelper = sheet.getDataValidationHelper();
             DropDownLists.Index index = DropDownLists.getHiddenSheetIndex(content, workbook);
             String[] list = new String[]{index.firstLine};
             DataValidation validation;
-            boolean linkage = td.dropdownList != null && StringUtil.isNotBlank(td.dropdownList.getParent());
+            boolean linkage = StringUtil.isNotBlank(td.dropdownList.getParent());
             if (linkage) {
                 CellAddress parentCellAddress = referMapping.get(td.dropdownList.getParent());
                 String refer = new CellAddress(cellAddress.getRow(), parentCellAddress.getColumn()).formatAsString();
@@ -633,7 +639,7 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
                 validation.setSuppressDropDownArrow(false);
             }
             sheet.addValidationData(validation);
-            return linkage ? null : list[0];
+            return linkage ? null : td.dropdownList.isShowFirstOption() ? list[0] : null;
         }
         return null;
     }

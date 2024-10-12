@@ -26,6 +26,10 @@ public class DropdownList {
 
     private String parent;
 
+    private boolean fullColumnReference;
+
+    private boolean showFirstOption = true;
+
     public String getName() {
         return name;
     }
@@ -40,5 +44,21 @@ public class DropdownList {
 
     public void setParent(String parent) {
         this.parent = parent;
+    }
+
+    public boolean isFullColumnReference() {
+        return fullColumnReference;
+    }
+
+    public void setFullColumnReference(boolean fullColumnReference) {
+        this.fullColumnReference = fullColumnReference;
+    }
+
+    public boolean isShowFirstOption() {
+        return showFirstOption;
+    }
+
+    public void setShowFirstOption(boolean showFirstOption) {
+        this.showFirstOption = showFirstOption;
     }
 }
