@@ -331,7 +331,7 @@ abstract class AbstractSimpleExcelBuilder {
         List<Td> tdList = IntStream.range(0, contents.size()).mapToObj(index -> {
             Td td = new Td(0, index);
             Pair<? extends Class, ?> pair = contents.get(index);
-            if (pair.getRepeatSize() != null) {
+            if (configuration.autoMerge && pair.getRepeatSize() != null) {
                 td.setRowSpan(pair.getRepeatSize());
             }
             this.setTdContent(td, pair);
