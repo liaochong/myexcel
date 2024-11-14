@@ -60,6 +60,9 @@ public class ReadContext<T> {
         this.val = val;
         this.rowNum = rowNum;
         this.colNum = colNum;
+        if (readConfig == null) {
+            this.readConfig = new SaxExcelReader.ReadConfig<>(-1);
+        }
     }
 
     public void revert() {
