@@ -36,7 +36,7 @@ public class Tr {
     /**
      * 最大宽度
      */
-    public Map<Integer, Integer> colWidthMap;
+    public Map<Integer, Integer> colWidthMap = Collections.emptyMap();
     /**
      * 是否可见
      */

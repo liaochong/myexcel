@@ -408,19 +408,17 @@ public class HtmlTableParser {
         }
         if (tdElement.hasAttr("dropdownlist") || tdElement.hasAttr("dropDownList")) {
             td.tdContentType = ContentTypeEnum.DROP_DOWN_LIST;
+            td.dropdownList = new DropdownList();
             String dropdownListName = tdElement.attr("dropdownlist-name");
             if (StringUtil.isNotBlank(dropdownListName)) {
-                DropdownList dropdownList = new DropdownList();
-                dropdownList.setName(dropdownListName);
-                td.dropdownList = dropdownList;
+                td.dropdownList.setName(dropdownListName);
             }
             String dropdownListParent = tdElement.attr("dropdownlist-parent");
             if (StringUtil.isNotBlank(dropdownListParent)) {
-                if (td.dropdownList == null) {
-                    td.dropdownList = new DropdownList();
-                }
                 td.dropdownList.setParent(dropdownListParent);
             }
+            td.dropdownList.setFullColumnReference(tdElement.hasAttr("dropdownlist-full-column-reference"));
+            td.dropdownList.setShowFirstOption(!tdElement.hasAttr("dropdownlist-not-show-first-option"));
             return;
         }
         if (Constants.TRUE.equals(content) || Constants.FALSE.equals(content)) {
