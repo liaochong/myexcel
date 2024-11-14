@@ -15,7 +15,6 @@
 package com.github.liaochong.myexcel.core.converter.writer;
 
 import com.github.liaochong.myexcel.core.ExcelColumnMapping;
-import com.github.liaochong.myexcel.core.cache.WeakCache;
 import com.github.liaochong.myexcel.core.container.Pair;
 import com.github.liaochong.myexcel.core.converter.ConvertContext;
 import com.github.liaochong.myexcel.core.converter.WriteConverter;
@@ -30,8 +29,6 @@ import java.util.Properties;
  */
 public class MappingWriteConverter implements WriteConverter {
 
-    private final WeakCache<String, Pair<Class, Object>> mappingCache = new WeakCache<>();
-
     @Override
     public boolean support(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping mapping = convertContext.excelColumnMappingMap.get(field);
@@ -41,18 +38,11 @@ public class MappingWriteConverter implements WriteConverter {
     @Override
     public Pair<Class, Object> convert(Field field, Class<?> fieldType, Object fieldVal, ConvertContext convertContext) {
         ExcelColumnMapping excelColumnMapping = convertContext.excelColumnMappingMap.get(field);
-        String cacheKey = excelColumnMapping.mapping + "->" + fieldVal;
-        Pair<Class, Object> mapping = mappingCache.get(cacheKey);
-        if (mapping != null) {
-            return mapping;
-        }
         Properties properties = PropertyUtil.getProperties(excelColumnMapping);
         String property = properties.getProperty(fieldVal.toString());
         if (property == null) {
             return Pair.of(fieldType, fieldVal);
         }
-        Pair<Class, Object> result = Pair.of(String.class, property);
-        mappingCache.cache(cacheKey, result);
-        return result;
+        return Pair.of(String.class, property);
     }
 }
