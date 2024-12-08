@@ -29,6 +29,7 @@ import com.github.liaochong.myexcel.core.style.BorderStyle;
 import com.github.liaochong.myexcel.core.style.CustomColor;
 import com.github.liaochong.myexcel.core.style.FontStyle;
 import com.github.liaochong.myexcel.core.style.LinkDefaultCellStyle;
+import com.github.liaochong.myexcel.core.style.LockStyle;
 import com.github.liaochong.myexcel.core.style.TdDefaultCellStyle;
 import com.github.liaochong.myexcel.core.style.TextAlignStyle;
 import com.github.liaochong.myexcel.core.style.ThDefaultCellStyle;
@@ -702,6 +703,8 @@ public abstract class AbstractExcelFactory implements ExcelFactory {
             if (td.fonts == null || td.fonts.isEmpty()) {
                 FontStyle.setFont(() -> workbook.createFont(), cellStyle, td.style, fontMap, customColor);
             }
+            // lock
+            LockStyle.setLock(cellStyle, td.style);
             cell.setCellStyle(cellStyle);
             cellStyleMap.put(td.style, cellStyle);
         }
