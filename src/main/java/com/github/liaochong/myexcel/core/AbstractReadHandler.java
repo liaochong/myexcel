@@ -239,7 +239,11 @@ abstract class AbstractReadHandler<T> {
                                 }
                             } else {
                                 Object value;
-                                if (fieldParentIndexMapping.get(fieldDefinition.getField().getDeclaringClass()) >= colNum) {
+                                // 这个判断会造成一对多导入 行合并问题，暂时注释掉
+                                //if (fieldParentIndexMapping.get(fieldDefinition.getField().getDeclaringClass()) >= colNum) {
+                                // 修改判断为判断当前行是否为第一次创建，如果是则新建对象，否则取最后一个对象
+                                if (currentRow.isFirstCreate()) {
+                                    currentRow.setFirstCreate(false);
                                     value = multiColumn.classType().newInstance();
                                     ((List<Object>) prevObj).add(value);
                                 } else {
@@ -277,6 +281,7 @@ abstract class AbstractReadHandler<T> {
 
     protected void newRow(int rowNum, boolean newInstance) {
         currentRow.setRowNum(rowNum);
+        currentRow.setFirstCreate(true);
         if (obj == null || newInstance) {
             obj = this.newInstance.get();
         }

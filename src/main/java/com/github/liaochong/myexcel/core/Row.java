@@ -24,6 +24,17 @@ public class Row {
 
     private int rowNum;
 
+    private boolean isFirstCreate;
+
+
+    public boolean isFirstCreate() {
+        return isFirstCreate;
+    }
+
+    public void setFirstCreate(boolean firstCreate) {
+        isFirstCreate = firstCreate;
+    }
+
     public Row(int rowNum) {
         this.rowNum = rowNum;
     }
